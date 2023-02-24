@@ -1,0 +1,17 @@
+---
+name: "Hilla Test Extension"
+metadata:
+  built-with-quarkus-core: "2.16.0.Final"
+  extension-dependencies:
+  - "io.quarkus:quarkus-arc"
+  - "io.quarkus:quarkus-core"
+  - "com.vaadin:vaadin-quarkus"
+  - "io.quarkus:quarkus-undertow"
+  - "io.quarkus:quarkus-vertx-http"
+  - "io.quarkus:quarkus-mutiny"
+  - "io.quarkus:quarkus-smallrye-context-propagation"
+  - "io.quarkus:quarkus-vertx"
+  - "io.quarkus:quarkus-netty"
+  - "io.quarkus:quarkus-websockets"
+  - "io.quarkus:quarkus-websockets-client"
+artifact: "org.acme:hilla-test-extension::jar:1.0.0-SNAPSHOT"

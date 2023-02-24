@@ -1,0 +1,6 @@
+org/springframework/beans/factory/HierarchicalBeanFactory.class
+org/springframework/boot/autoconfigure/web/servlet/WebMvcRegistrations.class
+org/springframework/beans/factory/ListableBeanFactory.class
+org/springframework/beans/factory/BeanFactory.class
+org/springframework/core/io/support/ResourcePatternResolver.class
+org/springframework/core/env/EnvironmentCapable.class
