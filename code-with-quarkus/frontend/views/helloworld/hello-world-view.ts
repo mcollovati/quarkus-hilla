@@ -2,7 +2,7 @@ import '@vaadin/button';
 import '@vaadin/notification';
 import {Notification} from '@vaadin/notification';
 import '@vaadin/text-field';
-import UserPOJO from 'Frontend/generated/com/example/application/endpoints/helloworld/HelloWorldEndpoint/UserPOJO';
+import UserPOJO from 'Frontend/generated/com/example/application/entities/UserPOJO';
 import * as HelloWorldEndpoint from 'Frontend/generated/HelloWorldEndpoint';
 import {html} from 'lit';
 import {customElement} from 'lit/decorators.js';
