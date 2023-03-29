@@ -22,6 +22,7 @@ export class HelloWorldView extends View {
             <vaadin-text-field label="Your name" @value-changed=${this.nameChanged}></vaadin-text-field>
             <vaadin-button @click=${this.sayHello}>Say hello</vaadin-button>
             <vaadin-button @click=${this.sayComplexHello}>Say complex hello</vaadin-button>
+            <vaadin-button @click=${this.testme}>Test me</vaadin-button>
         `;
     }
 
@@ -42,4 +43,12 @@ export class HelloWorldView extends View {
         const serverResponse = await HelloWorldEndpoint.sayComplexHello(pojo);
         Notification.show(serverResponse);
     }
+    async testme() {
+      console.log("============================ CC????")
+      HelloWorldEndpoint.getClock()
+          .onNext((msg) => console.log("NEXT " + msg))
+          .onError(() => console.log("ERROR"))
+          .onComplete(() => console.log("COMPLETE"));
+    }
+
 }

@@ -6,10 +6,8 @@ import javax.enterprise.inject.AmbiguousResolutionException;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.util.AnnotationLiteral;
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
@@ -30,10 +28,15 @@ import dev.hilla.EndpointUtil;
 import dev.hilla.ExplicitNullableTypeChecker;
 import dev.hilla.auth.CsrfChecker;
 import dev.hilla.auth.EndpointAccessChecker;
+import dev.hilla.push.PushMessageHandler;
+import io.quarkus.runtime.Startup;
+import org.acme.hilla.test.extension.push.QuarkusPushEndpoint;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.quarkus.AnyLiteral;
@@ -142,6 +145,22 @@ public class QuarkusEndpointControllerConfiguration {
         return configuration.endpointInvoker(context, objectMapper, explicitNullableTypeChecker, servletContext, endpointRegistry);
     }
 
+    @Produces
+    @ApplicationScoped
+    @Named
+    PushMessageHandler pushMessageHandler(EndpointInvoker invoker, ServletContext servletContext) {
+        PushMessageHandler pushMessageHandler = new QuarkusPushMessageHandler(invoker, servletContext);
+        return pushMessageHandler;
+    }
+
+    @Produces
+    @ApplicationScoped
+    @Named
+    @Startup
+    org.acme.hilla.test.extension.push.QuarkusPushEndpoint pushEndpoint(PushMessageHandler pushMessageHandler, ObjectMapper objectMapper) {
+        return new org.acme.hilla.test.extension.push.QuarkusPushEndpoint(objectMapper, pushMessageHandler);
+    }
+
     private static class ApplicationContextMock implements InvocationHandler {
 
         private final BeanManager beanManager;
@@ -165,7 +184,7 @@ public class QuarkusEndpointControllerConfiguration {
             // Only handle endpoint
             if (Endpoint.class.equals(annotationType)) {
                 return beanManager.getBeans(Object.class, new AnyLiteral())
-                //return beanManager.getBeans(Object.class, new EndpointLiteral())
+                        //return beanManager.getBeans(Object.class, new EndpointLiteral())
                         .stream().filter(b -> b.getBeanClass().isAnnotationPresent(Endpoint.class))
                         .collect(Collectors.toMap(
                                 Bean::getName, bean -> beanReference(bean, bean.getBeanClass())));
@@ -200,9 +219,11 @@ public class QuarkusEndpointControllerConfiguration {
     @Produces
     @ApplicationScoped
     @Named
-    ApplicationContext mockApplicationContext(BeanManager beanManager) {
-        return (ApplicationContext) Proxy.newProxyInstance(beanManager.getClass().getClassLoader(), new Class[]{ApplicationContext.class},
+    WebApplicationContext mockApplicationContext(BeanManager beanManager, ServletContext servletContext) {
+        WebApplicationContext webAppCtx = (WebApplicationContext) Proxy.newProxyInstance(beanManager.getClass().getClassLoader(), new Class[]{WebApplicationContext.class},
                 new ApplicationContextMock(beanManager));
+        servletContext.setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, webAppCtx);
+        return webAppCtx;
 
         /*
         return new ApplicationContext() {

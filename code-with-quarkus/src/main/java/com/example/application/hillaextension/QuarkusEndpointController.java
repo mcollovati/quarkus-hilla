@@ -14,11 +14,13 @@ import dev.hilla.EndpointController;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.auth.CsrfChecker;
+import io.quarkus.runtime.Startup;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 
 
 @Path("")
+@Startup
 public class QuarkusEndpointController {
 
     static final String ENDPOINT_METHODS = "/{endpoint}/{method}";
