@@ -19,8 +19,17 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-quarkus-extension</artifactId>
             <version>${vaadin.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>flow-server</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
-
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-resteasy-jackson</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.github.mcollovati.hilla</groupId>
             <artifactId>hilla-jandex</artifactId>

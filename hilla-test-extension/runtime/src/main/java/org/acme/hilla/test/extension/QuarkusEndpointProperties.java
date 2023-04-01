@@ -1,4 +1,4 @@
-package com.example.application.hillaextension;
+package org.acme.hilla.test.extension;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -9,7 +9,7 @@ import dev.hilla.EndpointProperties;
 public class QuarkusEndpointProperties extends EndpointProperties {
 
     @Inject
-    EndpointConfiguration endpointConfiguration;
+    QuarkusEndpointConfiguration endpointConfiguration;
 
     @Override
     public String getEndpointPrefix() {

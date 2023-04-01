@@ -1,5 +1,8 @@
-package org.acme.hilla.test.extension.push;
+package org.acme.hilla.test.extension;
 
+import javax.annotation.PreDestroy;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.VarHandle;
@@ -8,6 +11,7 @@ import java.util.function.Consumer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
+import io.quarkus.runtime.ShutdownEvent;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.config.service.AtmosphereHandlerService;
 import org.atmosphere.cpr.AtmosphereResource;
@@ -20,11 +24,14 @@ import org.atmosphere.util.SimpleBroadcaster;
         TrackMessageSizeInterceptor.class, SuspendTrackerInterceptor.class})
 public class QuarkusPushEndpoint extends PushEndpoint {
 
-    public QuarkusPushEndpoint(ObjectMapper objectMapper, PushMessageHandler pushMessageHandler) {
-        if (INJECTOR == null) {
-            initInjector(objectMapper, pushMessageHandler);
-        }
+    // Default constructor for Atmosphere
+    public QuarkusPushEndpoint() {
     }
+
+    QuarkusPushEndpoint(ObjectMapper objectMapper, PushMessageHandler pushMessageHandler) {
+        initInjector(objectMapper, pushMessageHandler);
+    }
+
 
     @Override
     public void onRequest(AtmosphereResource resource) throws IOException {

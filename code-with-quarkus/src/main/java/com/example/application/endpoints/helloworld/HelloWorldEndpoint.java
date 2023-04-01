@@ -2,6 +2,7 @@ package com.example.application.endpoints.helloworld;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.UUID;
 
 import com.example.application.entities.UserPOJO;
 import dev.hilla.Endpoint;
@@ -15,13 +16,29 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 @AnonymousAllowed
 public class HelloWorldEndpoint {
 
+    private final String id = UUID.randomUUID().toString();
+
+    public HelloWorldEndpoint() {
+        System.out.println("============== HelloWorldEndpoint CTOR " + id);
+    }
+
     @Nonnull
     public String sayHello(@Nonnull String name) {
         if (name.isEmpty()) {
-            return "Hello stranger";
+            return "Hello stranger!!!";
         } else {
-            return "Hello " + name;
+            return "Hello " + name + "!!!";
         }
+    }
+
+    @Nonnull
+    public String sayHello2(@Nonnull String name) {
+        if (name.isEmpty()) {
+            return "Hello from new methods stranger!";
+        } else {
+            return "Hello from new methods " + name + "!";
+        }
+
     }
 
     @Nonnull
@@ -36,11 +53,12 @@ public class HelloWorldEndpoint {
 
     @AnonymousAllowed
     public Flux<@Nonnull String> getClock() {
-        return Flux.interval(Duration.ofSeconds(5))
+        System.out.println("============== HelloWorldEndpoint getClock " + id);
+        return Flux.interval(Duration.ofSeconds(1))
                 .onBackpressureDrop()
                 .map(_interval -> {
-                    System.out.println("====================== SENT");
-                    return new Date().toString();
+                    System.out.println("====================== SENT " + id);
+                    return new Date().toString() + " XXXXX " + id;
                 }).onErrorReturn("OOOOOOOOOOOOOOOOPS");
     }
 

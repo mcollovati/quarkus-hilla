@@ -1,5 +1,6 @@
-package com.example.application.hillaextension;
+package org.acme.hilla.test.extension;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -14,13 +15,11 @@ import dev.hilla.EndpointController;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.auth.CsrfChecker;
-import io.quarkus.runtime.Startup;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 
 
 @Path("")
-@Startup
 public class QuarkusEndpointController {
 
     static final String ENDPOINT_METHODS = "/{endpoint}/{method}";
@@ -36,8 +35,14 @@ public class QuarkusEndpointController {
      * @param endpointInvoker  then end point invoker
      * @param csrfChecker      the csrf checker to use
      */
+    //@Inject
     public QuarkusEndpointController(ApplicationContext context, EndpointRegistry endpointRegistry, EndpointInvoker endpointInvoker, CsrfChecker csrfChecker) {
         delegate = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
+    }
+
+    @Inject
+    public QuarkusEndpointController(EndpointController delegate) {
+        this.delegate = delegate;
     }
 
     @POST

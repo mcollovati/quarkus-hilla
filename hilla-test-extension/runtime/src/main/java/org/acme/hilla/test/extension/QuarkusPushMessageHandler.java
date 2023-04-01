@@ -1,12 +1,16 @@
-package com.example.application.hillaextension;
+package org.acme.hilla.test.extension;
 
 import javax.servlet.ServletContext;
 import java.lang.invoke.MethodHandles;
+import java.util.UUID;
 
 import dev.hilla.EndpointInvoker;
 import dev.hilla.push.PushMessageHandler;
 
-public class QuarkusPushMessageHandler extends PushMessageHandler {
+class QuarkusPushMessageHandler extends PushMessageHandler {
+
+    private final String id = UUID.randomUUID().toString();
+
     /**
      * Creates the instance.
      *
@@ -21,6 +25,5 @@ public class QuarkusPushMessageHandler extends PushMessageHandler {
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
-
     }
 }
