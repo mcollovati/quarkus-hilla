@@ -14,6 +14,11 @@ export class HelloWorldView extends View {
   connectedCallback() {
     super.connectedCallback();
     this.classList.add('flex', 'p-m', 'gap-m', 'items-end');
+    HelloWorldEndpoint.getClock()
+        .onNext((msg) => console.log("NEXT " + msg))
+        .onError(() => console.log("ERROR"))
+        .onComplete(() => console.log("COMPLETE"));
+
   }
 
   render() {
