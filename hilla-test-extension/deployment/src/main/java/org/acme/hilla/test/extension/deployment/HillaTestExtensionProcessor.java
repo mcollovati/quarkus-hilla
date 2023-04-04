@@ -33,7 +33,9 @@ class HillaTestExtensionProcessor {
 
     @BuildStep
     void registerJaxrsApplicationToFixApplicationPath(BuildProducer<AdditionalIndexedClassesBuildItem> producer) {
-        producer.produce(new AdditionalIndexedClassesBuildItem("org.acme.hilla.test.extension.HillaApplication"));
+        producer.produce(new AdditionalIndexedClassesBuildItem(
+                QuarkusEndpointController.class.getName()
+        ));
     }
 
     @BuildStep
