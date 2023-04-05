@@ -1,6 +1,11 @@
 import type { Route } from '@vaadin/router';
 import './views/helloworld/hello-world-view';
 import './views/main-layout';
+import {Flow} from "@vaadin/flow-frontend";
+
+const { serverSideRoutes } = new Flow({
+  imports: () => import('../target/frontend/generated-flow-imports')
+});
 
 export type ViewRoute = Route & {
   title?: string;
@@ -32,6 +37,7 @@ export const views: ViewRoute[] = [
       return;
     },
   },
+    ...serverSideRoutes
 ];
 export const routes: ViewRoute[] = [
   {

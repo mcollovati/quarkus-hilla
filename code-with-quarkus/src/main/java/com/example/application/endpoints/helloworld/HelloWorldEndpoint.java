@@ -1,25 +1,22 @@
 package com.example.application.endpoints.helloworld;
 
-import java.time.Duration;
-import java.util.Date;
-import java.util.UUID;
-
+import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointSubscription;
 import dev.hilla.Nonnull;
 import reactor.core.publisher.Flux;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-
 @Endpoint
 @AnonymousAllowed
 public class HelloWorldEndpoint {
 
-    private final String id = UUID.randomUUID().toString();
+    private final ClockService clockService;
 
-    public HelloWorldEndpoint() {
-        System.out.println("============== HelloWorldEndpoint CTOR " + id);
+    public HelloWorldEndpoint(ClockService clockService) {
+        this.clockService = clockService;
+        System.out.println("============== HelloWorldEndpoint CTOR " + clockService.getId());
     }
 
     @Nonnull
@@ -53,20 +50,13 @@ public class HelloWorldEndpoint {
 
     @AnonymousAllowed
     public Flux<@Nonnull String> getClock() {
-        System.out.println("============== HelloWorldEndpoint getClock " + id);
-        return Flux.interval(Duration.ofSeconds(1))
-                .onBackpressureDrop()
-                .map(_interval -> {
-                    System.out.println("====================== SENT " + id);
-                    return new Date().toString() + " XXXXX " + id;
-                }).onErrorReturn("OOOOOOOOOOOOOOOOPS");
+        System.out.println("============== HelloWorldEndpoint getClock " + clockService.getId());
+        return clockService.getClock();
     }
 
     @AnonymousAllowed
     public EndpointSubscription<@Nonnull String> getClockCancellable() {
-        return EndpointSubscription.of(getClock(), () -> {
-            System.getLogger("TESTME").log(System.Logger.Level.INFO, "Subscription has been cancelled");
-        });
+        return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME").log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
 
 }
