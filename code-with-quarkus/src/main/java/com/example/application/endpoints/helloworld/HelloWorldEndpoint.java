@@ -2,6 +2,7 @@ package com.example.application.endpoints.helloworld;
 
 import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
+import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointSubscription;
@@ -46,6 +47,14 @@ public class HelloWorldEndpoint {
         } else {
             return "Hello " + user.name() + " " + user.surname();
         }
+    }
+
+    @Nonnull
+    @AnonymousAllowed
+    public String sayHelloProtected() {
+        var principal = VaadinRequest.getCurrent().getUserPrincipal();
+        if (principal == null) return "Hello anonymous!";
+        return "Hello " + principal.getName() + "!!!";
     }
 
     @AnonymousAllowed

@@ -35,6 +35,7 @@ export class HelloWorldView extends View {
                 <vaadin-text-field label="Your name" @value-changed=${this.nameChanged}></vaadin-text-field>
                 <vaadin-button @click=${this.sayHello}>Say hello</vaadin-button>
                 <vaadin-button @click=${this.sayComplexHello}>Say complex hello</vaadin-button>
+                <vaadin-button @click=${this.sayHelloProtected}>Say protected hello</vaadin-button>
                 <vaadin-button @click=${this.toggleClock}>Toggle clock</vaadin-button>
             </div>
             ${this.renderClock()}
@@ -43,7 +44,8 @@ export class HelloWorldView extends View {
 
     private renderClock() {
         return this.currentTime ?
-            html`<div>${this.currentTime}</div>` :
+            html`
+                <div>${this.currentTime}</div>` :
             nothing;
     }
 
@@ -64,13 +66,19 @@ export class HelloWorldView extends View {
         const serverResponse = await HelloWorldEndpoint.sayComplexHello(pojo);
         Notification.show(serverResponse);
     }
+
+    async sayHelloProtected() {
+        const serverResponse = await HelloWorldEndpoint.sayHelloProtected();
+        Notification.show(serverResponse);
+    }
+
     async toggleClock() {
         if (this.clockSubscription) {
             this.disconnectClock();
             this.currentTime = '';
         } else {
             this.currentTime = 'Loading...';
-            this.clockSubscription = HelloWorldEndpoint.getClock()
+            this.clockSubscription = HelloWorldEndpoint.getClockCancellable()
                 .onNext((msg) => this.currentTime = msg)
                 .onError(() => console.log("ERROR"))
                 .onComplete(() => console.log("COMPLETE"));
