@@ -1,5 +1,7 @@
 package com.example.application.endpoints.helloworld;
 
+import javax.annotation.security.PermitAll;
+
 import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
 import com.vaadin.flow.server.VaadinRequest;
@@ -50,7 +52,7 @@ public class HelloWorldEndpoint {
     }
 
     @Nonnull
-    @AnonymousAllowed
+    @PermitAll
     public String sayHelloProtected() {
         var principal = VaadinRequest.getCurrent().getUserPrincipal();
         if (principal == null) return "Hello anonymous!";
