@@ -59,7 +59,7 @@ public class HelloWorldEndpoint {
         return "Hello " + principal.getName() + "!!!";
     }
 
-    @AnonymousAllowed
+    @PermitAll
     public Flux<@Nonnull String> getClock() {
         System.out.println("============== HelloWorldEndpoint getClock " + clockService.getId());
         return clockService.getClock();

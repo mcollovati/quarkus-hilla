@@ -1,31 +1,19 @@
 package org.acme.hilla.test.extension.deployment;
 
-import java.lang.reflect.Modifier;
-import java.util.Set;
-
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointRegistry;
+import dev.hilla.push.PushEndpoint;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
-import io.quarkus.arc.processor.AsmUtilCopy;
 import io.quarkus.arc.processor.BuiltinScope;
-import io.quarkus.deployment.GeneratedClassGizmoAdaptor;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.deployment.builditem.GeneratedClassBuildItem;
-import io.quarkus.deployment.builditem.RemovedResourceBuildItem;
-import io.quarkus.deployment.util.AsmUtil;
-import io.quarkus.deployment.util.IoUtil;
-import io.quarkus.gizmo.ClassCreator;
 import io.quarkus.gizmo.Gizmo;
-import io.quarkus.gizmo.MethodCreator;
-import io.quarkus.gizmo.MethodDescriptor;
-import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import org.acme.hilla.test.extension.QuarkusEndpointConfiguration;
 import org.acme.hilla.test.extension.QuarkusEndpointController;
@@ -38,13 +26,9 @@ import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.atmosphere.interceptor.SuspendTrackerInterceptor;
 import org.atmosphere.util.SimpleBroadcaster;
 import org.jboss.jandex.DotName;
-import org.jboss.jandex.MethodInfo;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.InstructionAdapter;
 
 class HillaTestExtensionProcessor {
 
@@ -111,39 +95,63 @@ class HillaTestExtensionProcessor {
     }
 
     @BuildStep
-    void replaceCallToSpringClassUtils(BuildProducer<BytecodeTransformerBuildItem> producer, final CombinedIndexBuildItem index) {
+    void replaceCallsToSpring(BuildProducer<BytecodeTransformerBuildItem> producer, final CombinedIndexBuildItem index) {
         producer.produce(new BytecodeTransformerBuildItem(EndpointRegistry.class.getName(),
-                (s, classVisitor) -> new ClassUtilsClassVisitor(classVisitor)
+                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "registerEndpoint")
+        ));
+        producer.produce(new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
+                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "onMessageRequest")
         ));
     }
 
-    static class ClassUtilsClassVisitor extends ClassVisitor {
-        public ClassUtilsClassVisitor(ClassVisitor classVisitor) {
+    static class SpringReplacementsClassVisitor extends ClassVisitor {
+
+        private final String methodName;
+
+        public SpringReplacementsClassVisitor(ClassVisitor classVisitor, String methodName) {
             super(Gizmo.ASM_API_VERSION, classVisitor);
+            this.methodName = methodName;
         }
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            if ("registerEndpoint".equals(name)) {
+            if (methodName.equals(name)) {
                 MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-                return new ClassUtilsGetUserClassRedirectMethodVisitor(superVisitor);
+                return new SpringReplacementsRedirectMethodVisitor(superVisitor);
             }
             return super.visitMethod(access, name, descriptor, signature, exceptions);
         }
     }
 
-    static class ClassUtilsGetUserClassRedirectMethodVisitor extends MethodVisitor {
+    static class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
 
-        protected ClassUtilsGetUserClassRedirectMethodVisitor(MethodVisitor mv) {
+        protected SpringReplacementsRedirectMethodVisitor(MethodVisitor mv) {
             super(Gizmo.ASM_API_VERSION, mv);
         }
 
         @Override
+        public void visitTypeInsn(int opcode, String type) {
+            if (opcode == Opcodes.CHECKCAST && "org/springframework/security/core/Authentication".equals(type)) {
+                // Hack: change explicit cast to Authentication to Object to prevent runtime error
+                super.visitTypeInsn(opcode, "java/lang/Object");
+                return;
+            }
+            super.visitTypeInsn(opcode, type);
+        }
+
+        @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+            if (Opcodes.INVOKESTATIC == opcode && "org/springframework/security/core/context/SecurityContextHolder".equals(owner)
+                    && ("setContext".equals(name) || "clearContext".equals(name))) {
+                // Replace calls to SecurityContextHolder methods with noop
+                super.visitMethodInsn(Opcodes.INVOKESTATIC, "org/acme/hilla/test/extension/SpringReplacements",
+                        "securityContextHolder_" + name, descriptor, false);
+                return;
+            }
             if (Opcodes.INVOKESTATIC == opcode && "org/springframework/util/ClassUtils".equals(owner) &&
                     "getUserClass".equals(name)) {
-                super.visitMethodInsn(Opcodes.INVOKESTATIC, "org/acme/hilla/test/extension/ClassUtils",
-                        name, descriptor, false);
+                super.visitMethodInsn(Opcodes.INVOKESTATIC, "org/acme/hilla/test/extension/SpringReplacements",
+                        "classUtils_getUserClass", descriptor, false);
                 return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
