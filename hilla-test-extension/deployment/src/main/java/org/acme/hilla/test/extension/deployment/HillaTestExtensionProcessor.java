@@ -132,24 +132,32 @@ class HillaTestExtensionProcessor {
         @Override
         public void visitTypeInsn(int opcode, String type) {
             if (opcode == Opcodes.CHECKCAST && "org/springframework/security/core/Authentication".equals(type)) {
-                // Hack: change explicit cast to Authentication to Object to prevent runtime error
-                super.visitTypeInsn(opcode, "java/lang/Object");
+                // Hack: drop explicit cast to Authentication to prevent runtime error
                 return;
             }
             super.visitTypeInsn(opcode, type);
         }
 
+
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            if (Opcodes.INVOKESTATIC == opcode && "org/springframework/security/core/context/SecurityContextHolder".equals(owner)
-                    && ("setContext".equals(name) || "clearContext".equals(name))) {
-                // Replace calls to SecurityContextHolder methods with noop
-                super.visitMethodInsn(Opcodes.INVOKESTATIC, "org/acme/hilla/test/extension/SpringReplacements",
-                        "securityContextHolder_" + name, descriptor, false);
-                return;
+            if (Opcodes.INVOKESTATIC == opcode && "org/springframework/security/core/context/SecurityContextHolder".equals(owner)) {
+                if ("setContext".equals(name)) {
+                    // Drop calls to SecurityContextHolder.setContext
+                    System.out.println("HACK: drop call to SecurityContextHolder.setContext");
+                    // Take the SecurityContextImpl from the stack
+                    super.visitInsn(Opcodes.POP);
+                    return;
+                }
+                if ("clearContext".equals(name)) {
+                    // Drop calls to SecurityContextHolder.clearContext
+                    System.out.println("HACK: drop call to SecurityContextHolder.clearContext");
+                    return;
+                }
             }
             if (Opcodes.INVOKESTATIC == opcode && "org/springframework/util/ClassUtils".equals(owner) &&
                     "getUserClass".equals(name)) {
+                System.out.println("HACK: replace call to ClassUtils.getUserClass");
                 super.visitMethodInsn(Opcodes.INVOKESTATIC, "org/acme/hilla/test/extension/SpringReplacements",
                         "classUtils_getUserClass", descriptor, false);
                 return;
@@ -157,7 +165,6 @@ class HillaTestExtensionProcessor {
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
     }
-
 
     private String getMappingPath(String path) {
         String mappingPath;
@@ -171,6 +178,4 @@ class HillaTestExtensionProcessor {
         }
         return mappingPath;
     }
-
-
 }
