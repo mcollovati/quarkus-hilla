@@ -1,6 +1,6 @@
 package org.acme.hilla.test.extension;
 
-public abstract class SpringReplacements {
+public class SpringReplacements {
 
     public static Class<?> classUtils_getUserClass(Class<?> clazz) {
         if (clazz.isSynthetic()) {
