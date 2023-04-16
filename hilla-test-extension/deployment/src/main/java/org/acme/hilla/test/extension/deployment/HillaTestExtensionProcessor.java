@@ -3,7 +3,6 @@ package org.acme.hilla.test.extension.deployment;
 import javax.inject.Singleton;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointRegistry;
@@ -29,7 +28,6 @@ import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
-import io.quarkus.gizmo.Gizmo;
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
@@ -50,9 +48,6 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 class HillaTestExtensionProcessor {
 
@@ -204,95 +199,5 @@ class HillaTestExtensionProcessor {
     void configureHillaSecurityComponents(HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer) {
         recorder.configureHttpSecurityPolicy(beanContainer.getValue());
-    }
-
-    static class SpringReplacementsClassVisitor extends ClassVisitor {
-
-        private final String methodName;
-
-        public SpringReplacementsClassVisitor(ClassVisitor classVisitor,
-                String methodName) {
-            super(Gizmo.ASM_API_VERSION, classVisitor);
-            this.methodName = methodName;
-        }
-
-        @Override
-        public MethodVisitor visitMethod(int access, String name,
-                String descriptor, String signature, String[] exceptions) {
-            if (methodName.equals(name)) {
-                MethodVisitor superVisitor = super.visitMethod(access, name,
-                        descriptor, signature, exceptions);
-                return new SpringReplacementsRedirectMethodVisitor(
-                        superVisitor);
-            }
-            return super.visitMethod(access, name, descriptor, signature,
-                    exceptions);
-        }
-    }
-
-    static class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
-
-        protected SpringReplacementsRedirectMethodVisitor(MethodVisitor mv) {
-            super(Gizmo.ASM_API_VERSION, mv);
-        }
-
-        @Override
-        public void visitTypeInsn(int opcode, String type) {
-            if (opcode == Opcodes.CHECKCAST
-                    && "org/springframework/security/core/Authentication"
-                            .equals(type)) {
-                // Hack: drop explicit cast to Authentication to prevent runtime
-                // error
-                return;
-            }
-            super.visitTypeInsn(opcode, type);
-        }
-
-        @Override
-        public void visitMethodInsn(int opcode, String owner, String name,
-                String descriptor, boolean isInterface) {
-            if (Opcodes.INVOKESTATIC == opcode
-                    && "org/springframework/security/core/context/SecurityContextHolder"
-                            .equals(owner)) {
-                if ("setContext".equals(name)) {
-                    // Drop calls to SecurityContextHolder.setContext
-                    System.out.println(
-                            "HACK: drop call to SecurityContextHolder.setContext");
-                    // Take the SecurityContextImpl from the stack
-                    super.visitInsn(Opcodes.POP);
-                    return;
-                }
-                if ("clearContext".equals(name)) {
-                    // Drop calls to SecurityContextHolder.clearContext
-                    System.out.println(
-                            "HACK: drop call to SecurityContextHolder.clearContext");
-                    return;
-                }
-            }
-            if (Opcodes.INVOKESTATIC == opcode
-                    && "org/springframework/util/ClassUtils".equals(owner)
-                    && "getUserClass".equals(name)) {
-                System.out.println(
-                        "HACK: replace call to ClassUtils.getUserClass");
-                super.visitMethodInsn(Opcodes.INVOKESTATIC,
-                        "org/acme/hilla/test/extension/SpringReplacements",
-                        "classUtils_getUserClass", descriptor, false);
-                return;
-            }
-            super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-        }
-    }
-
-    private String getMappingPath(String path) {
-        String mappingPath;
-        if (path.endsWith("/*")) {
-            return path;
-        }
-        if (path.endsWith("/")) {
-            mappingPath = path + "*";
-        } else {
-            mappingPath = path + "/*";
-        }
-        return mappingPath;
     }
 }
