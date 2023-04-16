@@ -1,7 +1,6 @@
 package org.acme.hilla.test.extension.deployment;
 
 import io.quarkus.gizmo.Gizmo;
-import org.apache.commons.lang3.tuple.Pair;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -14,24 +13,24 @@ class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
     protected SpringReplacementsRedirectMethodVisitor(MethodVisitor mv) {
         super(Gizmo.ASM_API_VERSION, mv);
         var redirects = Map.of(
-                Pair.of("org/springframework/util/ClassUtils", "getUserClass"),
-                Pair.of("org/acme/hilla/test/extension/SpringReplacements", "classUtils_getUserClass"),
-                Pair.of("org/springframework/security/core/context/SecurityContextHolder", "getContext"),
-                Pair.of((String) null, (String) null),
-                Pair.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
-                Pair.of((String) null, (String) null),
-                Pair.of("dev/hilla/AuthenticationUtil", "getSecurityHolderAuthentication"),
-                Pair.of("org/acme/hilla/test/extension/SpringReplacements", "authenticationUtil_getSecurityHolderAuthentication"),
-                Pair.of("dev/hilla/AuthenticationUtil", "getSecurityHolderRoleChecker"),
-                Pair.of("org/acme/hilla/test/extension/SpringReplacements", "authenticationUtil_getSecurityHolderRoleChecker")
+                MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "getContext"),
+                MethodSignature.DROP_METHOD,
+                MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
+                MethodSignature.DROP_METHOD,
+                MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
+                MethodSignature.of("org/acme/hilla/test/extension/SpringReplacements", "classUtils_getUserClass"),
+                MethodSignature.of("dev/hilla/AuthenticationUtil", "getSecurityHolderAuthentication", "()Lorg/springframework/security/core/Authentication;"),
+                MethodSignature.of("org/acme/hilla/test/extension/SpringReplacements", "authenticationUtil_getSecurityHolderAuthentication", "()Ljava/security/Principal;"),
+                MethodSignature.of("dev/hilla/AuthenticationUtil", "getSecurityHolderRoleChecker"),
+                MethodSignature.of("org/acme/hilla/test/extension/SpringReplacements", "authenticationUtil_getSecurityHolderRoleChecker")
         );
         redirectVisitors = buildVisitorChain(mv, redirects);
     }
 
-    private MethodVisitor buildVisitorChain(MethodVisitor mv, Map<Pair<String, String>, Pair<String, String>> redirects) {
+    private MethodVisitor buildVisitorChain(MethodVisitor mv, Map<MethodSignature, MethodSignature> redirects) {
         var newMv = mv;
         for (var e : redirects.entrySet()) {
-            newMv = new MethodRedirectVisitor(newMv, e.getKey().getKey(), e.getKey().getValue(), e.getValue().getKey(), e.getValue().getValue());
+            newMv = new MethodRedirectVisitor(newMv, e.getKey(), e.getValue());
         }
         return newMv;
     }
