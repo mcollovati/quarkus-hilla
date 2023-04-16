@@ -19,7 +19,11 @@ class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
                 Pair.of("org/springframework/security/core/context/SecurityContextHolder", "getContext"),
                 Pair.of((String) null, (String) null),
                 Pair.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
-                Pair.of((String) null, (String) null)
+                Pair.of((String) null, (String) null),
+                Pair.of("dev/hilla/AuthenticationUtil", "getSecurityHolderAuthentication"),
+                Pair.of("org/acme/hilla/test/extension/SpringReplacements", "authenticationUtil_getSecurityHolderAuthentication"),
+                Pair.of("dev/hilla/AuthenticationUtil", "getSecurityHolderRoleChecker"),
+                Pair.of("org/acme/hilla/test/extension/SpringReplacements", "authenticationUtil_getSecurityHolderRoleChecker")
         );
         redirectVisitors = buildVisitorChain(mv, redirects);
     }

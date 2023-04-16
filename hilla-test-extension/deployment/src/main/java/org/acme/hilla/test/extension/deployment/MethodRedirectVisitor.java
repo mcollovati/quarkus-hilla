@@ -36,6 +36,10 @@ class MethodRedirectVisitor extends MethodVisitor {
             return;
         }
         // call is redirected
+        if("()Lorg/springframework/security/core/Authentication;".equals(descriptor)) {
+            super.visitMethodInsn(Opcodes.INVOKESTATIC, targetClass, targetMethod, "()Ljava/security/Principal;", false);
+            return;
+        }
         super.visitMethodInsn(Opcodes.INVOKESTATIC, targetClass, targetMethod, descriptor, false);
     }
 }

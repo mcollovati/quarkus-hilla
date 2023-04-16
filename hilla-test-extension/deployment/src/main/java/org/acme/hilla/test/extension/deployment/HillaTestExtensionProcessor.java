@@ -136,6 +136,10 @@ class HillaTestExtensionProcessor {
                 new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
                         (s, classVisitor) -> new SpringReplacementsClassVisitor(
                                 classVisitor, "onMessageRequest")));
+        producer.produce(
+                new BytecodeTransformerBuildItem(PushMessageHandler.class.getName(),
+                        (s, classVisitor) -> new SpringReplacementsClassVisitor(
+                                classVisitor, "handleBrowserSubscribe")));
     }
 
     @BuildStep
