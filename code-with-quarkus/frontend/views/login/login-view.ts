@@ -8,10 +8,13 @@ import '@vaadin/login/vaadin-login-form.js';
 @customElement('login-view')
 export class LoginView extends View {
     @state()
-    private error = false;
+    error = false;
 
     connectedCallback() {
         super.connectedCallback();
+        const urlParams = new URLSearchParams(window.location.search);
+        this.error = urlParams.has('error');
+
         this.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
         uiStore.setLoggedIn(false);
     }
@@ -21,7 +24,7 @@ export class LoginView extends View {
       <h1>Hilla CRM</h1>
       <vaadin-login-form
         no-forgot-password
-        @login=${this.login}
+        action="/login"
         .error=${this.error}
       ></vaadin-login-form>
     `;

@@ -4,12 +4,14 @@ import javax.annotation.security.PermitAll;
 
 import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
-import com.vaadin.flow.server.VaadinRequest;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointSubscription;
 import dev.hilla.Nonnull;
+import io.smallrye.common.annotation.NonBlocking;
 import reactor.core.publisher.Flux;
+
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @Endpoint
 @AnonymousAllowed
@@ -60,6 +62,7 @@ public class HelloWorldEndpoint {
     }
 
     @PermitAll
+    @NonBlocking
     public Flux<@Nonnull String> getClock() {
         System.out.println("============== HelloWorldEndpoint getClock " + clockService.getId());
         return clockService.getClock();

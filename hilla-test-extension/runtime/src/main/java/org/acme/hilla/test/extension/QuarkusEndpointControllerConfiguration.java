@@ -77,7 +77,7 @@ class QuarkusEndpointControllerConfiguration {
      * @return the default bean
      */
     @Produces
-    @Singleton
+    @ApplicationScoped
     @DefaultBean
     CsrfChecker csrfChecker(ServletContext servletContext) {
         return configuration.csrfChecker(servletContext);
@@ -122,29 +122,33 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     @Produces
-    @Singleton
+    @ApplicationScoped
     EndpointInvoker endpointInvoker(ApplicationContext context, ObjectMapper objectMapper,
                                     ExplicitNullableTypeChecker explicitNullableTypeChecker,
                                     ServletContext servletContext, EndpointRegistry endpointRegistry) {
         return configuration.endpointInvoker(context, objectMapper, explicitNullableTypeChecker, servletContext, endpointRegistry);
     }
 
+    /*
     @Produces
-    @Singleton
+    @ApplicationScoped
     PushMessageHandler pushMessageHandler(EndpointInvoker invoker, ServletContext servletContext) {
         PushMessageHandler pushMessageHandler = new QuarkusPushMessageHandler(invoker, servletContext);
         return pushMessageHandler;
     }
+     */
 
-    @Produces
-    @Singleton
-    @Startup
+    //@Produces
+    //@ApplicationScoped
+    //@Startup
+    /*
     QuarkusPushEndpoint pushEndpoint(PushMessageHandler pushMessageHandler, ObjectMapper objectMapper) {
         return new QuarkusPushEndpoint(objectMapper, pushMessageHandler);
     }
+     */
 
     @Produces
-    @Singleton
+    @ApplicationScoped
     @Startup
     WebApplicationContext mockApplicationContext(BeanManager beanManager, ServletContext servletContext) {
         WebApplicationContext webAppCtx = new QuarkusApplicationContext(beanManager, servletContext);
@@ -153,7 +157,7 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     @Produces
-    @Singleton
+    @ApplicationScoped
     @Startup
     EndpointController endpointController(ApplicationContext context, EndpointRegistry endpointRegistry, EndpointInvoker endpointInvoker, CsrfChecker csrfChecker) {
         return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);

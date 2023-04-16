@@ -8,6 +8,7 @@ import java.util.UUID;
 import dev.hilla.Nonnull;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
@@ -40,7 +41,6 @@ public class ClockService {
     }
 
     private String getUsername() {
-        SecurityIdentity securityIdentity = CurrentIdentityAssociation.current();
         if (securityIdentity.isAnonymous()) {
             return "Anonymous";
         } else {
