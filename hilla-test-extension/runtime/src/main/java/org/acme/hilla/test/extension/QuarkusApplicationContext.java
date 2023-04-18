@@ -27,12 +27,14 @@ class QuarkusApplicationContext implements WebApplicationContext {
     private final BeanManager beanManager;
     private final ServletContext servletContext;
 
-    QuarkusApplicationContext(BeanManager beanManager, ServletContext servletContext) {
+    QuarkusApplicationContext(BeanManager beanManager,
+            ServletContext servletContext) {
         this.beanManager = beanManager;
         this.servletContext = servletContext;
     }
 
-    private <T> T beanReference(Bean<?> bean, Class<T> requiredType) {
+    private static <T> T beanReference(BeanManager beanManager, Bean<?> bean,
+            Class<T> requiredType) {
         final CreationalContext<?> ctx = beanManager
                 .createCreationalContext(bean);
         // noinspection unchecked
@@ -41,7 +43,12 @@ class QuarkusApplicationContext implements WebApplicationContext {
 
     @Override
     public <T> T getBean(Class<T> requiredType) throws BeansException {
-        Set<Bean<?>> beans = beanManager.getBeans(requiredType, new AnyLiteral());
+        return getBean(beanManager, requiredType);
+    }
+
+    static <T> T getBean(BeanManager beanManager, Class<T> requiredType) {
+        Set<Bean<?>> beans = beanManager.getBeans(requiredType,
+                new AnyLiteral());
         if (beans.isEmpty()) {
             throw new NoSuchBeanDefinitionException(requiredType);
         }
@@ -49,18 +56,33 @@ class QuarkusApplicationContext implements WebApplicationContext {
         try {
             bean = beanManager.resolve(beans);
         } catch (final AmbiguousResolutionException e) {
-            throw new NoUniqueBeanDefinitionException(requiredType, beans.stream().map(Bean::getName).collect(Collectors.toList()));
+            throw new NoUniqueBeanDefinitionException(requiredType, beans
+                    .stream().map(Bean::getName).collect(Collectors.toList()));
         }
-        return beanReference(bean, requiredType);
+        return beanReference(beanManager, bean, requiredType);
     }
 
     @Override
-    public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType) throws BeansException {
+    public Map<String, Object> getBeansWithAnnotation(
+            Class<? extends Annotation> annotationType) throws BeansException {
         return beanManager.getBeans(Object.class, new AnyLiteral())
-                //return beanManager.getBeans(Object.class, new EndpointLiteral())
-                .stream().filter(b -> b.getBeanClass().isAnnotationPresent(annotationType))
+                // return beanManager.getBeans(Object.class, new
+                // EndpointLiteral())
+                .stream()
+                .filter(b -> b.getBeanClass()
+                        .isAnnotationPresent(annotationType))
                 .collect(Collectors.toMap(
-                        Bean::getName, bean -> beanReference(bean, bean.getBeanClass())));
+                        QuarkusApplicationContext::computeBeanName,
+                        bean -> beanReference(beanManager, bean,
+                                bean.getBeanClass())));
+    }
+
+    private static String computeBeanName(Bean<?> bean) {
+        String name = bean.getName();
+        if (name == null) {
+            return bean.getBeanClass().getName();
+        }
+        return name;
     }
 
     @Override
@@ -73,7 +95,8 @@ class QuarkusApplicationContext implements WebApplicationContext {
     }
 
     @Override
-    public <T> T getBean(Class<T> requiredType, Object... args) throws BeansException {
+    public <T> T getBean(Class<T> requiredType, Object... args)
+            throws BeansException {
         return throwUnsupported();
     }
 
@@ -103,10 +126,10 @@ class QuarkusApplicationContext implements WebApplicationContext {
     }
 
     @Override
-    public AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException {
+    public AutowireCapableBeanFactory getAutowireCapableBeanFactory()
+            throws IllegalStateException {
         return throwUnsupported();
     }
-
 
     @Override
     public void publishEvent(Object event) {
@@ -114,17 +137,20 @@ class QuarkusApplicationContext implements WebApplicationContext {
     }
 
     @Override
-    public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
+    public String getMessage(String code, Object[] args, String defaultMessage,
+            Locale locale) {
         return throwUnsupported();
     }
 
     @Override
-    public String getMessage(String code, Object[] args, Locale locale) throws NoSuchMessageException {
+    public String getMessage(String code, Object[] args, Locale locale)
+            throws NoSuchMessageException {
         return throwUnsupported();
     }
 
     @Override
-    public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
+    public String getMessage(MessageSourceResolvable resolvable, Locale locale)
+            throws NoSuchMessageException {
         return throwUnsupported();
     }
 

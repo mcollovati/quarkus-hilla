@@ -1,10 +1,7 @@
 package org.acme.hilla.test.extension;
 
-import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
-import io.quarkus.runtime.annotations.ConvertWith;
-import io.quarkus.runtime.configuration.NormalizeRootHttpPathConverter;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
@@ -23,4 +20,6 @@ public interface QuarkusEndpointConfiguration {
     @WithName("prefix")
     @WithDefault("/connect")
     String getEndpointPrefix();
+
+
 }
