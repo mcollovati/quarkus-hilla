@@ -1,6 +1,7 @@
 package com.example.application.endpoints.helloworld;
 
 import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 
 import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
@@ -68,7 +69,7 @@ public class HelloWorldEndpoint {
         return clockService.getClock();
     }
 
-    @AnonymousAllowed
+    @RolesAllowed("ADMIN")
     public EndpointSubscription<@Nonnull String> getClockCancellable() {
         return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME").log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }

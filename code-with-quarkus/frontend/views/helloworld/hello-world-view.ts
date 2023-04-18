@@ -80,8 +80,8 @@ export class HelloWorldView extends View {
             this.currentTime = 'Loading...';
             this.clockSubscription = HelloWorldEndpoint.getClockCancellable()
                 .onNext((msg) => this.currentTime = msg)
-                .onError(() => console.log("ERROR"))
-                .onComplete(() => console.log("COMPLETE"));
+                .onError(() => this.currentTime = "Something failed. Maybe you are not authorized?")
+                .onComplete(() => this.currentTime = "Bye. Thanks.");
         }
     }
 

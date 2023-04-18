@@ -1,5 +1,7 @@
 package org.acme.hilla.test.extension;
 
+import io.quarkus.security.identity.CurrentIdentityAssociation;
+import io.quarkus.security.identity.SecurityIdentity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -20,23 +22,17 @@ public class SpringReplacements {
     }
 
     public static Principal authenticationUtil_getSecurityHolderAuthentication() {
-        System.out.println("authenticationUtil_getSecurityHolderAuthentication");
-        Authentication authentication = SecurityContextHolder.getContext()
-                .getAuthentication();
-        if (authentication instanceof AnonymousAuthenticationToken) {
-            return null;
-        }
-
-        return authentication;
-
+        System.out
+                .println("authenticationUtil_getSecurityHolderAuthentication");
+        return CurrentIdentityAssociation.current().getPrincipal();
     }
 
     public static Function<String, Boolean> authenticationUtil_getSecurityHolderRoleChecker() {
         System.out.println("authenticationUtil_getSecurityHolderRoleChecker");
-        Principal authentication = authenticationUtil_getSecurityHolderAuthentication();
-        if (authentication == null) {
+        SecurityIdentity identity = CurrentIdentityAssociation.current();
+        if (identity == null) {
             return role -> false;
         }
-        return role -> true;
+        return identity::hasRole;
     }
 }
