@@ -1,4 +1,3 @@
-import { uiStore } from 'Frontend/stores/ui-store';
 import { html } from 'lit';
 import { customElement, state } from 'lit/decorators.js';
 import { View } from 'Frontend/views/view';
@@ -16,7 +15,6 @@ export class LoginView extends View {
         this.error = urlParams.has('error');
 
         this.classList.add('flex', 'flex-col', 'items-center', 'justify-center');
-        uiStore.setLoggedIn(false);
     }
 
     render() {
@@ -32,7 +30,7 @@ export class LoginView extends View {
 
     async login(e: LoginFormLoginEvent) {
         try {
-            await uiStore.login(e.detail.username, e.detail.password);
+            //await uiStore.login(e.detail.username, e.detail.password);
         } catch (err) {
             this.error = true;
         }

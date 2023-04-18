@@ -1,6 +1,10 @@
 package org.acme.hilla.test.extension.deployment;
 
+import javax.annotation.security.DenyAll;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import javax.inject.Singleton;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
@@ -18,6 +22,7 @@ import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
+import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
@@ -38,6 +43,7 @@ import org.acme.hilla.test.extension.HillaSecurityRecorder;
 import org.acme.hilla.test.extension.QuarkusEndpointConfiguration;
 import org.acme.hilla.test.extension.QuarkusEndpointController;
 import org.acme.hilla.test.extension.QuarkusEndpointProperties;
+import org.acme.hilla.test.extension.QuarkusViewAccessChecker;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereServlet;
@@ -48,6 +54,9 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
+
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 class HillaTestExtensionProcessor {
 
@@ -136,10 +145,10 @@ class HillaTestExtensionProcessor {
                 new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
                         (s, classVisitor) -> new SpringReplacementsClassVisitor(
                                 classVisitor, "onMessageRequest")));
-        producer.produce(
-                new BytecodeTransformerBuildItem(PushMessageHandler.class.getName(),
-                        (s, classVisitor) -> new SpringReplacementsClassVisitor(
-                                classVisitor, "handleBrowserSubscribe")));
+        producer.produce(new BytecodeTransformerBuildItem(
+                PushMessageHandler.class.getName(),
+                (s, classVisitor) -> new SpringReplacementsClassVisitor(
+                        classVisitor, "handleBrowserSubscribe")));
     }
 
     @BuildStep
@@ -204,4 +213,67 @@ class HillaTestExtensionProcessor {
             BeanContainerBuildItem beanContainer) {
         recorder.configureHttpSecurityPolicy(beanContainer.getValue());
     }
+
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void configureFlowViewAccessChecker(HillaSecurityRecorder recorder,
+            BeanContainerBuildItem beanContainer,
+            Optional<FlowViewAccessCheckerBuildItem> viewAccessCheckerBuildItem) {
+        viewAccessCheckerBuildItem
+                .map(FlowViewAccessCheckerBuildItem::getLoginPath)
+                .ifPresent(loginPath -> recorder.configureFlowViewAccessChecker(
+                        beanContainer.getValue(), loginPath));
+
+    }
+
+    @BuildStep
+    void registerViewAccessChecker(HttpBuildTimeConfig buildTimeConfig,
+            CombinedIndexBuildItem index,
+            BuildProducer<AdditionalBeanBuildItem> beans,
+            BuildProducer<FlowViewAccessCheckerBuildItem> loginProducer) {
+
+        Set<DotName> securityAnnotations = Set.of(
+                DotName.createSimple(DenyAll.class.getName()),
+                DotName.createSimple(AnonymousAllowed.class.getName()),
+                DotName.createSimple(RolesAllowed.class.getName()),
+                DotName.createSimple(PermitAll.class.getName()));
+        boolean hasSecuredRoutes = index.getComputingIndex()
+                .getAnnotations(DotName.createSimple(Route.class.getName()))
+                .stream()
+                .flatMap(route -> route.target().annotations().stream()
+                        .map(AnnotationInstance::name))
+                .anyMatch(securityAnnotations::contains);
+
+        if (buildTimeConfig.auth.form.enabled) {
+            beans.produce(AdditionalBeanBuildItem.builder()
+                    .addBeanClasses(HillaSecurityPolicy.class)
+                    .setDefaultScope(DotNames.SINGLETON).setUnremovable()
+                    .build());
+
+            if (hasSecuredRoutes) {
+                beans.produce(AdditionalBeanBuildItem.builder()
+                        .addBeanClasses(QuarkusViewAccessChecker.class,
+                                QuarkusViewAccessChecker.Installer.class)
+                        .setUnremovable().build());
+                buildTimeConfig.auth.form.loginPage
+                        .map(FlowViewAccessCheckerBuildItem::new)
+                        .ifPresent(loginProducer::produce);
+            }
+        }
+    }
+
+    public static final class FlowViewAccessCheckerBuildItem
+            extends SimpleBuildItem {
+
+        private final String loginPath;
+
+        public FlowViewAccessCheckerBuildItem(String loginPath) {
+            this.loginPath = loginPath;
+        }
+
+        public String getLoginPath() {
+            return loginPath;
+        }
+    }
+
 }

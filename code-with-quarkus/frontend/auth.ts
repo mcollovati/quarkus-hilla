@@ -2,6 +2,7 @@
 import { login as loginImpl, LoginResult, logout as logoutImpl } from '@hilla/frontend';
 import * as UserInfoEndpoint from 'Frontend/generated/UserInfoEndpoint';
 import UserInfo from 'Frontend/generated/com/example/application/entities/UserInfo';
+import {appStore} from "Frontend/stores/app-store";
 
 interface Authentication {
   user: UserInfo;
@@ -87,7 +88,9 @@ export async function checkAuthentication() : Promise<Authentication|undefined> 
  */
 export async function logout() {
   setSessionExpired();
-  return await logoutImpl();
+  await logoutImpl();
+  appStore.clearUserInfo();
+  location.href = '';
 }
 
 /**

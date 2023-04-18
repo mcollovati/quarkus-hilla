@@ -1,13 +1,10 @@
 package org.acme.hilla.test.extension;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import io.quarkus.runtime.Startup;
@@ -21,6 +18,7 @@ import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.router.Router;
 import com.vaadin.flow.router.internal.NavigationRouteTarget;
 import com.vaadin.flow.router.internal.RouteTarget;
@@ -29,7 +27,6 @@ import com.vaadin.flow.server.RouteRegistry;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
@@ -60,8 +57,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             AuthorizationRequestContext requestContext) {
         Boolean permittedPath = pathMatcher.match(request.request().path())
                 .getValue();
-        if (isFrameworkInternalRequest(request) || isAnonymousRoute(request)
-                || (permittedPath != null && permittedPath)) {
+        Class<? extends Component> maybeRoot = detectRoute(request);
+        if ((permittedPath != null && permittedPath)
+                || isFrameworkInternalRequest(request)
+                || isAnonymousRoute(maybeRoot, request.normalizedPath())) {
             return Uni.createFrom().item(CheckResult.PERMIT);
         }
         return authenticatedHttpSecurityPolicy.checkPermission(request,
@@ -109,63 +108,53 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 request);
     }
 
-    /**
-     * Checks whether the request targets a Flow route that is public, i.e.
-     * marked as @{@link AnonymousAllowed}.
-     *
-     * @param request
-     *            the servlet request
-     * @return {@code true} if the request is targeting an anonymous route,
-     *         {@code false} otherwise
-     */
-    public boolean isAnonymousRoute(RoutingContext request) {
-        // String vaadinMapping = configurationProperties.getUrlMapping();
+    private boolean isAnonymousRoute(Class<? extends Component> routeClass,
+            String path) {
+
+        if (vaadinService == null) {
+            getLogger().warn(
+                    "VaadinService not set. Cannot determine server route for {}",
+                    path);
+            return true;
+        }
+        if (routeClass == null) {
+            getLogger().trace("No route defined for {}", path);
+            return true;
+        }
+
+        boolean result = accessAnnotationChecker.hasAccess(routeClass, null,
+                role -> false);
+        if (result) {
+            getLogger().debug("{} refers to a public view", path);
+        }
+        return result;
+    }
+
+    private Class<? extends Component> detectRoute(RoutingContext request) {
+
         String vaadinMapping = "/*";
         String requestedPath = QuarkusHandlerHelper
                 .getRequestPathInsideContext(request);
-        Optional<String> maybePath = HandlerHelper
-                .getPathIfInsideServlet(vaadinMapping, requestedPath);
-        if (!maybePath.isPresent()) {
-            return false;
-        }
-        String path = maybePath.get();
-        if (path.startsWith("/")) {
-            // Requested path includes a beginning "/" but route mapping is done
-            // without one
-            path = path.substring(1);
-        }
-
         if (vaadinService == null) {
-            getLogger()
-                    .warn("========== No VaadinService now " + requestedPath);
-            return true;
+            return null;
         }
 
         Router router = vaadinService.getRouter();
         RouteRegistry routeRegistry = router.getRegistry();
 
-        NavigationRouteTarget target = routeRegistry
-                .getNavigationRouteTarget(path);
-        if (target == null) {
-            return false;
-        }
-        RouteTarget routeTarget = target.getRouteTarget();
-        if (routeTarget == null) {
-            return false;
-        }
-        Class<? extends com.vaadin.flow.component.Component> targetView = routeTarget
-                .getTarget();
-        if (targetView == null) {
-            return false;
-        }
-
-        // Check if a not authenticated user can access the view
-        boolean result = accessAnnotationChecker.hasAccess(targetView, null,
-                role -> false);
-        if (result) {
-            getLogger().debug(path + " refers to a public view");
-        }
-        return result;
+        return HandlerHelper
+                .getPathIfInsideServlet(vaadinMapping, requestedPath)
+                .map(path -> {
+                    if (path.startsWith("/")) {
+                        // Requested path includes a beginning "/" but route
+                        // mapping is done
+                        // without one
+                        path = path.substring(1);
+                    }
+                    return path;
+                }).map(routeRegistry::getNavigationRouteTarget)
+                .map(NavigationRouteTarget::getRouteTarget)
+                .map(RouteTarget::getTarget).orElse(null);
     }
 
     private Logger getLogger() {

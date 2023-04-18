@@ -5,20 +5,19 @@ import '@vaadin/app-layout/vaadin-drawer-toggle';
 import '@vaadin/avatar';
 import '@vaadin/icon';
 import '@vaadin/menu-bar';
+import type { MenuBarItem, MenuBarItemSelectedEvent } from '@vaadin/menu-bar';
 import '@vaadin/scroller';
 import '@vaadin/tabs';
 import '@vaadin/tabs/vaadin-tab';
 import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
-import {html, nothing} from 'lit';
+import {html, render} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {router} from '../index';
-import {views} from '../routes';
+import {hasAccess, views} from '../routes';
 import {appStore} from '../stores/app-store';
 import {Layout} from './view';
-import {checkAuthentication, isLoggedIn} from "Frontend/auth";
+import {logout} from "Frontend/auth";
 import UserInfo
-    from "Frontend/generated/com/example/application/entities/UserInfo";
-import userInfo
     from "Frontend/generated/com/example/application/entities/UserInfo";
 
 
@@ -30,9 +29,6 @@ interface RouteInfo {
 
 @customElement('main-layout')
 export class MainLayout extends Layout {
-
-    @property()
-    private userInfo: UserInfo | undefined;
 
     render() {
         return html`
@@ -63,7 +59,17 @@ export class MainLayout extends Layout {
                     </vcf-nav>
                 </vaadin-scroller>
 
-                <footer slot="drawer">${this.renderUserInfo()}</footer>
+                <footer slot="drawer">
+                    ${appStore.user
+                            ? html`
+                <vaadin-menu-bar
+                  theme="tertiary-inline contrast"
+                  .items="${this.getUserMenuItems(appStore.user)}"
+                  @item-selected="${this.userMenuItemSelected}"
+                ></vaadin-menu-bar>
+              `
+                            : html`<a router-ignore href="login">Sign in</a>`}
+                </footer>
 
                 <vaadin-drawer-toggle slot="navbar"
                                       aria-label="Menu toggle"></vaadin-drawer-toggle>
@@ -76,13 +82,13 @@ export class MainLayout extends Layout {
     }
 
     private renderUserInfo() {
-        console.log("===============0 renderUserInfo ", this.userInfo);
-        return this.userInfo ? html`
+        return appStore.user ? html`
             <div>
-                ${this.userInfo.name}
+                ${appStore.user.name}
                 <a href="${router.urlForPath('/logout')}">Logout</a>
+                <a href="${logout()}">Logout2</a>
             </div>
-        ` : html`<span>OOOOPS</span>`;
+        ` : html`<a router-ignore href="login">Sign in</a>`;
     }
 
     async connectedCallback() {
@@ -94,14 +100,41 @@ export class MainLayout extends Layout {
                 AppLayout.dispatchCloseOverlayDrawerEvent();
             }
         );
-        console.log("================ Logged in? ", isLoggedIn())
-        if (isLoggedIn()) {
-            this.userInfo = await checkAuthentication().then( (auth) => auth?.user)
-            console.log("================ Logged in!!! ", this.userInfo)
-        }
     }
 
     private getMenuRoutes(): RouteInfo[] {
-        return views.filter((route) => route.title) as RouteInfo[];
+        return views.filter((route) => route.title)
+            .filter((route) => hasAccess(route)) as RouteInfo[];
     }
+
+    private getUserMenuItems(user: UserInfo): MenuBarItem[] {
+        return [
+            {
+                component: this.createUserMenuItem(user),
+                children: [{ text: 'Sign out' }],
+            },
+        ];
+    }
+
+    private createUserMenuItem(user: UserInfo) {
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.alignItems = 'center';
+        item.style.gap = 'var(--lumo-space-s)';
+        render(
+            html`
+        <span>${user.name}</span>
+        <vaadin-icon icon="lumo:dropdown"></vaadin-icon>
+      `,
+            item
+        );
+        return item;
+    }
+
+    private userMenuItemSelected(e: MenuBarItemSelectedEvent) {
+        if (e.detail.value.text === 'Sign out') {
+            logout();
+        }
+    }
+
 }

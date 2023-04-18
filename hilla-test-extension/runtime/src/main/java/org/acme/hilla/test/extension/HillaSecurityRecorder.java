@@ -35,4 +35,12 @@ public class HillaSecurityRecorder {
             policy.withFormLogin(formConfig);
         }
     }
+
+    public void configureFlowViewAccessChecker(BeanContainer container,
+            String loginPath) {
+        QuarkusViewAccessChecker accessChecker = container
+                .beanInstance(QuarkusViewAccessChecker.class);
+        accessChecker.setLoginView(loginPath);
+        accessChecker.enable();
+    }
 }

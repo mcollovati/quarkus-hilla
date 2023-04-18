@@ -1,15 +1,18 @@
 package com.example.application.flow;
 
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+
 import com.example.application.ClockService;
+import reactor.core.Disposable;
+
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-
-import reactor.core.Disposable;
 
 @Route("flow-view")
+@RolesAllowed({"ADMIN", "ROLE_ADMIN"})
 public class FlowView extends VerticalLayout {
 
     private final ClockService clockService;
