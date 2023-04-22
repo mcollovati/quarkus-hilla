@@ -63,7 +63,6 @@ public class HelloWorldEndpoint {
     }
 
     @PermitAll
-    @NonBlocking
     public Flux<@Nonnull String> getClock() {
         System.out.println("============== HelloWorldEndpoint getClock " + clockService.getId());
         return clockService.getClock();

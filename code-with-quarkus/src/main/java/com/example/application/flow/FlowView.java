@@ -1,6 +1,5 @@
 package com.example.application.flow;
 
-import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
 
 import com.example.application.ClockService;

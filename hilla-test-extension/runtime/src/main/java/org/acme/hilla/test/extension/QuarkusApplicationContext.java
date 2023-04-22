@@ -5,6 +5,7 @@ import javax.enterprise.inject.AmbiguousResolutionException;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.servlet.ServletContext;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
 import java.util.Map;
@@ -12,17 +13,21 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.NoUniqueBeanDefinitionException;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.NoSuchMessageException;
-import org.springframework.web.context.WebApplicationContext;
+import org.springframework.core.ResolvableType;
+import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 
 import com.vaadin.quarkus.AnyLiteral;
 
-class QuarkusApplicationContext implements WebApplicationContext {
+class QuarkusApplicationContext implements ApplicationContext {
 
     private final BeanManager beanManager;
     private final ServletContext servletContext;
@@ -85,7 +90,7 @@ class QuarkusApplicationContext implements WebApplicationContext {
         return name;
     }
 
-    @Override
+    ////// @Override
     public ServletContext getServletContext() {
         return servletContext;
     }
@@ -154,4 +159,180 @@ class QuarkusApplicationContext implements WebApplicationContext {
         return throwUnsupported();
     }
 
+    @Override
+    public Environment getEnvironment() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public BeanFactory getParentBeanFactory() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean containsLocalBean(String s) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean containsBeanDefinition(String s) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public int getBeanDefinitionCount() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanDefinitionNames() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass, boolean b) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType,
+            boolean b) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(ResolvableType resolvableType) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(ResolvableType resolvableType,
+            boolean b, boolean b1) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(Class<?> aClass) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(Class<?> aClass, boolean b,
+            boolean b1) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> Map<String, T> getBeansOfType(Class<T> aClass)
+            throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> Map<String, T> getBeansOfType(Class<T> aClass, boolean b,
+            boolean b1) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForAnnotation(
+            Class<? extends Annotation> aClass) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <A extends Annotation> A findAnnotationOnBean(String s,
+            Class<A> aClass) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <A extends Annotation> A findAnnotationOnBean(String s,
+            Class<A> aClass, boolean b) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Object getBean(String s) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> T getBean(String s, Class<T> aClass) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Object getBean(String s, Object... objects) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(
+            ResolvableType resolvableType) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean containsBean(String s) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isSingleton(String s) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isPrototype(String s) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isTypeMatch(String s, ResolvableType resolvableType)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isTypeMatch(String s, Class<?> aClass)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Class<?> getType(String s) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Class<?> getType(String s, boolean b)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getAliases(String s) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Resource[] getResources(String locationPattern) throws IOException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Resource getResource(String location) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return throwUnsupported();
+    }
 }

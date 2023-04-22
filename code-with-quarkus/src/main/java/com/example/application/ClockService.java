@@ -6,12 +6,8 @@ import java.util.Date;
 import java.util.UUID;
 
 import dev.hilla.Nonnull;
-import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.smallrye.common.annotation.Blocking;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
 import reactor.core.publisher.Flux;
-import reactor.core.scheduler.Schedulers;
 
 @ApplicationScoped
 public class ClockService {

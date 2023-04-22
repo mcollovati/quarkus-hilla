@@ -33,16 +33,34 @@
         <dependency>
             <groupId>dev.hilla</groupId>
             <artifactId>endpoint</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.data</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.springframework.security</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>dev.hilla</groupId>
             <artifactId>engine-runtime</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati.hilla</groupId>
+            <artifactId>hilla-shaded-deps</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -55,7 +73,9 @@
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
-                            <includes>**/dev/hilla/**/*.class</includes>
+                            <includes>
+                                **/dev/hilla/**/*.class,
+                            </includes>
                             <excludes>
                                 **/dev/hilla/startup/EndpointsValidator.class,
                                 **/dev/hilla/EndpointControllerConfiguration*.class,
