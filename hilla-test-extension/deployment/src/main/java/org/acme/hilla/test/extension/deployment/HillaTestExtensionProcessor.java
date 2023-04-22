@@ -1,49 +1,24 @@
 package org.acme.hilla.test.extension.deployment;
 
-import javax.annotation.security.DenyAll;
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
-
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
-import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
-import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
-import io.quarkus.arc.deployment.BeanContainerBuildItem;
-import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
-import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
-import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
-import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
+import io.quarkus.arc.deployment.*;
 import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.item.SimpleBuildItem;
-import io.quarkus.deployment.annotations.BuildProducer;
-import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.Consume;
-import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
-import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
-import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
-import io.quarkus.deployment.builditem.FeatureBuildItem;
-import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.annotations.*;
+import io.quarkus.deployment.builditem.*;
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
-import org.acme.hilla.test.extension.HillaAtmosphereObjectFactory;
-import org.acme.hilla.test.extension.HillaFormAuthenticationMechanism;
-import org.acme.hilla.test.extension.HillaSecurityPolicy;
-import org.acme.hilla.test.extension.HillaSecurityRecorder;
-import org.acme.hilla.test.extension.QuarkusEndpointConfiguration;
-import org.acme.hilla.test.extension.QuarkusEndpointController;
-import org.acme.hilla.test.extension.QuarkusEndpointProperties;
-import org.acme.hilla.test.extension.QuarkusViewAccessChecker;
+import org.acme.hilla.test.extension.*;
+import org.acme.hilla.test.extension.deployment.asm.SpringReplacementsClassVisitor;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereServlet;
@@ -55,8 +30,13 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 
-import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
+import javax.annotation.security.DenyAll;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
 
 class HillaTestExtensionProcessor {
 
