@@ -17,13 +17,10 @@ public class SpringReplacementsClassVisitor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name,
                                      String descriptor, String signature, String[] exceptions) {
+        MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
-            MethodVisitor superVisitor = super.visitMethod(access, name,
-                    descriptor, signature, exceptions);
-            return new SpringReplacementsRedirectMethodVisitor(
-                    superVisitor);
+            return new SpringReplacementsRedirectMethodVisitor(superVisitor);
         }
-        return super.visitMethod(access, name, descriptor, signature,
-                exceptions);
+        return superVisitor;
     }
 }
