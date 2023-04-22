@@ -1,10 +1,10 @@
-package org.acme.hilla.test.extension.deployment;
+package org.acme.hilla.test.extension.deployment.asm;
 
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-class SpringReplacementsClassVisitor extends ClassVisitor {
+public class SpringReplacementsClassVisitor extends ClassVisitor {
 
     private final String methodName;
 

@@ -1,6 +1,8 @@
-package org.acme.hilla.test.extension.deployment;
+package org.acme.hilla.test.extension.deployment.asm;
 
 import io.quarkus.gizmo.Gizmo;
+import org.acme.hilla.test.extension.deployment.asm.MethodRedirectVisitor;
+import org.acme.hilla.test.extension.deployment.asm.MethodSignature;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
