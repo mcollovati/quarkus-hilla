@@ -18,6 +18,7 @@ import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.acme.hilla.test.extension.*;
+import org.acme.hilla.test.extension.deployment.asm.RemoveIfStatementClassVisitor;
 import org.acme.hilla.test.extension.deployment.asm.SpringReplacementsClassVisitor;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
@@ -59,7 +60,7 @@ class HillaTestExtensionProcessor {
         beans.produce(
                 new AdditionalBeanBuildItem(QuarkusEndpointProperties.class));
         beans.produce(AdditionalBeanBuildItem.builder().addBeanClasses(
-                "org.acme.hilla.test.extension.QuarkusEndpointControllerConfiguration")
+                        "org.acme.hilla.test.extension.QuarkusEndpointControllerConfiguration")
                 .addBeanClasses(QuarkusEndpointConfiguration.class,
                         QuarkusEndpointController.class)
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
@@ -125,6 +126,10 @@ class HillaTestExtensionProcessor {
                 new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
                         (s, classVisitor) -> new SpringReplacementsClassVisitor(
                                 classVisitor, "onMessageRequest")));
+        producer.produce(
+                new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
+                        (s, classVisitor) -> new RemoveIfStatementClassVisitor(
+                                classVisitor, "onRequest")));
         producer.produce(new BytecodeTransformerBuildItem(
                 PushMessageHandler.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(
@@ -155,7 +160,7 @@ class HillaTestExtensionProcessor {
                         if (classesToTransform
                                 .contains(fieldInfo.declaringClass().name())
                                 && ctx.getAnnotations().stream()
-                                        .anyMatch(isAutowiredAnnotation)) {
+                                .anyMatch(isAutowiredAnnotation)) {
                             ctx.transform().remove(isAutowiredAnnotation)
                                     .add(DotNames.INJECT).done();
                         }
@@ -165,7 +170,7 @@ class HillaTestExtensionProcessor {
 
     @BuildStep
     void registerHillaSecurityPolicy(HttpBuildTimeConfig buildTimeConfig,
-            BuildProducer<AdditionalBeanBuildItem> beans) {
+                                     BuildProducer<AdditionalBeanBuildItem> beans) {
         if (buildTimeConfig.auth.form.enabled) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class)
@@ -190,15 +195,15 @@ class HillaTestExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     void configureHillaSecurityComponents(HillaSecurityRecorder recorder,
-            BeanContainerBuildItem beanContainer) {
+                                          BeanContainerBuildItem beanContainer) {
         recorder.configureHttpSecurityPolicy(beanContainer.getValue());
     }
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void configureFlowViewAccessChecker(HillaSecurityRecorder recorder,
-            BeanContainerBuildItem beanContainer,
-            Optional<FlowViewAccessCheckerBuildItem> viewAccessCheckerBuildItem) {
+                                        BeanContainerBuildItem beanContainer,
+                                        Optional<FlowViewAccessCheckerBuildItem> viewAccessCheckerBuildItem) {
         viewAccessCheckerBuildItem
                 .map(FlowViewAccessCheckerBuildItem::getLoginPath)
                 .ifPresent(loginPath -> recorder.configureFlowViewAccessChecker(
@@ -208,9 +213,9 @@ class HillaTestExtensionProcessor {
 
     @BuildStep
     void registerViewAccessChecker(HttpBuildTimeConfig buildTimeConfig,
-            CombinedIndexBuildItem index,
-            BuildProducer<AdditionalBeanBuildItem> beans,
-            BuildProducer<FlowViewAccessCheckerBuildItem> loginProducer) {
+                                   CombinedIndexBuildItem index,
+                                   BuildProducer<AdditionalBeanBuildItem> beans,
+                                   BuildProducer<FlowViewAccessCheckerBuildItem> loginProducer) {
 
         Set<DotName> securityAnnotations = Set.of(
                 DotName.createSimple(DenyAll.class.getName()),
