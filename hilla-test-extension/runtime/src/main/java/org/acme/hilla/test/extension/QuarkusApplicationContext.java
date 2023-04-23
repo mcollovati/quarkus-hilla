@@ -30,12 +30,8 @@ import com.vaadin.quarkus.AnyLiteral;
 class QuarkusApplicationContext implements ApplicationContext {
 
     private final BeanManager beanManager;
-    private final ServletContext servletContext;
-
-    QuarkusApplicationContext(BeanManager beanManager,
-            ServletContext servletContext) {
+    QuarkusApplicationContext(BeanManager beanManager) {
         this.beanManager = beanManager;
-        this.servletContext = servletContext;
     }
 
     private static <T> T beanReference(BeanManager beanManager, Bean<?> bean,
@@ -88,11 +84,6 @@ class QuarkusApplicationContext implements ApplicationContext {
             return bean.getBeanClass().getName();
         }
         return name;
-    }
-
-    ////// @Override
-    public ServletContext getServletContext() {
-        return servletContext;
     }
 
     private static <T> T throwUnsupported() {

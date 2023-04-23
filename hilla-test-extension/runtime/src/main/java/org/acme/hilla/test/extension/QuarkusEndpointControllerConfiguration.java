@@ -3,7 +3,6 @@ package org.acme.hilla.test.extension;
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.servlet.ServletContext;
 
@@ -12,10 +11,8 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.hilla.ByteArrayModule;
 import dev.hilla.EndpointController;
-import dev.hilla.EndpointControllerConfiguration;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointNameChecker;
-import dev.hilla.EndpointProperties;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.EndpointUtil;
 import dev.hilla.ExplicitNullableTypeChecker;
@@ -30,16 +27,6 @@ import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 
 @Unremovable
 class QuarkusEndpointControllerConfiguration {
-
-    /*
-    private EndpointControllerConfiguration configuration;
-
-    @Inject
-    QuarkusEndpointControllerConfiguration(
-            EndpointProperties endpointProperties) {
-        configuration = new EndpointControllerConfiguration(endpointProperties);
-    }
-     */
 
     @Produces
     @Singleton
@@ -140,37 +127,11 @@ class QuarkusEndpointControllerConfiguration {
                 explicitNullableTypeChecker, servletContext, endpointRegistry);
     }
 
-    /*
-     * @Produces
-     * 
-     * @ApplicationScoped PushMessageHandler pushMessageHandler(EndpointInvoker
-     * invoker, ServletContext servletContext) { PushMessageHandler
-     * pushMessageHandler = new QuarkusPushMessageHandler(invoker,
-     * servletContext); return pushMessageHandler; }
-     */
-
-    // @Produces
-    // @ApplicationScoped
-    // @Startup
-    /*
-     * QuarkusPushEndpoint pushEndpoint(PushMessageHandler pushMessageHandler,
-     * ObjectMapper objectMapper) { return new QuarkusPushEndpoint(objectMapper,
-     * pushMessageHandler); }
-     */
-
     @Produces
     @ApplicationScoped
     @Startup
-    ApplicationContext mockApplicationContext(BeanManager beanManager,
-            ServletContext servletContext) {
-        ApplicationContext webAppCtx = new QuarkusApplicationContext(
-                beanManager, servletContext);
-        /*
-         * servletContext.setAttribute(
-         * WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
-         * webAppCtx);
-         */
-        return webAppCtx;
+    ApplicationContext applicationContext(BeanManager beanManager) {
+        return new QuarkusApplicationContext(beanManager);
     }
 
     @Produces
