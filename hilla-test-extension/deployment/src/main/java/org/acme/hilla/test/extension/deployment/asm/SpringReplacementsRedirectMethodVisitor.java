@@ -36,18 +36,6 @@ class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitTypeInsn(int opcode, String type) {
-        if (opcode == Opcodes.CHECKCAST
-                && "org/springframework/security/core/Authentication"
-                .equals(type)) {
-            // Hack: drop explicit cast to Authentication to prevent runtime
-            // error
-            return;
-        }
-        super.visitTypeInsn(opcode, type);
-    }
-
-    @Override
     public void visitMethodInsn(int opcode, String owner, String name,
                                 String descriptor, boolean isInterface) {
         redirectVisitors.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
