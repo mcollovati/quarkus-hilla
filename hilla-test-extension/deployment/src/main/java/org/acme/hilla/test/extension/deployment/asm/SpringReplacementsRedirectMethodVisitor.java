@@ -17,8 +17,6 @@ class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
         var redirects = Map.of(
                 MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "getContext"),
                 MethodSignature.DROP_METHOD,
-                MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
-                MethodSignature.DROP_METHOD,
                 MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
                 MethodSignature.of("org/acme/hilla/test/extension/SpringReplacements", "classUtils_getUserClass"),
                 MethodSignature.of("dev/hilla/AuthenticationUtil", "getSecurityHolderAuthentication", "()Lorg/springframework/security/core/Authentication;"),

@@ -20,6 +20,7 @@ import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.acme.hilla.test.extension.*;
 import org.acme.hilla.test.extension.deployment.asm.EndpointTransferMapperClassVisitor;
+import org.acme.hilla.test.extension.deployment.asm.PushEndpointClassVisitor;
 import org.acme.hilla.test.extension.deployment.asm.SpringReplacementsClassVisitor;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
@@ -125,8 +126,8 @@ class HillaTestExtensionProcessor {
                         classVisitor, "registerEndpoint")));
         producer.produce(
                 new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
-                        (s, classVisitor) -> new SpringReplacementsClassVisitor(
-                                classVisitor, "onMessageRequest")));
+                        (s, classVisitor) ->
+                                new PushEndpointClassVisitor(classVisitor)));
         producer.produce(new BytecodeTransformerBuildItem(
                 PushMessageHandler.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(
