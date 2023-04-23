@@ -1,4 +1,4 @@
-package org.acme.hilla.test.extension.deployment;
+package org.acme.hilla.test.extension.deployment.asm;
 
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.MethodVisitor;
@@ -20,7 +20,7 @@ class MethodRedirectVisitor extends MethodVisitor {
     @Override
     public void visitMethodInsn(int opcode, String owner, String name,
                                 String descriptor, boolean isInterface) {
-        if (Opcodes.INVOKESTATIC == opcode && hasSrcSignature(owner, name, descriptor)) {
+        if (Opcodes.INVOKESTATIC == opcode && AsmUtils.hasMethodInsnSignature(srcMethod, owner, name, descriptor)) {
             // DROP CALL
             if (targetMethod.equals(MethodSignature.DROP_METHOD)) {
                 // Clear stack
@@ -39,11 +39,5 @@ class MethodRedirectVisitor extends MethodVisitor {
         }
 
         super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-    }
-
-    private boolean hasSrcSignature(String owner, String name, String descriptor) {
-        return srcMethod.getOwner().equals(owner)
-                && srcMethod.getName().equals(name)
-                && (srcMethod.getDescriptor() == null || srcMethod.getDescriptor().equals(descriptor));
     }
 }
