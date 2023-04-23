@@ -1,6 +1,8 @@
-package org.acme.hilla.test.extension.deployment;
+package org.acme.hilla.test.extension.deployment.asm;
 
 import io.quarkus.gizmo.Gizmo;
+import org.acme.hilla.test.extension.deployment.asm.MethodRedirectVisitor;
+import org.acme.hilla.test.extension.deployment.asm.MethodSignature;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
@@ -14,8 +16,6 @@ class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
         super(Gizmo.ASM_API_VERSION, mv);
         var redirects = Map.of(
                 MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "getContext"),
-                MethodSignature.DROP_METHOD,
-                MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
                 MethodSignature.DROP_METHOD,
                 MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
                 MethodSignature.of("org/acme/hilla/test/extension/SpringReplacements", "classUtils_getUserClass"),
@@ -33,18 +33,6 @@ class SpringReplacementsRedirectMethodVisitor extends MethodVisitor {
             newMv = new MethodRedirectVisitor(newMv, e.getKey(), e.getValue());
         }
         return newMv;
-    }
-
-    @Override
-    public void visitTypeInsn(int opcode, String type) {
-        if (opcode == Opcodes.CHECKCAST
-                && "org/springframework/security/core/Authentication"
-                .equals(type)) {
-            // Hack: drop explicit cast to Authentication to prevent runtime
-            // error
-            return;
-        }
-        super.visitTypeInsn(opcode, type);
     }
 
     @Override

@@ -1,10 +1,10 @@
-package org.acme.hilla.test.extension.deployment;
+package org.acme.hilla.test.extension.deployment.asm;
 
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-class SpringReplacementsClassVisitor extends ClassVisitor {
+public class SpringReplacementsClassVisitor extends ClassVisitor {
 
     private final String methodName;
 
@@ -17,13 +17,10 @@ class SpringReplacementsClassVisitor extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name,
                                      String descriptor, String signature, String[] exceptions) {
+        MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
-            MethodVisitor superVisitor = super.visitMethod(access, name,
-                    descriptor, signature, exceptions);
-            return new SpringReplacementsRedirectMethodVisitor(
-                    superVisitor);
+            return new SpringReplacementsRedirectMethodVisitor(superVisitor);
         }
-        return super.visitMethod(access, name, descriptor, signature,
-                exceptions);
+        return superVisitor;
     }
 }

@@ -1,4 +1,4 @@
-package org.acme.hilla.test.extension.deployment;
+package org.acme.hilla.test.extension.deployment.asm;
 
 import java.util.Objects;
 
@@ -28,11 +28,11 @@ public class MethodSignature {
         return methodDescriptor;
     }
 
-    static MethodSignature of(String methodOwner, String methodName) {
+    public static MethodSignature of(String methodOwner, String methodName) {
         return new MethodSignature(methodOwner, methodName, null);
     }
 
-    static MethodSignature of(String methodOwner, String methodName, String methodDescriptor) {
+    public static MethodSignature of(String methodOwner, String methodName, String methodDescriptor) {
         return new MethodSignature(methodOwner, methodName, methodDescriptor);
     }
 
