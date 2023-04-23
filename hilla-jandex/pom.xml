@@ -81,7 +81,8 @@
                                 **/dev/hilla/EndpointControllerConfiguration*.class,
                                 **/dev/hilla/ConditionalOnFeatureFlag.class,
                                 **/dev/hilla/FeatureFlagCondition*.class,
-                                **/dev/hilla/push/**/PushConfigurer.class
+                                **/dev/hilla/push/**/PushConfigurer.class,
+                                **/dev/hilla/mappedtypes/*.class
                             </excludes>
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
