@@ -8,6 +8,10 @@ import io.quarkus.security.identity.SecurityIdentity;
 
 public class SpringReplacements {
 
+    public static Class<?> classUtils_getUserClass(Object object) {
+        return classUtils_getUserClass(object.getClass());
+    }
+
     public static Class<?> classUtils_getUserClass(Class<?> clazz) {
         if (clazz.isSynthetic()) {
             Class<?> superclass = clazz.getSuperclass();
