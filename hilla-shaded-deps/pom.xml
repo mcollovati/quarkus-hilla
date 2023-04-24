@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.github.mcollovati.hilla</groupId>
+    <artifactId>hilla-shaded-deps</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Hilla shaded dependencies</name>
+    <description>Minimal set of classes required by Hilla at runtime</description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+        <hilla.version>1.3.6</hilla.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>dev.hilla</groupId>
+                <artifactId>hilla-bom</artifactId>
+                <version>${hilla.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.hilla</groupId>
+            <artifactId>endpoint</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>dev.hilla</groupId>
+            <artifactId>engine-runtime</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>true</createDependencyReducedPom>
+                            <filters>
+                                <filter>
+                                    <artifact>org.springframework:spring-core</artifact>
+                                    <includes>
+                                        <include>org/springframework/core/*Exception.class</include>
+                                        <include>org/springframework/core/ResolvableType.class</include>
+                                        <include>org/springframework/core/env/Environment.class</include>
+                                        <include>org/springframework/core/env/EnvironmentCapable.class</include>
+                                        <include>org/springframework/core/env/PropertyResolver.class</include>
+                                        <include>org/springframework/core/io/InputStreamSource.class</include>
+                                        <include>org/springframework/core/io/Resource.class</include>
+                                        <include>org/springframework/core/io/ResourceLoader.class</include>
+                                        <include>org/springframework/core/io/support/ResourcePatternResolver.class</include>
+                                        <include>org/springframework/util/Assert.class</include>
+                                        <include>org/springframework/util/ClassUtils.class</include>
+                                        <include>org/springframework/util/CollectionUtils.class</include>
+                                        <include>org/springframework/util/MultiValueMap.class</include>
+                                        <include>org/springframework/util/MultiValueMapAdapter.class</include>
+                                        <include>org/springframework/util/LinkedMultiValueMap.class</include>
+                                        <include>org/springframework/util/LinkedCaseInsensitiveMap**.class</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.springframework:spring-context</artifact>
+                                    <includes>
+                                        <include>org/springframework/context/ApplicationContext.class</include>
+                                        <include>org/springframework/context/ApplicationEventPublisher.class</include>
+                                        <include>org/springframework/context/MessageSourceResolvable.class</include>
+                                        <include>org/springframework/context/MessageSource.class</include>
+                                        <include>org/springframework/context/MessageSourceResolvable.class</include>
+                                        <include>org/springframework/context/NoSuchMessageException.class</include>
+                                        <include>org/springframework/stereotype/Component.class</include>
+                                        <include>org/springframework/stereotype/*Exception.class</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.springframework:spring-web</artifact>
+                                    <includes>
+                                        <include>org/springframework/http/*.class</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>org.springframework:spring-beans</artifact>
+                                    <includes>
+                                        <include>org/springframework/beans/*Exception.class</include>
+                                        <include>org/springframework/beans/factory/*Exception.class</include>
+                                        <include>org/springframework/beans/factory/*Factory.class</include>
+                                        <include>org/springframework/beans/factory/ObjectProvider.class</include>
+                                        <include>org/springframework/beans/factory/config/AutowireCapableBeanFactory.class</include>
+                                    </includes>
+                                </filter>
+                            </filters>
+                            <artifactSet>
+                                <includes>
+                                    <include>org.springframework:spring-beans</include>
+                                    <include>org.springframework:spring-core</include>
+                                    <include>org.springframework:spring-context</include>
+                                    <include>org.springframework:spring-web</include>
+                                </includes>
+                            </artifactSet>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
