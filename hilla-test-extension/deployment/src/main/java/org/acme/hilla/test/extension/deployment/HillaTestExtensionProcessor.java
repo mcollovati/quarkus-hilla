@@ -3,6 +3,7 @@ package org.acme.hilla.test.extension.deployment;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
+import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.endpointransfermapper.EndpointTransferMapper;
 import dev.hilla.push.PushEndpoint;
@@ -128,6 +129,10 @@ class HillaTestExtensionProcessor {
                 new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
                         (s, classVisitor) ->
                                 new PushEndpointClassVisitor(classVisitor)));
+        producer.produce(new BytecodeTransformerBuildItem(
+                EndpointInvoker.class.getName(),
+                (s, classVisitor) -> new SpringReplacementsClassVisitor(
+                        classVisitor, "invokeVaadinEndpointMethod")));
         producer.produce(new BytecodeTransformerBuildItem(
                 PushMessageHandler.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(
