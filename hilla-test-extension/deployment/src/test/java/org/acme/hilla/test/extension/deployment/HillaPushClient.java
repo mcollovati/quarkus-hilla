@@ -13,14 +13,19 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.LogManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HillaPushClient extends Endpoint
         implements MessageHandler.Whole<String> {
 
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(HillaPushClient.class);
     private static final AtomicInteger CLIENT_ID_GEN = new AtomicInteger();
 
     final LinkedBlockingDeque<String> messages = new LinkedBlockingDeque<>();
@@ -43,38 +48,66 @@ public class HillaPushClient extends Endpoint
 
     @Override
     public void onOpen(Session session, EndpointConfig config) {
-        messages.add("CONNECT");
+        LOGGER.trace("Client {} connected", id);
         this.session = session;
+        messages.add("CONNECT");
         session.addMessageHandler(this);
         session.getAsyncRemote().sendText(createSubscribeMessage());
     }
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
-        System.out.println("======================================= CLOSED ");
+        LOGGER.trace("Session closed for client {} with reson {}", id,
+                closeReason);
         messages.add("CLOSED: " + closeReason.toString());
         session.removeMessageHandler(this);
         this.session = null;
     }
 
     @Override
-    public void onError(Session session, Throwable thr) {
-        System.out.println("======================================= ERR ");
-        thr.printStackTrace();
-        messages.add("ERROR: " + thr.getMessage());
+    public void onError(Session session, Throwable throwable) {
+        LOGGER.trace("Got error for client {}", id, throwable);
+        messages.add("ERROR: " + throwable.getMessage());
     }
 
     public void onMessage(String msg) {
         if (msg != null && !msg.isBlank()) {
-            System.out.println(
-                    "======================================= MSG " + msg);
+            LOGGER.trace("Message received for client {} :: {}", id, msg);
             messages.add(msg);
         } else {
-            System.out.println("========= Ignored empty message");
+            LOGGER.trace("Ignored empty message for client {} :: {}", id, msg);
+        }
+    }
+
+    public void cancel() {
+        LOGGER.trace("Canceling subscription for client {}", id);
+        if (session != null) {
+            try {
+                session.getBasicRemote().sendText(createUnsubscribeMessage());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } else {
+            throw new IllegalStateException("Not connected");
+        }
+    }
+
+    public void subscribe() {
+        LOGGER.trace("Subscribing client {} :: {}/{} ({})", id, endpointName,
+                methodName, parameters);
+        if (session != null) {
+            try {
+                session.getBasicRemote().sendText(createSubscribeMessage());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        } else {
+            throw new IllegalStateException("Not connected");
         }
     }
 
     public void disconnect() {
+        LOGGER.trace("Disconnecting client {}", id);
         if (session != null) {
             try {
                 session.close();

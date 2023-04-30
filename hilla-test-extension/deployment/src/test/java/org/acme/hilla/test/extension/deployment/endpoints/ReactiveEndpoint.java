@@ -17,7 +17,7 @@ public class ReactiveEndpoint {
     private final ConcurrentHashMap<String, AtomicInteger> counters = new ConcurrentHashMap<>();
 
     public Flux<Integer> count(String counterName) {
-        return Flux.interval(Duration.ofSeconds(1)).onBackpressureDrop()
+        return Flux.interval(Duration.ofMillis(200)).onBackpressureDrop()
                 .map(_interval -> counters
                         .computeIfAbsent(counterName,
                                 unused -> new AtomicInteger())
