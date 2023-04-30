@@ -1,16 +1,13 @@
 package org.acme.hilla.test.extension.deployment;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import io.restassured.matcher.ResponseAwareMatcher;
 import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
 import org.acme.hilla.test.extension.deployment.endpoints.TestEndpoint;
 import org.hamcrest.CoreMatchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
