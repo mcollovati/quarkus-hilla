@@ -222,13 +222,17 @@ class HillaTestExtensionProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void registerHillaFormAuthenticationMechanism(
+            HttpBuildTimeConfig httpBuildTimeConfig,
             HillaSecurityRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> producer) {
-        producer.produce(SyntheticBeanBuildItem
-                .configure(HillaFormAuthenticationMechanism.class)
-                .types(HttpAuthenticationMechanism.class).setRuntimeInit()
-                .scope(Singleton.class).alternativePriority(1)
-                .supplier(recorder.setupFormAuthenticationMechanism()).done());
+        if (httpBuildTimeConfig.auth.form.enabled) {
+            producer.produce(SyntheticBeanBuildItem
+                    .configure(HillaFormAuthenticationMechanism.class)
+                    .types(HttpAuthenticationMechanism.class).setRuntimeInit()
+                    .scope(Singleton.class).alternativePriority(1)
+                    .supplier(recorder.setupFormAuthenticationMechanism())
+                    .done());
+        }
     }
 
     @BuildStep
