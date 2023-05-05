@@ -23,17 +23,18 @@ public class SpringReplacements {
     }
 
     public static Principal authenticationUtil_getSecurityHolderAuthentication() {
-        System.out
-                .println("authenticationUtil_getSecurityHolderAuthentication");
-        return CurrentIdentityAssociation.current().getPrincipal();
+        SecurityIdentity identity = CurrentIdentityAssociation.current();
+        if (identity != null && !identity.isAnonymous()) {
+            return identity.getPrincipal();
+        }
+        return null;
     }
 
     public static Function<String, Boolean> authenticationUtil_getSecurityHolderRoleChecker() {
-        System.out.println("authenticationUtil_getSecurityHolderRoleChecker");
         SecurityIdentity identity = CurrentIdentityAssociation.current();
-        if (identity == null) {
+        if (identity == null || identity.isAnonymous()) {
             return role -> false;
         }
-        return identity::hasRole;
+        return role -> role != null && identity.hasRole(role);
     }
 }

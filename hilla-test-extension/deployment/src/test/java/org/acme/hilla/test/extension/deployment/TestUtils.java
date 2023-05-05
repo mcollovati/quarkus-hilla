@@ -10,6 +10,12 @@ import io.restassured.specification.RequestSpecification;
 
 final class TestUtils {
 
+    static final User ANONYMOUS = new User(null, null);
+
+    static final User ADMIN = new User("admin", "admin");
+    static final User USER = new User("user", "user");
+    static final User GUEST = new User("guest", "guest");
+
     static Response givenEndpointRequest(String endpointName,
             String methodName) {
         return givenEndpointRequest(endpointName, methodName, new Parameters(),
@@ -32,8 +38,7 @@ final class TestUtils {
             Parameters parameters,
             UnaryOperator<RequestSpecification> customizer) {
         RequestSpecification specs = RestAssured.given()
-                .contentType(ContentType.JSON)
-                .cookie("csrfToken", "CSRF_TOKEN")
+                .contentType(ContentType.JSON).cookie("csrfToken", "CSRF_TOKEN")
                 .header("X-CSRF-Token", "CSRF_TOKEN").body(parameters.params)
                 .basePath("/connect");
         specs = customizer.apply(specs);
@@ -56,4 +61,15 @@ final class TestUtils {
             return parameters;
         }
     }
+
+    static final class User {
+        final String username;
+        final String pwd;
+
+        User(String username, String pwd) {
+            this.username = username;
+            this.pwd = pwd;
+        }
+    }
+
 }

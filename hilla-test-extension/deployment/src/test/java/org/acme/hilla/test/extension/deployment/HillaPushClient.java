@@ -12,14 +12,22 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import java.util.logging.LogManager;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.api.ObjectAssert;
+import org.assertj.core.api.StringAssert;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HillaPushClient extends Endpoint
         implements MessageHandler.Whole<String> {
@@ -117,6 +125,29 @@ public class HillaPushClient extends Endpoint
         } else {
             throw new IllegalStateException("Not connected");
         }
+    }
+
+    public String pollMessage(long timeout, TimeUnit unit)
+            throws InterruptedException {
+        String message = messages.poll(10, TimeUnit.SECONDS);
+        if (message != null) {
+            message = message.replaceFirst("\\d+\\|", "");
+        }
+        return message;
+    }
+
+    public void assertMessageReceived(long timeout, TimeUnit unit,
+            String expected) throws InterruptedException {
+        String msg = pollMessage(timeout, unit);
+        Assertions.assertEquals(expected, msg);
+    }
+
+    public void assertMessageReceived(long timeout, TimeUnit unit,
+            Consumer<AbstractStringAssert<?>> consumer)
+            throws InterruptedException {
+        String msg = pollMessage(timeout, unit);
+        AbstractStringAssert<?> stringAssert = assertThat(msg).isNotNull();
+        consumer.accept(stringAssert);
     }
 
     private String createSubscribeMessage() {

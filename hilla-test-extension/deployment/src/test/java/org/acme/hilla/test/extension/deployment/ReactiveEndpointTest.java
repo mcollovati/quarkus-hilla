@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.http.TestHTTPResource;
-import io.quarkus.test.security.TestSecurity;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.acme.hilla.test.extension.deployment.endpoints.ReactiveEndpoint;
@@ -38,7 +37,6 @@ class ReactiveEndpointTest {
     URI uri;
 
     @Test
-    @TestSecurity(authorizationEnabled = false)
     @ActivateRequestContext
     void testWebsocketReactiveEndpoint() throws Exception {
         URI connectURI = createPUSHConnectURI();
@@ -70,7 +68,6 @@ class ReactiveEndpointTest {
     }
 
     @Test
-    @TestSecurity(authorizationEnabled = false)
     @ActivateRequestContext
     void testWebsocketCancelReactiveEndpoint() throws Exception {
         URI connectURI = createPUSHConnectURI();
@@ -102,7 +99,6 @@ class ReactiveEndpointTest {
     }
 
     @Test
-    @TestSecurity(authorizationEnabled = false)
     @ActivateRequestContext
     void testWebsocketDisconnectReactiveEndpoint() throws Exception {
         URI connectURI = createPUSHConnectURI();
@@ -134,9 +130,7 @@ class ReactiveEndpointTest {
 
     }
 
-
     @Test
-    @TestSecurity(authorizationEnabled = false)
     @ActivateRequestContext
     void testWebsocketSubscribeAfterCancel() throws Exception {
         URI connectURI = createPUSHConnectURI();

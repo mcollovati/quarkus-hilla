@@ -3,15 +3,11 @@ package org.acme.hilla.test.extension.deployment;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
-import io.quarkus.security.test.utils.AuthData;
-import io.quarkus.security.test.utils.IdentityMock;
-import io.quarkus.security.test.utils.SecurityTestUtils;
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
-import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.security.TestSecurity;
 import io.restassured.specification.RequestSpecification;
+import org.acme.hilla.test.extension.deployment.TestUtils.User;
 import org.acme.hilla.test.extension.deployment.endpoints.SecureEndpoint;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -20,15 +16,14 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import static org.acme.hilla.test.extension.deployment.TestUtils.ADMIN;
+import static org.acme.hilla.test.extension.deployment.TestUtils.GUEST;
+import static org.acme.hilla.test.extension.deployment.TestUtils.USER;
 import static org.acme.hilla.test.extension.deployment.TestUtils.givenEndpointRequest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 class EndpointSecurityTest {
-
-    private static final User ADMIN = new User("admin", "admin");
-    private static final User USER = new User("user", "user");
-    private static final User GUEST = new User("guest", "guest");
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
@@ -111,13 +106,13 @@ class EndpointSecurityTest {
                         .statusCode(200).and()
                         .body(equalTo("\"USER AND ADMIN\"")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(GUEST))
-                .then().assertThat().statusCode(401).and()
+        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin",
+                authenticate(GUEST)).then().assertThat().statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin").then().assertThat()
-                .statusCode(401).and()
+        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin").then()
+                .assertThat().statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
@@ -155,15 +150,5 @@ class EndpointSecurityTest {
 
     private static UnaryOperator<RequestSpecification> authenticate(User user) {
         return spec -> spec.auth().preemptive().basic(user.username, user.pwd);
-    }
-
-    private static final class User {
-        private final String username;
-        private final String pwd;
-
-        User(String username, String pwd) {
-            this.username = username;
-            this.pwd = pwd;
-        }
     }
 }
