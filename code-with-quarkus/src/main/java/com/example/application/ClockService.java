@@ -7,15 +7,18 @@ import java.util.UUID;
 
 import dev.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.eclipse.microprofile.context.ThreadContext;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 @ApplicationScoped
 public class ClockService {
 
     private final SecurityIdentity securityIdentity;
 
-    public ClockService(SecurityIdentity securityIdentity) {
+    public ClockService(SecurityIdentity securityIdentity, ThreadContext threadContext) {
         this.securityIdentity = securityIdentity;
+        Schedulers.onScheduleHook("managed-thread", threadContext::contextualRunnable);
     }
 
     private final String id = UUID.randomUUID().toString();
