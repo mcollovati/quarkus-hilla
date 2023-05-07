@@ -60,7 +60,7 @@ class ReactiveEndpointTest {
         }
         String message = client.messages.poll(1, TimeUnit.SECONDS);
         Assertions.assertNotNull(message,
-                "Expecting CLOSE message but got null");
+                "Expecting CLOSED message but got null");
         Assertions.assertTrue(message.startsWith("CLOSED: "),
                 "Expecting CLOSED message but got " + message);
 
@@ -93,7 +93,7 @@ class ReactiveEndpointTest {
         }
         String message = client.messages.poll(1, TimeUnit.SECONDS);
         Assertions.assertNotNull(message,
-                "Expecting CLOSE message but got null");
+                "Expecting CLOSED message but got null");
         Assertions.assertTrue(message.startsWith("CLOSED: "),
                 "Expecting CLOSED message but got " + message);
     }
@@ -127,7 +127,6 @@ class ReactiveEndpointTest {
                 "Expecting CLOSED message but got " + message);
 
         assertCounterValue(counterName, -1);
-
     }
 
     @Test
@@ -171,7 +170,7 @@ class ReactiveEndpointTest {
         }
         String message = client.messages.poll(1, TimeUnit.SECONDS);
         Assertions.assertNotNull(message,
-                "Expecting CLOSE message but got null");
+                "Expecting CLOSED message but got null");
         Assertions.assertTrue(message.startsWith("CLOSED: "),
                 "Expecting CLOSED message but got " + message);
     }

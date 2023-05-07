@@ -65,7 +65,7 @@ public class HillaPushClient extends Endpoint
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
-        LOGGER.trace("Session closed for client {} with reson {}", id,
+        LOGGER.trace("Session closed for client {} with reason {}", id,
                 closeReason);
         messages.add("CLOSED: " + closeReason.toString());
         session.removeMessageHandler(this);
@@ -129,7 +129,7 @@ public class HillaPushClient extends Endpoint
 
     public String pollMessage(long timeout, TimeUnit unit)
             throws InterruptedException {
-        String message = messages.poll(10, TimeUnit.SECONDS);
+        String message = messages.poll(timeout, unit);
         if (message != null) {
             message = message.replaceFirst("\\d+\\|", "");
         }
