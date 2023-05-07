@@ -4,7 +4,6 @@ import java.util.function.Supplier;
 
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
-import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.FormAuthConfig;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
