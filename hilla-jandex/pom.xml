@@ -4,10 +4,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.github.mcollovati.hilla</groupId>
-    <artifactId>hilla-jandex</artifactId>
+    <groupId>com.github.mcollovati</groupId>
+    <artifactId>quarkus-hilla-jandex</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <name>Hilla Jandex index</name>
+    <name>Quarkus - Hilla - Jandex index</name>
     <description>Jandex index for Hilla packages</description>
 
     <properties>
@@ -53,9 +53,9 @@
             <artifactId>engine-runtime</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.github.mcollovati.hilla</groupId>
-            <artifactId>hilla-shaded-deps</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla-shaded-deps</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
