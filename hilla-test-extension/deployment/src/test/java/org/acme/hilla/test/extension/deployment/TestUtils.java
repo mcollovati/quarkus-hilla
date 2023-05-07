@@ -11,7 +11,6 @@ import io.restassured.specification.RequestSpecification;
 final class TestUtils {
 
     static final User ANONYMOUS = new User(null, null);
-
     static final User ADMIN = new User("admin", "admin");
     static final User USER = new User("user", "user");
     static final User GUEST = new User("guest", "guest");

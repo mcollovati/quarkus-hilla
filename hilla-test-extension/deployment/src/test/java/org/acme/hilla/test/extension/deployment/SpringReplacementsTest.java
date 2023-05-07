@@ -12,7 +12,6 @@ import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
 import org.acme.hilla.test.extension.SpringReplacements;
-import org.acme.hilla.test.extension.deployment.endpoints.ReactiveSecureEndpoint;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -49,7 +48,7 @@ class SpringReplacementsTest {
     }
 
     @Test
-    void authenticationUtilgetSecurityHolderAuthentication_anonymous_returnsNull() {
+    void authenticationUtil_getSecurityHolderAuthentication_anonymous_returnsNull() {
         IdentityMock.setUpAuth(IdentityMock.ANONYMOUS);
         Principal principal = SpringReplacements
                 .authenticationUtil_getSecurityHolderAuthentication();
@@ -57,7 +56,7 @@ class SpringReplacementsTest {
     }
 
     @Test
-    void authenticationUtilgetSecurityHolderAuthentication_authenticated_returnsPrincipal() {
+    void authenticationUtil_getSecurityHolderAuthentication_authenticated_returnsPrincipal() {
         IdentityMock.setUpAuth(IdentityMock.ADMIN);
         Principal principal = SpringReplacements
                 .authenticationUtil_getSecurityHolderAuthentication();
@@ -66,7 +65,7 @@ class SpringReplacementsTest {
     }
 
     @Test
-    void authenticationUtilgetSecurityHolderRoleChecker_authenticated_checksRoles() {
+    void authenticationUtil_getSecurityHolderRoleChecker_authenticated_checksRoles() {
         IdentityMock.setUpAuth(
                 new AuthData(Set.of("ADMIN", "SUPERUSER"), false, "admin"));
         Function<String, Boolean> checker = SpringReplacements
@@ -81,7 +80,7 @@ class SpringReplacementsTest {
     }
 
     @Test
-    void authenticationUtilgetSecurityHolderRoleChecker_anonymous_checkIsAlwaysFalse() {
+    void authenticationUtil_getSecurityHolderRoleChecker_anonymous_checkIsAlwaysFalse() {
         IdentityMock.setUpAuth(IdentityMock.ANONYMOUS);
         Function<String, Boolean> checker = SpringReplacements
                 .authenticationUtil_getSecurityHolderRoleChecker();
@@ -97,7 +96,7 @@ class SpringReplacementsTest {
     }
 
     @Test
-    void authenticationUtilclassUtils_getUserClass_proxiedObject_returnRawClass() {
+    void classUtils_getUserClass_proxiedObject_returnRawClass() {
         Class<?> userClass = SpringReplacements
                 .classUtils_getUserClass(bean.getClass());
         assertThat(userClass).isEqualTo(MyBean.class);
