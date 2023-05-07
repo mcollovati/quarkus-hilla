@@ -82,9 +82,9 @@ class HillaTestExtensionProcessor {
     }
 
     // Configuring removed resources causes the index to be rebuilt, but the
-    // hilla-jandex artifact does not contain any classes
-    // Adding a maker forces indexes to build built against Hilla artifacts
-    // Removed resources should be configured for the endpoint artifact too
+    // hilla-jandex artifact does not contain any classes.
+    // Adding a marker forces indexes to be build against Hilla artifacts.
+    // Removed resources should also be configured for the endpoint artifact.
     @BuildStep
     void addMarkersForHillaJars(
             BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
