@@ -1,25 +1,52 @@
 package org.acme.hilla.test.extension.deployment;
 
-import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
+import javax.annotation.security.DenyAll;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
+import javax.inject.Singleton;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.endpointransfermapper.EndpointTransferMapper;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
-import io.quarkus.arc.deployment.*;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
+import io.quarkus.arc.deployment.BeanContainerBuildItem;
+import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
+import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.item.SimpleBuildItem;
+import io.quarkus.deployment.annotations.BuildProducer;
+import io.quarkus.deployment.annotations.BuildStep;
+import io.quarkus.deployment.annotations.Consume;
+import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.annotations.*;
-import io.quarkus.deployment.builditem.*;
+import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
+import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
+import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
+import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
-import org.acme.hilla.test.extension.*;
+import org.acme.hilla.test.extension.HillaAtmosphereObjectFactory;
+import org.acme.hilla.test.extension.HillaFormAuthenticationMechanism;
+import org.acme.hilla.test.extension.HillaSecurityPolicy;
+import org.acme.hilla.test.extension.HillaSecurityRecorder;
+import org.acme.hilla.test.extension.QuarkusEndpointConfiguration;
+import org.acme.hilla.test.extension.QuarkusEndpointController;
+import org.acme.hilla.test.extension.QuarkusEndpointProperties;
+import org.acme.hilla.test.extension.QuarkusViewAccessChecker;
 import org.acme.hilla.test.extension.deployment.asm.EndpointTransferMapperClassVisitor;
 import org.acme.hilla.test.extension.deployment.asm.PushEndpointClassVisitor;
 import org.acme.hilla.test.extension.deployment.asm.SpringReplacementsClassVisitor;
@@ -34,13 +61,8 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 
-import javax.annotation.security.DenyAll;
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
+import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 class HillaTestExtensionProcessor {
 
@@ -49,6 +71,24 @@ class HillaTestExtensionProcessor {
     @BuildStep
     FeatureBuildItem feature() {
         return new FeatureBuildItem(FEATURE);
+    }
+
+    // EndpointsValidator checks for the presence of Spring, so it should be
+    // ignored
+    @BuildStep
+    IgnoredServletContainerInitializerBuildItem ignoreEndpointsValidator() {
+        return new IgnoredServletContainerInitializerBuildItem(
+                "dev.hilla.startup.EndpointsValidator");
+    }
+
+    // Configuring removed resources causes the index to be rebuilt, but the
+    // hilla-jandex artifact does not contain any classes.
+    // Adding a marker forces indexes to be build against Hilla artifacts.
+    // Removed resources should also be configured for the endpoint artifact.
+    @BuildStep
+    void addMarkersForHillaJars(
+            BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
+        producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("dev/hilla"));
     }
 
     @BuildStep
@@ -63,7 +103,7 @@ class HillaTestExtensionProcessor {
         beans.produce(
                 new AdditionalBeanBuildItem(QuarkusEndpointProperties.class));
         beans.produce(AdditionalBeanBuildItem.builder().addBeanClasses(
-                        "org.acme.hilla.test.extension.QuarkusEndpointControllerConfiguration")
+                "org.acme.hilla.test.extension.QuarkusEndpointControllerConfiguration")
                 .addBeanClasses(QuarkusEndpointConfiguration.class,
                         QuarkusEndpointController.class)
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
@@ -97,8 +137,6 @@ class HillaTestExtensionProcessor {
                         "/HILLA/push")
                 .addInitParam(ApplicationConfig.BROADCASTER_CLASS,
                         SimpleBroadcaster.class.getName())
-                // .addInitParam(ApplicationConfig.ATMOSPHERE_HANDLER,
-                // QuarkusPushEndpoint.class.getName())
                 .addInitParam(ApplicationConfig.ATMOSPHERE_HANDLER,
                         PushEndpoint.class.getName())
                 .addInitParam(ApplicationConfig.OBJECT_FACTORY,
@@ -113,11 +151,6 @@ class HillaTestExtensionProcessor {
     }
 
     @BuildStep
-    ExcludedTypeBuildItem excludeEndpointProperties() {
-        return new ExcludedTypeBuildItem("dev.hilla.EndpointProperties");
-    }
-
-    @BuildStep
     void replaceCallsToSpring(
             BuildProducer<BytecodeTransformerBuildItem> producer,
             final CombinedIndexBuildItem index) {
@@ -127,8 +160,8 @@ class HillaTestExtensionProcessor {
                         classVisitor, "registerEndpoint")));
         producer.produce(
                 new BytecodeTransformerBuildItem(PushEndpoint.class.getName(),
-                        (s, classVisitor) ->
-                                new PushEndpointClassVisitor(classVisitor)));
+                        (s, classVisitor) -> new PushEndpointClassVisitor(
+                                classVisitor)));
         producer.produce(new BytecodeTransformerBuildItem(
                 EndpointInvoker.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(
@@ -139,8 +172,8 @@ class HillaTestExtensionProcessor {
                         classVisitor, "handleBrowserSubscribe")));
         producer.produce(new BytecodeTransformerBuildItem(
                 EndpointTransferMapper.class.getName(),
-                (s, classVisitor) ->
-                        new EndpointTransferMapperClassVisitor(classVisitor)));
+                (s, classVisitor) -> new EndpointTransferMapperClassVisitor(
+                        classVisitor)));
     }
 
     @BuildStep
@@ -167,7 +200,7 @@ class HillaTestExtensionProcessor {
                         if (classesToTransform
                                 .contains(fieldInfo.declaringClass().name())
                                 && ctx.getAnnotations().stream()
-                                .anyMatch(isAutowiredAnnotation)) {
+                                        .anyMatch(isAutowiredAnnotation)) {
                             ctx.transform().remove(isAutowiredAnnotation)
                                     .add(DotNames.INJECT).done();
                         }
@@ -177,7 +210,7 @@ class HillaTestExtensionProcessor {
 
     @BuildStep
     void registerHillaSecurityPolicy(HttpBuildTimeConfig buildTimeConfig,
-                                     BuildProducer<AdditionalBeanBuildItem> beans) {
+            BuildProducer<AdditionalBeanBuildItem> beans) {
         if (buildTimeConfig.auth.form.enabled) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class)
@@ -202,15 +235,15 @@ class HillaTestExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     void configureHillaSecurityComponents(HillaSecurityRecorder recorder,
-                                          BeanContainerBuildItem beanContainer) {
+            BeanContainerBuildItem beanContainer) {
         recorder.configureHttpSecurityPolicy(beanContainer.getValue());
     }
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void configureFlowViewAccessChecker(HillaSecurityRecorder recorder,
-                                        BeanContainerBuildItem beanContainer,
-                                        Optional<FlowViewAccessCheckerBuildItem> viewAccessCheckerBuildItem) {
+            BeanContainerBuildItem beanContainer,
+            Optional<FlowViewAccessCheckerBuildItem> viewAccessCheckerBuildItem) {
         viewAccessCheckerBuildItem
                 .map(FlowViewAccessCheckerBuildItem::getLoginPath)
                 .ifPresent(loginPath -> recorder.configureFlowViewAccessChecker(
@@ -220,9 +253,9 @@ class HillaTestExtensionProcessor {
 
     @BuildStep
     void registerViewAccessChecker(HttpBuildTimeConfig buildTimeConfig,
-                                   CombinedIndexBuildItem index,
-                                   BuildProducer<AdditionalBeanBuildItem> beans,
-                                   BuildProducer<FlowViewAccessCheckerBuildItem> loginProducer) {
+            CombinedIndexBuildItem index,
+            BuildProducer<AdditionalBeanBuildItem> beans,
+            BuildProducer<FlowViewAccessCheckerBuildItem> loginProducer) {
 
         Set<DotName> securityAnnotations = Set.of(
                 DotName.createSimple(DenyAll.class.getName()),
