@@ -29,6 +29,7 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
@@ -78,6 +79,16 @@ class HillaTestExtensionProcessor {
     IgnoredServletContainerInitializerBuildItem ignoreEndpointsValidator() {
         return new IgnoredServletContainerInitializerBuildItem(
                 "dev.hilla.startup.EndpointsValidator");
+    }
+
+    // Configuring removed resources causes the index to be rebuilt, but the
+    // hilla-jandex artifact does not contain any classes
+    // Adding a maker forces indexes to build built against Hilla artifacts
+    // Removed resources should be configured for the endpoint artifact too
+    @BuildStep
+    void addMarkersForHillaJars(
+            BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
+        producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("dev/hilla"));
     }
 
     @BuildStep
