@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
-            <artifactId>quarkus-hilla-jandex</artifactId>
+            <artifactId>hilla-jandex</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -51,7 +51,7 @@
                 <configuration>
                     <removedResources>
                         <artifact>
-                            <key>com.github.mcollovati:quarkus-hilla-jandex</key>
+                            <key>com.github.mcollovati:hilla-jandex</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime

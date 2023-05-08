@@ -1,11 +1,13 @@
 # Quarkus - Hilla
 
-A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev) applications on Quarkus.
+A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
+applications on Quarkus.
 
 Hilla is an open source framework, provided by [Vaadin](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
-This extension replaces the Spring Boot backend with Quarkus Context & Dependency Injection (CDI) and
+This extension replaces the Spring Boot backend with Quarkus Context &
+Dependency Injection (CDI) and
 RESTEasy Reactive for a simpler integration with Quarkus, but preserves the
 main features of the Hilla Framework, such
 as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints)
