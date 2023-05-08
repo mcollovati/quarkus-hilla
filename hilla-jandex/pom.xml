@@ -54,7 +54,7 @@
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
-            <artifactId>quarkus-hilla-shaded-deps</artifactId>
+            <artifactId>hilla-shaded-deps</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
