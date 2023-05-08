@@ -15,7 +15,7 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
-**NOTE**: this is an **unofficial community extension**, and it is not directly
+**NOTE**: This is an **unofficial community extension**, and it is not directly
 related nor supported by Vaadin Ltd.
 
 ## Limitations
