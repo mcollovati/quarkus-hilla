@@ -56,7 +56,7 @@ class ReactiveEndpointTest {
 
     @Test
     @ActivateRequestContext
-    void cancelableReactiveEndpoint_cancel_serverUnsubscribeCallBackInvoked()
+    void cancelableReactiveEndpoint_clientCancel_serverUnsubscribeCallBackInvoked()
             throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
@@ -76,7 +76,7 @@ class ReactiveEndpointTest {
 
     @Test
     @ActivateRequestContext
-    void cancelableReactiveEndpoint_clientDisconnectionWithoutCancel_serverUnsubscribeCallBackInvoked()
+    void cancelableReactiveEndpoint_clientDisconnectWithoutCancel_serverUnsubscribeCallBackInvoked()
             throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
