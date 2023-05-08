@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;

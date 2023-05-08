@@ -1,25 +1,25 @@
 # Quarkus - Hilla
 
-A Quarkus extension to run [Hilla](https://hilla.dev) applications on Quarkus.
+A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev) applications on Quarkus.
 
 Hilla is an open source framework, provided by [Vaadin](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
-This extension, replaces the Spring backed with Quarkus Dependency Injection and
-RESTEasy Reactive, for a simpler integration with Quarkus, but preserves the
+This extension replaces the Spring Boot backend with Quarkus Context & Dependency Injection (CDI) and
+RESTEasy Reactive for a simpler integration with Quarkus, but preserves the
 main features of the Hilla Framework, such
 as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints)
 and [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
-**NOTE**: this is an **unofficial** community extension, and it is not directly
-related nor supported by Vaadin.
+**NOTE**: this is an **unofficial community extension**, and it is not directly
+related nor supported by Vaadin Ltd.
 
 ## Limitations
 
 The current Hilla support has some known limitations:
 
-* Endpoint prefix is not configurable
+* The endpoint prefix is not configurable
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
 * Native image compilation does not work
@@ -48,4 +48,4 @@ people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
 This project follows
 the [all-contributors](https://github.com/all-contributors/all-contributors)
-specification. Contributions of any kind welcome!
+specification. Contributions of any kind are welcome!
