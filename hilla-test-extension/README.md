@@ -3,15 +3,15 @@
 A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
 applications on Quarkus.
 
-Hilla is an open source framework, provided by [Vaadin](https://vaadin.com),
+Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
 This extension replaces the Spring Boot backend with Quarkus Context &
 Dependency Injection (CDI) and
 RESTEasy Reactive for a simpler integration with Quarkus, but preserves the
 main features of the Hilla Framework, such
-as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints)
-and [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
+as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints), 
+[Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
 **NOTE**: this is an **unofficial community extension**, and it is not directly
