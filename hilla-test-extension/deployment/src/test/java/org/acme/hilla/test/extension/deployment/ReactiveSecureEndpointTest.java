@@ -5,13 +5,9 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -31,12 +27,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.acme.hilla.test.extension.deployment.TestUtils.ADMIN;
 import static org.acme.hilla.test.extension.deployment.TestUtils.ANONYMOUS;
 import static org.acme.hilla.test.extension.deployment.TestUtils.GUEST;
 import static org.acme.hilla.test.extension.deployment.TestUtils.USER;
 
 class ReactiveSecureEndpointTest {
+    private static final String ENDPOINT_NAME = ReactiveSecureEndpoint.class
+            .getSimpleName();
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
@@ -95,8 +94,8 @@ class ReactiveSecureEndpointTest {
     @Test
     @ActivateRequestContext
     void securedEndpoint_adminAndUserOnly_onlyAdminAndUserAllowed() {
-        Stream.of(ADMIN, USER).forEach(
-                user -> pushConnection(user, "userAndAdmin").accept(
+        Stream.of(ADMIN, USER)
+                .forEach(user -> pushConnection(user, "userAndAdmin").accept(
                         msg -> msg.contains("\"item\":\"USER AND ADMIN\"")));
         Stream.of(ANONYMOUS, GUEST)
                 .forEach(user -> pushConnection(user, "userAndAdmin")
@@ -122,9 +121,9 @@ class ReactiveSecureEndpointTest {
     private Consumer<Consumer<AbstractStringAssert<?>>> pushConnection(
             TestUtils.User user, String methodName) {
         return asserter -> {
-            URI connectURI = createPUSHConnectURI();
-            HillaPushClient client = new HillaPushClient(
-                    "ReactiveSecureEndpoint", methodName);
+            URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
+            HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
+                    methodName);
             ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
                     .configurator(new BasicAuthConfigurator(user)).build();
             try (Session ignored = ContainerProvider.getWebSocketContainer()
@@ -140,7 +139,7 @@ class ReactiveSecureEndpointTest {
     private Consumer<AbstractStringAssert<?>> assertAccessDenied(
             String method) {
         return msg -> msg.contains("Access denied")
-                .contains("Endpoint 'ReactiveSecureEndpoint'")
+                .containsSequence("Endpoint '", ENDPOINT_NAME, "'")
                 .contains(String.format("method '%s'", method));
     }
 
@@ -156,23 +155,13 @@ class ReactiveSecureEndpointTest {
         @Override
         public void beforeRequest(Map<String, List<String>> headers) {
             if (user.username != null && user.pwd != null) {
+                String credentials = user.username + ":" + user.pwd;
+                String authHeader = "Basic " + Base64.getEncoder()
+                        .encodeToString(credentials.getBytes(UTF_8));
                 headers.put(HttpHeaders.AUTHORIZATION.toString(),
-                        Collections.singletonList("Basic " + Base64.getEncoder()
-                                .encodeToString((user.username + ":" + user.pwd)
-                                        .getBytes(StandardCharsets.UTF_8))));
+                        List.of(authHeader));
             }
         }
-    }
-
-    private URI createPUSHConnectURI() {
-        return URI.create(uri.toASCIIString() + "?X-Atmosphere-tracking-id="
-                + UUID.randomUUID() + "&X-Atmosphere-Framework=3.1.4-javascript"
-                + "&X-Atmosphere-Transport=websocket"
-                + "&X-Atmosphere-TrackMessageSize=true" + "&Content-Type="
-                + URLEncoder.encode("application/json; charset=UTF-8",
-                        StandardCharsets.UTF_8)
-                + "&X-atmo-protocol=true" + "&X-CSRF-Token="
-                + UUID.randomUUID());
     }
 
 }

@@ -4,8 +4,6 @@ import javax.enterprise.context.control.ActivateRequestContext;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -19,11 +17,12 @@ import org.hamcrest.Matchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ReactiveEndpointTest {
+    private static final String ENDPOINT_NAME = ReactiveEndpoint.class
+            .getSimpleName();
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
@@ -38,152 +37,108 @@ class ReactiveEndpointTest {
 
     @Test
     @ActivateRequestContext
-    void testWebsocketReactiveEndpoint() throws Exception {
-        URI connectURI = createPUSHConnectURI();
+    void reactiveEndpoint_messagesPushedToTheClient() throws Exception {
+        URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient("ReactiveEndpoint",
-                "count", counterName);
-        try (Session session = ContainerProvider.getWebSocketContainer()
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "count",
+                counterName);
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
                 .connectToServer(client, null, connectURI)) {
-            String message = client.messages.poll(10, TimeUnit.SECONDS);
-            Assertions.assertEquals("CONNECT", message);
+            assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
-                String expectedMessage = String.format(
-                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
-                        client.id, i);
-                message = client.messages.poll(1, TimeUnit.SECONDS);
-                Assertions.assertNotNull(message,
-                        "Expecting message " + i + " but got null");
-                Assertions.assertEquals(expectedMessage,
-                        message.replaceFirst("\\d+\\|", ""));
+                assertThatPushUpdateHasBeenReceived(client, i);
             }
         }
-        String message = client.messages.poll(1, TimeUnit.SECONDS);
-        Assertions.assertNotNull(message,
-                "Expecting CLOSED message but got null");
-        Assertions.assertTrue(message.startsWith("CLOSED: "),
-                "Expecting CLOSED message but got " + message);
+        assertThatConnectionHasBeenClosed(client);
 
         assertCounterValue(counterName, 9);
     }
 
     @Test
     @ActivateRequestContext
-    void testWebsocketCancelReactiveEndpoint() throws Exception {
-        URI connectURI = createPUSHConnectURI();
+    void cancelableReactiveEndpoint_cancel_serverUnsubscribeCallBackInvoked()
+            throws Exception {
+        URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient("ReactiveEndpoint",
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
                 "cancelableCount", counterName);
-        try (Session session = ContainerProvider.getWebSocketContainer()
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
                 .connectToServer(client, null, connectURI)) {
-            String message = client.messages.poll(10, TimeUnit.SECONDS);
-            Assertions.assertEquals("CONNECT", message);
+            assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
-                String expectedMessage = String.format(
-                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
-                        client.id, i);
-                message = client.messages.poll(1, TimeUnit.SECONDS);
-                Assertions.assertNotNull(message,
-                        "Expecting message " + i + " but got null");
-                Assertions.assertEquals(expectedMessage,
-                        message.replaceFirst("\\d+\\|", ""));
+                assertThatPushUpdateHasBeenReceived(client, i);
             }
             client.cancel();
             assertCounterValue(counterName, -1);
         }
-        String message = client.messages.poll(1, TimeUnit.SECONDS);
-        Assertions.assertNotNull(message,
-                "Expecting CLOSED message but got null");
-        Assertions.assertTrue(message.startsWith("CLOSED: "),
-                "Expecting CLOSED message but got " + message);
+        assertThatConnectionHasBeenClosed(client);
     }
 
     @Test
     @ActivateRequestContext
-    void testWebsocketDisconnectReactiveEndpoint() throws Exception {
-        URI connectURI = createPUSHConnectURI();
+    void cancelableReactiveEndpoint_clientDisconnectionWithoutCancel_serverUnsubscribeCallBackInvoked()
+            throws Exception {
+        URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient("ReactiveEndpoint",
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
                 "cancelableCount", counterName);
-        try (Session session = ContainerProvider.getWebSocketContainer()
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
                 .connectToServer(client, null, connectURI)) {
-            String message = client.messages.poll(10, TimeUnit.SECONDS);
-            Assertions.assertEquals("CONNECT", message);
+            assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
-                String expectedMessage = String.format(
-                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
-                        client.id, i);
-                message = client.messages.poll(1, TimeUnit.SECONDS);
-                Assertions.assertNotNull(message,
-                        "Expecting message " + i + " but got null");
-                Assertions.assertEquals(expectedMessage,
-                        message.replaceFirst("\\d+\\|", ""));
+                assertThatPushUpdateHasBeenReceived(client, i);
             }
         }
-        String message = client.messages.poll(1, TimeUnit.SECONDS);
-        Assertions.assertNotNull(message,
-                "Expecting CLOSE message but got null");
-        Assertions.assertTrue(message.startsWith("CLOSED: "),
-                "Expecting CLOSED message but got " + message);
+        assertThatConnectionHasBeenClosed(client);
 
         assertCounterValue(counterName, -1);
     }
 
     @Test
     @ActivateRequestContext
-    void testWebsocketSubscribeAfterCancel() throws Exception {
-        URI connectURI = createPUSHConnectURI();
+    void cancelableReactiveEndpoint_subscribeAfterCancel_connectionNotClosedAndMessagesPushed()
+            throws Exception {
+        URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient("ReactiveEndpoint",
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
                 "cancelableCount", counterName);
-        try (Session session = ContainerProvider.getWebSocketContainer()
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
                 .connectToServer(client, null, connectURI)) {
-            String message = client.messages.poll(10, TimeUnit.SECONDS);
-            Assertions.assertEquals("CONNECT", message);
+            assertThatClientIsConnected(client);
             for (int i = 1; i < 5; i++) {
-                String expectedMessage = String.format(
-                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
-                        client.id, i);
-                message = client.messages.poll(1, TimeUnit.SECONDS);
-                Assertions.assertNotNull(message,
-                        "Expecting message " + i + " but got null");
-                Assertions.assertEquals(expectedMessage,
-                        message.replaceFirst("\\d+\\|", ""));
+                assertThatPushUpdateHasBeenReceived(client, i);
             }
             client.cancel();
             assertCounterValue(counterName, -1);
 
             client.subscribe();
             for (int i = 0; i < 3; i++) {
-                String expectedMessage = String.format(
-                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
-                        client.id, i);
-                message = client.messages.poll(1, TimeUnit.SECONDS);
-                Assertions.assertNotNull(message,
-                        "Expecting message " + i + " but got null");
-                Assertions.assertEquals(expectedMessage,
-                        message.replaceFirst("\\d+\\|", ""));
+                assertThatPushUpdateHasBeenReceived(client, i);
             }
             client.cancel();
             assertCounterValue(counterName, -1);
 
         }
-        String message = client.messages.poll(1, TimeUnit.SECONDS);
-        Assertions.assertNotNull(message,
-                "Expecting CLOSED message but got null");
-        Assertions.assertTrue(message.startsWith("CLOSED: "),
-                "Expecting CLOSED message but got " + message);
+        assertThatConnectionHasBeenClosed(client);
     }
 
-    private URI createPUSHConnectURI() {
-        return URI.create(uri.toASCIIString() + "?X-Atmosphere-tracking-id="
-                + UUID.randomUUID() + "&X-Atmosphere-Framework=3.1.4-javascript"
-                + "&X-Atmosphere-Transport=websocket"
-                + "&X-Atmosphere-TrackMessageSize=true" + "&Content-Type="
-                + URLEncoder.encode("application/json; charset=UTF-8",
-                        StandardCharsets.UTF_8)
-                + "&X-atmo-protocol=true" + "&X-CSRF-Token="
-                + UUID.randomUUID());
+    private static void assertThatClientIsConnected(HillaPushClient client)
+            throws InterruptedException {
+        client.assertMessageReceived(10, TimeUnit.SECONDS, "CONNECT");
+    }
+
+    private static void assertThatConnectionHasBeenClosed(
+            HillaPushClient client) throws InterruptedException {
+        client.assertMessageReceived(1, TimeUnit.SECONDS,
+                message -> message.isNotNull().startsWith("CLOSED: "));
+    }
+
+    private static void assertThatPushUpdateHasBeenReceived(
+            HillaPushClient client, int i) throws InterruptedException {
+        client.assertMessageReceived(1, TimeUnit.SECONDS,
+                message -> message.as("Message %d", i).isEqualTo(
+                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
+                        client.id, i));
     }
 
     private static void assertCounterValue(String counterName, int expected) {
@@ -193,7 +148,7 @@ class ReactiveEndpointTest {
                 .cookie("csrfToken", "CSRF_TOKEN")
                 .header("X-CSRF-Token", "CSRF_TOKEN").body(orderedParams)
                 .basePath("/connect").when()
-                .post("/ReactiveEndpoint/counterValue").then()
+                .post("/{endpointName}/counterValue", ENDPOINT_NAME).then()
                 .body(Matchers.equalTo(Integer.toString(expected)));
     }
 

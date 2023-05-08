@@ -7,10 +7,13 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -27,6 +30,7 @@ import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HillaPushClient extends Endpoint
@@ -114,19 +118,6 @@ public class HillaPushClient extends Endpoint
         }
     }
 
-    public void disconnect() {
-        LOGGER.trace("Disconnecting client {}", id);
-        if (session != null) {
-            try {
-                session.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        } else {
-            throw new IllegalStateException("Not connected");
-        }
-    }
-
     public String pollMessage(long timeout, TimeUnit unit)
             throws InterruptedException {
         String message = messages.poll(timeout, unit);
@@ -165,12 +156,26 @@ public class HillaPushClient extends Endpoint
     }
 
     private String createUnsubscribeMessage() {
-        ObjectNode params = objectMapper.createObjectNode()
-                .put("@type", "unsubscribe").put("id", id);
+        LinkedHashMap<String, Object> params = new LinkedHashMap<>();
+        params.put("@type", "unsubscribe");
+        params.put("id", id);
         try {
             return objectMapper.writeValueAsString(params);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
+
+    static URI createPUSHConnectURI(URI baseURI) {
+        String contentType = URLEncoder
+                .encode("application/json; charset=UTF-8", UTF_8);
+        return URI.create(baseURI.toASCIIString() + //
+                "?X-Atmosphere-tracking-id=" + UUID.randomUUID()
+                // + "&X-Atmosphere-Framework=3.1.4-javascript"
+                + "&X-Atmosphere-Transport=websocket"
+                + "&X-Atmosphere-TrackMessageSize=true" //
+                + "&Content-Type=" + contentType //
+                + "&X-atmo-protocol=true&X-CSRF-Token=" + UUID.randomUUID());
+    }
+
 }
