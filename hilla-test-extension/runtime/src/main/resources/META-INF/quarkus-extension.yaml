@@ -1,10 +1,11 @@
-name: Hilla Test Extension
-#description: Do something useful.
+name: Quarkus Hilla Extension
 metadata:
-#  keywords:
-#    - hilla-test-extension
-#  guide: ...
-#  categories:
-#    - "miscellaneous"
-#  status: "preview"
+  keywords:
+    - "hilla"
+    - "web"
+    - "reactive"
+  categories:
+    - "web"
+    - "reactive"
+  status: "experimental"
 
