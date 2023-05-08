@@ -122,6 +122,8 @@ public class HillaPushClient extends Endpoint
             throws InterruptedException {
         String message = messages.poll(timeout, unit);
         if (message != null) {
+            // remove atmosphere internal identifier, to get only the
+            // application message
             message = message.replaceFirst("\\d+\\|", "");
         }
         return message;
@@ -170,9 +172,8 @@ public class HillaPushClient extends Endpoint
         String contentType = URLEncoder
                 .encode("application/json; charset=UTF-8", UTF_8);
         return URI.create(baseURI.toASCIIString() + //
-                "?X-Atmosphere-tracking-id=" + UUID.randomUUID()
-                // + "&X-Atmosphere-Framework=3.1.4-javascript"
-                + "&X-Atmosphere-Transport=websocket"
+                "?X-Atmosphere-tracking-id=" + UUID.randomUUID() //
+                + "&X-Atmosphere-Transport=websocket" //
                 + "&X-Atmosphere-TrackMessageSize=true" //
                 + "&Content-Type=" + contentType //
                 + "&X-atmo-protocol=true&X-CSRF-Token=" + UUID.randomUUID());
