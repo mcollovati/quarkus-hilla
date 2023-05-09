@@ -8,6 +8,7 @@
         <artifactId>quarkus-hilla-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>quarkus-hilla</artifactId>
     <name>Quarkus - Hilla - Runtime</name>
     <description>
@@ -39,7 +40,6 @@
         <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>hilla-jandex</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <build>
