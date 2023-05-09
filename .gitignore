@@ -13,10 +13,10 @@ node_modules/
 frontend/generated/
 pnpmfile.js
 vite.generated.ts
-deployment/package*.json
-deployment/vite*.ts
-deployment/tsconfig.json
-deployment/types.d.ts
+package*.json
+vite*.ts
+tsconfig.json
+types.d.ts
 
 # Browser drivers for local integration tests
 drivers/

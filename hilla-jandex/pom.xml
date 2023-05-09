@@ -39,6 +39,7 @@
         <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>hilla-shaded-deps</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 
