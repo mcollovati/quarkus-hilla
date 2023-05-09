@@ -10,7 +10,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>quarkus-hilla-demo</artifactId>
+    <artifactId>quarkus-hilla-smoke-tests</artifactId>
     <properties>
         <skipITs>true</skipITs>
     </properties>
