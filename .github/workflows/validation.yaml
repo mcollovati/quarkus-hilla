@@ -6,7 +6,9 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
 permissions:
-  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
 concurrency:
   group: ${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
