@@ -36,6 +36,10 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
+      - name: Set up Maven
+        uses: stCarolas/setup-maven@v4.5
+        with:
+          maven-version: 3.8.7
       - uses: actions/setup-node@v3
         with:
           node-version: '18.16.0'
@@ -49,7 +53,7 @@ jobs:
       - name: Build and Test
         run: |
           set -x -e -o pipefail
-          mvn -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
       - name: Publish Unit Test Results
         if: ${{ failure() || success() }}
         uses: EnricoMi/publish-unit-test-result-action@v2
