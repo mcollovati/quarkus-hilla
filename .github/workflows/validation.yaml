@@ -36,6 +36,9 @@ jobs:
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18.16.0'
       - name: Checkout
         uses: actions/checkout@v3
         with:
