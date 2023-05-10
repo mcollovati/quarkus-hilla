@@ -1,0 +1,51 @@
+name: Quarkus Hilla Validation
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+env:
+  JAVA_VERSION: 17
+jobs:
+  build-and-test:
+    timeout-minutes: 30
+    runs-on: ubuntu-22.04
+    steps:
+      - run: echo "Concurrency Group = ${{ github.head_ref || github.ref_name }}"
+      - uses: actions-cool/check-user-permission@main
+        id: checkUser
+        with:
+          username: ${{github.triggering_actor}}
+          require: 'write'
+      - name: Fail on external workflow triggering
+        if: ${{ steps.checkUser.outputs.require-result != 'true' && github.actor != 'dependabot[bot]' }}
+        run: |
+          echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
+            | tee -a $GITHUB_STEP_SUMMARY && exit 1
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+      - name: Build and Test
+        run: |
+          set -x -e -o pipefail
+          mvn -B -ntp -T 1C verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        with:
+          junit_files: "**/target/*-reports/TEST*.xml"
+          check_run_annotations: all tests, skipped tests
