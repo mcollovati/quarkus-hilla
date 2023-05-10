@@ -43,7 +43,7 @@ jobs:
       - name: Build and Test
         run: |
           set -x -e -o pipefail
-          mvn -B -ntp -T 1C verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+          mvn -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
       - name: Publish Unit Test Results
         if: ${{ failure() || success() }}
         uses: EnricoMi/publish-unit-test-result-action@v2
