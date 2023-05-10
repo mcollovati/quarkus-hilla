@@ -8,6 +8,7 @@
         <artifactId>quarkus-hilla-parent</artifactId>
         <version>1.0-SNAPSHOT</version>
     </parent>
+
     <artifactId>quarkus-hilla</artifactId>
     <name>Quarkus - Hilla - Runtime</name>
     <description>

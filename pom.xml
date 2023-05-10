@@ -19,9 +19,11 @@
     <modules>
         <module>deployment</module>
         <module>runtime</module>
+        <module>hilla-jandex</module>
+        <module>hilla-shaded-deps</module>
+        <module>integration-tests/smoke-tests</module>
     </modules>
     <properties>
-        <compiler-plugin.version>3.10.1</compiler-plugin.version>
         <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -33,8 +35,13 @@
 
         <assertj.version>3.24.2</assertj.version>
 
-        <surefire-plugin.version>3.0.0</surefire-plugin.version>
-        <failsafe-plugin.version>${surefire-plugin.version}</failsafe-plugin.version>
+        <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
+        <maven-surefire-plugin.version>3.0.0</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
+        <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
+        <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
+        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <jandex-maven-plugin.version>1.1.1</jandex-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -77,8 +84,13 @@
                     <version>${quarkus.version}</version>
                 </plugin>
                 <plugin>
+                    <groupId>dev.hilla</groupId>
+                    <artifactId>hilla-maven-plugin</artifactId>
+                    <version>${hilla.version}</version>
+                </plugin>
+                <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${surefire-plugin.version}</version>
+                    <version>${maven-surefire-plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -89,7 +101,7 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${failsafe-plugin.version}</version>
+                    <version>${maven-failsafe-plugin.version}</version>
                     <configuration>
                         <systemPropertyVariables>
                             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -100,14 +112,68 @@
                 </plugin>
                 <plugin>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>${compiler-plugin.version}</version>
+                    <version>${maven-compiler-plugin.version}</version>
                     <configuration>
                         <compilerArgs>
                             <arg>-parameters</arg>
                         </compilerArgs>
                     </configuration>
                 </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-dependency-plugin</artifactId>
+                    <version>${maven-dependency-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>${maven-shade-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven-jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jboss.jandex</groupId>
+                    <artifactId>jandex-maven-plugin</artifactId>
+                    <version>${jandex-maven-plugin.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
+    <repositories>
+        <!-- The order of definitions matters. Explicitly defining central here to make sure it has the highest priority. -->
+
+        <!-- Main Maven repository -->
+        <repository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>vaadin-prereleases</id>
+            <url>
+                https://maven.vaadin.com/vaadin-prereleases/
+            </url>
+        </repository>
+    </repositories>
+    <pluginRepositories>
+        <!-- The order of definitions matters. Explicitly defining central here to make sure it has the highest priority. -->
+        <pluginRepository>
+            <id>central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+        <pluginRepository>
+            <id>vaadin-prereleases</id>
+            <url>
+                https://maven.vaadin.com/vaadin-prereleases/
+            </url>
+        </pluginRepository>
+    </pluginRepositories>
 </project>
