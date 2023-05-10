@@ -45,6 +45,7 @@ jobs:
           set -x -e -o pipefail
           mvn -B -ntp -T 1C verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
       - name: Publish Unit Test Results
+        if: ${{ failure() || success() }}
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
