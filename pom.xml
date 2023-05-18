@@ -66,7 +66,6 @@
         <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <jandex-maven-plugin.version>1.1.1</jandex-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.6.0</jreleaser-maven-plugin.version>
-
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -227,6 +226,8 @@
             <id>distribution</id>
             <properties>
                 <jreleaser.signing.mode>MEMORY</jreleaser.signing.mode>
+                <release.jfrog.active>NEVER</release.jfrog.active>
+                <release.mavencentral.active>ALWAYS</release.mavencentral.active>
             </properties>
             <build>
                 <plugins>
@@ -332,7 +333,7 @@
                                     <maven>
                                         <artifactory>
                                             <app>
-                                                <active>ALWAYS</active>
+                                                <active>${release.jfrog.active}</active>
                                                 <url>https://mcollovati.jfrog.io/artifactory/jreleaser-tests</url>
                                                 <stagingRepositories>target/staging-deploy</stagingRepositories>
                                                 <applyMavenCentralRules>true</applyMavenCentralRules>
@@ -340,7 +341,7 @@
                                         </artifactory>
                                         <nexus2>
                                             <maven-central>
-                                                <active>ALWAYS</active>
+                                                <active>${release.mavencentral.active}</active>
                                                 <url>https://oss.sonatype.org/service/local</url>
                                                 <snapshotUrl>https://s01.oss.sonatype.org/content/repositories/snapshots/</snapshotUrl>
                                                 <closeRepository>false</closeRepository>

@@ -15,7 +15,8 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
-**NOTE**: This is an **unofficial community extension**, and it is **not** directly
+**NOTE**: This is an **unofficial community extension**, and it is **not**
+directly
 related nor supported by Vaadin Ltd.
 
 ## Limitations
@@ -34,10 +35,21 @@ Version must be in format N.N.N, for example `1.0.0`.
 Pre-releases can use `alpha`, `beta` and `rc` suffix, followed by a number,
 for example `1.0.0.beta2`.
 
+Environment variables required by the release process:
+
+* JRELEASER_GITHUB_TOKEN: to create release on GitHub
+* JRELEASER_GPG_PUBLIC_KEY, JRELEASER_GPG_SECRET_KEY and
+  JRELEASER_GPG_PASSPHRASE: to sign artifacts
+* JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME and
+  JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: to publish on maven central
+
+Use `-Djreleaser.dry.run=true` flag to test the release without publishing
+artifacts.
+
 ```terminal
 mvn clean
 mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy deploy 
-mvn -N -Pdistribution -Drevision=<version-to-relese> -Djreleaser.dry.run=true -Djreleaser.signing.mode=FILE -Djreleaser.release.skip=true jreleaser:full-release
+mvn -N -Pdistribution -Drevision=<version-to-relese> jreleaser:full-release
 ```
 
 ## Contributors ✨
