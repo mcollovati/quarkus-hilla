@@ -29,9 +29,14 @@ The current Hilla support has some known limitations:
 
 ## Release
 
+To perform a manual relese type the follogin commands.
+Version must be in format N.N.N, for example `1.0.0`.
+Pre-releases can use `alpha`, `beta` and `rc` suffix, followed by a number,
+for example `1.0.0.beta2`.
+
 ```terminal
 mvn clean
-mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy -Dmaven.javadoc.failOnError=false deploy 
+mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy deploy 
 mvn -N -Pdistribution -Drevision=<version-to-relese> -Djreleaser.dry.run=true -Djreleaser.signing.mode=FILE -Djreleaser.release.skip=true jreleaser:full-release
 ```
 
