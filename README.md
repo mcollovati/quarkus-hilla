@@ -27,6 +27,14 @@ The current Hilla support has some known limitations:
   is not supported
 * Native image compilation does not work
 
+## Release
+
+```terminal
+mvn clean
+mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy -Dmaven.javadoc.failOnError=false deploy 
+mvn -N -Pdistribution -Drevision=<version-to-relese> -Djreleaser.dry.run=true -Djreleaser.signing.mode=FILE -Djreleaser.release.skip=true jreleaser:full-release
+```
+
 ## Contributors ✨
 
 Thanks goes to these wonderful
