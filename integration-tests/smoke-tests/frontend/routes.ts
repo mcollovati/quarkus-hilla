@@ -48,7 +48,7 @@ export const views: ViewRoute[] = [
         icon: '',
         title: '',
         requiresLogin: true,
-        action: checkAccessAction
+        //action: checkAccessAction
     },
     {
         path: 'hello',
@@ -56,7 +56,7 @@ export const views: ViewRoute[] = [
         icon: 'la la-globe',
         title: 'Hello World',
         requiresLogin: true,
-        action: checkAccessAction
+        //action: checkAccessAction
     },
     {
         path: 'about',
@@ -64,11 +64,13 @@ export const views: ViewRoute[] = [
         icon: 'la la-file',
         title: 'About',
         requiresLogin: false,
+        /*
         action: async (_context, _command) => {
             await checkAccessAction(_context, _command);
             await import('./views/about/about-view');
             return;
         },
+         */
     },
     ...serverSideRoutes
 ];
