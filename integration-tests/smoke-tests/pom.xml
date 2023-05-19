@@ -15,6 +15,10 @@
     <properties>
         <skipITs>true</skipITs>
         <maven.deploy.skip>true</maven.deploy.skip>
+
+        <selenide.version>6.14.0</selenide.version>
+        <awaitility.version>4.2.0</awaitility.version>
+        <playwright.version>1.33.0</playwright.version>
     </properties>
     <dependencies>
         <dependency>
@@ -44,6 +48,29 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>${awaitility.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>${playwright.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.codeborne</groupId>
+            <artifactId>selenide</artifactId>
+            <version>${selenide.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -93,7 +120,11 @@
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
+                        <selenide.reportsFolder>${project.build.directory}/selenide/tests</selenide.reportsFolder>
+                        <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
+                        </selenide.downloadsFolder>
                     </systemPropertyVariables>
+                    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
             </plugin>
             <plugin>
@@ -110,7 +141,13 @@
                                 </native.image.path>
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                                 <maven.home>${maven.home}</maven.home>
+                                <selenide.reportsFolder>${project.build.directory}/selenide/error-screenshots
+                                </selenide.reportsFolder>
+                                <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
+                                </selenide.downloadsFolder>
                             </systemPropertyVariables>
+                            <forkNode
+                                    implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                         </configuration>
                     </execution>
                 </executions>

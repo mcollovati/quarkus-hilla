@@ -45,10 +45,7 @@ public class ClockService {
         String userName = getUsername();
         return Flux.interval(Duration.ofSeconds(1))
                 .onBackpressureDrop()
-                .map(_interval -> {
-                    System.out.println("====================== SENT " + id);
-                    return userName + " " + new Date().toString() + " " + id;
-                })
+                .map(unused -> userName + " " + new Date() + " " + id)
                 .doOnError(Throwable::printStackTrace)
                 .onErrorReturn("Sorry, something failed...");
     }
