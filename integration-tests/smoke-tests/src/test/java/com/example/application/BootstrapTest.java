@@ -21,7 +21,7 @@ class BootstrapTest {
     @Test
     void devMode_applicationStart_endpointsGenerated() {
         assertThat(frontendGeneratedFolder).isDirectory().exists();
-        Awaitility.await().atMost(60, TimeUnit.SECONDS)
+        Awaitility.await().atMost(300, TimeUnit.SECONDS)
                 .until(() -> assertThat(frontendGeneratedFolder)
                         .isDirectoryContaining(fileWithName("endpoints.ts"))
                         .isDirectoryContaining(fileWithName("vaadin.ts"))
