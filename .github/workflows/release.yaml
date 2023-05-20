@@ -24,11 +24,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions-cool/check-user-permission@main
+        id: checkUser
+        with:
+          username: ${{github.triggering_actor}}
+          check-contributor: true
+          require: 'write'
+      - name: Fail on workflow triggered by external contributor
+        if: ${{ steps.checkUser.outputs.require-result != 'true' }}
+        run: |
+          echo "🚫 **${{ github.actor }}** is an external contributor, only **${{ github.repository }}** team members can perform a release" \
+            | tee -a $GITHUB_STEP_SUMMARY && exit 1
       - name: Validate Workflow branch
         run: |
           BRANCH_NAME=${GITHUB_REF##*/}
           if [[ "main" != "${BRANCH_NAME}" ]]; then
-            echo "ERROR: Release Workflow must be dispatched on 'main' branch."
+            echo "🚫 Release Workflow must be dispatched on 'main' branch." \
+             | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
@@ -42,11 +54,13 @@ jobs:
         run: |
           VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(\.(alpha|beta|rc)[0-9]+)?$'
           if [[ ! "${{ inputs.version }}" =~ $VERSION_REGEX ]]; then
-            echo "ERROR: Invalid version specified: '${{ inputs.version }}'. Please enter a valid SemVer version, like '1.2.3' or '1.0.0.alpha1'."
+            echo "🚫 Invalid version specified: '${{ inputs.version }}'. Please enter a valid SemVer version, like '1.2.3' or '1.0.0.alpha1'." \
+             | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
           if git rev-parse -q --verify "refs/tags/${{ inputs.version }}" >/dev/null; then
-            echo "Version ${{ inputs.version }} already exists. Please choose a different version."
+            echo "🚫 Version ${{ inputs.version }} already exists. Please choose a different version." \
+             | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
