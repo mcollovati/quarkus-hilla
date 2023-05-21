@@ -3,8 +3,7 @@
 A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
 applications on Quarkus.
 
-Hilla is an open source framework, provided
-by [Vaadin Ltd.](https://vaadin.com),
+Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
 This extension replaces the Spring Boot backend with Quarkus Context &
@@ -15,8 +14,8 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
-**NOTE**: This is an **unofficial community extension**, and it is **not** directly
-related nor supported by Vaadin Ltd.
+**NOTE**: This is an **unofficial community extension**, and it is **not**
+directly related **nor** supported by Vaadin Ltd.
 
 ## Limitations
 
@@ -26,6 +25,30 @@ The current Hilla support has some known limitations:
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
 * Native image compilation does not work
+
+## Release
+
+To perform a manual release type the following commands.
+Version must be in format N.N.N, for example `1.0.0`.
+Pre-releases can use `-alpha`, `-beta` and `-rc` suffix, followed by a number,
+for example `1.0.0-beta2`.
+
+Environment variables required by the release process:
+
+* JRELEASER_GITHUB_TOKEN: to create release on GitHub
+* JRELEASER_GPG_PUBLIC_KEY, JRELEASER_GPG_SECRET_KEY and
+  JRELEASER_GPG_PASSPHRASE: to sign artifacts
+* JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME and
+  JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: to publish on maven central
+
+Use `-Djreleaser.dry.run=true` flag to test the release without publishing
+artifacts.
+
+```terminal
+mvn clean
+mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy deploy 
+mvn -N -Pdistribution -Drevision=<version-to-release> jreleaser:full-release
+```
 
 ## Contributors ✨
 

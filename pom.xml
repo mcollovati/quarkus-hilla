@@ -5,9 +5,25 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-parent</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>Quarkus - Hilla - Parent</name>
+    <description>A Quarkus extension to run Hilla applications on Quarkus</description>
+    <url>https://github.com/mcollovati/quarkus-hilla</url>
+    <inceptionYear>2023</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache-2.0</name>
+            <url>https://spdx.org/licenses/Apache-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <connection>scm:git:https://github.com/mcollovati/quarkus-hilla.git</connection>
+        <developerConnection>scm:git:https://github.com/mcollovati/quarkus-hilla.git</developerConnection>
+        <url>https://github.com/mcollovati/quarkus-hilla.git</url>
+        <tag>HEAD</tag>
+    </scm>
     <developers>
         <developer>
             <name>Marco Collovati</name>
@@ -16,6 +32,7 @@
             <name>Dario Götze</name>
         </developer>
     </developers>
+
     <modules>
         <module>deployment</module>
         <module>runtime</module>
@@ -23,7 +40,10 @@
         <module>hilla-shaded-deps</module>
         <module>integration-tests/smoke-tests</module>
     </modules>
+
     <properties>
+        <revision>1.0-SNAPSHOT</revision>
+
         <maven.compiler.release>11</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -41,7 +61,11 @@
         <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
         <maven-shade-plugin.version>3.4.1</maven-shade-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
+        <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
+        <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
+        <maven-source-plugin.version>3.2.1</maven-source-plugin.version>
         <jandex-maven-plugin.version>1.1.1</jandex-maven-plugin.version>
+        <jreleaser-maven-plugin.version>1.6.0</jreleaser-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -135,9 +159,29 @@
                     <version>${maven-jar-plugin.version}</version>
                 </plugin>
                 <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-deploy-plugin</artifactId>
+                    <version>${maven-deploy-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>${maven-javadoc-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>${maven-source-plugin.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.jboss.jandex</groupId>
                     <artifactId>jandex-maven-plugin</artifactId>
                     <version>${jandex-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.jreleaser</groupId>
+                    <artifactId>jreleaser-maven-plugin</artifactId>
+                    <version>${jreleaser-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -176,4 +220,148 @@
             </url>
         </pluginRepository>
     </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>distribution</id>
+            <properties>
+                <jreleaser.signing.mode>MEMORY</jreleaser.signing.mode>
+                <release.jfrog.active>NEVER</release.jfrog.active>
+                <release.mavencentral.active>ALWAYS</release.mavencentral.active>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <attach>true</attach>
+                                    <quiet>true</quiet>
+                                    <verbose>true</verbose>
+                                    <!-- Temporary, should be removed after #45 is completed -->
+                                    <failOnError>false</failOnError>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <attach>true</attach>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>flatten-maven-plugin</artifactId>
+                        <version>1.5.0</version>
+                        <configuration>
+                            <flattenMode>oss</flattenMode>
+                            <updatePomFile>true</updatePomFile>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <pomElements>
+                                <repositories>remove</repositories>
+                            </pomElements>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>flatten</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>flatten</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <id>flatten.clean</id>
+                                <phase>clean</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.jreleaser</groupId>
+                        <artifactId>jreleaser-maven-plugin</artifactId>
+                        <inherited>false</inherited>
+                        <configuration>
+                            <jreleaser>
+                                <release>
+                                    <github>
+                                        <owner>mcollovati</owner>
+                                        <name>quarkus-hilla</name>
+                                        <changelog>
+                                            <formatted>ALWAYS</formatted>
+                                            <preset>conventional-commits</preset>
+                                            <skipMergeCommits>true</skipMergeCommits>
+                                            <hide>
+                                                <categories>
+                                                    <category>merge</category>
+                                                    <category>tasks</category>
+                                                    <category>build</category>
+                                                </categories>
+                                                <contributors>
+                                                    <contributor>GitHub</contributor>
+                                                </contributors>
+                                            </hide>
+                                            <contributors>
+                                                <format>- {{contributorName}}</format>
+                                            </contributors>
+                                        </changelog>
+                                        <draft>true</draft>
+                                        <tagName>${project.version}</tagName>
+                                        <releaseName>Release ${project.version}</releaseName>
+                                        <prerelease>
+                                            <pattern>.*-(alpha|beta|rc)\d+</pattern>
+                                        </prerelease>
+                                    </github>
+                                </release>
+                                <deploy>
+                                    <maven>
+                                        <artifactory>
+                                            <app>
+                                                <active>${release.jfrog.active}</active>
+                                                <url>https://mcollovati.jfrog.io/artifactory/quarkus-hilla</url>
+                                                <stagingRepositories>target/staging-deploy</stagingRepositories>
+                                                <applyMavenCentralRules>true</applyMavenCentralRules>
+                                            </app>
+                                        </artifactory>
+                                        <nexus2>
+                                            <maven-central>
+                                                <active>${release.mavencentral.active}</active>
+                                                <url>https://oss.sonatype.org/service/local</url>
+                                                <snapshotUrl>https://s01.oss.sonatype.org/content/repositories/snapshots/</snapshotUrl>
+                                                <closeRepository>false</closeRepository>
+                                                <releaseRepository>false</releaseRepository>
+                                                <stagingRepositories>target/staging-deploy</stagingRepositories>
+                                            </maven-central>
+                                        </nexus2>
+                                    </maven>
+                                </deploy>
+                                <signing>
+                                    <active>ALWAYS</active>
+                                    <mode>${jreleaser.signing.mode}</mode>
+                                    <armored>true</armored>
+                                </signing>
+                            </jreleaser>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
