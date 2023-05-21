@@ -307,7 +307,7 @@
                                         <changelog>
                                             <formatted>ALWAYS</formatted>
                                             <preset>conventional-commits</preset>
-                                            <skipMergeCommits>false</skipMergeCommits>
+                                            <skipMergeCommits>true</skipMergeCommits>
                                             <hide>
                                                 <categories>
                                                     <category>merge</category>
