@@ -238,13 +238,15 @@
                             <execution>
                                 <id>attach-javadocs</id>
                                 <goals>
-                                    <goal>javadoc</goal>
+                                    <!-- <goal>javadoc</goal> -->
                                     <goal>jar</goal>
                                 </goals>
                                 <configuration>
                                     <attach>true</attach>
                                     <quiet>true</quiet>
                                     <verbose>true</verbose>
+                                    <!-- Temporary, should be removed after #45 is completed -->
+                                    <failOnError>false</failOnError>
                                 </configuration>
                             </execution>
                         </executions>
@@ -306,7 +308,7 @@
                                         <changelog>
                                             <formatted>ALWAYS</formatted>
                                             <preset>conventional-commits</preset>
-                                            <skipMergeCommits>true</skipMergeCommits>
+                                            <skipMergeCommits>false</skipMergeCommits>
                                             <hide>
                                                 <categories>
                                                     <category>merge</category>
@@ -325,7 +327,7 @@
                                         <tagName>${project.version}</tagName>
                                         <releaseName>Release ${project.version}</releaseName>
                                         <prerelease>
-                                            <pattern>.*\.(alpha|beta|rc)\d+</pattern>
+                                            <pattern>.*-(alpha|beta|rc)\d+</pattern>
                                         </prerelease>
                                     </github>
                                 </release>
@@ -334,7 +336,7 @@
                                         <artifactory>
                                             <app>
                                                 <active>${release.jfrog.active}</active>
-                                                <url>https://mcollovati.jfrog.io/artifactory/jreleaser-tests</url>
+                                                <url>https://mcollovati.jfrog.io/artifactory/quarkus-hilla</url>
                                                 <stagingRepositories>target/staging-deploy</stagingRepositories>
                                                 <applyMavenCentralRules>true</applyMavenCentralRules>
                                             </app>

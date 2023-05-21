@@ -10,11 +10,11 @@ on:
         options:
         - main
       version:
-        description: "Version to release (e.g. 1.1.0 or 1.2.0.alpha1)"
+        description: "Version to release (e.g. 1.1.0 or 1.2.0-alpha1)"
         required: true
         type: string
       dry-run:
-        description: "Dry run (Skips remote operations)"
+        description: "Dry run (skips remote operations)"
         required: true
         type: boolean
         default: false
@@ -52,26 +52,17 @@ jobs:
 
       - name: Validate version
         run: |
-          VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(\.(alpha|beta|rc)[0-9]+)?$'
+          VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9]+)?$'
           if [[ ! "${{ inputs.version }}" =~ $VERSION_REGEX ]]; then
-            echo "🚫 Invalid version specified: '${{ inputs.version }}'. Please enter a valid SemVer version, like '1.2.3' or '1.0.0.alpha1'." \
+            echo "🚫 Invalid version specified: '${{ inputs.version }}'. Please enter a valid SemVer version, like '1.2.3' or '1.0.0-alpha1'." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          if git rev-parse -q --verify "refs/tags/${{ inputs.version }}" >/dev/null; then
+          if git rev-parse -q --verify "refs/tags/${{ inputs.version }}" > /dev/null; then
             echo "🚫 Version ${{ inputs.version }} already exists. Please choose a different version." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
-#      - name: Check Branch
-#        run: |
-#          ALLOWED_BRANCHES=("main" "1.0" "2.0")
-#          BRANCH_NAME=${GITHUB_REF##*/}
-#          if [[ ! " ${ALLOWED_BRANCHES[@]} " =~ " ${BRANCH_NAME} " ]]; then
-#            echo "ERROR: Branch ${GITHUB_REF} is not allowed. Only branches $(IFS=,; echo "${ALLOWED_BRANCHES[*]}") are allowed."
-#            exit 1
-#          fi
 
       - name: Setup Java
         uses: actions/setup-java@v3
