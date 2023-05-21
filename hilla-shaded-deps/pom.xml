@@ -13,10 +13,6 @@
     <name>Hilla - Shaded dependencies</name>
     <description>Minimal set of Spring classes required by Hilla at runtime</description>
 
-    <properties>
-        <maven.source.forceCreation>true</maven.source.forceCreation>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>dev.hilla</groupId>
