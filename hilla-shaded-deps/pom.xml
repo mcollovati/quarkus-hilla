@@ -106,13 +106,12 @@
                 </executions>
             </plugin>
             <!--
-                This configuration is here only to make IntellijIDEA find the shaded module
+                This configuration is only here to make IntelliJ IDEA find the shaded module
                 skipAttach property must be true
             -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>attach-shade-jar</id>
