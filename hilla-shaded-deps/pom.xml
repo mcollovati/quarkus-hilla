@@ -106,7 +106,7 @@
                 </executions>
             </plugin>
             <!--
-                This configuration is only here to help IntelliJ IDEA find the shaded module
+                This configuration is only here to help IntelliJ IDEA find the shaded module.
                 skipAttach property must be true
             -->
             <plugin>
