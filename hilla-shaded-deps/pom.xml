@@ -105,6 +105,33 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--
+                This configuration is only here to help IntelliJ IDEA find the shaded module.
+                skipAttach property must be true
+            -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>attach-shade-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>attach-artifact</goal>
+                        </goals>
+                        <configuration>
+                            <artifacts>
+                                <artifact>
+                                    <file>${project.build.directory}/${project.build.finalName}.jar</file>
+                                    <type>jar</type>
+                                    <classifier>shaded</classifier>
+                                </artifact>
+                            </artifacts>
+                            <skipAttach>true</skipAttach>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
