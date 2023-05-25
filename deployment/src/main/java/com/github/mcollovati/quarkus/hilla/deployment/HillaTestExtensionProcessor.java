@@ -66,7 +66,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 class HillaTestExtensionProcessor {
 
-    private static final String FEATURE = "hilla-test-extension";
+    private static final String FEATURE = "quarkus-hilla";
 
     @BuildStep
     FeatureBuildItem feature() {
