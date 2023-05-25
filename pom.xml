@@ -67,6 +67,7 @@
         <jandex-maven-plugin.version>1.2.3</jandex-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.6.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.5.0</flatten-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.2.0</build-helper-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -188,6 +189,11 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>flatten-maven-plugin</artifactId>
                     <version>${flatten-maven-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build-helper-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
