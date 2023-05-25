@@ -28,7 +28,7 @@ The current Hilla support has some known limitations:
 
 ## Tutorial
 
-Get started with `quarkus-hilla` by follow the [Quick Start Guide](../../wiki/QuickStart).
+Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart).
 
 ## Release
 
