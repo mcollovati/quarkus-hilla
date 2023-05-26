@@ -19,12 +19,14 @@ import com.github.mcollovati.quarkus.hilla.*;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.EndpointTransferMapperClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.TransferTypesPluginClassVisitor;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.endpointransfermapper.EndpointTransferMapper;
+import dev.hilla.parser.plugins.transfertypes.TransferTypesPlugin;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
 import io.quarkus.arc.deployment.*;
@@ -152,6 +154,9 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new BytecodeTransformerBuildItem(
                 EndpointTransferMapper.class.getName(),
                 (s, classVisitor) -> new EndpointTransferMapperClassVisitor(classVisitor)));
+        producer.produce(new BytecodeTransformerBuildItem(
+                TransferTypesPlugin.class.getName(),
+                (s, classVisitor) -> new TransferTypesPluginClassVisitor(classVisitor)));
     }
 
     @BuildStep
