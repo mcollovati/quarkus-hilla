@@ -153,6 +153,8 @@ class QuarkusEndpointControllerConfiguration {
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker) {
-        return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
+        EndpointController controller = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
+        controller.registerEndpoints();
+        return controller;
     }
 }
