@@ -64,7 +64,7 @@ import org.jboss.jandex.FieldInfo;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
-class HillaTestExtensionProcessor {
+class QuarkusHillaExtensionProcessor {
 
     private static final String FEATURE = "quarkus-hilla";
 
