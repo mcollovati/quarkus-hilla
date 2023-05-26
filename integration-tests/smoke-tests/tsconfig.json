@@ -6,6 +6,7 @@
 {
   "_version": "9",
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "sourceMap": true,
     "jsx": "react-jsx",
     "inlineSources": true,
