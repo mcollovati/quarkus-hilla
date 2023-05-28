@@ -68,6 +68,7 @@
         <jreleaser-maven-plugin.version>1.6.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.5.0</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
+        <spotless-maven-plugin.version>2.37.0</spotless-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -223,6 +224,36 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>${spotless-maven-plugin.version}</version>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat>
+                            <style>PALANTIR</style>
+                        </palantirJavaFormat>
+                        <removeUnusedImports/>
+                        <formatAnnotations/>
+                        <toggleOffOn />
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
+                    </java>
+                    <formats>
+                        <format>
+                            <includes>
+                                <include>*.md</include>
+                            </includes>
+                            <trimTrailingWhitespace/>
+                            <endWithNewline/>
+                            <indent>
+                                <spaces>true</spaces>
+                                <spacesPerTab>2</spacesPerTab>
+                            </indent>
+                        </format>
+                    </formats>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     <repositories>
@@ -366,7 +397,9 @@
                                             <maven-central>
                                                 <active>${release.mavencentral.active}</active>
                                                 <url>https://oss.sonatype.org/service/local</url>
-                                                <snapshotUrl>https://s01.oss.sonatype.org/content/repositories/snapshots/</snapshotUrl>
+                                                <snapshotUrl>
+                                                    https://s01.oss.sonatype.org/content/repositories/snapshots/
+                                                </snapshotUrl>
                                                 <closeRepository>false</closeRepository>
                                                 <releaseRepository>false</releaseRepository>
                                                 <stagingRepositories>target/staging-deploy</stagingRepositories>
