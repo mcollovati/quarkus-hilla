@@ -15,7 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import dev.hilla.EndpointController;
 import dev.hilla.EndpointInvoker;
@@ -25,12 +24,14 @@ import dev.hilla.EndpointUtil;
 import dev.hilla.ExplicitNullableTypeChecker;
 import dev.hilla.auth.CsrfChecker;
 import dev.hilla.auth.EndpointAccessChecker;
+import dev.hilla.parser.jackson.JacksonObjectMapperFactory;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 import org.springframework.context.ApplicationContext;
@@ -126,16 +127,21 @@ class QuarkusEndpointControllerConfiguration {
     @ApplicationScoped
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
-            ObjectMapper objectMapper,
+            @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
+                    JacksonObjectMapperFactory objectMapperFactory,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
             ServletContext servletContext,
             EndpointRegistry endpointRegistry) {
         return new EndpointInvoker(
-                applicationContext,
-                new JacksonObjectMapperFactory.Json(),
-                explicitNullableTypeChecker,
-                servletContext,
-                endpointRegistry);
+                applicationContext, objectMapperFactory, explicitNullableTypeChecker, servletContext, endpointRegistry);
+    }
+
+    @Produces
+    @ApplicationScoped
+    @DefaultBean
+    @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
+    JacksonObjectMapperFactory objectMapperFactory() {
+        return new JacksonObjectMapperFactory.Json();
     }
 
     @Produces
