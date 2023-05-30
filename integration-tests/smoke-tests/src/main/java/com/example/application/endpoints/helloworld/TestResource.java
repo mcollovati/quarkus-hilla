@@ -1,9 +1,8 @@
 package com.example.application.endpoints.helloworld;
 
-import org.jboss.resteasy.reactive.RestResponse;
-
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import org.jboss.resteasy.reactive.RestResponse;
 
 @Path("test")
 public class TestResource {
@@ -12,5 +11,4 @@ public class TestResource {
     public RestResponse<String> test() {
         return RestResponse.ok("test");
     }
-
 }

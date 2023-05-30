@@ -7,7 +7,6 @@ import org.objectweb.asm.Type;
 
 class MethodRedirectVisitor extends MethodVisitor {
 
-
     private final MethodSignature srcMethod;
     private final MethodSignature targetMethod;
 
@@ -18,8 +17,7 @@ class MethodRedirectVisitor extends MethodVisitor {
     }
 
     @Override
-    public void visitMethodInsn(int opcode, String owner, String name,
-                                String descriptor, boolean isInterface) {
+    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
         if (Opcodes.INVOKESTATIC == opcode && AsmUtils.hasMethodInsnSignature(srcMethod, owner, name, descriptor)) {
             // DROP CALL
             if (targetMethod.equals(MethodSignature.DROP_METHOD)) {
@@ -28,11 +26,11 @@ class MethodRedirectVisitor extends MethodVisitor {
                 for (int i = 0; i < paramAmount; i++) {
                     super.visitInsn(Opcodes.POP);
                 }
-            }
-            else {
+            } else {
                 // REDIRECT CALL
                 var targetDescriptor = targetMethod.getDescriptor() == null ? descriptor : targetMethod.getDescriptor();
-                super.visitMethodInsn(Opcodes.INVOKESTATIC, targetMethod.getOwner(), targetMethod.getName(), targetDescriptor, false);
+                super.visitMethodInsn(
+                        Opcodes.INVOKESTATIC, targetMethod.getOwner(), targetMethod.getName(), targetDescriptor, false);
             }
 
             return;

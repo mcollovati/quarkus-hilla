@@ -1,12 +1,11 @@
 package com.example.application;
 
-import javax.enterprise.context.ApplicationScoped;
+import dev.hilla.Nonnull;
+import io.quarkus.security.identity.SecurityIdentity;
 import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
-
-import dev.hilla.Nonnull;
-import io.quarkus.security.identity.SecurityIdentity;
+import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.context.ThreadContext;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;

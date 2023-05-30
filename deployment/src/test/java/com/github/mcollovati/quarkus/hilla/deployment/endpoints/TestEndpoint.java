@@ -1,12 +1,10 @@
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import dev.hilla.Endpoint;
-
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import dev.hilla.Endpoint;
+import java.util.Objects;
 
 @Endpoint
 @AnonymousAllowed
@@ -19,14 +17,14 @@ public class TestEndpoint {
     public int calculate(String operator, int a, int b) {
         int result;
         switch (operator) {
-        case "+":
-            result = a + b;
-            break;
-        case "*":
-            result = a * b;
-            break;
-        default:
-            throw new IllegalArgumentException("Invalid operation");
+            case "+":
+                result = a + b;
+                break;
+            case "*":
+                result = a * b;
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid operation");
         }
         return result;
     }
@@ -50,10 +48,8 @@ public class TestEndpoint {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
             Pojo pojo = (Pojo) o;
             return number == pojo.number && Objects.equals(text, pojo.text);
         }
@@ -63,5 +59,4 @@ public class TestEndpoint {
             return Objects.hash(number, text);
         }
     }
-
 }

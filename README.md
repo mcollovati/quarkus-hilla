@@ -50,7 +50,7 @@ artifacts.
 
 ```terminal
 mvn clean
-mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy deploy 
+mvn -Pdistribution -Drevision=<version-to-release> -DskipTests -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
 mvn -N -Pdistribution -Drevision=<version-to-release> jreleaser:full-release
 ```
 

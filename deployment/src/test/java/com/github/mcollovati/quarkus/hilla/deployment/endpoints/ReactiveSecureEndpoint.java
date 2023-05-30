@@ -1,10 +1,9 @@
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
+import dev.hilla.Endpoint;
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
-
-import dev.hilla.Endpoint;
 import reactor.core.publisher.Flux;
 
 @Endpoint
@@ -20,7 +19,7 @@ public class ReactiveSecureEndpoint {
         return Flux.just("USER");
     }
 
-    @RolesAllowed({ "USER", "ADMIN" })
+    @RolesAllowed({"USER", "ADMIN"})
     public Flux<String> userAndAdmin() {
         return Flux.just("USER AND ADMIN");
     }
@@ -31,13 +30,11 @@ public class ReactiveSecureEndpoint {
     }
 
     public Flux<String> denyByDefault() {
-        throw new IllegalArgumentException(
-                "Method should be denied by default");
+        throw new IllegalArgumentException("Method should be denied by default");
     }
 
     @DenyAll
     public Flux<String> deny() {
         throw new IllegalArgumentException("Method denied");
     }
-
 }

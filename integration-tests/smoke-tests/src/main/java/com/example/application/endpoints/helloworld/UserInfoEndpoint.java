@@ -1,13 +1,11 @@
 package com.example.application.endpoints.helloworld;
 
-import javax.annotation.security.PermitAll;
-
 import com.example.application.entities.UserInfo;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
-
-import com.vaadin.flow.server.auth.AnonymousAllowed;
+import javax.annotation.security.PermitAll;
 
 @Endpoint
 @PermitAll
@@ -27,5 +25,4 @@ public class UserInfoEndpoint {
         }
         return new UserInfo(securityIdentity);
     }
-
 }

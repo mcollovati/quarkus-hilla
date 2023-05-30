@@ -41,7 +41,9 @@ public class MethodSignature {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         MethodSignature that = (MethodSignature) o;
-        return Objects.equals(methodOwner, that.methodOwner) && Objects.equals(methodName, that.methodName) && Objects.equals(methodDescriptor, that.methodDescriptor);
+        return Objects.equals(methodOwner, that.methodOwner)
+                && Objects.equals(methodName, that.methodName)
+                && Objects.equals(methodDescriptor, that.methodDescriptor);
     }
 
     @Override
