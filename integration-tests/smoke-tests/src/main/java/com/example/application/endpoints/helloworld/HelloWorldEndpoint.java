@@ -1,18 +1,15 @@
 package com.example.application.endpoints.helloworld;
 
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-
 import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointSubscription;
 import dev.hilla.Nonnull;
-import io.smallrye.common.annotation.NonBlocking;
+import javax.annotation.security.PermitAll;
+import javax.annotation.security.RolesAllowed;
 import reactor.core.publisher.Flux;
-
-import com.vaadin.flow.server.VaadinRequest;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 
 @Endpoint
 @AnonymousAllowed
@@ -41,7 +38,6 @@ public class HelloWorldEndpoint {
         } else {
             return "Hello from new methods " + name + "!";
         }
-
     }
 
     @Nonnull
@@ -70,7 +66,7 @@ public class HelloWorldEndpoint {
 
     @RolesAllowed("ADMIN")
     public EndpointSubscription<@Nonnull String> getClockCancellable() {
-        return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME").log(System.Logger.Level.INFO, "Subscription has been cancelled"));
+        return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
+                .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
-
 }

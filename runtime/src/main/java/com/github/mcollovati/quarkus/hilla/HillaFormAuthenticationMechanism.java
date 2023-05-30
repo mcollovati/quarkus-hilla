@@ -1,9 +1,5 @@
 package com.github.mcollovati.quarkus.hilla;
 
-import javax.inject.Inject;
-import java.util.Optional;
-import java.util.Set;
-
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AuthenticationRequest;
@@ -13,25 +9,24 @@ import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.RoutingContext;
+import java.util.Optional;
+import java.util.Set;
 
-public class HillaFormAuthenticationMechanism
-        implements HttpAuthenticationMechanism {
+public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
     private String logoutPath;
     private String cookieName;
 
     FormAuthenticationMechanism delegate;
 
     public HillaFormAuthenticationMechanism(
-            FormAuthenticationMechanism delegate, String cookieName,
-            String logoutPath) {
+            FormAuthenticationMechanism delegate, String cookieName, String logoutPath) {
         this.delegate = delegate;
         this.logoutPath = logoutPath;
         this.cookieName = cookieName;
     }
 
     @Override
-    public Uni<SecurityIdentity> authenticate(RoutingContext context,
-            IdentityProviderManager identityProviderManager) {
+    public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
         if (context.normalizedPath().equals(logoutPath)) {
             logout(context);
             return Uni.createFrom().optional(Optional.empty());
@@ -59,5 +54,4 @@ public class HillaFormAuthenticationMechanism
         }
         ctx.response().removeCookie(cookieName);
     }
-
 }

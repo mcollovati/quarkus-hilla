@@ -11,9 +11,6 @@ import com.vaadin.flow.theme.Theme;
  * and some desktop browsers.
  *
  */
-
 @Theme(value = "my-hilla-app")
 @Push
-public class Application implements AppShellConfigurator {
-
-}
+public class Application implements AppShellConfigurator {}
