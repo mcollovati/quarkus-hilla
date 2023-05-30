@@ -1,23 +1,5 @@
 package com.github.mcollovati.quarkus.hilla;
 
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.UnaryOperator;
-
-import io.quarkus.runtime.Startup;
-import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.vertx.http.runtime.FormAuthConfig;
-import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.PathMatcher;
-import io.smallrye.mutiny.Uni;
-import io.vertx.ext.web.RoutingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.router.Router;
 import com.vaadin.flow.router.internal.NavigationRouteTarget;
@@ -27,6 +9,22 @@ import com.vaadin.flow.server.RouteRegistry;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import io.quarkus.runtime.Startup;
+import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.vertx.http.runtime.FormAuthConfig;
+import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
+import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
+import io.quarkus.vertx.http.runtime.security.PathMatcher;
+import io.smallrye.mutiny.Uni;
+import io.vertx.ext.web.RoutingContext;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
@@ -42,35 +40,29 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     public HillaSecurityPolicy() {
         authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
         pathMatcher = new PathMatcher<>();
-        Arrays.stream(
-                HandlerHelper.getPublicResourcesRequiringSecurityContext())
+        Arrays.stream(HandlerHelper.getPublicResourcesRequiringSecurityContext())
                 .forEach(this::addPathMatcher);
         addPathMatcher("/HILLA/**");
         addPathMatcher("/connect/**");
-        Arrays.stream(HandlerHelper.getPublicResources())
-                .forEach(this::addPathMatcher);
+        Arrays.stream(HandlerHelper.getPublicResources()).forEach(this::addPathMatcher);
     }
 
     @Override
-    public Uni<CheckResult> checkPermission(RoutingContext request,
-            Uni<SecurityIdentity> identity,
-            AuthorizationRequestContext requestContext) {
-        Boolean permittedPath = pathMatcher.match(request.request().path())
-                .getValue();
+    public Uni<CheckResult> checkPermission(
+            RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
+        Boolean permittedPath = pathMatcher.match(request.request().path()).getValue();
         Class<? extends Component> maybeRoot = detectRoute(request);
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
                 || isAnonymousRoute(maybeRoot, request.normalizedPath())) {
             return Uni.createFrom().item(CheckResult.PERMIT);
         }
-        return authenticatedHttpSecurityPolicy.checkPermission(request,
-                identity, requestContext);
+        return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
     }
 
     void withFormLogin(FormAuthConfig formLogin) {
         Set<String> paths = new HashSet<>();
-        UnaryOperator<String> removeQueryString = path -> path
-                .replaceFirst("\\?.*", "");
+        UnaryOperator<String> removeQueryString = path -> path.replaceFirst("\\?.*", "");
 
         formLogin.loginPage.map(removeQueryString).ifPresent(paths::add);
         formLogin.errorPage.map(removeQueryString).ifPresent(paths::add);
@@ -80,8 +72,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private void addPathMatcher(String path) {
         if (path.endsWith("/") || path.endsWith("/**")) {
-            pathMatcher.addPrefixPath(path.replaceFirst("/(\\*\\*)?$", ""),
-                    true);
+            pathMatcher.addPrefixPath(path.replaceFirst("/(\\*\\*)?$", ""), true);
         } else {
             pathMatcher.addExactPath(path, true);
         }
@@ -104,17 +95,13 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     public boolean isFrameworkInternalRequest(RoutingContext request) {
         // String vaadinMapping = configurationProperties.getUrlMapping();
         String vaadinMapping = "/*";
-        return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping,
-                request);
+        return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping, request);
     }
 
-    private boolean isAnonymousRoute(Class<? extends Component> routeClass,
-            String path) {
+    private boolean isAnonymousRoute(Class<? extends Component> routeClass, String path) {
 
         if (vaadinService == null) {
-            getLogger().warn(
-                    "VaadinService not set. Cannot determine server route for {}",
-                    path);
+            getLogger().warn("VaadinService not set. Cannot determine server route for {}", path);
             return true;
         }
         if (routeClass == null) {
@@ -122,8 +109,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             return true;
         }
 
-        boolean result = accessAnnotationChecker.hasAccess(routeClass, null,
-                role -> false);
+        boolean result = accessAnnotationChecker.hasAccess(routeClass, null, role -> false);
         if (result) {
             getLogger().debug("{} refers to a public view", path);
         }
@@ -133,8 +119,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private Class<? extends Component> detectRoute(RoutingContext request) {
 
         String vaadinMapping = "/*";
-        String requestedPath = QuarkusHandlerHelper
-                .getRequestPathInsideContext(request);
+        String requestedPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
         if (vaadinService == null) {
             return null;
         }
@@ -142,8 +127,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         Router router = vaadinService.getRouter();
         RouteRegistry routeRegistry = router.getRegistry();
 
-        return HandlerHelper
-                .getPathIfInsideServlet(vaadinMapping, requestedPath)
+        return HandlerHelper.getPathIfInsideServlet(vaadinMapping, requestedPath)
                 .map(path -> {
                     if (path.startsWith("/")) {
                         // Requested path includes a beginning "/" but route
@@ -152,9 +136,11 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                         path = path.substring(1);
                     }
                     return path;
-                }).map(routeRegistry::getNavigationRouteTarget)
+                })
+                .map(routeRegistry::getNavigationRouteTarget)
                 .map(NavigationRouteTarget::getRouteTarget)
-                .map(RouteTarget::getTarget).orElse(null);
+                .map(RouteTarget::getTarget)
+                .orElse(null);
     }
 
     private Logger getLogger() {

@@ -1,18 +1,15 @@
 package com.github.mcollovati.quarkus.hilla;
 
+import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import com.vaadin.flow.server.auth.ViewAccessChecker;
+import io.quarkus.security.identity.SecurityIdentity;
+import java.security.Principal;
+import java.util.function.Function;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.security.Principal;
-import java.util.function.Function;
-
-import io.quarkus.security.identity.SecurityIdentity;
-
-import com.vaadin.flow.server.ServiceInitEvent;
-import com.vaadin.flow.server.VaadinRequest;
-import com.vaadin.flow.server.VaadinServiceInitListener;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.flow.server.auth.ViewAccessChecker;
 
 @Singleton
 public class QuarkusViewAccessChecker extends ViewAccessChecker {
@@ -21,8 +18,7 @@ public class QuarkusViewAccessChecker extends ViewAccessChecker {
     private final AccessAnnotationChecker annotationChecker;
 
     @Inject
-    public QuarkusViewAccessChecker(SecurityIdentity securityIdentity,
-            AccessAnnotationChecker annotationChecker) {
+    public QuarkusViewAccessChecker(SecurityIdentity securityIdentity, AccessAnnotationChecker annotationChecker) {
         this.securityIdentity = securityIdentity;
         this.annotationChecker = annotationChecker;
     }
@@ -54,8 +50,8 @@ public class QuarkusViewAccessChecker extends ViewAccessChecker {
         }
 
         void installViewAccessChecker(@Observes ServiceInitEvent event) {
-            event.getSource().addUIInitListener(uiInitEvent -> uiInitEvent
-                    .getUI().addBeforeEnterListener(viewAccessChecker));
+            event.getSource()
+                    .addUIInitListener(uiInitEvent -> uiInitEvent.getUI().addBeforeEnterListener(viewAccessChecker));
         }
     }
 }

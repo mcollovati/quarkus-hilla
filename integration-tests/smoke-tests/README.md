@@ -33,12 +33,12 @@ The application, packaged as an _über-jar_, is now runnable using `java -jar ta
 
 ## Creating a native executable
 
-You can create a native executable using: 
+You can create a native executable using:
 ```shell script
 ./mvnw package -Pnative
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using: 
+Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
 ```shell script
 ./mvnw package -Pnative -Dquarkus.native.container-build=true
 ```
@@ -48,4 +48,3 @@ You can then execute your native executable with: `./target/code-with-quarkus-1.
 If you want to learn more about building native executables, please consult https://quarkus.io/guides/maven-tooling.
 
 ## Related Guides
-

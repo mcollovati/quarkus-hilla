@@ -1,5 +1,10 @@
 package com.github.mcollovati.quarkus.hilla;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.hilla.EndpointController;
+import dev.hilla.EndpointInvoker;
+import dev.hilla.EndpointRegistry;
+import dev.hilla.auth.CsrfChecker;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.POST;
@@ -9,15 +14,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.hilla.EndpointController;
-import dev.hilla.EndpointInvoker;
-import dev.hilla.EndpointRegistry;
-import dev.hilla.auth.CsrfChecker;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
-
 
 @Path("")
 public class QuarkusEndpointController {
@@ -35,8 +33,12 @@ public class QuarkusEndpointController {
      * @param endpointInvoker  then end point invoker
      * @param csrfChecker      the csrf checker to use
      */
-    //@Inject
-    public QuarkusEndpointController(ApplicationContext context, EndpointRegistry endpointRegistry, EndpointInvoker endpointInvoker, CsrfChecker csrfChecker) {
+    // @Inject
+    public QuarkusEndpointController(
+            ApplicationContext context,
+            EndpointRegistry endpointRegistry,
+            EndpointInvoker endpointInvoker,
+            CsrfChecker csrfChecker) {
         delegate = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
     }
 
@@ -62,5 +64,4 @@ public class QuarkusEndpointController {
         }
         return builder.build();
     }
-
 }
