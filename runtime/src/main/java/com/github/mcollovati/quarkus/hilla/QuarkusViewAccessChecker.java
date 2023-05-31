@@ -20,11 +20,11 @@ import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.ViewAccessChecker;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import java.security.Principal;
 import java.util.function.Function;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 @Singleton
 public class QuarkusViewAccessChecker extends ViewAccessChecker {

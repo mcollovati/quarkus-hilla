@@ -20,7 +20,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
-import javax.annotation.security.PermitAll;
+import jakarta.annotation.security.PermitAll;
 
 @Endpoint
 @PermitAll
