@@ -90,5 +90,4 @@ public class HelloWorldEndpoint {
         }
         return flux.map(msg -> "PUBLIC: " + msg);
     }
-
 }
