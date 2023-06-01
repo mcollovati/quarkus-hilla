@@ -94,10 +94,10 @@ export class PushView extends View {
         await this.disconnectClock();
         this.currentTime = '';
     }
-    async toggleClock(endpointFactory: () => Subscription<string>) {
+    async toggleClock(subscriptionFactory: () => Subscription<string>) {
         await this.disconnectClock();
         this.currentTime = 'Loading...';
-        this.clockSubscription = endpointFactory()
+        this.clockSubscription = subscriptionFactory()
             .onNext((msg) => this.currentTime = msg)
             .onError(() => {
                 this.currentTime = "Something failed. Maybe you are not authorized?";

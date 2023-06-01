@@ -16,9 +16,9 @@
         <skipITs>true</skipITs>
         <maven.deploy.skip>true</maven.deploy.skip>
 
-        <selenide.version>6.14.0</selenide.version>
         <awaitility.version>4.2.0</awaitility.version>
         <playwright.version>1.33.0</playwright.version>
+        <selenide.version>6.14.0</selenide.version>
     </properties>
     <dependencies>
         <dependency>

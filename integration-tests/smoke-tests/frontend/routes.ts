@@ -79,7 +79,7 @@ export const views: ViewRoute[] = [
             await import('./views/about/about-view');
             return;
         },
-         */
+        */
     },
     ...serverSideRoutes
 ];
