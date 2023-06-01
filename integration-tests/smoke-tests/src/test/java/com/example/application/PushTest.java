@@ -15,16 +15,17 @@
  */
 package com.example.application;
 
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static org.awaitility.Awaitility.await;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.codeborne.selenide.Condition;
 import io.quarkus.test.junit.QuarkusTest;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static org.awaitility.Awaitility.await;
 
 @QuarkusTest
 class PushTest extends AbstractTest {
@@ -75,6 +76,8 @@ class PushTest extends AbstractTest {
                 .shouldHave(Condition.text("Something failed. Maybe you are not authorized?"));
     }
 
+    // Checks that the current shown message is different from the previous one
+    // to ensures new content is pushed from the server
     private static void changesPushed(AtomicReference<String> previousContents) {
         String contents = $("div#push-contents").shouldBe(visible).getText();
         if (!COMPLETE_MESSAGE.equals(contents)) {

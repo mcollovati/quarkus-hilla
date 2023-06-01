@@ -17,7 +17,6 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.2.0</awaitility.version>
-        <playwright.version>1.33.0</playwright.version>
         <selenide.version>6.14.0</selenide.version>
     </properties>
     <dependencies>
@@ -59,12 +58,6 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.microsoft.playwright</groupId>
-            <artifactId>playwright</artifactId>
-            <version>${playwright.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
