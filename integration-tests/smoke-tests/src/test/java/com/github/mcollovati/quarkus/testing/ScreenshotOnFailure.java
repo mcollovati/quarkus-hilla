@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class ScreenshotOnFailure
         implements QuarkusTestBeforeTestExecutionCallback, QuarkusTestAfterTestExecutionCallback {
 
-    private static final Logger log = LoggerFactory.getLogger(ScreenShotOnFailure.class);
+    private static final Logger log = LoggerFactory.getLogger(ScreenshotOnFailure.class);
 
     @Override
     public void beforeTestExecution(QuarkusTestMethodContext context) {
