@@ -15,17 +15,16 @@
  */
 package com.example.application;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import com.codeborne.selenide.Condition;
-import io.quarkus.test.junit.QuarkusTest;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static org.awaitility.Awaitility.await;
+
+import com.codeborne.selenide.Condition;
+import io.quarkus.test.junit.QuarkusTest;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class PushTest extends AbstractTest {
