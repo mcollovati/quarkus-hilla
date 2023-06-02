@@ -20,6 +20,7 @@ import static com.codeborne.selenide.Selenide.$;
 import static org.awaitility.Awaitility.await;
 
 import com.codeborne.selenide.Condition;
+import com.github.mcollovati.quarkus.testing.AbstractTest;
 import io.quarkus.test.junit.QuarkusTest;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;

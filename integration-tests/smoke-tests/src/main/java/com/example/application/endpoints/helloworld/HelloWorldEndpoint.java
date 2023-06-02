@@ -84,7 +84,7 @@ public class HelloWorldEndpoint {
 
     @AnonymousAllowed
     public Flux<@Nonnull String> getPublicClock(Integer limit) {
-        Flux<@Nonnull String> flux = clockService.getClock();
+        Flux<String> flux = clockService.getClock();
         if (limit != null) {
             flux = flux.take(limit, true);
         }

@@ -17,6 +17,8 @@ package com.example.application;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.mcollovati.quarkus.testing.HillaCleaner;
+import com.github.mcollovati.quarkus.testing.HillaFrontendGenerated;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import java.nio.file.Path;

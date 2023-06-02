@@ -13,7 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application;
+package com.github.mcollovati.quarkus.testing;
+
+import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
@@ -70,6 +72,8 @@ public abstract class AbstractTest {
     protected void openAndWait(String url, Supplier<SelenideElement> selector) {
         Selenide.open(url);
         selector.get().shouldBe(Condition.visible, Duration.ofSeconds(10));
+        // There should not be typescript errors
+        $("vite-plugin-checker-error-overlay").shouldNot(Condition.exist);
     }
 
     protected boolean runHeadless() {
