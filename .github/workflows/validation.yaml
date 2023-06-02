@@ -16,8 +16,7 @@ concurrency:
 env:
   JAVA_VERSION: 17
 jobs:
-  build-and-test:
-    timeout-minutes: 30
+  check-permissions:
     runs-on: ubuntu-22.04
     steps:
       - run: echo "Concurrency Group = ${{ github.head_ref || github.ref_name }}"
@@ -31,6 +30,11 @@ jobs:
         run: |
           echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
+  build-and-test:
+    needs: [check-permissions]
+    timeout-minutes: 30
+    runs-on: ubuntu-22.04
+    steps:
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -66,3 +70,33 @@ jobs:
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
           check_run_annotations: all tests, skipped tests
+  checkstyle:
+    needs: [check-permissions]
+    timeout-minutes: 5
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+      - name: Check
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp spotless:check
+      - name: Prepare message
+        if: ${{ failure() }}
+        run: |
+          set -x -e -o pipefail
+          git-np diff --output=/tmp/full-diff.txt 
+          git-np diff --names-only --output=/tmp/unformatted.txt
+          echo "Formatt
+          
+          
+
+    
