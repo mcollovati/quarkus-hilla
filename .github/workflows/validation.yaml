@@ -94,8 +94,8 @@ jobs:
         if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
         run: |
           set -x -e -o pipefail
-          git-np diff --output=/tmp/full-diff.txt 
-          git-np diff --names-only --output=/tmp/unformatted.txt
+          git diff --output=/tmp/full-diff.txt 
+          git diff --names-only --output=/tmp/unformatted.txt
           _files=$(wc -l /tmp/unformatted.txt)
           echo "# Format Checker Report" >> /tmp/message
           echo "" >> /tmp/message
