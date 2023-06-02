@@ -95,7 +95,7 @@ jobs:
         run: |
           set -x -e -o pipefail
           git diff --output=/tmp/full-diff.txt 
-          git diff --names-only --output=/tmp/unformatted.txt
+          git diff --name-only --output=/tmp/unformatted.txt
           _files=$(wc -l /tmp/unformatted.txt)
           echo "# Format Checker Report" >> /tmp/message
           echo "" >> /tmp/message
