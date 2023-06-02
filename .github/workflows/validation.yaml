@@ -97,7 +97,7 @@ jobs:
           mvn -V -e -B -ntp spotless:apply
           git diff --output=/tmp/full-diff.txt 
           git diff --name-only --output=/tmp/unformatted.txt
-          _files=$(wc -l /tmp/unformatted.txt)
+          _files=$(cat /tmp/unformatted.txt | wc -l)
           echo "# Format Checker Report" >> /tmp/message
           echo "" >> /tmp/message
           echo "There are *${_files} files* with format errors" >> /tmp/message
