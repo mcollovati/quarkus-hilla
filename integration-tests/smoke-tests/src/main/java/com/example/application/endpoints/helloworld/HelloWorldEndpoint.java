@@ -34,7 +34,6 @@ public class HelloWorldEndpoint {
 
     public HelloWorldEndpoint(ClockService clockService) {
         this.clockService = clockService;
-        System.out.println("============== HelloWorldEndpoint CTOR " + clockService.getId());
     }
 
     @Nonnull
@@ -57,7 +56,6 @@ public class HelloWorldEndpoint {
 
     @Nonnull
     public String sayComplexHello(@Nonnull UserPOJO user) {
-        System.out.println("User: " + user.name() + " " + user.surname());
         if (user.surname().isEmpty()) {
             return "Hello stranger";
         } else {
@@ -75,7 +73,6 @@ public class HelloWorldEndpoint {
 
     @PermitAll
     public Flux<@Nonnull String> getClock() {
-        System.out.println("============== HelloWorldEndpoint getClock " + clockService.getId());
         return clockService.getClock();
     }
 
@@ -83,5 +80,14 @@ public class HelloWorldEndpoint {
     public EndpointSubscription<@Nonnull String> getClockCancellable() {
         return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
                 .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
+    }
+
+    @AnonymousAllowed
+    public Flux<@Nonnull String> getPublicClock(Integer limit) {
+        Flux<String> flux = clockService.getClock();
+        if (limit != null) {
+            flux = flux.take(limit, true);
+        }
+        return flux.map(msg -> "PUBLIC: " + msg);
     }
 }

@@ -1,5 +1,6 @@
 import type {Commands, Context, Route} from '@vaadin/router';
 import './views/helloworld/hello-world-view';
+import './views/push/push-view';
 import './views/main-layout';
 import './views/login/login-view';
 import {Flow} from "@vaadin/flow-frontend";
@@ -48,7 +49,7 @@ export const views: ViewRoute[] = [
         icon: '',
         title: '',
         requiresLogin: true,
-        action: checkAccessAction
+        //action: checkAccessAction
     },
     {
         path: 'hello',
@@ -56,7 +57,15 @@ export const views: ViewRoute[] = [
         icon: 'la la-globe',
         title: 'Hello World',
         requiresLogin: true,
-        action: checkAccessAction
+        //action: checkAccessAction
+    },
+    {
+        path: 'push',
+        component: 'push-view',
+        icon: 'la la-globe',
+        title: 'Push',
+        requiresLogin: false,
+        //action: checkAccessAction
     },
     {
         path: 'about',
@@ -64,11 +73,13 @@ export const views: ViewRoute[] = [
         icon: 'la la-file',
         title: 'About',
         requiresLogin: false,
+        /*
         action: async (_context, _command) => {
             await checkAccessAction(_context, _command);
             await import('./views/about/about-view');
             return;
         },
+        */
     },
     ...serverSideRoutes
 ];

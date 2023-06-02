@@ -31,15 +31,16 @@ jobs:
         run: |
           echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          cache: maven
       - uses: browser-actions/setup-chrome@latest
         with:
           chrome-version: stable
@@ -51,6 +52,14 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+      - name: Package test output files
+        if: ${{ failure() || success() }}
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report.tgz -T -
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() || success() }}
+        with:
+          name: tests-output
+          path: tests-report.tgz
       - name: Publish Unit Test Results
         if: ${{ failure() || success() }}
         uses: EnricoMi/publish-unit-test-result-action@v2

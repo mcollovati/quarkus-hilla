@@ -68,8 +68,10 @@ export class HelloWorldView extends View {
     }
 
     async sayHelloProtected() {
-        const serverResponse = await HelloWorldEndpoint.sayHelloProtected();
-        Notification.show(serverResponse);
+        const serverResponse = await HelloWorldEndpoint.sayHelloProtected()
+            .catch( (err) => err)
+            .then( (msg) => Notification.show(msg) );
+        ;
     }
 
     async toggleClock() {
