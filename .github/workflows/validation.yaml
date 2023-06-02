@@ -100,19 +100,21 @@ jobs:
           _files=$(cat /tmp/unformatted.txt | wc -l)
           echo "### Format Checker Report" >> /tmp/message
           echo "" >> /tmp/message
-          echo "There are **${_files} files** with format errors" >> /tmp/message
+          echo "There are **${_files} files** with format errors." >> /tmp/message
           echo "" >> /tmp/message
           echo '* To fix the build, please run `mvn spotless:apply` in your branch and commit the changes.' >> /tmp/message 
-          echo '* In alternative apply the `automation/format` label to the PR.' >> /tmp/message
+          echo '* Alternatively, apply the `auto-format` label to the PR.' >> /tmp/message
           echo "" >> /tmp/message
           echo "" >> /tmp/message
-          echo "Here is the list of files with format issues in your PR:" >> /tmp/message
+          echo "<details>" >> /tmp/message
+          echo "  <summary>Files with format issues in this PR</summary>" >> /tmp/message
+          echo "" >> /tmp/message
           echo '```' >> /tmp/message
           cat /tmp/unformatted.txt  >> /tmp/message
           echo '```' >> /tmp/message
+          echo "</details>" >> /tmp/message
           echo "" >> /tmp/message
           echo "" >> /tmp/message
-          echo "And here the full diff: " >> /tmp/message
           echo "<details>" >> /tmp/message
           echo "  <summary>Full Diff</summary>" >> /tmp/message
           echo "" >> /tmp/message
