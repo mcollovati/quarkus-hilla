@@ -1,0 +1,55 @@
+name: Format Pull Request
+on:
+  pull_request:
+    types: ["labeled"]
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  format-pr:
+    if: ${{ github.event.pull_request.merged == false && github.event.label.name == 'auto-format' }}
+    runs-on: ubuntu-latest
+    name: Apply format
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetchref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: maven
+      - name: Apply changes
+        run: |
+          mvn -V -e -B -ntp spotless:apply
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "chore(auto-format): apply formatting"
+      - name: Add label to PR
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            const labelToAdd = 'format:applied';
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels: [labelToAdd],
+            });
+            await github.rest.issues.removeLabel({
+              owner,
+              repo,
+              issue_number: prNumber,
+              name: "auto-format",
+            });
+            
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
