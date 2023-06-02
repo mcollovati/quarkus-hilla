@@ -15,16 +15,16 @@
  */
 package com.example.application;
 
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.github.mcollovati.quarkus.testing.AbstractTest;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
-
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 
 @QuarkusTest
 class SmokeTest extends AbstractTest {
@@ -34,8 +34,8 @@ class SmokeTest extends AbstractTest {
         openAndWait(() -> $("hello-world-view"));
 
         $("vaadin-text-field").shouldBe(visible);
-        SelenideElement button = $$("vaadin-button")
-                .filter(Condition.text("Say Hello")).first().shouldBe(visible);
+        SelenideElement button =
+                $$("vaadin-button").filter(Condition.text("Say Hello")).first().shouldBe(visible);
     }
 
     @Test
@@ -43,8 +43,8 @@ class SmokeTest extends AbstractTest {
         openAndWait(() -> $("hello-world-view"));
 
         SelenideElement textField = $("vaadin-text-field").shouldBe(visible);
-        SelenideElement button = $$("vaadin-button")
-                .filter(Condition.text("Say Hello")).first().shouldBe(visible);
+        SelenideElement button =
+                $$("vaadin-button").filter(Condition.text("Say Hello")).first().shouldBe(visible);
 
         button.click();
         SelenideElement notification = $("vaadin-notification-card");

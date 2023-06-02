@@ -15,16 +15,14 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import java.io.Serializable;
-import java.util.Optional;
-
-import io.vertx.ext.web.RoutingContext;
+import static com.vaadin.flow.server.HandlerHelper.getPathIfInsideServlet;
 
 import com.vaadin.flow.server.HandlerHelper;
 import com.vaadin.flow.server.communication.StreamRequestHandler;
 import com.vaadin.flow.shared.ApplicationConstants;
-
-import static com.vaadin.flow.server.HandlerHelper.getPathIfInsideServlet;
+import io.vertx.ext.web.RoutingContext;
+import java.io.Serializable;
+import java.util.Optional;
 
 public class QuarkusHandlerHelper implements Serializable {
 
@@ -45,15 +43,15 @@ public class QuarkusHandlerHelper implements Serializable {
      * @return {@code true} if the request is Vaadin internal, {@code false}
      *         otherwise
      */
-    public static boolean isFrameworkInternalRequest(String servletMappingPath,
-            RoutingContext request) {
-        return isFrameworkInternalRequest(servletMappingPath,
-                getRequestPathInsideContext(request), request.request()
-                        .getParam(ApplicationConstants.REQUEST_TYPE_PARAMETER));
+    public static boolean isFrameworkInternalRequest(String servletMappingPath, RoutingContext request) {
+        return isFrameworkInternalRequest(
+                servletMappingPath,
+                getRequestPathInsideContext(request),
+                request.request().getParam(ApplicationConstants.REQUEST_TYPE_PARAMETER));
     }
 
-    private static boolean isFrameworkInternalRequest(String servletMappingPath,
-            String requestedPath, String requestTypeParameter) {
+    private static boolean isFrameworkInternalRequest(
+            String servletMappingPath, String requestedPath, String requestTypeParameter) {
         /*
          * According to the spec, pathInfo should be null but not all servers
          * implement it like that...
@@ -64,13 +62,10 @@ public class QuarkusHandlerHelper implements Serializable {
          */
 
         // This is only an internal request if it is for the Vaadin servlet
-        Optional<String> requestedPathWithoutServletMapping = getPathIfInsideServlet(
-                servletMappingPath, requestedPath);
+        Optional<String> requestedPathWithoutServletMapping = getPathIfInsideServlet(servletMappingPath, requestedPath);
         if (!requestedPathWithoutServletMapping.isPresent()) {
             return false;
-        } else if (isInternalRequestInsideServlet(
-                requestedPathWithoutServletMapping.get(),
-                requestTypeParameter)) {
+        } else if (isInternalRequestInsideServlet(requestedPathWithoutServletMapping.get(), requestTypeParameter)) {
             return true;
         } else if (isUploadRequest(requestedPathWithoutServletMapping.get())) {
             return true;
@@ -106,8 +101,7 @@ public class QuarkusHandlerHelper implements Serializable {
     }
 
     static boolean isInternalRequestInsideServlet(
-            String requestedPathWithoutServletMapping,
-            String requestTypeParameter) {
+            String requestedPathWithoutServletMapping, String requestTypeParameter) {
         if (requestedPathWithoutServletMapping == null
                 || requestedPathWithoutServletMapping.isEmpty()
                 || "/".equals(requestedPathWithoutServletMapping)) {
@@ -116,12 +110,10 @@ public class QuarkusHandlerHelper implements Serializable {
         return false;
     }
 
-    private static boolean isUploadRequest(
-            String requestedPathWithoutServletMapping) {
+    private static boolean isUploadRequest(String requestedPathWithoutServletMapping) {
         // First key is uiId
         // Second key is security key
-        return requestedPathWithoutServletMapping
-                .matches(StreamRequestHandler.DYN_RES_PREFIX
-                        + "(\\d+)/([0-9a-z-]*)/upload");
+        return requestedPathWithoutServletMapping.matches(
+                StreamRequestHandler.DYN_RES_PREFIX + "(\\d+)/([0-9a-z-]*)/upload");
     }
 }
