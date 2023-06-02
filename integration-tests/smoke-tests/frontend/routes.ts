@@ -31,7 +31,7 @@ export const hasAccess = (route: Route) => {
     return true;
 };
 
-const checkAccessAction = async (ctx: Context, cmd: Commands)  => {
+const checkAccessAction = async (ctx: Context, cmd: Commands) => {
     if (views.includes(ctx.route as ViewRoute)) {
         if (!hasAccess(ctx.route)) {
             return cmd.redirect('login');

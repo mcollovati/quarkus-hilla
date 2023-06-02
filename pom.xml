@@ -235,9 +235,9 @@
                         </palantirJavaFormat>
                         <removeUnusedImports/>
                         <formatAnnotations/>
-                        <toggleOffOn />
-                        <trimTrailingWhitespace />
-                        <endWithNewline />
+                        <toggleOffOn/>
+                        <trimTrailingWhitespace/>
+                        <endWithNewline/>
                         <licenseHeader>
                             <file>${maven.multiModuleProjectDirectory}/etc/java-license-header</file>
                         </licenseHeader>

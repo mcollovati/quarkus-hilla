@@ -2,7 +2,8 @@ import '@vaadin/button';
 import '@vaadin/notification';
 import {Notification} from '@vaadin/notification';
 import '@vaadin/text-field';
-import UserPOJO from 'Frontend/generated/com/example/application/entities/UserPOJO';
+import UserPOJO
+    from 'Frontend/generated/com/example/application/entities/UserPOJO';
 import * as HelloWorldEndpoint from 'Frontend/generated/HelloWorldEndpoint';
 import {html, nothing} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
@@ -69,8 +70,8 @@ export class HelloWorldView extends View {
 
     async sayHelloProtected() {
         const serverResponse = await HelloWorldEndpoint.sayHelloProtected()
-            .catch( (err) => err)
-            .then( (msg) => Notification.show(msg) );
+            .catch((err) => err)
+            .then((msg) => Notification.show(msg));
         ;
     }
 

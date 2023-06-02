@@ -15,18 +15,19 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
+import javax.enterprise.context.control.ActivateRequestContext;
+import javax.websocket.ContainerProvider;
+import javax.websocket.Session;
+import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.ReactiveEndpoint;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
-import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import javax.enterprise.context.control.ActivateRequestContext;
-import javax.websocket.ContainerProvider;
-import javax.websocket.Session;
 import org.hamcrest.Matchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -35,13 +36,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 class ReactiveEndpointTest {
-    private static final String ENDPOINT_NAME = ReactiveEndpoint.class.getSimpleName();
+    private static final String ENDPOINT_NAME = ReactiveEndpoint.class
+            .getSimpleName();
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(ReactiveEndpoint.class, HillaPushClient.class)
-                    .add(new StringAsset("com.vaadin.experimental.hillaPush=true"), "vaadin-featureflags.properties"));
+                    .add(new StringAsset(
+                            "com.vaadin.experimental.hillaPush=true"),
+                            "vaadin-featureflags.properties"));
 
     @TestHTTPResource("/HILLA/push")
     URI uri;
@@ -51,8 +55,10 @@ class ReactiveEndpointTest {
     void reactiveEndpoint_messagesPushedToTheClient() throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "count", counterName);
-        try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "count",
+                counterName);
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
+                .connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
                 assertThatPushUpdateHasBeenReceived(client, i);
@@ -65,11 +71,14 @@ class ReactiveEndpointTest {
 
     @Test
     @ActivateRequestContext
-    void cancelableReactiveEndpoint_clientCancel_serverUnsubscribeCallBackInvoked() throws Exception {
+    void cancelableReactiveEndpoint_clientCancel_serverUnsubscribeCallBackInvoked()
+            throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "cancelableCount", counterName);
-        try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
+                "cancelableCount", counterName);
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
+                .connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
                 assertThatPushUpdateHasBeenReceived(client, i);
@@ -82,11 +91,14 @@ class ReactiveEndpointTest {
 
     @Test
     @ActivateRequestContext
-    void cancelableReactiveEndpoint_clientDisconnectWithoutCancel_serverUnsubscribeCallBackInvoked() throws Exception {
+    void cancelableReactiveEndpoint_clientDisconnectWithoutCancel_serverUnsubscribeCallBackInvoked()
+            throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "cancelableCount", counterName);
-        try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
+                "cancelableCount", counterName);
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
+                .connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
                 assertThatPushUpdateHasBeenReceived(client, i);
@@ -99,11 +111,14 @@ class ReactiveEndpointTest {
 
     @Test
     @ActivateRequestContext
-    void cancelableReactiveEndpoint_subscribeAfterCancel_connectionNotClosedAndMessagesPushed() throws Exception {
+    void cancelableReactiveEndpoint_subscribeAfterCancel_connectionNotClosedAndMessagesPushed()
+            throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
-        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "cancelableCount", counterName);
-        try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
+        HillaPushClient client = new HillaPushClient(ENDPOINT_NAME,
+                "cancelableCount", counterName);
+        try (Session ignored = ContainerProvider.getWebSocketContainer()
+                .connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             for (int i = 1; i < 5; i++) {
                 assertThatPushUpdateHasBeenReceived(client, i);
@@ -121,32 +136,33 @@ class ReactiveEndpointTest {
         assertThatConnectionHasBeenClosed(client);
     }
 
-    private static void assertThatClientIsConnected(HillaPushClient client) throws InterruptedException {
+    private static void assertThatClientIsConnected(HillaPushClient client)
+            throws InterruptedException {
         client.assertMessageReceived(10, TimeUnit.SECONDS, "CONNECT");
     }
 
-    private static void assertThatConnectionHasBeenClosed(HillaPushClient client) throws InterruptedException {
-        client.assertMessageReceived(
-                1, TimeUnit.SECONDS, message -> message.isNotNull().startsWith("CLOSED: "));
+    private static void assertThatConnectionHasBeenClosed(
+            HillaPushClient client) throws InterruptedException {
+        client.assertMessageReceived(1, TimeUnit.SECONDS,
+                message -> message.isNotNull().startsWith("CLOSED: "));
     }
 
-    private static void assertThatPushUpdateHasBeenReceived(HillaPushClient client, int i) throws InterruptedException {
-        client.assertMessageReceived(1, TimeUnit.SECONDS, message -> message.as("Message %d", i)
-                .isEqualTo("{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}", client.id, i));
+    private static void assertThatPushUpdateHasBeenReceived(
+            HillaPushClient client, int i) throws InterruptedException {
+        client.assertMessageReceived(1, TimeUnit.SECONDS,
+                message -> message.as("Message %d", i).isEqualTo(
+                        "{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}",
+                        client.id, i));
     }
 
     private static void assertCounterValue(String counterName, int expected) {
         LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<>();
         orderedParams.put("counterName", counterName);
-        RestAssured.given()
-                .contentType(ContentType.JSON)
+        RestAssured.given().contentType(ContentType.JSON)
                 .cookie("csrfToken", "CSRF_TOKEN")
-                .header("X-CSRF-Token", "CSRF_TOKEN")
-                .body(orderedParams)
-                .basePath("/connect")
-                .when()
-                .post("/{endpointName}/counterValue", ENDPOINT_NAME)
-                .then()
+                .header("X-CSRF-Token", "CSRF_TOKEN").body(orderedParams)
+                .basePath("/connect").when()
+                .post("/{endpointName}/counterValue", ENDPOINT_NAME).then()
                 .body(Matchers.equalTo(Integer.toString(expected)));
     }
 }

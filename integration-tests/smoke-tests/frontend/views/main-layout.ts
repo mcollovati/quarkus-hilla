@@ -5,13 +5,13 @@ import '@vaadin/app-layout/vaadin-drawer-toggle';
 import '@vaadin/avatar';
 import '@vaadin/icon';
 import '@vaadin/menu-bar';
-import type { MenuBarItem, MenuBarItemSelectedEvent } from '@vaadin/menu-bar';
+import type {MenuBarItem, MenuBarItemSelectedEvent} from '@vaadin/menu-bar';
 import '@vaadin/scroller';
 import '@vaadin/tabs';
 import '@vaadin/tabs/vaadin-tab';
 import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
 import {html, render} from 'lit';
-import {customElement, property} from 'lit/decorators.js';
+import {customElement} from 'lit/decorators.js';
 import {router} from '../index';
 import {hasAccess, views} from '../routes';
 import {appStore} from '../stores/app-store';
@@ -41,7 +41,7 @@ export class MainLayout extends Layout {
                     <!-- For documentation, visit https://github.com/vaadin/vcf-nav#readme -->
                     <vcf-nav aria-label="${appStore.applicationName}">
                         ${this.getMenuRoutes().map(
-                                (viewRoute) => html`
+            (viewRoute) => html`
                                     <vcf-nav-item
                                             path=${router.urlForPath(viewRoute.path)}>
                                         <span class="${viewRoute.icon} nav-item-icon"
@@ -50,7 +50,7 @@ export class MainLayout extends Layout {
                                         ${viewRoute.title}
                                     </vcf-nav-item>
                                 `
-                        )}
+        )}
                         <vcf-nav-item path=${router.urlForPath('flow-view')}>
                             <span class="la la-globe nav-item-icon"
                                   slot="prefix" aria-hidden="true"></span>
@@ -61,14 +61,14 @@ export class MainLayout extends Layout {
 
                 <footer slot="drawer">
                     ${appStore.user
-                            ? html`
+            ? html`
                 <vaadin-menu-bar
                   theme="tertiary-inline contrast"
                   .items="${this.getUserMenuItems(appStore.user)}"
                   @item-selected="${this.userMenuItemSelected}"
                 ></vaadin-menu-bar>
               `
-                            : html`<a router-ignore href="login">Sign in</a>`}
+            : html`<a router-ignore href="login">Sign in</a>`}
                 </footer>
 
                 <vaadin-drawer-toggle slot="navbar"
@@ -111,7 +111,7 @@ export class MainLayout extends Layout {
         return [
             {
                 component: this.createUserMenuItem(user),
-                children: [{ text: 'Sign out' }],
+                children: [{text: 'Sign out'}],
             },
         ];
     }

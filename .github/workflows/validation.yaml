@@ -1,10 +1,10 @@
 name: Quarkus Hilla Validation
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   workflow_dispatch:
   pull_request_target:
-    types: [opened, synchronize, reopened, edited]
+    types: [ opened, synchronize, reopened, edited ]
 permissions:
   contents: read
   issues: read
@@ -31,7 +31,7 @@ jobs:
           echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
   build-and-test:
-    needs: [check-permissions]
+    needs: [ check-permissions ]
     timeout-minutes: 30
     runs-on: ubuntu-22.04
     steps:
@@ -71,7 +71,7 @@ jobs:
           junit_files: "**/target/*-reports/TEST*.xml"
           check_run_annotations: all tests, skipped tests
   checkstyle:
-    needs: [check-permissions]
+    needs: [ check-permissions ]
     timeout-minutes: 5
     runs-on: ubuntu-22.04
     steps:

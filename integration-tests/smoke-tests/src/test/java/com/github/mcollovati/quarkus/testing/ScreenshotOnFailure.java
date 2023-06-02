@@ -25,9 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ScreenshotOnFailure
-        implements QuarkusTestBeforeTestExecutionCallback, QuarkusTestAfterTestExecutionCallback {
+        implements QuarkusTestBeforeTestExecutionCallback,
+        QuarkusTestAfterTestExecutionCallback {
 
-    private static final Logger log = LoggerFactory.getLogger(ScreenshotOnFailure.class);
+    private static final Logger log = LoggerFactory
+            .getLogger(ScreenshotOnFailure.class);
 
     @Override
     public void beforeTestExecution(QuarkusTestMethodContext context) {
@@ -39,7 +41,8 @@ public class ScreenshotOnFailure
     @Override
     public void afterTestExecution(QuarkusTestMethodContext context) {
         TestStatus testStatus = context.getTestStatus();
-        if (testStatus.isTestFailed() && !(testStatus.getTestErrorCause() instanceof UIAssertionError)) {
+        if (testStatus.isTestFailed() && !(testStatus
+                .getTestErrorCause() instanceof UIAssertionError)) {
             log.info(Screenshots.saveScreenshotAndPageSource());
         }
         Screenshots.finishContext();

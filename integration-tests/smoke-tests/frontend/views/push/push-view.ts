@@ -6,11 +6,6 @@ import {html, nothing} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
 import {View} from '../../views/view';
 import {Subscription} from "@hilla/frontend";
-import {
-    getClock,
-    getClockCancellable,
-    getPublicClock
-} from "Frontend/generated/HelloWorldEndpoint";
 
 @customElement('push-view')
 export class PushView extends View {
@@ -94,6 +89,7 @@ export class PushView extends View {
         await this.disconnectClock();
         this.currentTime = '';
     }
+
     async toggleClock(subscriptionFactory: () => Subscription<string>) {
         await this.disconnectClock();
         this.currentTime = 'Loading...';
