@@ -90,7 +90,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     private static String computeBeanName(Bean<?> bean) {
         String name = bean.getName();
         if (name == null) {
-            return bean.getBeanClass().getName();
+            return bean.getBeanClass().getSimpleName();
         }
         return name;
     }
