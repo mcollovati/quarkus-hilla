@@ -75,6 +75,29 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-22.04
     steps:
+      - name: Remove format labels
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+            
+            // Remove the label if it exists
+            const existingLabels = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number: prNumber,
+            });
+            const labelsToRemove = existingLabels.data.map(label => label.name).filter( label => label.startsWith("format:") );
+            for (const labelToRemove of labelsToRemove) {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: prNumber,
+                name: labelToRemove,
+              });
+            }
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -135,6 +158,21 @@ jobs:
         with:
           filePath: /tmp/message
           comment_tag: formatting-check
+      - name: Add format required label to PR
+        if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number: prNumber,
+              labels: ['format:required'],
+            });
 
           
 
