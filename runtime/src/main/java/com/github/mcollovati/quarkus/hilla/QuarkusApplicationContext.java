@@ -15,17 +15,17 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.AmbiguousResolutionException;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
+import com.vaadin.quarkus.AnyLiteral;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.AmbiguousResolutionException;
+import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.inject.spi.BeanManager;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -39,8 +39,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
 
-import com.vaadin.quarkus.AnyLiteral;
-
 class QuarkusApplicationContext implements ApplicationContext {
 
     private final BeanManager beanManager;
@@ -49,10 +47,8 @@ class QuarkusApplicationContext implements ApplicationContext {
         this.beanManager = beanManager;
     }
 
-    private static <T> T beanReference(BeanManager beanManager, Bean<?> bean,
-            Class<T> requiredType) {
-        final CreationalContext<?> ctx = beanManager
-                .createCreationalContext(bean);
+    private static <T> T beanReference(BeanManager beanManager, Bean<?> bean, Class<T> requiredType) {
+        final CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
         // noinspection unchecked
         return (T) beanManager.getReference(bean, requiredType, ctx);
     }
@@ -63,8 +59,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     static <T> T getBean(BeanManager beanManager, Class<T> requiredType) {
-        Set<Bean<?>> beans = beanManager.getBeans(requiredType,
-                new AnyLiteral());
+        Set<Bean<?>> beans = beanManager.getBeans(requiredType, new AnyLiteral());
         if (beans.isEmpty()) {
             throw new NoSuchBeanDefinitionException(requiredType);
         }
@@ -72,25 +67,24 @@ class QuarkusApplicationContext implements ApplicationContext {
         try {
             bean = beanManager.resolve(beans);
         } catch (final AmbiguousResolutionException e) {
-            throw new NoUniqueBeanDefinitionException(requiredType, beans
-                    .stream().map(Bean::getName).collect(Collectors.toList()));
+            throw new NoUniqueBeanDefinitionException(
+                    requiredType, beans.stream().map(Bean::getName).collect(Collectors.toList()));
         }
         return beanReference(beanManager, bean, requiredType);
     }
 
     @Override
-    public Map<String, Object> getBeansWithAnnotation(
-            Class<? extends Annotation> annotationType) throws BeansException {
-        return beanManager.getBeans(Object.class, new AnyLiteral())
+    public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType)
+            throws BeansException {
+        return beanManager
+                .getBeans(Object.class, new AnyLiteral())
                 // return beanManager.getBeans(Object.class, new
                 // EndpointLiteral())
                 .stream()
-                .filter(b -> b.getBeanClass()
-                        .isAnnotationPresent(annotationType))
+                .filter(b -> b.getBeanClass().isAnnotationPresent(annotationType))
                 .collect(Collectors.toMap(
                         QuarkusApplicationContext::computeBeanName,
-                        bean -> beanReference(beanManager, bean,
-                                bean.getBeanClass())));
+                        bean -> beanReference(beanManager, bean, bean.getBeanClass())));
     }
 
     private static String computeBeanName(Bean<?> bean) {
@@ -106,8 +100,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public <T> T getBean(Class<T> requiredType, Object... args)
-            throws BeansException {
+    public <T> T getBean(Class<T> requiredType, Object... args) throws BeansException {
         return throwUnsupported();
     }
 
@@ -137,8 +130,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public AutowireCapableBeanFactory getAutowireCapableBeanFactory()
-            throws IllegalStateException {
+    public AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException {
         return throwUnsupported();
     }
 
@@ -148,20 +140,17 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public String getMessage(String code, Object[] args, String defaultMessage,
-            Locale locale) {
+    public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
         return throwUnsupported();
     }
 
     @Override
-    public String getMessage(String code, Object[] args, Locale locale)
-            throws NoSuchMessageException {
+    public String getMessage(String code, Object[] args, Locale locale) throws NoSuchMessageException {
         return throwUnsupported();
     }
 
     @Override
-    public String getMessage(MessageSourceResolvable resolvable, Locale locale)
-            throws NoSuchMessageException {
+    public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
         return throwUnsupported();
     }
 
@@ -201,8 +190,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType,
-            boolean b) {
+    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType, boolean b) {
         return throwUnsupported();
     }
 
@@ -212,8 +200,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public String[] getBeanNamesForType(ResolvableType resolvableType,
-            boolean b, boolean b1) {
+    public String[] getBeanNamesForType(ResolvableType resolvableType, boolean b, boolean b1) {
         return throwUnsupported();
     }
 
@@ -223,38 +210,34 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public String[] getBeanNamesForType(Class<?> aClass, boolean b,
-            boolean b1) {
+    public String[] getBeanNamesForType(Class<?> aClass, boolean b, boolean b1) {
         return throwUnsupported();
     }
 
     @Override
-    public <T> Map<String, T> getBeansOfType(Class<T> aClass)
-            throws BeansException {
+    public <T> Map<String, T> getBeansOfType(Class<T> aClass) throws BeansException {
         return throwUnsupported();
     }
 
     @Override
-    public <T> Map<String, T> getBeansOfType(Class<T> aClass, boolean b,
-            boolean b1) throws BeansException {
+    public <T> Map<String, T> getBeansOfType(Class<T> aClass, boolean b, boolean b1) throws BeansException {
         return throwUnsupported();
     }
 
     @Override
-    public String[] getBeanNamesForAnnotation(
-            Class<? extends Annotation> aClass) {
+    public String[] getBeanNamesForAnnotation(Class<? extends Annotation> aClass) {
         return throwUnsupported();
     }
 
     @Override
-    public <A extends Annotation> A findAnnotationOnBean(String s,
-            Class<A> aClass) throws NoSuchBeanDefinitionException {
+    public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass)
+            throws NoSuchBeanDefinitionException {
         return throwUnsupported();
     }
 
     @Override
-    public <A extends Annotation> A findAnnotationOnBean(String s,
-            Class<A> aClass, boolean b) throws NoSuchBeanDefinitionException {
+    public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass, boolean b)
+            throws NoSuchBeanDefinitionException {
         return throwUnsupported();
     }
 
@@ -279,8 +262,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public <T> ObjectProvider<T> getBeanProvider(
-            ResolvableType resolvableType) {
+    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType) {
         return throwUnsupported();
     }
 
@@ -300,14 +282,12 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public boolean isTypeMatch(String s, ResolvableType resolvableType)
-            throws NoSuchBeanDefinitionException {
+    public boolean isTypeMatch(String s, ResolvableType resolvableType) throws NoSuchBeanDefinitionException {
         return throwUnsupported();
     }
 
     @Override
-    public boolean isTypeMatch(String s, Class<?> aClass)
-            throws NoSuchBeanDefinitionException {
+    public boolean isTypeMatch(String s, Class<?> aClass) throws NoSuchBeanDefinitionException {
         return throwUnsupported();
     }
 
@@ -317,8 +297,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public Class<?> getType(String s, boolean b)
-            throws NoSuchBeanDefinitionException {
+    public Class<?> getType(String s, boolean b) throws NoSuchBeanDefinitionException {
         return throwUnsupported();
     }
 

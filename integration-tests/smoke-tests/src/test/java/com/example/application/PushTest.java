@@ -15,18 +15,17 @@
  */
 package com.example.application;
 
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
+import static org.awaitility.Awaitility.await;
 
 import com.codeborne.selenide.Condition;
 import com.github.mcollovati.quarkus.testing.AbstractTest;
 import io.quarkus.test.junit.QuarkusTest;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import static com.codeborne.selenide.Condition.visible;
-import static com.codeborne.selenide.Selenide.$;
-import static org.awaitility.Awaitility.await;
 
 @QuarkusTest
 class PushTest extends AbstractTest {
@@ -45,8 +44,7 @@ class PushTest extends AbstractTest {
         $("vaadin-button#public").click();
 
         AtomicReference<String> previousContents = new AtomicReference<>();
-        await().pollInSameThread().during(5, TimeUnit.SECONDS)
-                .untilAsserted(() -> changesPushed(previousContents));
+        await().pollInSameThread().during(5, TimeUnit.SECONDS).untilAsserted(() -> changesPushed(previousContents));
 
         $("vaadin-button#stop").click();
 
@@ -60,11 +58,11 @@ class PushTest extends AbstractTest {
         $("vaadin-button#public-limit").click();
 
         AtomicReference<String> previousContents = new AtomicReference<>();
-        await().pollInSameThread().atMost(15, TimeUnit.SECONDS)
-                .untilAsserted(() -> changesPushed(previousContents));
+        await().pollInSameThread().atMost(15, TimeUnit.SECONDS).untilAsserted(() -> changesPushed(previousContents));
 
-        await().pollInSameThread().until(() -> COMPLETE_MESSAGE
-                .equals($("div#push-contents").shouldBe(visible).getText()));
+        await().pollInSameThread()
+                .until(() -> COMPLETE_MESSAGE.equals(
+                        $("div#push-contents").shouldBe(visible).getText()));
     }
 
     @Test
@@ -73,18 +71,20 @@ class PushTest extends AbstractTest {
 
         $("vaadin-button#protected").click();
 
-        $("div#push-contents").shouldBe(visible).shouldHave(Condition
-                .text("Something failed. Maybe you are not authorized?"));
+        $("div#push-contents")
+                .shouldBe(visible)
+                .shouldHave(Condition.text("Something failed. Maybe you are not authorized?"));
     }
 
     // Checks that the current shown message is different from the previous one
     // to ensures new content is pushed from the server
-    private static void changesPushed(
-            AtomicReference<String> previousContents) {
+    private static void changesPushed(AtomicReference<String> previousContents) {
         String contents = $("div#push-contents").shouldBe(visible).getText();
         if (!COMPLETE_MESSAGE.equals(contents)) {
-            Assertions.assertThat(contents).startsWith("PUBLIC:")
-                    .contains("Anonymous").isNotEqualTo(previousContents);
+            Assertions.assertThat(contents)
+                    .startsWith("PUBLIC:")
+                    .contains("Anonymous")
+                    .isNotEqualTo(previousContents);
         }
         previousContents.set(contents);
     }
