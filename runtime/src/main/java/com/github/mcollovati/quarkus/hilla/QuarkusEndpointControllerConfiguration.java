@@ -15,10 +15,15 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.inject.Singleton;
+import javax.servlet.ServletContext;
+
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import dev.hilla.ByteArrayModule;
 import dev.hilla.EndpointController;
 import dev.hilla.EndpointInvoker;
@@ -31,12 +36,9 @@ import dev.hilla.auth.EndpointAccessChecker;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.inject.Singleton;
-import javax.servlet.ServletContext;
 import org.springframework.context.ApplicationContext;
+
+import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 
 @Unremovable
 class QuarkusEndpointControllerConfiguration {
@@ -58,7 +60,8 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @Singleton
     @DefaultBean
-    EndpointAccessChecker accessChecker(AccessAnnotationChecker accessAnnotationChecker) {
+    EndpointAccessChecker accessChecker(
+            AccessAnnotationChecker accessAnnotationChecker) {
         return new EndpointAccessChecker(accessAnnotationChecker);
     }
 
@@ -127,16 +130,15 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @ApplicationScoped
-    EndpointInvoker endpointInvoker(
-            ApplicationContext applicationContext,
+    EndpointInvoker endpointInvoker(ApplicationContext applicationContext,
             ObjectMapper objectMapper,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
-            ServletContext servletContext,
-            EndpointRegistry endpointRegistry) {
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
+            ServletContext servletContext, EndpointRegistry endpointRegistry) {
+        objectMapper.setVisibility(PropertyAccessor.ALL,
+                JsonAutoDetect.Visibility.ANY);
         objectMapper.registerModule(new ByteArrayModule());
-        return new EndpointInvoker(
-                applicationContext, objectMapper, explicitNullableTypeChecker, servletContext, endpointRegistry);
+        return new EndpointInvoker(applicationContext, objectMapper,
+                explicitNullableTypeChecker, servletContext, endpointRegistry);
     }
 
     @Produces
@@ -149,11 +151,10 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @ApplicationScoped
     @Startup
-    EndpointController endpointController(
-            ApplicationContext context,
-            EndpointRegistry endpointRegistry,
-            EndpointInvoker endpointInvoker,
+    EndpointController endpointController(ApplicationContext context,
+            EndpointRegistry endpointRegistry, EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker) {
-        return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
+        return new EndpointController(context, endpointRegistry,
+                endpointInvoker, csrfChecker);
     }
 }

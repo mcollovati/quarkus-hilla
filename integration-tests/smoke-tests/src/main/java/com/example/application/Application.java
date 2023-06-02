@@ -28,4 +28,5 @@ import com.vaadin.flow.theme.Theme;
  */
 @Theme(value = "my-hilla-app")
 @Push
-public class Application implements AppShellConfigurator {}
+public class Application implements AppShellConfigurator {
+}
