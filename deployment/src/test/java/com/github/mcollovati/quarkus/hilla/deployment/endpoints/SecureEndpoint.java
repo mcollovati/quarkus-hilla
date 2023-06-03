@@ -15,10 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
-import dev.hilla.Endpoint;
 import javax.annotation.security.DenyAll;
 import javax.annotation.security.PermitAll;
 import javax.annotation.security.RolesAllowed;
+
+import dev.hilla.Endpoint;
 
 @Endpoint
 public class SecureEndpoint {
@@ -33,7 +34,7 @@ public class SecureEndpoint {
         return "USER";
     }
 
-    @RolesAllowed({"USER", "ADMIN"})
+    @RolesAllowed({ "USER", "ADMIN" })
     public String userAndAdmin() {
         return "USER AND ADMIN";
     }
@@ -44,7 +45,8 @@ public class SecureEndpoint {
     }
 
     public String denyByDefault() {
-        throw new IllegalArgumentException("Method should be denied by default");
+        throw new IllegalArgumentException(
+                "Method should be denied by default");
     }
 
     @DenyAll
