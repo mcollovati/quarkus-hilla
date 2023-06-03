@@ -19,5 +19,11 @@ updates:
         versions: [ ">= 2.0" ]
       - dependency-name: "com.vaadin:vaadin-quarkus"
         versions: [ ">= 2.0" ]
+      - dependency-name: "com.vaadin:vaadin-quarkus-deployment"
+        versions: [ ">= 2.0" ]
+      - dependency-name: "com.vaadin:vaadin-quarkus-extension"
+        versions: [ ">= 24.0" ]
+      - dependency-name: "com.vaadin:vaadin-bom"
+        versions: [ ">= 24.0" ]
       - dependency-name: "io.quarkus*:*"
         versions: [ ">= 3.0" ]
