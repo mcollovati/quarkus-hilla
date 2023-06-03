@@ -15,9 +15,7 @@
  */
 package com.github.mcollovati.quarkus.testing;
 
-import java.lang.management.ManagementFactory;
-import java.time.Duration;
-import java.util.function.Supplier;
+import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
@@ -25,16 +23,17 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.junit5.BrowserPerTestStrategyExtension;
 import io.quarkus.test.common.http.TestHTTPResource;
+import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static com.codeborne.selenide.Selenide.$;
-
-@ExtendWith({ BrowserPerTestStrategyExtension.class })
+@ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
 
-    private static final boolean isMacOS = System.getProperty("os.name")
-            .toLowerCase().contains("mac");
+    private static final boolean isMacOS =
+            System.getProperty("os.name").toLowerCase().contains("mac");
 
     @TestHTTPResource()
     private String baseURL;
@@ -46,8 +45,7 @@ public abstract class AbstractTest {
             Configuration.browser = "safari";
         } else {
             Configuration.headless = runHeadless();
-            System.setProperty("chromeoptions.args",
-                    "--remote-allow-origins=*");
+            System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
         }
     }
 
@@ -83,7 +81,9 @@ public abstract class AbstractTest {
     }
 
     static boolean isJavaInDebugMode() {
-        return ManagementFactory.getRuntimeMXBean().getInputArguments()
-                .toString().contains("jdwp");
+        return ManagementFactory.getRuntimeMXBean()
+                .getInputArguments()
+                .toString()
+                .contains("jdwp");
     }
 }

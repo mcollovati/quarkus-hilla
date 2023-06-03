@@ -15,9 +15,8 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
-import java.util.Set;
-
 import io.quarkus.gizmo.Gizmo;
+import java.util.Set;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
@@ -29,14 +28,19 @@ public class EndpointTransferMapperClassVisitor extends ClassVisitor {
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String descriptor,
-            String signature, String[] exceptions) {
-        MethodVisitor superVisitor = super.visitMethod(access, name, descriptor,
-                signature, exceptions);
+    public MethodVisitor visitMethod(
+            int access, String name, String descriptor, String signature, String[] exceptions) {
+        MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
-            return new DropInitStatementMethodNode(access, name, descriptor,
-                    signature, exceptions, superVisitor,
-                    Set.of("dev/hilla/endpointransfermapper/PageMapper",
+            return new DropInitStatementMethodNode(
+                    access,
+                    name,
+                    descriptor,
+                    signature,
+                    exceptions,
+                    superVisitor,
+                    Set.of(
+                            "dev/hilla/endpointransfermapper/PageMapper",
                             "dev/hilla/endpointransfermapper/PageableMapper"));
         }
         return superVisitor;

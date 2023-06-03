@@ -25,34 +25,27 @@ class MethodRedirectVisitor extends MethodVisitor {
     private final MethodSignature srcMethod;
     private final MethodSignature targetMethod;
 
-    protected MethodRedirectVisitor(MethodVisitor mv, MethodSignature srcMethod,
-            MethodSignature targetMethod) {
+    protected MethodRedirectVisitor(MethodVisitor mv, MethodSignature srcMethod, MethodSignature targetMethod) {
         super(Gizmo.ASM_API_VERSION, mv);
         this.srcMethod = srcMethod;
         this.targetMethod = targetMethod;
     }
 
     @Override
-    public void visitMethodInsn(int opcode, String owner, String name,
-            String descriptor, boolean isInterface) {
-        if (Opcodes.INVOKESTATIC == opcode && AsmUtils
-                .hasMethodInsnSignature(srcMethod, owner, name, descriptor)) {
+    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+        if (Opcodes.INVOKESTATIC == opcode && AsmUtils.hasMethodInsnSignature(srcMethod, owner, name, descriptor)) {
             // DROP CALL
             if (targetMethod.equals(MethodSignature.DROP_METHOD)) {
                 // Clear stack
-                final var paramAmount = Type
-                        .getArgumentTypes(descriptor).length;
+                final var paramAmount = Type.getArgumentTypes(descriptor).length;
                 for (int i = 0; i < paramAmount; i++) {
                     super.visitInsn(Opcodes.POP);
                 }
             } else {
                 // REDIRECT CALL
-                var targetDescriptor = targetMethod.getDescriptor() == null
-                        ? descriptor
-                        : targetMethod.getDescriptor();
-                super.visitMethodInsn(Opcodes.INVOKESTATIC,
-                        targetMethod.getOwner(), targetMethod.getName(),
-                        targetDescriptor, false);
+                var targetDescriptor = targetMethod.getDescriptor() == null ? descriptor : targetMethod.getDescriptor();
+                super.visitMethodInsn(
+                        Opcodes.INVOKESTATIC, targetMethod.getOwner(), targetMethod.getName(), targetDescriptor, false);
             }
 
             return;
