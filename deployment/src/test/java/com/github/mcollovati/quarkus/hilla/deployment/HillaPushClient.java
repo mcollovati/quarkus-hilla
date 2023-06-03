@@ -15,11 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URI;
@@ -33,19 +33,22 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class HillaPushClient extends Endpoint implements MessageHandler.Whole<String> {
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(HillaPushClient.class);
+public class HillaPushClient extends Endpoint
+        implements MessageHandler.Whole<String> {
+
+    private static final Logger LOGGER = LoggerFactory
+            .getLogger(HillaPushClient.class);
     private static final AtomicInteger CLIENT_ID_GEN = new AtomicInteger();
 
     final LinkedBlockingDeque<String> messages = new LinkedBlockingDeque<>();
@@ -58,7 +61,8 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
 
     private Session session;
 
-    public HillaPushClient(String endpointName, String methodName, Object... parameters) {
+    public HillaPushClient(String endpointName, String methodName,
+            Object... parameters) {
         this.id = Integer.toString(CLIENT_ID_GEN.getAndIncrement());
         this.endpointName = endpointName;
         this.methodName = methodName;
@@ -76,7 +80,8 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
 
     @Override
     public void onClose(Session session, CloseReason closeReason) {
-        LOGGER.trace("Session closed for client {} with reason {}", id, closeReason);
+        LOGGER.trace("Session closed for client {} with reason {}", id,
+                closeReason);
         messages.add("CLOSED: " + closeReason.toString());
         session.removeMessageHandler(this);
         this.session = null;
@@ -111,7 +116,8 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
     }
 
     public void subscribe() {
-        LOGGER.trace("Subscribing client {} :: {}/{} ({})", id, endpointName, methodName, parameters);
+        LOGGER.trace("Subscribing client {} :: {}/{} ({})", id, endpointName,
+                methodName, parameters);
         if (session != null) {
             try {
                 session.getBasicRemote().sendText(createSubscribeMessage());
@@ -123,7 +129,8 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
         }
     }
 
-    public String pollMessage(long timeout, TimeUnit unit) throws InterruptedException {
+    public String pollMessage(long timeout, TimeUnit unit)
+            throws InterruptedException {
         String message = messages.poll(timeout, unit);
         if (message != null) {
             // remove atmosphere internal identifier, to get only the
@@ -133,12 +140,14 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
         return message;
     }
 
-    public void assertMessageReceived(long timeout, TimeUnit unit, String expected) throws InterruptedException {
+    public void assertMessageReceived(long timeout, TimeUnit unit,
+            String expected) throws InterruptedException {
         String msg = pollMessage(timeout, unit);
         Assertions.assertEquals(expected, msg);
     }
 
-    public void assertMessageReceived(long timeout, TimeUnit unit, Consumer<AbstractStringAssert<?>> consumer)
+    public void assertMessageReceived(long timeout, TimeUnit unit,
+            Consumer<AbstractStringAssert<?>> consumer)
             throws InterruptedException {
         String msg = pollMessage(timeout, unit);
         AbstractStringAssert<?> stringAssert = assertThat(msg).isNotNull();
@@ -171,10 +180,10 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
     }
 
     static URI createPUSHConnectURI(URI baseURI) {
-        String contentType = URLEncoder.encode("application/json; charset=UTF-8", UTF_8);
+        String contentType = URLEncoder
+                .encode("application/json; charset=UTF-8", UTF_8);
         return URI.create(baseURI.toASCIIString() + //
-                "?X-Atmosphere-tracking-id="
-                + UUID.randomUUID() //
+                "?X-Atmosphere-tracking-id=" + UUID.randomUUID() //
                 + "&X-Atmosphere-Transport=websocket" //
                 + "&X-Atmosphere-TrackMessageSize=true" //
                 + "&Content-Type=" + contentType //

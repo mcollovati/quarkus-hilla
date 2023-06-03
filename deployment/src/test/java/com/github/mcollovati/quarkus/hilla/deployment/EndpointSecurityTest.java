@@ -15,12 +15,8 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.User;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.SecureEndpoint;
@@ -28,8 +24,6 @@ import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.specification.RequestSpecification;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -37,15 +31,24 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+
 class EndpointSecurityTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(() -> ShrinkWrap.create(
-                    JavaArchive.class)
-            .addClasses(TestIdentityProvider.class, TestIdentityController.class, TestUtils.class, SecureEndpoint.class)
-            .addAsResource(
-                    new StringAsset("quarkus.http.auth.basic=true\nquarkus.http.auth.proactive=true\n"),
-                    "application.properties"));
+    static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                    .addClasses(TestIdentityProvider.class,
+                            TestIdentityController.class, TestUtils.class,
+                            SecureEndpoint.class)
+                    .addAsResource(new StringAsset(
+                            "quarkus.http.auth.basic=true\nquarkus.http.auth.proactive=true\n"),
+                            "application.properties"));
 
     public static final String SECURE_ENDPOINT = "SecureEndpoint";
 
@@ -60,18 +63,13 @@ class EndpointSecurityTest {
     @Test
     void securedEndpoint_permitAll_authenticatedUsersAllowed() {
         Stream.of(USER, GUEST)
-                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "authenticated", authenticate(user))
-                        .then()
-                        .assertThat()
-                        .statusCode(200)
-                        .and()
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT,
+                        "authenticated", authenticate(user)).then().assertThat()
+                        .statusCode(200).and()
                         .body(equalTo("\"AUTHENTICATED\"")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "authenticated")
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "authenticated").then()
+                .assertThat().statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
@@ -79,25 +77,19 @@ class EndpointSecurityTest {
     @Test
     void securedEndpoint_adminOnly_onlyAdminAllowed() {
         givenEndpointRequest(SECURE_ENDPOINT, "adminOnly", authenticate(ADMIN))
-                .then()
-                .assertThat()
-                .statusCode(200)
-                .and()
+                .then().assertThat().statusCode(200).and()
                 .body(equalTo("\"ADMIN\""));
 
-        Stream.of(USER, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "adminOnly", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
-                .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'")));
+        Stream.of(USER, GUEST)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT,
+                        "adminOnly", authenticate(user)).then().assertThat()
+                        .statusCode(401).and()
+                        .body("message", containsString(SECURE_ENDPOINT))
+                        .body("message",
+                                containsString("reason: 'Access denied'")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "adminOnly")
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "adminOnly").then().assertThat()
+                .statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
@@ -105,70 +97,53 @@ class EndpointSecurityTest {
     @Test
     void securedEndpoint_userOnly_onlyUserAllowed() {
         givenEndpointRequest(SECURE_ENDPOINT, "userOnly", authenticate(USER))
-                .then()
-                .assertThat()
-                .statusCode(200)
-                .and()
+                .then().assertThat().statusCode(200).and()
                 .body(equalTo("\"USER\""));
 
-        Stream.of(ADMIN, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userOnly", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
-                .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'")));
+        Stream.of(ADMIN, GUEST)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT,
+                        "userOnly", authenticate(user)).then().assertThat()
+                        .statusCode(401).and()
+                        .body("message", containsString(SECURE_ENDPOINT))
+                        .body("message",
+                                containsString("reason: 'Access denied'")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "userOnly")
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "userOnly").then().assertThat()
+                .statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
 
     @Test
     void securedEndpoint_adminAndUserOnly_onlyAdminAndUserAllowed() {
-        Stream.of(ADMIN, USER).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(200)
-                .and()
-                .body(equalTo("\"USER AND ADMIN\"")));
+        Stream.of(ADMIN, USER)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT,
+                        "userAndAdmin", authenticate(user)).then().assertThat()
+                        .statusCode(200).and()
+                        .body(equalTo("\"USER AND ADMIN\"")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(GUEST))
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin",
+                authenticate(GUEST)).then().assertThat().statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin")
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin").then()
+                .assertThat().statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
 
     @Test
     void securedEndpoint_deny_notAllowed() {
-        Stream.of(ADMIN, USER, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "deny", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
-                .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'")));
+        Stream.of(ADMIN, USER, GUEST)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "deny",
+                        authenticate(user)).then().assertThat().statusCode(401)
+                        .and().body("message", containsString(SECURE_ENDPOINT))
+                        .body("message",
+                                containsString("reason: 'Access denied'")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "deny")
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "deny").then().assertThat()
+                .statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
@@ -176,19 +151,15 @@ class EndpointSecurityTest {
     @Test
     void securedEndpoint_notAnnotatedMethod_denyAll() {
         Stream.of(ADMIN, USER, GUEST)
-                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "denyByDefault", authenticate(user))
-                        .then()
-                        .assertThat()
-                        .statusCode(401)
-                        .and()
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT,
+                        "denyByDefault", authenticate(user)).then().assertThat()
+                        .statusCode(401).and()
                         .body("message", containsString(SECURE_ENDPOINT))
-                        .body("message", containsString("reason: 'Access denied'")));
+                        .body("message",
+                                containsString("reason: 'Access denied'")));
 
-        givenEndpointRequest(SECURE_ENDPOINT, "denyByDefault")
-                .then()
-                .assertThat()
-                .statusCode(401)
-                .and()
+        givenEndpointRequest(SECURE_ENDPOINT, "denyByDefault").then()
+                .assertThat().statusCode(401).and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
     }
