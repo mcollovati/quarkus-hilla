@@ -17,10 +17,10 @@ package com.example.application;
 
 import dev.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
-import javax.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.context.ThreadContext;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;

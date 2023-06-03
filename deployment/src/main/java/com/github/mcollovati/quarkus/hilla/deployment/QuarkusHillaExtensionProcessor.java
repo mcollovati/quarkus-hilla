@@ -26,12 +26,14 @@ import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.EndpointTransferMapperClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.TransferTypesPluginClassVisitor;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.endpointransfermapper.EndpointTransferMapper;
+import dev.hilla.parser.plugins.transfertypes.TransferTypesPlugin;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -59,13 +61,13 @@ import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildIte
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
+import jakarta.annotation.security.DenyAll;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Singleton;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import javax.annotation.security.DenyAll;
-import javax.annotation.security.PermitAll;
-import javax.annotation.security.RolesAllowed;
-import javax.inject.Singleton;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereServlet;
@@ -172,6 +174,9 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new BytecodeTransformerBuildItem(
                 EndpointTransferMapper.class.getName(),
                 (s, classVisitor) -> new EndpointTransferMapperClassVisitor(classVisitor)));
+        producer.produce(new BytecodeTransformerBuildItem(
+                TransferTypesPlugin.class.getName(),
+                (s, classVisitor) -> new TransferTypesPluginClassVisitor(classVisitor)));
     }
 
     @BuildStep
@@ -225,7 +230,8 @@ class QuarkusHillaExtensionProcessor {
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
                     .scope(Singleton.class)
-                    .alternativePriority(1)
+                    .alternative(true)
+                    .priority(1)
                     .supplier(recorder.setupFormAuthenticationMechanism())
                     .done());
         }

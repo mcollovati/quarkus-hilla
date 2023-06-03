@@ -42,7 +42,8 @@
                                     <artifact>org.springframework:spring-core</artifact>
                                     <includes>
                                         <include>org/springframework/core/*Exception.class</include>
-                                        <include>org/springframework/core/ResolvableType.class</include>
+                                        <include>org/springframework/core/ResolvableType**.class</include>
+                                        <include>org/springframework/core/SerializableTypeWrapper**.class</include>
                                         <include>org/springframework/core/env/Environment.class</include>
                                         <include>org/springframework/core/env/EnvironmentCapable.class</include>
                                         <include>org/springframework/core/env/PropertyResolver.class</include>
@@ -55,6 +56,7 @@
                                         <include>org/springframework/util/Assert.class</include>
                                         <include>org/springframework/util/ClassUtils.class</include>
                                         <include>org/springframework/util/CollectionUtils.class</include>
+                                        <include>org/springframework/util/ConcurrentReferenceHashMap**.class</include>
                                         <include>org/springframework/util/MultiValueMap.class</include>
                                         <include>org/springframework/util/MultiValueMapAdapter.class</include>
                                         <include>org/springframework/util/LinkedMultiValueMap.class</include>

@@ -16,16 +16,16 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import com.vaadin.quarkus.AnyLiteral;
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.inject.AmbiguousResolutionException;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.AmbiguousResolutionException;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -90,7 +90,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     private static String computeBeanName(Bean<?> bean) {
         String name = bean.getName();
         if (name == null) {
-            return bean.getBeanClass().getName();
+            return bean.getBeanClass().getSimpleName();
         }
         return name;
     }
@@ -237,6 +237,13 @@ class QuarkusApplicationContext implements ApplicationContext {
 
     @Override
     public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass, boolean b)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <A extends Annotation> Set<A> findAllAnnotationsOnBean(
+            String beanName, Class<A> annotationType, boolean allowFactoryBeanInit)
             throws NoSuchBeanDefinitionException {
         return throwUnsupported();
     }

@@ -16,19 +16,20 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.hilla.Endpoint;
 import dev.hilla.EndpointController;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
 import dev.hilla.auth.CsrfChecker;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 
@@ -72,7 +73,8 @@ public class QuarkusEndpointController {
             ObjectNode body) {
 
         ResponseEntity<String> response = delegate.serveEndpoint(endpointName, methodName, body, request);
-        Response.ResponseBuilder builder = Response.status(response.getStatusCodeValue());
+        Response.ResponseBuilder builder =
+                Response.status(response.getStatusCode().value());
         response.getHeaders().forEach((name, values) -> values.forEach(value -> builder.header(name, value)));
         if (response.hasBody()) {
             builder.entity(response.getBody());
