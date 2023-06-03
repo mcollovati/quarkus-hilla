@@ -173,7 +173,7 @@ jobs:
               issue_number: prNumber,
               labels: ['format:required'],
             });
-      - name: Add format required label to PR
+      - name: Add format checked label to PR
         if: ${{ success() }}
         uses: actions/github-script@v6
         with:

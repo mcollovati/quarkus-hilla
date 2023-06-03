@@ -52,7 +52,7 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore(auto-format): apply formatting"
-      - name: Update format labels to PR
+      - name: Update format labels on PR
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
