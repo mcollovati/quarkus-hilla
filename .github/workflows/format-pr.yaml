@@ -38,6 +38,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
+          ssh-key: ${{ secrets.ACTIONS_GIT_KEY }}
           fetchref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -76,3 +77,4 @@ jobs:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
