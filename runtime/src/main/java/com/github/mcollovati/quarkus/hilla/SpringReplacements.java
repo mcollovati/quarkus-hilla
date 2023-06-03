@@ -15,11 +15,10 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import java.security.Principal;
-import java.util.function.Function;
-
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
+import java.security.Principal;
+import java.util.function.Function;
 
 public class SpringReplacements {
 
