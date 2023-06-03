@@ -73,7 +73,8 @@ public class QuarkusEndpointController {
             ObjectNode body) {
 
         ResponseEntity<String> response = delegate.serveEndpoint(endpointName, methodName, body, request);
-        Response.ResponseBuilder builder = Response.status(response.getStatusCodeValue());
+        Response.ResponseBuilder builder =
+                Response.status(response.getStatusCode().value());
         response.getHeaders().forEach((name, values) -> values.forEach(value -> builder.header(name, value)));
         if (response.hasBody()) {
             builder.entity(response.getBody());

@@ -230,7 +230,8 @@ class QuarkusHillaExtensionProcessor {
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
                     .scope(Singleton.class)
-                    .alternativePriority(1)
+                    .alternative(true)
+                    .priority(1)
                     .supplier(recorder.setupFormAuthenticationMechanism())
                     .done());
         }
