@@ -30,9 +30,9 @@ public class ReactiveEndpoint {
     private final ConcurrentHashMap<String, AtomicInteger> counters = new ConcurrentHashMap<>();
 
     public Flux<Integer> count(String counterName) {
-        return Flux.interval(Duration.ofMillis(200)).onBackpressureDrop().map(_interval -> counters.computeIfAbsent(
-                        counterName, unused -> new AtomicInteger())
-                .incrementAndGet());
+        return Flux.interval(Duration.ofMillis(200))
+                .map(_interval -> counters.computeIfAbsent(counterName, unused -> new AtomicInteger())
+                        .incrementAndGet());
     }
 
     public EndpointSubscription<Integer> cancelableCount(String counterName) {

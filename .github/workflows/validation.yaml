@@ -56,6 +56,14 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+      - name: End to end Test (Development mode)
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests
+      - name: End to end Test (Production mode)
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report.tgz -T -
