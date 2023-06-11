@@ -74,6 +74,7 @@ jobs:
     needs: [check-permissions]
     timeout-minutes: 5
     runs-on: ubuntu-22.04
+    if: github.event_name == 'pull_request_target'
     steps:
       - name: Remove format labels
         uses: actions/github-script@v6
