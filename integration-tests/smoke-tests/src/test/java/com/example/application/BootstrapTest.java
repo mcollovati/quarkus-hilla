@@ -25,10 +25,12 @@ import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 @QuarkusTestResource(HillaCleaner.class)
+@Tag("development-only")
 class BootstrapTest {
 
     @HillaFrontendGenerated
