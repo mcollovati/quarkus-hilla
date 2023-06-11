@@ -33,14 +33,6 @@
         </developer>
     </developers>
 
-    <modules>
-        <module>deployment</module>
-        <module>runtime</module>
-        <module>hilla-jandex</module>
-        <module>hilla-shaded-deps</module>
-        <module>integration-tests/smoke-tests</module>
-    </modules>
-
     <properties>
         <revision>1.0-SNAPSHOT</revision>
 
@@ -420,6 +412,24 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>default-modules</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>deployment</module>
+                <module>runtime</module>
+                <module>hilla-jandex</module>
+                <module>hilla-shaded-deps</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>it-tests</id>
+            <modules>
+                <module>integration-tests/smoke-tests</module>
+            </modules>
         </profile>
     </profiles>
 </project>
