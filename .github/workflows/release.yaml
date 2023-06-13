@@ -73,7 +73,7 @@ jobs:
 
       - name: Staging artifacts
         run: |
-          mvn -V -ntp -Pdistribution,default-modules,it-tests -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
+          mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
 
       - name: Run JReleaser
         env:
