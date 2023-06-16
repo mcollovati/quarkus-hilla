@@ -26,9 +26,10 @@ The current Hilla support has some known limitations:
   is not supported
 * Native image compilation does not work
 
-## Tutorial
+## Getting started
 
-Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart).
+Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart)
+or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
 
 ## Release
 
