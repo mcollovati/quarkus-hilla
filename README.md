@@ -2,8 +2,8 @@
 
 ![GitHub](https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge)
 ![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge)
-
 ![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&versionPrefix=1)
+
 A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
 applications on Quarkus.
 
