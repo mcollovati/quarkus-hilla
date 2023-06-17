@@ -1,10 +1,15 @@
 name: Quarkus Hilla Validation
 on:
   push:
-    branches: [main, 1.0]
+    branches: [main, '1.0']
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
+    paths-ignore:
+      - README.md
+      - LICENSE
+      - .gitignore
+      - etc/**
 permissions:
   contents: read
   issues: read
