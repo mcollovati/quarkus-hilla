@@ -8,6 +8,10 @@
     <version>${revision}</version>
     <packaging>pom</packaging>
     <name>Quarkus - Hilla - Parent</name>
+
+
+
+
     <description>A Quarkus extension to run Hilla applications on Quarkus</description>
     <url>https://github.com/mcollovati/quarkus-hilla</url>
     <inceptionYear>2023</inceptionYear>
