@@ -6,6 +6,9 @@
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-parent</artifactId>
     <version>${revision}</version>
+
+
+
     <packaging>pom</packaging>
     <name>Quarkus - Hilla - Parent</name>
     <description>A Quarkus extension to run Hilla applications on Quarkus</description>
