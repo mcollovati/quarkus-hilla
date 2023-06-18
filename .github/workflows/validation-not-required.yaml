@@ -2,12 +2,11 @@ name: Quarkus Hilla Validation
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
-    paths:
-      - README.md
-      - LICENSE
-      - .gitignore
-      - etc/**
-      - '!**'
+    paths-ignore:
+      - '!README.md'
+      - '!LICENSE'
+      - '!.gitignore'
+      - '!etc/**'
 jobs:
   test-results:
     runs-on: ubuntu-latest
