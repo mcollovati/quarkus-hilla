@@ -5,11 +5,11 @@ on:
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
-    paths-ignore:
-      - README.md
-      - LICENSE
-      - .gitignore
-      - etc/**
+#    paths-ignore:
+#      - README.md
+#      - LICENSE
+#      - .gitignore
+#      - etc/**
 permissions:
   contents: read
   issues: read
@@ -35,8 +35,28 @@ jobs:
         run: |
           echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
-  build-and-test:
+  changes:
     needs: [check-permissions]
+    runs-on: ubuntu-latest
+    outputs:
+      validation-required: ${{ steps.filter.outputs.validate }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            validate:
+              - '!README.md'
+              - '!LICENSE'
+              - '!.gitignore'
+              - '!etc/**'
+  build-and-test:
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -70,7 +90,8 @@ jobs:
           name: tests-output
           path: tests-report-*.tgz
   e2e-dev-tests:
-    needs: [check-permissions]
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -104,7 +125,8 @@ jobs:
           name: tests-output
           path: tests-report-*.tgz
   e2e-prod-tests:
-    needs: [check-permissions]
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -143,7 +165,7 @@ jobs:
       checks: write
       pull-requests: write
     if: ${{ failure() || success() }}
-    needs: [build-and-test, e2e-dev-tests, e2e-prod-tests]
+    needs: [changes, build-and-test, e2e-dev-tests, e2e-prod-tests]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -158,9 +180,12 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
-          check_run_annotations: all tests, skipped tests
       - name: Set Failure Status
-        if: ${{ always() && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success') }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success') }}
         run: |
           echo "🚫 THERE ARE TEST MODULES WITH FAILURES or BEEN CANCELLED" | tee -a $GITHUB_STEP_SUMMARY
           exit 1
+      - name: Set validation skipped status
+        if: ${{ always() && needs.changes.outputs.validation-required == 'false' }}
+        run: |
+          echo "✅ Pull request contains changes on files ignored by validation workflow" | tee -a $GITHUB_STEP_SUMMARY && exit 0

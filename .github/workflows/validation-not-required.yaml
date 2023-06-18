@@ -1,4 +1,4 @@
-name: Quarkus Hilla Validation
+name: Quarkus Hilla Validation - DELETE
 on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
@@ -8,7 +8,7 @@ on:
       - '!.gitignore'
       - '!etc/**'
 jobs:
-  test-results:
+  test-results-delete:
     runs-on: ubuntu-latest
     steps:
       - name: "Skip validation for ignored paths"
