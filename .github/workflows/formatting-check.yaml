@@ -71,7 +71,7 @@ jobs:
               owner,
               repo,
               issue_number: prNumber,
-            }).data.map(label => label.name);
+            }).then(resp => resp.data.map(label => label.name));
             
             if (existingLabels.includes("format:checked")) {
               await github.rest.issues.removeLabel({
@@ -104,7 +104,7 @@ jobs:
               owner,
               repo,
               issue_number: prNumber,
-            }).data.map(label => label.name);
+            }).then(resp => resp.data.map(label => label.name));
             
             if (existingLabels.includes("format:required")) {
               await github.rest.issues.removeLabel({
