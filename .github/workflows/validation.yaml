@@ -5,11 +5,6 @@ on:
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
-    paths-ignore:
-      - README.md
-      - LICENSE
-      - .gitignore
-      - etc/**
 permissions:
   contents: read
   issues: read
@@ -22,7 +17,8 @@ env:
   JAVA_VERSION: 17
 jobs:
   check-permissions:
-    runs-on: ubuntu-22.04
+    name: Check User Permissions
+    runs-on: ubuntu-latest
     steps:
       - run: echo "Concurrency Group = ${{ github.head_ref || github.ref_name }}"
       - uses: actions-cool/check-user-permission@main
@@ -35,10 +31,29 @@ jobs:
         run: |
           echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
-  build-and-test:
+  changes:
+    name: Compute changes
     needs: [check-permissions]
+    runs-on: ubuntu-latest
+    outputs:
+      validation-required: ${{ steps.filter.outputs.validate }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            validate:
+              - '!(README.md|LICENSE|.gitignore|etc/**)'
+  build-and-test:
+    name: Build and test
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -61,25 +76,116 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+      - name: Package test output files
+        if: ${{ failure() || success() }}
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-main.tgz -T -
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() || success() }}
+        with:
+          name: tests-output
+          path: tests-report-*.tgz
+  e2e-dev-tests:
+    name: End-to-end tests (Development)
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+      - uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+      - name: Build
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
       - name: End to end Test (Development mode)
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests
+      - name: Package test output files
+        if: ${{ failure() || success() }}
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-e2e-dev.tgz -T -
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() || success() }}
+        with:
+          name: tests-output
+          path: tests-report-*.tgz
+  e2e-prod-tests:
+    name: End-to-end tests (Production)
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+      - uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+      - name: Build
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
       - name: End to end Test (Production mode)
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production
       - name: Package test output files
         if: ${{ failure() || success() }}
-        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report.tgz -T -
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-e2e-prod.tgz -T -
       - uses: actions/upload-artifact@v3
         if: ${{ failure() || success() }}
         with:
           name: tests-output
-          path: tests-report.tgz
+          path: tests-report-*.tgz
+  test-results:
+    permissions:
+      issues: read
+      checks: write
+      pull-requests: write
+    if: ${{ always() }}
+    needs: [changes, build-and-test, e2e-dev-tests, e2e-prod-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/download-artifact@v3
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
+        with:
+          name: tests-output
+      - name: extract downloaded files
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
+        run: for i in *.tgz; do tar xvf $i; done
       - name: Publish Unit Test Results
-        if: ${{ failure() || success() }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
-          check_run_annotations: all tests, skipped tests
+      - name: Set Failure Status
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success') }}
+        run: |
+          echo "🚫 THERE ARE TEST MODULES WITH FAILURES or BEEN CANCELLED" | tee -a $GITHUB_STEP_SUMMARY
+          exit 1
+      - name: Set validation skipped status
+        if: ${{ always() && needs.changes.outputs.validation-required == 'false' }}
+        run: |
+          echo "✅ Pull request contains changes on files ignored by validation workflow" | tee -a $GITHUB_STEP_SUMMARY && exit 0
