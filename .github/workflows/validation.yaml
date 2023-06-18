@@ -17,6 +17,7 @@ env:
   JAVA_VERSION: 17
 jobs:
   check-permissions:
+    name: Check User Permissions
     runs-on: ubuntu-latest
     steps:
       - run: echo "Concurrency Group = ${{ github.head_ref || github.ref_name }}"
@@ -31,6 +32,7 @@ jobs:
           echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
   changes:
+    name: Compute changes
     needs: [check-permissions]
     runs-on: ubuntu-latest
     outputs:
@@ -47,6 +49,7 @@ jobs:
             validate:
               - '!(README.md|LICENSE|.gitignore|etc/**)'
   build-and-test:
+    name: Build and test
     needs: [changes]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
@@ -82,6 +85,7 @@ jobs:
           name: tests-output
           path: tests-report-*.tgz
   e2e-dev-tests:
+    name: End-to-end tests (Development)
     needs: [changes]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
@@ -117,6 +121,7 @@ jobs:
           name: tests-output
           path: tests-report-*.tgz
   e2e-prod-tests:
+    name: End-to-end tests (Production)
     needs: [changes]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
