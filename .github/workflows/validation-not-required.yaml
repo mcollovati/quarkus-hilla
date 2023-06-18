@@ -7,6 +7,7 @@ on:
       - LICENSE
       - .gitignore
       - etc/**
+      - '!**'
 jobs:
   test-results:
     runs-on: ubuntu-latest
