@@ -69,7 +69,7 @@ class SpringReplacementsTest {
     void authenticationUtil_getSecurityHolderAuthentication_authenticated_returnsPrincipal() {
         IdentityMock.setUpAuth(IdentityMock.ADMIN);
         Principal principal = SpringReplacements.authenticationUtil_getSecurityHolderAuthentication();
-        assertThat(principal).isNotNull().extracting(Principal::getName).isEqualTo("admin");
+        assertThat(principal).isNotNull().extracting(Principal::getName).isEqualTo("adminxxxxxx");
     }
 
     @Test
