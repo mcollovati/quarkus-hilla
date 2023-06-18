@@ -10,6 +10,11 @@ applications on Quarkus.
 Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
+
+
+
+
+
 This extension replaces the Spring Boot backend with Quarkus Context &
 Dependency Injection (CDI) and
 RESTEasy Reactive for a simpler integration with Quarkus, but preserves the
