@@ -12,4 +12,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Validation not required"
-        run: 'echo "✅ Pull request changes do not require validation"'
+        run: |
+          echo "✅ Pull request changes do not require validation" | tee -a $GITHUB_STEP_SUMMARY && exit 0
