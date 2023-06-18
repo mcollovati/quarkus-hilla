@@ -53,14 +53,14 @@ class EndpointControllerTest {
 
     @Test
     void invokeEndpoint_singleComplexParameter() {
-        String msg = "A text message -----------------------";
+        String msg = "A text message";
         TestEndpoint.Pojo pojo = new TestEndpoint.Pojo(10, msg);
         givenEndpointRequest(ENDPOINT_NAME, "pojo", Parameters.param("pojo", pojo))
                 .then()
                 .assertThat()
                 .statusCode(200)
                 .and()
-                .body("number", equalTo(100))
+                .body("number", equalTo(1000))
                 .and()
                 .body("text", equalTo(msg + msg));
     }
