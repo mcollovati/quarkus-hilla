@@ -1,0 +1,16 @@
+name: Quarkus Hilla Validation
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+    paths:
+      - README.md
+      - LICENSE
+      - .gitignore
+      - etc/**
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Skip validation for ignored paths"
+        run: |
+          echo "✅ Pull request contains changes on files ignored by validation workflow" | tee -a $GITHUB_STEP_SUMMARY && exit 0
