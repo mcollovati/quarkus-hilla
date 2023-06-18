@@ -169,14 +169,14 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/download-artifact@v3
-        if: ${{ failure() || success() }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         with:
           name: tests-output
       - name: extract downloaded files
-        if: ${{ failure() || success() }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         run: for i in *.tgz; do tar xvf $i; done
       - name: Publish Unit Test Results
-        if: ${{ failure() || success() }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
