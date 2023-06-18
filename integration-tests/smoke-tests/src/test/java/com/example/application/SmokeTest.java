@@ -35,7 +35,7 @@ class SmokeTest extends AbstractTest {
 
         $("vaadin-text-field").shouldBe(visible);
         SelenideElement button =
-                $$("vaadin-button").filter(Condition.text("Say Hello xxxxxxxx")).first().shouldBe(visible);
+                $$("vaadin-button").filter(Condition.text("Say Hello")).first().shouldBe(visible);
     }
 
     @Test
