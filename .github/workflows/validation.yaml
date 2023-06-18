@@ -161,7 +161,7 @@ jobs:
       issues: read
       checks: write
       pull-requests: write
-    if: ${{ failure() || success() }}
+    if: ${{ always() }}
     needs: [changes, build-and-test, e2e-dev-tests, e2e-prod-tests]
     runs-on: ubuntu-latest
     steps:
@@ -169,11 +169,14 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/download-artifact@v3
+        if: ${{ failure() || success() }}
         with:
           name: tests-output
       - name: extract downloaded files
+        if: ${{ failure() || success() }}
         run: for i in *.tgz; do tar xvf $i; done
       - name: Publish Unit Test Results
+        if: ${{ failure() || success() }}
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
