@@ -85,8 +85,7 @@ class QuarkusHillaExtensionProcessor {
 
     @BuildStep
     FeatureBuildItem feature() {
-        return new 
-            FeatureBuildItem(FEATURE);
+        return new FeatureBuildItem(FEATURE);
     }
 
     // EndpointsValidator checks for the presence of Spring, so it should be
