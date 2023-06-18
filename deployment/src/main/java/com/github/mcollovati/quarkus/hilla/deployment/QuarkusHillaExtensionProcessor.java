@@ -84,7 +84,7 @@ class QuarkusHillaExtensionProcessor {
     private static final String FEATURE = "quarkus-hilla";
 
     @BuildStep
-    FeatureBuildItem feature() {
+    FeatureBuildItem feature() {                         
         return new FeatureBuildItem(FEATURE);
     }
 
