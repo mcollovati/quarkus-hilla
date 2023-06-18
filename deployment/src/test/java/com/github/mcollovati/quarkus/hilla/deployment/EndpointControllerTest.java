@@ -52,7 +52,7 @@ class EndpointControllerTest {
     }
 
     @Test
-    void invokeEndpoint_singleComplexParameter() {        
+    void invokeEndpoint_singleComplexParameter() {
         String msg = "A text message -----------------------";
         TestEndpoint.Pojo pojo = new TestEndpoint.Pojo(10, msg);
         givenEndpointRequest(ENDPOINT_NAME, "pojo", Parameters.param("pojo", pojo))
