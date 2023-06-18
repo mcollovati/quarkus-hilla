@@ -11,4 +11,5 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - run: 'echo "Validation not required"'
+      - name: "Validation not required"
+        run: 'echo "✅ Pull request changes do not require validation"'
