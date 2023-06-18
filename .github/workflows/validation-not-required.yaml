@@ -8,7 +8,7 @@ on:
       - .gitignore
       - etc/**
 jobs:
-  build-and-test:
+  test-results:
     runs-on: ubuntu-latest
     steps:
       - name: "Skip validation for ignored paths"
