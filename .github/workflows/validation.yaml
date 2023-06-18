@@ -50,10 +50,7 @@ jobs:
         with:
           filters: |
             validate:
-              - '!README.md'
-              - '!LICENSE'
-              - '!.gitignore'
-              - '!etc/**'
+              - '!(README.md|LICENSE|.gitignore|etc/**)'
   build-and-test:
     needs: [changes]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
