@@ -35,6 +35,14 @@ The current Hilla support has some known limitations:
 Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart)
 or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
 
+```xml
+<dependency>
+  <groupId>com.github.mcollovati</groupId>
+  <artifactId>quarkus-hilla</artifactId>
+  <version>2.0.0-alpha1</version>
+</dependency>
+```
+
 ## Compatibility Matrix
 
 |                                                                                                  Quarkus-Hilla                                                                                                   |                                               Quarkus                                                |                                              Hilla                                               |                                              Vaadin                                              |
