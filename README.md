@@ -30,9 +30,17 @@ The current Hilla support has some known limitations:
   is not supported
 * Native image compilation does not work
 
-## Tutorial
+## Getting started
 
-Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart).
+Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart-1.0).
+
+```xml
+<dependency>
+  <groupId>com.github.mcollovati</groupId>
+  <artifactId>quarkus-hilla</artifactId>
+  <version>2.0.0-alpha1</version>
+</dependency>
+```
 
 ## Compatibility Matrix
 
