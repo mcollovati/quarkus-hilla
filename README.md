@@ -1,7 +1,7 @@
 # Quarkus - Hilla
 
-![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge)
-![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&versionPrefix=1)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&versionPrefix=2)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
+[![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&versionPrefix=1)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
 ![GitHub](https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge)
 
 A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
@@ -34,6 +34,15 @@ The current Hilla support has some known limitations:
 
 Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart)
 or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
+
+## Compatibility Matrix
+
+|                                                                                                  Quarkus-Hilla                                                                                                   |                                               Quarkus                                                |                                              Hilla                                               |                                              Vaadin                                              |
+|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------:|
+|  [![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&versionPrefix=2)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)   | ![Static Badge](https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus)  | ![Static Badge](https://img.shields.io/badge/HILLA-v2.1%2B-blue?style=for-the-badge&logo=Vaadin) | ![Static Badge](https://img.shields.io/badge/FLOW-v24.1%2B-blue?style=for-the-badge&logo=Vaadin) |
+| [![Maven Central](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&versionPrefix=1)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hillchio) | ![Static Badge](https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus) | ![Static Badge](https://img.shields.io/badge/HILLA-v1.3%2B-blue?style=for-the-badge&logo=Vaadin) | ![Static Badge](https://img.shields.io/badge/FLOW-v23.3%2B-blue?style=for-the-badge&logo=Vaadin) |
+
+**NOTE**: This versions are known to work together. Other combinations may work, but are not tested.
 
 ## Release
 
