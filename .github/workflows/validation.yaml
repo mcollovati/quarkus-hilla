@@ -108,7 +108,7 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
-      - name: End to end Test (Development mode)
+      - name: End-to-end Test (Development mode)
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests
@@ -144,7 +144,7 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
-      - name: End to end Test (Production mode)
+      - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production
@@ -172,7 +172,7 @@ jobs:
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         with:
           name: tests-output
-      - name: extract downloaded files
+      - name: Extract downloaded files
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         run: for i in *.tgz; do tar xvf $i; done
       - name: Publish Unit Test Results
@@ -188,4 +188,4 @@ jobs:
       - name: Set validation skipped status
         if: ${{ always() && needs.changes.outputs.validation-required == 'false' }}
         run: |
-          echo "✅ Pull request contains changes on files ignored by validation workflow" | tee -a $GITHUB_STEP_SUMMARY && exit 0
+          echo "✅ Pull request only contains changes on files ignored by validation workflow" | tee -a $GITHUB_STEP_SUMMARY && exit 0
