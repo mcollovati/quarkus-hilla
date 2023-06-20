@@ -1,0 +1,125 @@
+name: Formatting check
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+  issues: read
+  checks: write
+  pull-requests: write
+concurrency:
+  group: format-check-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+env:
+  JAVA_VERSION: 17
+jobs:
+  checkstyle:
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Concurrency Group = format-check-${{ github.head_ref || github.ref_name }}"
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+      - name: Check
+        id: spotlessCheck
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp spotless:check
+      - name: Prepare failure message
+        if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp spotless:apply
+          git diff --output=/tmp/full-diff.txt 
+          git diff --name-only --output=/tmp/unformatted.txt
+          export _UNFORMATTED_COUNT=$(cat /tmp/unformatted.txt | wc -l)
+          export _UNFORMATTED_FILES=$(cat /tmp/unformatted.txt)
+          export _FULL_DIFF=$(cat /tmp/full-diff.txt)
+          envsubst < ./.github/scripts/format-check-report.tpl.md > /tmp/message
+      - name: Prepare success message
+        if: ${{ success() }}
+        run: |
+          set -x -e -o pipefail
+          echo "# Format Checker Report" >> /tmp/message
+          echo "" >> /tmp/message
+          echo "All files are correctly formatted" >> /tmp/message
+      - name: Comment PR
+        if: ${{ always() }}
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          filePath: /tmp/message
+          comment_tag: formatting-check
+      - name: Add format required label to PR
+        if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            // Remove the label if it exists
+            const existingLabels = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number: prNumber,
+            }).then(resp => resp.data.map(label => label.name));
+            
+            if (existingLabels.includes("format:checked")) {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: prNumber,
+                name: "format:checked",
+              });
+            }
+
+            if (!existingLabels.includes("format:required")) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: prNumber,
+                labels: ['format:required'],
+              });
+            }
+      - name: Add format checked label to PR
+        if: ${{ success() }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            // Remove the label if it exists
+            const existingLabels = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number: prNumber,
+            }).then(resp => resp.data.map(label => label.name));
+            
+            if (existingLabels.includes("format:required")) {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: prNumber,
+                name: "format:required",
+              });
+            }
+
+            if (!existingLabels.includes("format:checked")) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: prNumber,
+                labels: ['format:checked'],
+              });
+            }
