@@ -38,7 +38,7 @@ Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki
 <dependency>
   <groupId>com.github.mcollovati</groupId>
   <artifactId>quarkus-hilla</artifactId>
-  <version>2.0.0-alpha1</version>
+  <version>1.0.0-beta1</version>
 </dependency>
 ```
 
