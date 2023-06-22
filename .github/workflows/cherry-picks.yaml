@@ -1,0 +1,58 @@
+name: Cherry Pick
+on:
+  pull_request_target:
+    types:
+      - closed
+      - labeled
+
+jobs:
+  cherry-pick:
+    name: Cherry Pick
+    runs-on: ubuntu-latest
+    # Only react to merged PRs for security reasons.
+    # See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target.
+    if: >
+      github.event.pull_request.merged
+      && (
+        github.event.action == 'closed'
+        || (
+          github.event.action == 'labeled'
+          && contains(github.event.label.name, 'target/')
+        )
+      )
+    steps:
+      - uses: tibdex/backport@v2
+        id: backport
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          head_template: "cherry/cherrypick-<%= number %>-to-<%= base %>"
+          title_template: "<%= title %> (#<%= number %>) (CP: <%= base %>)"
+          body_template: "<%= body %>"
+          label_pattern: "^target/(?<base>([^ ]+))$"
+          labels_template: "[ \"cherry-pick\" ]"
+      - uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const picked = JSON.parse('${{ steps.backport.outputs.created_pull_requests }}');
+            const { owner, repo } = context.repo;
+            const prNumber = context.payload.pull_request.number;
+
+            const existingLabels = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number: prNumber,
+            }).then(resp => resp.data.map(label => label.name));
+
+            const labelsToAdd = Object.keys(picked)
+              .map( targetBranch => "picked/" + targetBranch)
+              .filter( label => !existingLabels.includes(label) );
+            
+            if (labelsToAdd.length > 0) {            
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: prNumber,
+                labels: labelsToAdd,
+              });
+            }
