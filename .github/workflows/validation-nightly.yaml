@@ -4,54 +4,37 @@ on:
   schedule:
     - cron: '0 1 * * *'
 jobs:
-  snapshot-builds:
+  snapshot-main:
+    name: "Quarkus-Hilla main"
     strategy:
       fail-fast: false
       matrix:
-        hilla: ["2.2-SNAPSHOT", "2.1-SNAPSHOT", "1.3-SNAPSHOT"]
+        hilla: ["2.2-SNAPSHOT", "2.1-SNAPSHOT"]
         java: [ 17, 20 ]
-        branch: [ "main", "1.0" ]
-        include:
-          - hilla: "1.3-SNAPSHOT"
-            java: 11
-            branch: "1.0"
-        exclude:
-          - hilla: "1.3-SNAPSHOT"
-            branch: "main"
-          - hilla: "2.1-SNAPSHOT"
-            branch: "1.0"
-          - hilla: "2.2-SNAPSHOT"
-            branch: "1.0"
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - uses: ./.github/actions/run-validation
         with:
-          ref: ${{ matrix.branch }}
-          fetch-depth: 0
-      - name: Setup Java
-        uses: actions/setup-java@v3
+          ref: "main"
+          java_version: ${{ matrix.java }}
+          hilla_version: ${{ matrix.hilla }}
+  snapshot-1_0:
+    name: "Quarkus-Hilla 1.x"
+    strategy:
+      fail-fast: false
+      matrix:
+        hilla: ["1.3-SNAPSHOT"]
+        java: [ 11, 17, 20 ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - uses: ./.github/actions/run-validation
         with:
-          java-version: ${{ matrix.java }}
-          distribution: 'temurin'
-          cache: maven
-      - uses: browser-actions/setup-chrome@latest
-        with:
-          chrome-version: stable
-      - name: Build
-        run: |
-          set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install -Dhilla.version=${{ matrix.hilla }}
-      - name: Test
-        run: |
-          set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dhilla.version=${{ matrix.hilla }}
-      - name: End-to-end Test (Development mode)
-        run: |
-          set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dhilla.version=${{ matrix.hilla }}
-      - name: End-to-end Test (Production mode)
-        run: |
-          set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production -Dhilla.version=${{ matrix.hilla }}
+          ref: "1.0"
+          java_version: ${{ matrix.java }}
+          hilla_version: ${{ matrix.hilla }}

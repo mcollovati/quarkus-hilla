@@ -1,0 +1,61 @@
+name: 'run-validation'
+description: 'Build and test'
+inputs:
+  ref:
+    description: >
+      The branch, tag or SHA to checkout. Defaults to github.ref.
+    required: true
+    default: ${{ github.ref }}
+  original_ref:
+    description: >
+      The branch, tag or SHA to checkout after the build completes. Defaults to github.ref.
+    default: ${{ github.ref }}
+  java_version:
+    description: 'Java version'
+    required: true
+  hilla_version:
+    description: 'Hilla version'
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ inputs.ref }}
+        fetch-depth: 0
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: ${{ inputs.java_version }}
+        distribution: 'temurin'
+        cache: maven
+    - uses: browser-actions/setup-chrome@latest
+      with:
+        chrome-version: stable
+    - name: Build
+      shell: bash
+      run: |
+        set -x -e -o pipefail
+        mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install -Dhilla.version=${{ inputs.hilla_version }}
+    - name: Test
+      shell: bash
+      run: |
+        set -x -e -o pipefail
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dhilla.version=${{ inputs.hilla_version }}
+    - name: End-to-end Tests (Development mode)
+      shell: bash
+      run: |
+        set -x -e -o pipefail
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dhilla.version=${{ inputs.hilla_version }}
+    - name: End-to-end Tests (Production mode)
+      shell: bash
+      run: |
+        set -x -e -o pipefail
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production -Dhilla.version=${{ inputs.hilla_version }}
+    - name: Checkout
+      uses: actions/checkout@v3
+      if: ${{ always() }}
+      with:
+        ref: ${{ inputs.original_ref }}
+        fetch-depth: 0
