@@ -43,12 +43,12 @@ runs:
       run: |
         set -x -e -o pipefail
         mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dhilla.version=${{ inputs.hilla_version }}
-    - name: End-to-end Test (Development mode)
+    - name: End-to-end Tests (Development mode)
       shell: bash
       run: |
         set -x -e -o pipefail
         mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dhilla.version=${{ inputs.hilla_version }}
-    - name: End-to-end Test (Production mode)
+    - name: End-to-end Tests (Production mode)
       shell: bash
       run: |
         set -x -e -o pipefail
