@@ -109,6 +109,8 @@ jobs:
         with:
           chrome-version: stable
       - name: Build
+        env:
+          SE_BROWSER_PATH=${{ env.SE_BROWSER_PATH }}
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
@@ -147,6 +149,8 @@ jobs:
         with:
           chrome-version: stable
       - name: Build
+        env:
+          SE_BROWSER_PATH=${{ env.SE_BROWSER_PATH }}
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
