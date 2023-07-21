@@ -1,0 +1,21 @@
+name: 'Setup Chrome'
+description: 'Install and setup Google Chrome and Chromium'
+inputs:
+  chrome-version:
+    description: |-
+      The Google Chrome/Chromium version to install and use.
+    default: latest
+    required: false
+runs:
+  using: composite
+  steps:
+    - uses: browser-actions/setup-chrome@latest
+      id: setup-chrome
+      with:
+        chrome-version: ${{ inputs.chrome-version }}
+    - name: Add chrome to PATH
+      shell: bash
+      run: |
+        mkdir --parents $HOME/.local/bin
+        ln -s ${{ steps.setup-chrome.outputs.chrome-path }} $HOME/.local/bin/google-chrome
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
