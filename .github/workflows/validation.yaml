@@ -66,8 +66,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - uses: browser-actions/setup-chrome@latest
+        id: setup-chrome
         with:
           chrome-version: stable
+      - name: Add chrome to PATH
+        run: |
+          echo "${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_PATH
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -102,8 +106,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - uses: browser-actions/setup-chrome@latest
+        id: setup-chrome
         with:
           chrome-version: stable
+      - name: Add chrome to PATH
+        run: |
+          echo "${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_PATH
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -138,8 +146,12 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - uses: browser-actions/setup-chrome@latest
+        id: setup-chrome
         with:
           chrome-version: stable
+      - name: Add chrome to PATH
+        run: |
+          echo "${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_PATH
       - name: Build
         run: |
           set -x -e -o pipefail
