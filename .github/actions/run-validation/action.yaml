@@ -31,6 +31,7 @@ runs:
         distribution: 'temurin'
         cache: maven
     - uses: browser-actions/setup-chrome@latest
+      id: setup-chrome
       with:
         chrome-version: stable
     - name: Build
@@ -47,12 +48,12 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dhilla.version=${{ inputs.hilla_version }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Dhilla.version=${{ inputs.hilla_version }}
     - name: End-to-end Tests (Production mode)
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production -Dhilla.version=${{ inputs.hilla_version }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Dhilla.version=${{ inputs.hilla_version }}
     - name: Checkout
       uses: actions/checkout@v3
       if: ${{ always() }}
