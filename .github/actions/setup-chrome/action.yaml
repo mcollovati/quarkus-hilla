@@ -16,6 +16,4 @@ runs:
     - name: Add chrome to PATH
       shell: bash
       run: |
-        mkdir --parents $HOME/.local/bin
-        ln -s ${{ steps.setup-chrome.outputs.chrome-path }} $HOME/.local/bin/google-chrome
-        echo "$HOME/.local/bin" >> $GITHUB_PATH
+        echo "SE_BROWSER_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> "$GITHUB_ENV"
