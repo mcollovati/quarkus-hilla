@@ -65,8 +65,8 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-#      - uses: browser-actions/setup-chrome@latest
-      - uses: ./.github/actions/setup-chrome
+      - uses: browser-actions/setup-chrome@latest
+#      - uses: ./.github/actions/setup-chrome
         id: setup-chrome
         with:
           chrome-version: stable
@@ -103,21 +103,19 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-#      - uses: browser-actions/setup-chrome@latest
-      - uses: ./.github/actions/setup-chrome
+      - uses: browser-actions/setup-chrome@latest
+#      - uses: ./.github/actions/setup-chrome
         id: setup-chrome
         with:
           chrome-version: stable
       - name: Build
-        env:
-          SE_BROWSER_PATH=${{ env.SE_BROWSER_PATH }}
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
       - name: End-to-end Test (Development mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-e2e-dev.tgz -T -
@@ -143,21 +141,19 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-#      - uses: browser-actions/setup-chrome@latest
-      - uses: ./.github/actions/setup-chrome
+      - uses: browser-actions/setup-chrome@latest
+#      - uses: ./.github/actions/setup-chrome
         id: setup-chrome
         with:
           chrome-version: stable
       - name: Build
-        env:
-          SE_BROWSER_PATH=${{ env.SE_BROWSER_PATH }}
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
       - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-e2e-prod.tgz -T -
