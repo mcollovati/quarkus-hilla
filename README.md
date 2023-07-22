@@ -52,6 +52,46 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 
 **NOTE**: These versions are known to work together. Other combinations may work, but are not tested.
 
+## Build and test
+
+To build the extension locally you need to install JDK 17 or later and Maven 3.8 or later.
+
+The extension and its required dependencies can be built by typing the following command
+
+```terminal
+mvn -DskipTests install
+```
+
+To run the test suite, execute the maven `verify` goal
+
+```terminal
+mvn -DtrimStackTrace=false verify
+```
+
+End-to-end test modules can be found in the `integration-tests` folder.
+Integration tests use [Selenide](https://selenide.org/) for browser interaction;
+the browser used by default is Chrome, except for MacOS, where Safari is selected.
+Execution of end-to-end integration tests requires the activation of the maven `it-tests` profile.
+
+```terminal
+mvn -DtrimStackTrace=false -Pit-tests verify
+```
+
+The same tests can also be executed in production mode, by activating the `production` profile in addition
+to `it-tests`.
+
+```terminal
+mvn -DtrimStackTrace=false -Pit-tests,production verify
+```
+
+Tests run by default in headless mode, meaning that the browser window will not be visible during the execution,
+unless a debugger is attached to the JVM, either by execution the test debug mode from the IDE, or by providing the
+`-Dmaven.surefire.debug` system property to the maven command line.
+
+```terminal
+mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
+```
+
 ## Release
 
 To perform a manual release type the following commands.
