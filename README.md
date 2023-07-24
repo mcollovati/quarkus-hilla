@@ -69,7 +69,7 @@ mvn -DtrimStackTrace=false verify
 ```
 
 End-to-end test modules can be found in the `integration-tests` folder.
-Integration tests use [Selenide](https://selenide.org/) for browser interaction;
+Integration tests use [Selenide](https://selenide.org/) for browser interaction,
 the browser used by default is Chrome, except for MacOS, where Safari is selected.
 Execution of end-to-end integration tests requires the activation of the maven `it-tests` profile.
 
@@ -85,7 +85,7 @@ mvn -DtrimStackTrace=false -Pit-tests,production verify
 ```
 
 Tests run by default in headless mode, meaning that the browser window will not be visible during the execution,
-unless a debugger is attached to the JVM, either by execution the test debug mode from the IDE, or by providing the
+unless a debugger is attached to the JVM, either by executing the test debug mode from the IDE, or by providing the
 `-Dmaven.surefire.debug` system property to the maven command line.
 
 ```terminal
