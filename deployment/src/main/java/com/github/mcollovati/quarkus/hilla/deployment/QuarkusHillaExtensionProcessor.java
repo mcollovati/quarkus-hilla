@@ -57,8 +57,10 @@ import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
 import io.quarkus.undertow.deployment.ServletBuildItem;
+import io.quarkus.vertx.http.deployment.RequireBodyHandlerBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
@@ -88,6 +90,25 @@ class QuarkusHillaExtensionProcessor {
         return new FeatureBuildItem(FEATURE);
     }
 
+    @BuildStep
+    QuarkusHillaEnvironmentBuildItem detectQuarkusHillaMode(CurateOutcomeBuildItem outcomeBuildItem) {
+        boolean quarkusVaadinPresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
+                .anyMatch(dep -> "com.vaadin".equals(dep.getGroupId())
+                        && dep.getArtifactId().startsWith("vaadin-quarkus"));
+        return new QuarkusHillaEnvironmentBuildItem(quarkusVaadinPresent);
+    }
+
+    // In hybrid environment sometimes the requests hangs while reading body, causing the UI to freeze until read
+    // timeout is reached.
+    // Requiring the installation of vert.x body handler seems to fix the issue
+    // See https://github.com/mcollovati/quarkus-hilla/issues/182
+    @BuildStep
+    void requireRequestBodyHandler(
+            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv, BuildProducer<RequireBodyHandlerBuildItem> producer) {
+        if (quarkusHillaEnv.isHybrid()) {
+            producer.produce(new RequireBodyHandlerBuildItem());
+        }
+    }
     // EndpointsValidator checks for the presence of Spring, so it should be
     // ignored
     @BuildStep

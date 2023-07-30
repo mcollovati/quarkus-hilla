@@ -431,6 +431,7 @@
             <id>it-tests</id>
             <modules>
                 <module>integration-tests/smoke-tests</module>
+                <module>integration-tests/hybrid-smoke-tests</module>
             </modules>
         </profile>
     </profiles>

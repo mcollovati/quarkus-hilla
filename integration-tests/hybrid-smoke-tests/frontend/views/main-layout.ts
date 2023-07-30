@@ -51,6 +51,11 @@ export class MainLayout extends Layout {
                                     </vcf-nav-item>
                                 `
                         )}
+                        <vcf-nav-item path=${router.urlForPath('flow-view')}>
+                            <span class="la la-globe nav-item-icon"
+                                  slot="prefix" aria-hidden="true"></span>
+                            Flow View
+                        </vcf-nav-item>
                     </vcf-nav>
                 </vaadin-scroller>
 
