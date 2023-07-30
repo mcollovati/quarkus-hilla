@@ -18,6 +18,7 @@ package com.example.application.flow;
 import com.example.application.ClockService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
@@ -37,9 +38,13 @@ public class FlowView extends VerticalLayout {
     }
 
     private void buildUI() {
+
         var toggleButton = new Button("Toggle Clock");
         toggleButton.addClickListener(event -> toggleClock());
-        add(toggleButton, timeDiv);
+        Span title = new Span("Flow view");
+        title.setId("title");
+        timeDiv.setId("time");
+        add(title,toggleButton, timeDiv);
     }
 
     private void toggleClock() {

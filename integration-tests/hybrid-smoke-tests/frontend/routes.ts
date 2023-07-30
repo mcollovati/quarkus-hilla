@@ -3,8 +3,13 @@ import './views/helloworld/hello-world-view';
 import './views/push/push-view';
 import './views/main-layout';
 import './views/login/login-view';
+import {Flow} from "@vaadin/flow-frontend";
 import {appStore} from "Frontend/stores/app-store";
 
+
+const {serverSideRoutes} = new Flow({
+    imports: () => import('Frontend/generated/flow/generated-flow-imports')
+});
 
 export type ViewRoute = Route & {
     title?: string;
@@ -75,7 +80,8 @@ export const views: ViewRoute[] = [
             return;
         },
         */
-    }
+    },
+    ...serverSideRoutes
 ];
 export const routes: ViewRoute[] = [
     {
