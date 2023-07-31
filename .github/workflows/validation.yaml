@@ -65,6 +65,10 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
+      - name: Display node/npm info
+        run: |
+          which node && node --version || echo "node not present"
+          which npm && npm --version || echo "npm not present"
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
         with:
