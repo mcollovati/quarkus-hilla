@@ -12,10 +12,15 @@ jobs:
     runs-on: ubuntu-latest
     name: Apply format
     steps:
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
+          private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Remove format labels
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
@@ -38,7 +43,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ssh-key: ${{ secrets.ACTIONS_GIT_KEY }}
+          #ssh-key: ${{ secrets.ACTIONS_GIT_KEY }}
+          token: ${{ steps.generate-token.outputs.token }}
           fetchref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -52,10 +58,12 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v4
         with:
           commit_message: "chore(auto-format): apply formatting"
+          commit_user_name: "quarkus-hilla-bot[bot]"
+          commit_user_email: "141157179+quarkus-hilla-bot[bot]@users.noreply.github.com"
       - name: Update format labels on PR
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
@@ -66,8 +74,4 @@ jobs:
               issue_number: prNumber,
               name: "auto-format",
             });
-            
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
