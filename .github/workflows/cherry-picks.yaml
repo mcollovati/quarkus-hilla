@@ -21,10 +21,15 @@ jobs:
         )
       )
     steps:
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
+          private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - uses: tibdex/backport@v2
         id: backport
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ steps.generate-token.outputs.token }}
           head_template: "cherry/cherrypick-<%= number %>-to-<%= base %>"
           title_template: "<%= title %> (#<%= number %>) (CP: <%= base %>)"
           body_template: "<%= body %>"
@@ -32,7 +37,7 @@ jobs:
           labels_template: "[ \"cherry-pick\" ]"
       - uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const picked = JSON.parse('${{ steps.backport.outputs.created_pull_requests }}');
             const { owner, repo } = context.repo;
