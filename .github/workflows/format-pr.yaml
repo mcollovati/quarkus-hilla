@@ -17,29 +17,6 @@ jobs:
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
           private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
-      - name: Remove format labels
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ steps.generate-token.outputs.token }}
-          script: |
-            const { owner, repo } = context.repo;
-            const prNumber = context.payload.pull_request.number;
-            
-            // Remove the label if it exists
-            const existingLabels = await github.rest.issues.listLabelsOnIssue({
-              owner,
-              repo,
-              issue_number: prNumber,
-            });
-            const labelsToRemove = existingLabels.data.map(label => label.name).filter( label => label.startsWith("format:") );
-            for (const labelToRemove of labelsToRemove) {
-              await github.rest.issues.removeLabel({
-                owner,
-                repo,
-                issue_number: prNumber,
-                name: labelToRemove,
-              });
-            }
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -56,6 +33,7 @@ jobs:
         run: |
           mvn -V -e -B -ntp spotless:apply
       - uses: stefanzweifel/git-auto-commit-action@v4
+        id: commit-changes
         with:
           commit_message: "chore(auto-format): apply formatting"
           commit_user_name: "quarkus-hilla-bot[bot]"
@@ -67,6 +45,24 @@ jobs:
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
+
+            if (${{ steps.commit-changes.outputs.changes_detected }} == 'true') {
+              // Remove the label if it exists
+              const existingLabels = await github.rest.issues.listLabelsOnIssue({
+                owner,
+                repo,
+                issue_number: prNumber,
+              });
+              const labelsToRemove = existingLabels.data.map(label => label.name).filter( label => label.startsWith("format:") );
+              for (const labelToRemove of labelsToRemove) {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  name: labelToRemove,
+                });
+              }
+            }
 
             await github.rest.issues.removeLabel({
               owner,
