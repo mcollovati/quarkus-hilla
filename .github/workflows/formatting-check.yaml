@@ -18,6 +18,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Concurrency Group = format-check-${{ github.head_ref || github.ref_name }}"
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
+        with:
+          app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
+          private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
@@ -55,13 +60,14 @@ jobs:
         if: ${{ always() }}
         uses: thollander/actions-comment-pull-request@v2
         with:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           filePath: /tmp/message
           comment_tag: formatting-check
       - name: Add format required label to PR
         if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
@@ -94,7 +100,7 @@ jobs:
         if: ${{ success() }}
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
