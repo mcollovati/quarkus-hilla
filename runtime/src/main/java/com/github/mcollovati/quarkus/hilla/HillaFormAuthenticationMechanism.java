@@ -27,7 +27,11 @@ import io.vertx.ext.web.RoutingContext;
 import java.util.Optional;
 import java.util.Set;
 
-public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
+public class HillaFormAuthenticationMechanism 
+
+    implements HttpAuthenticationMechanism {
+
+
     private String logoutPath;
     private String cookieName;
 
