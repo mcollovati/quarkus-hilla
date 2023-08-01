@@ -12,33 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     name: Apply format
     steps:
-      - name: Remove format labels
-        uses: actions/github-script@v6
+      - uses: tibdex/github-app-token@v1
+        id: generate-token
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const { owner, repo } = context.repo;
-            const prNumber = context.payload.pull_request.number;
-            
-            // Remove the label if it exists
-            const existingLabels = await github.rest.issues.listLabelsOnIssue({
-              owner,
-              repo,
-              issue_number: prNumber,
-            });
-            const labelsToRemove = existingLabels.data.map(label => label.name).filter( label => label.startsWith("format:") );
-            for (const labelToRemove of labelsToRemove) {
-              await github.rest.issues.removeLabel({
-                owner,
-                repo,
-                issue_number: prNumber,
-                name: labelToRemove,
-              });
-            }
+          app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
+          private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          ssh-key: ${{ secrets.ACTIONS_GIT_KEY }}
+          #ssh-key: ${{ secrets.ACTIONS_GIT_KEY }}
+          token: ${{ steps.generate-token.outputs.token }}
           fetchref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
         uses: actions/setup-java@v3
@@ -50,15 +33,36 @@ jobs:
         run: |
           mvn -V -e -B -ntp spotless:apply
       - uses: stefanzweifel/git-auto-commit-action@v4
+        id: commit-changes
         with:
           commit_message: "chore(auto-format): apply formatting"
+          commit_user_name: "quarkus-hilla-bot[bot]"
+          commit_user_email: "141157179+quarkus-hilla-bot[bot]@users.noreply.github.com"
       - name: Update format labels on PR
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.generate-token.outputs.token }}
           script: |
             const { owner, repo } = context.repo;
             const prNumber = context.payload.pull_request.number;
+
+            if (${{ steps.commit-changes.outputs.changes_detected }} == 'true') {
+              // Remove the label if it exists
+              const existingLabels = await github.rest.issues.listLabelsOnIssue({
+                owner,
+                repo,
+                issue_number: prNumber,
+              });
+              const labelsToRemove = existingLabels.data.map(label => label.name).filter( label => label.startsWith("format:") );
+              for (const labelToRemove of labelsToRemove) {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  name: labelToRemove,
+                });
+              }
+            }
 
             await github.rest.issues.removeLabel({
               owner,
@@ -66,8 +70,4 @@ jobs:
               issue_number: prNumber,
               name: "auto-format",
             });
-            
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
