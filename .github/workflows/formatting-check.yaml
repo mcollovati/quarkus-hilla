@@ -37,12 +37,12 @@ jobs:
         id: spotlessCheck
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp spotless:check
+          mvn -V -e -B -ntp -Pdefault-modules,it-tests spotless:check
       - name: Prepare failure message
         if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp spotless:apply
+          mvn -V -e -B -ntp -Pdefault-modules,it-tests spotless:apply
           git diff --output=/tmp/full-diff.txt 
           git diff --name-only --output=/tmp/unformatted.txt
           export _UNFORMATTED_COUNT=$(cat /tmp/unformatted.txt | wc -l)
