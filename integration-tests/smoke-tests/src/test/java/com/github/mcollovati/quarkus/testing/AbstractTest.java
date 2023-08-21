@@ -15,7 +15,9 @@
  */
 package com.github.mcollovati.quarkus.testing;
 
-import static com.codeborne.selenide.Selenide.$;
+import java.lang.management.ManagementFactory;
+import java.time.Duration;
+import java.util.function.Supplier;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
@@ -24,17 +26,18 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.junit5.BrowserPerTestStrategyExtension;
 import io.quarkus.test.common.http.TestHTTPResource;
-import java.lang.management.ManagementFactory;
-import java.time.Duration;
-import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@ExtendWith({BrowserPerTestStrategyExtension.class})
+import static com.codeborne.selenide.Selenide.$;
+
+@ExtendWith({ BrowserPerTestStrategyExtension.class })
 public abstract class AbstractTest {
 
-    private static final boolean isMacOS =
-            System.getProperty("os.name").toLowerCase().contains("mac");
+    private static final boolean isMacOS = System.getProperty("os.name")
+            .toLowerCase().contains("mac");
 
     @TestHTTPResource()
     private String baseURL;
@@ -46,7 +49,8 @@ public abstract class AbstractTest {
             Configuration.browser = "safari";
         } else {
             Configuration.headless = runHeadless();
-            System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
+            System.setProperty("chromeoptions.args",
+                    "--remote-allow-origins=*");
         }
     }
 
@@ -72,11 +76,20 @@ public abstract class AbstractTest {
 
     protected void openAndWait(String url, Supplier<SelenideElement> selector) {
         Selenide.open(url);
+        waitForDevServer();
         selector.get().shouldBe(Condition.visible, Duration.ofSeconds(10));
         // There should not be typescript errors
         // $("vite-plugin-checker-error-overlay").shouldNot(Condition.exist);
-        $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools")).shouldNot(Condition.exist);
-        $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNot(Condition.exist);
+        $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools"))
+                .shouldNot(Condition.exist);
+        $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay"))
+                .shouldNot(Condition.exist);
+    }
+
+    protected void waitForDevServer() {
+        Selenide.Wait().withTimeout(Duration.ofMinutes(20))
+                .until(d -> !Boolean.TRUE.equals(Selenide.executeJavaScript(
+                        "return window.Vaadin && window.Vaadin.Flow && window.Vaadin.Flow.devServerIsNotLoaded;")));
     }
 
     protected boolean runHeadless() {
@@ -84,9 +97,11 @@ public abstract class AbstractTest {
     }
 
     static boolean isJavaInDebugMode() {
-        return ManagementFactory.getRuntimeMXBean()
-                .getInputArguments()
-                .toString()
-                .contains("jdwp");
+        return ManagementFactory.getRuntimeMXBean().getInputArguments()
+                .toString().contains("jdwp");
+    }
+
+    protected Logger getLogger() {
+        return LoggerFactory.getLogger(getClass());
     }
 }
