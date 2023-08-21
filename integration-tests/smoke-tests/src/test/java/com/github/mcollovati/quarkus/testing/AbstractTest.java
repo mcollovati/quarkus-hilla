@@ -29,8 +29,6 @@ import java.time.Duration;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
@@ -100,7 +98,4 @@ public abstract class AbstractTest {
                 .contains("jdwp");
     }
 
-    protected Logger getLogger() {
-        return LoggerFactory.getLogger(getClass());
-    }
 }
