@@ -97,5 +97,4 @@ public abstract class AbstractTest {
                 .toString()
                 .contains("jdwp");
     }
-
 }

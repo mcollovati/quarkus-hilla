@@ -44,7 +44,7 @@ public class FlowView extends VerticalLayout {
         Span title = new Span("Flow view");
         title.setId("title");
         timeDiv.setId("time");
-        add(title,toggleButton, timeDiv);
+        add(title, toggleButton, timeDiv);
     }
 
     private void toggleClock() {

@@ -81,7 +81,8 @@ public abstract class AbstractTest {
     }
 
     protected void waitForDevServer() {
-        Selenide.Wait().withTimeout(Duration.ofMinutes(20))
+        Selenide.Wait()
+                .withTimeout(Duration.ofMinutes(20))
                 .until(d -> !Boolean.TRUE.equals(Selenide.executeJavaScript(
                         "return window.Vaadin && window.Vaadin.Flow && window.Vaadin.Flow.devServerIsNotLoaded;")));
     }
