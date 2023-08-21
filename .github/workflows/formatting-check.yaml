@@ -37,7 +37,7 @@ jobs:
         id: spotlessCheck
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp spotless:check
+          mvn -V -e -B -ntp -Pdefault-modules,it-tests spotless:check
       - name: Prepare failure message
         if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
         run: |
