@@ -113,7 +113,7 @@
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
-                        <selenide.reportsFolder>${project.build.directory}/selenide/tests</selenide.reportsFolder>
+                        <selenide.reportsFolder>${project.build.directory}/selenide/selenide-reports</selenide.reportsFolder>
                         <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                         </selenide.downloadsFolder>
                     </systemPropertyVariables>

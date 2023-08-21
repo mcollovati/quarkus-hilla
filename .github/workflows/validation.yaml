@@ -79,7 +79,7 @@ jobs:
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
       - name: Package test output files
         if: ${{ failure() || success() }}
-        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-main.tgz -T -
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main.tgz -T -
       - uses: actions/upload-artifact@v3
         if: ${{ failure() || success() }}
         with:
@@ -116,7 +116,7 @@ jobs:
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests
       - name: Package test output files
         if: ${{ failure() || success() }}
-        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-e2e-dev.tgz -T -
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-dev.tgz -T -
       - uses: actions/upload-artifact@v3
         if: ${{ failure() || success() }}
         with:
@@ -153,7 +153,7 @@ jobs:
           mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production
       - name: Package test output files
         if: ${{ failure() || success() }}
-        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-e2e-prod.tgz -T -
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-prod.tgz -T -
       - uses: actions/upload-artifact@v3
         if: ${{ failure() || success() }}
         with:
