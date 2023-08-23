@@ -12,7 +12,7 @@
     <artifactId>quarkus-hilla</artifactId>
     <name>Quarkus - Hilla - Runtime</name>
     <description>
-        <![CDATA[A Quarkus extension to run [Hilla](https://hilla.dev) applications on Quarkus.]]></description>
+        <![CDATA[A Quarkus extension to run Hilla applications on Quarkus.]]></description>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
