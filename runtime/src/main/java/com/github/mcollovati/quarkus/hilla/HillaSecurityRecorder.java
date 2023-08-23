@@ -45,6 +45,7 @@ public class HillaSecurityRecorder {
         if (formConfig.enabled) {
             HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
             policy.withFormLogin(formConfig);
+            QuarkusHillaExtension.markSecurityPolicyUsed();
         }
     }
 

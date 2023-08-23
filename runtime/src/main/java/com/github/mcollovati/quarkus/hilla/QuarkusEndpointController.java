@@ -49,7 +49,6 @@ public class QuarkusEndpointController {
      * @param endpointInvoker  then end point invoker
      * @param csrfChecker      the csrf checker to use
      */
-    // @Inject
     public QuarkusEndpointController(
             ApplicationContext context,
             EndpointRegistry endpointRegistry,
@@ -61,6 +60,7 @@ public class QuarkusEndpointController {
     @Inject
     public QuarkusEndpointController(EndpointController delegate) {
         this.delegate = delegate;
+        QuarkusHillaExtension.markUsed();
     }
 
     @POST
