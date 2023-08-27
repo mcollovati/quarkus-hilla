@@ -34,7 +34,7 @@
         </dependency>
         <dependency>
             <groupId>dev.hilla</groupId>
-            <artifactId>engine-runtime</artifactId>
+            <artifactId>hilla</artifactId>
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
@@ -57,7 +57,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                **/dev/hilla/**/*.class,
+                                **/dev/hilla/**/*.class,**/com/vaadin/**/*.class
                             </includes>
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
@@ -85,6 +85,8 @@
                     <excludes>
                         <exclude>dev</exclude>
                         <exclude>dev/**/*</exclude>
+                        <exclude>com</exclude>
+                        <exclude>com/**/*</exclude>
                         <exclude>OSGI-INF</exclude>
                         <exclude>OSGI-INF/*</exclude>
                     </excludes>

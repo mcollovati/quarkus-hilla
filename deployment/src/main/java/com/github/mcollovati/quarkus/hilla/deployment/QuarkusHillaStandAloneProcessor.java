@@ -21,6 +21,7 @@ import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.undertow.deployment.ServletDeploymentManagerBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
@@ -40,6 +41,19 @@ class QuarkusHillaStandAloneProcessor {
             BuildProducer<AdditionalIndexedClassesBuildItem> producer) {
         if (!quarkusHillaEnv.isHybrid()) {
             producer.produce(new AdditionalIndexedClassesBuildItem(EnableWebsockets.class.getName()));
+        }
+    }
+
+    // Configuring removed resources causes the index to be rebuilt, but the
+    // hilla-jandex artifact does not contain any classes.
+    // Adding a marker forces indexes to be built against Vaadin artifacts
+    // when Vaadin jandex index is supposed not to be present.
+    @BuildStep
+    void addMarkersForHillaJars(
+            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
+            BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
+        if (!quarkusHillaEnv.isHybrid()) {
+            producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin"));
         }
     }
 

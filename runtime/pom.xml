@@ -39,10 +39,6 @@
             <artifactId>hilla-jandex</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-core-jandex</artifactId>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
