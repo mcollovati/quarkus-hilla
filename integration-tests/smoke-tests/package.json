@@ -20,8 +20,10 @@
     "@vaadin/app-layout": "24.1.6",
     "@vaadin/avatar": "24.1.6",
     "@vaadin/avatar-group": "24.1.6",
+    "@vaadin/board": "24.1.6",
     "@vaadin/bundles": "24.1.6",
     "@vaadin/button": "24.1.6",
+    "@vaadin/charts": "24.1.6",
     "@vaadin/checkbox": "24.1.6",
     "@vaadin/checkbox-group": "24.1.6",
     "@vaadin/combo-box": "24.1.6",
@@ -29,6 +31,8 @@
     "@vaadin/component-base": "24.1.6",
     "@vaadin/confirm-dialog": "24.1.6",
     "@vaadin/context-menu": "24.1.6",
+    "@vaadin/cookie-consent": "24.1.6",
+    "@vaadin/crud": "24.1.6",
     "@vaadin/custom-field": "24.1.6",
     "@vaadin/date-picker": "24.1.6",
     "@vaadin/date-time-picker": "24.1.6",
@@ -39,6 +43,7 @@
     "@vaadin/field-highlighter": "24.1.6",
     "@vaadin/form-layout": "24.1.6",
     "@vaadin/grid": "24.1.6",
+    "@vaadin/grid-pro": "24.1.6",
     "@vaadin/horizontal-layout": "24.1.6",
     "@vaadin/icon": "24.1.6",
     "@vaadin/icons": "24.1.6",
@@ -48,6 +53,7 @@
     "@vaadin/list-box": "24.1.6",
     "@vaadin/lit-renderer": "24.1.6",
     "@vaadin/login": "24.1.6",
+    "@vaadin/map": "24.1.6",
     "@vaadin/menu-bar": "24.1.6",
     "@vaadin/message-input": "24.1.6",
     "@vaadin/message-list": "24.1.6",
@@ -59,6 +65,7 @@
     "@vaadin/polymer-legacy-adapter": "24.1.6",
     "@vaadin/progress-bar": "24.1.6",
     "@vaadin/radio-group": "24.1.6",
+    "@vaadin/rich-text-editor": "24.1.6",
     "@vaadin/router": "1.7.5",
     "@vaadin/scroller": "24.1.6",
     "@vaadin/select": "24.1.6",
@@ -79,9 +86,7 @@
     "@vaadin/vertical-layout": "24.1.6",
     "@vaadin/virtual-list": "24.1.6",
     "construct-style-sheets-polyfill": "3.1.0",
-    "date-fns": "2.29.3",
     "lit": "2.7.6",
-    "mobile-drag-drop": "2.3.0-rc.2",
     "mobx": "^6.3.5"
   },
   "devDependencies": {
@@ -182,8 +187,13 @@
     "@hilla/generator-typescript-plugin-backbone": "$@hilla/generator-typescript-plugin-backbone",
     "@hilla/generator-typescript-cli": "$@hilla/generator-typescript-cli",
     "@vaadin/side-nav": "$@vaadin/side-nav",
-    "date-fns": "$date-fns",
-    "mobile-drag-drop": "$mobile-drag-drop"
+    "@vaadin/board": "$@vaadin/board",
+    "@vaadin/charts": "$@vaadin/charts",
+    "@vaadin/cookie-consent": "$@vaadin/cookie-consent",
+    "@vaadin/crud": "$@vaadin/crud",
+    "@vaadin/grid-pro": "$@vaadin/grid-pro",
+    "@vaadin/map": "$@vaadin/map",
+    "@vaadin/rich-text-editor": "$@vaadin/rich-text-editor"
   },
   "vaadin": {
     "dependencies": {
@@ -203,8 +213,10 @@
       "@vaadin/app-layout": "24.1.6",
       "@vaadin/avatar": "24.1.6",
       "@vaadin/avatar-group": "24.1.6",
+      "@vaadin/board": "24.1.6",
       "@vaadin/bundles": "24.1.6",
       "@vaadin/button": "24.1.6",
+      "@vaadin/charts": "24.1.6",
       "@vaadin/checkbox": "24.1.6",
       "@vaadin/checkbox-group": "24.1.6",
       "@vaadin/combo-box": "24.1.6",
@@ -212,6 +224,8 @@
       "@vaadin/component-base": "24.1.6",
       "@vaadin/confirm-dialog": "24.1.6",
       "@vaadin/context-menu": "24.1.6",
+      "@vaadin/cookie-consent": "24.1.6",
+      "@vaadin/crud": "24.1.6",
       "@vaadin/custom-field": "24.1.6",
       "@vaadin/date-picker": "24.1.6",
       "@vaadin/date-time-picker": "24.1.6",
@@ -222,6 +236,7 @@
       "@vaadin/field-highlighter": "24.1.6",
       "@vaadin/form-layout": "24.1.6",
       "@vaadin/grid": "24.1.6",
+      "@vaadin/grid-pro": "24.1.6",
       "@vaadin/horizontal-layout": "24.1.6",
       "@vaadin/icon": "24.1.6",
       "@vaadin/icons": "24.1.6",
@@ -231,6 +246,7 @@
       "@vaadin/list-box": "24.1.6",
       "@vaadin/lit-renderer": "24.1.6",
       "@vaadin/login": "24.1.6",
+      "@vaadin/map": "24.1.6",
       "@vaadin/menu-bar": "24.1.6",
       "@vaadin/message-input": "24.1.6",
       "@vaadin/message-list": "24.1.6",
@@ -242,6 +258,7 @@
       "@vaadin/polymer-legacy-adapter": "24.1.6",
       "@vaadin/progress-bar": "24.1.6",
       "@vaadin/radio-group": "24.1.6",
+      "@vaadin/rich-text-editor": "24.1.6",
       "@vaadin/router": "1.7.5",
       "@vaadin/scroller": "24.1.6",
       "@vaadin/select": "24.1.6",
@@ -262,9 +279,7 @@
       "@vaadin/vertical-layout": "24.1.6",
       "@vaadin/virtual-list": "24.1.6",
       "construct-style-sheets-polyfill": "3.1.0",
-      "date-fns": "2.29.3",
-      "lit": "2.7.6",
-      "mobile-drag-drop": "2.3.0-rc.2"
+      "lit": "2.7.6"
     },
     "devDependencies": {
       "@rollup/plugin-replace": "5.0.2",
@@ -284,6 +299,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "edea3a0d7844e1b0710cc5ec83af0e57f3051d4a85d9e303a165283bb4a41435"
+    "hash": "f86c23fc3c3f7a1298c9d261c540d50c176827ddf795384f8a83744d211a7906"
   }
 }
