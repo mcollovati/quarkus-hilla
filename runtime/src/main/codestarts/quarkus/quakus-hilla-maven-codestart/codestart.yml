@@ -1,0 +1,20 @@
+name: quarkus-hilla-maven-codestart
+ref: quarkus-hilla-maven-starter
+type: code
+tags:
+  - extension-codestart
+  - maven-only
+
+metadata:
+  title: Quarkus-Hilla starter
+  description: Start to code with the Quarkus-Hilla extension.
+  related-guide-section: https://github.com/mcollovati/quarkus-hilla/wiki/QuickStart
+language:
+  base:
+    shared-data:
+      boms:
+        - groupId: dev.hilla
+          artifactId: hilla-bom
+          version: "\${hilla.version}"
+    data:
+      hillaVersion: ${hilla.version}
