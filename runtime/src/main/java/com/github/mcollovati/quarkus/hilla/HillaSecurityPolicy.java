@@ -26,7 +26,6 @@ import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.vertx.http.runtime.FormAuthConfig;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.PathMatcher;
@@ -38,6 +37,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,13 +75,17 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
     }
 
-    void withFormLogin(FormAuthConfig formLogin) {
+    void withFormLogin(Config config) {
         Set<String> paths = new HashSet<>();
         UnaryOperator<String> removeQueryString = path -> path.replaceFirst("\\?.*", "");
 
-        formLogin.loginPage.map(removeQueryString).ifPresent(paths::add);
-        formLogin.errorPage.map(removeQueryString).ifPresent(paths::add);
-        paths.add(removeQueryString.apply(formLogin.postLocation));
+        config.getOptionalValue("quarkus.http.auth.form.login-page", String.class)
+                .map(removeQueryString)
+                .ifPresent(paths::add);
+        config.getOptionalValue("quarkus.http.auth.form.error-page", String.class)
+                .map(removeQueryString)
+                .ifPresent(paths::add);
+        paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
         paths.forEach(this::addPathMatcher);
     }
 

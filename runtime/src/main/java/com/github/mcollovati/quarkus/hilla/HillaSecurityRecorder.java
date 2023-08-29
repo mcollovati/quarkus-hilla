@@ -18,35 +18,28 @@ package com.github.mcollovati.quarkus.hilla;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
-import io.quarkus.vertx.http.runtime.FormAuthConfig;
-import io.quarkus.vertx.http.runtime.HttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import java.util.function.Supplier;
+import org.eclipse.microprofile.config.Config;
+import org.eclipse.microprofile.config.ConfigProvider;
 
 @Recorder
 public class HillaSecurityRecorder {
-    final HttpBuildTimeConfig buildTimeConfig;
-
-    public HillaSecurityRecorder(HttpBuildTimeConfig buildTimeConfig) {
-        this.buildTimeConfig = buildTimeConfig;
-    }
 
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
-        FormAuthConfig formConfig = buildTimeConfig.auth.form;
+        String cookieName = ConfigProvider.getConfig().getValue("quarkus.http.auth.form.cookie-name", String.class);
         return () -> {
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
-            return new HillaFormAuthenticationMechanism(delegate, formConfig.cookieName, "/logout");
+            return new HillaFormAuthenticationMechanism(delegate, cookieName, "/logout");
         };
     }
 
     public void configureHttpSecurityPolicy(BeanContainer container) {
-        FormAuthConfig formConfig = buildTimeConfig.auth.form;
-        if (formConfig.enabled) {
-            HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
-            policy.withFormLogin(formConfig);
-            QuarkusHillaExtension.markSecurityPolicyUsed();
-        }
+        Config config = ConfigProvider.getConfig();
+        HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
+        policy.withFormLogin(config);
+        QuarkusHillaExtension.markSecurityPolicyUsed();
     }
 
     public void configureFlowViewAccessChecker(BeanContainer container, String loginPath) {
