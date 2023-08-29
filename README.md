@@ -30,6 +30,18 @@ The current Hilla support has some known limitations:
   is not supported
 * Native image compilation does not work
 
+## Usage statistics
+
+As discussed in this Hilla [ticket](https://github.com/vaadin/hilla/issues/211),
+the extension report itself to the Vaadin usage statistics mechanism in order to
+get a better understanding of how widely the extension is used compared to Hilla
+usage in general.
+The hope is that, based on this data, Vaadin may consider in the future to provide
+an official extension.
+Statistic are collected only in development mode and no sensitive data is
+gathered.
+For instructions on how to opt-out, see the [client-side collector repository](https://github.com/vaadin/vaadin-usage-statistics#opting-out).
+
 ## Getting started
 
 Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart-1.0).
