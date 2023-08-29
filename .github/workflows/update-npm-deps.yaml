@@ -66,7 +66,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -ntp clean package -Pdefault-modules,it-tests,production -DskipTests
+          mvn -V -e -ntp install -Pdefault-modules,it-tests,production -DskipTests
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v4
         id: commit-changes
