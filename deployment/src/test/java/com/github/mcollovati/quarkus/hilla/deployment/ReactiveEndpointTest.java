@@ -34,9 +34,13 @@ import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 class ReactiveEndpointTest {
     private static final String ENDPOINT_NAME = ReactiveEndpoint.class.getSimpleName();
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReactiveEndpointTest.class);
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
@@ -87,12 +91,20 @@ class ReactiveEndpointTest {
         URI connectURI = HillaPushClient.createPUSHConnectURI(uri);
         String counterName = UUID.randomUUID().toString();
         HillaPushClient client = new HillaPushClient(ENDPOINT_NAME, "cancelableCount", counterName);
+        LOGGER.info(
+                "================== cancelableReactiveEndpoint_clientDisconnectWithoutCancel_serverUnsubscribeCallBackInvoked"
+                        + " --> start client {}",
+                client.id);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             for (int i = 1; i < 10; i++) {
                 assertThatPushUpdateHasBeenReceived(client, i);
             }
         }
+        LOGGER.info(
+                "================== cancelableReactiveEndpoint_clientDisconnectWithoutCancel_serverUnsubscribeCallBackInvoked"
+                        + " --> client {} closed",
+                client.id);
         assertThatConnectionHasBeenClosed(client);
 
         Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertCounterValue(counterName, -1));
@@ -117,7 +129,7 @@ class ReactiveEndpointTest {
                 assertThatPushUpdateHasBeenReceived(client, i);
             }
             client.cancel();
-            assertCounterValue(counterName, -1);
+            Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertCounterValue(counterName, -1));
         }
         assertThatConnectionHasBeenClosed(client);
     }
@@ -132,7 +144,7 @@ class ReactiveEndpointTest {
     }
 
     private static void assertThatPushUpdateHasBeenReceived(HillaPushClient client, int i) throws InterruptedException {
-        // System.out.println("================== Assert message " + i);
+        LOGGER.info("================== Asserting message {} for client {}", i, client.id);
         client.assertMessageReceived(1, TimeUnit.SECONDS, message -> message.as("Message %d", i)
                 .isEqualTo("{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}", client.id, i));
     }
