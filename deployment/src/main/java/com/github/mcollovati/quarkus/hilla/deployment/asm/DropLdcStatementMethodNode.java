@@ -15,8 +15,9 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
-import io.quarkus.gizmo.Gizmo;
 import java.util.Set;
+
+import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LdcInsnNode;

@@ -15,8 +15,9 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import dev.hilla.push.PushEndpoint;
 import jakarta.enterprise.inject.spi.CDI;
+
+import dev.hilla.push.PushEndpoint;
 import org.atmosphere.cpr.AtmosphereConfig;
 import org.atmosphere.inject.InjectableObjectFactory;
 

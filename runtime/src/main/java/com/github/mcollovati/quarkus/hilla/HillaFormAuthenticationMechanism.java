@@ -15,6 +15,9 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import java.util.Optional;
+import java.util.Set;
+
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AuthenticationRequest;
@@ -24,8 +27,6 @@ import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
 import io.vertx.ext.web.RoutingContext;
-import java.util.Optional;
-import java.util.Set;
 
 public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
     private String logoutPath;

@@ -15,10 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import com.vaadin.flow.internal.UsageStatistics;
 import java.io.InputStream;
 import java.util.Optional;
 import java.util.Properties;
+
+import com.vaadin.flow.internal.UsageStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

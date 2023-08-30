@@ -15,11 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Endpoint;
 import jakarta.websocket.EndpointConfig;
@@ -38,10 +33,16 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.AbstractStringAssert;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class HillaPushClient extends Endpoint implements MessageHandler.Whole<String> {
 

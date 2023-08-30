@@ -15,6 +15,13 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.UnaryOperator;
+
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.router.Router;
 import com.vaadin.flow.router.internal.NavigationRouteTarget;
@@ -31,12 +38,6 @@ import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.PathMatcher;
 import io.smallrye.mutiny.Uni;
 import io.vertx.ext.web.RoutingContext;
-import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.UnaryOperator;
 import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
