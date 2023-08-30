@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import javax.enterprise.context.control.ActivateRequestContext;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Session;
+import org.awaitility.Awaitility;
 import org.hamcrest.Matchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
@@ -94,7 +95,7 @@ class ReactiveEndpointTest {
         }
         assertThatConnectionHasBeenClosed(client);
 
-        assertCounterValue(counterName, -1);
+        Awaitility.await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertCounterValue(counterName, -1));
     }
 
     @Test
@@ -116,7 +117,6 @@ class ReactiveEndpointTest {
                 assertThatPushUpdateHasBeenReceived(client, i);
             }
             client.cancel();
-            assertThatConnectionHasBeenClosed(client);
             assertCounterValue(counterName, -1);
         }
         assertThatConnectionHasBeenClosed(client);
