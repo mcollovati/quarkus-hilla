@@ -116,6 +116,7 @@ class ReactiveEndpointTest {
                 assertThatPushUpdateHasBeenReceived(client, i);
             }
             client.cancel();
+            assertThatConnectionHasBeenClosed(client);
             assertCounterValue(counterName, -1);
         }
         assertThatConnectionHasBeenClosed(client);
