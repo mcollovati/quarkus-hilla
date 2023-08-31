@@ -40,7 +40,7 @@ import java.util.Set;
  * file containing the implementation of this interface, Quarkus will instead
  * provide all available annotated endpoints found at build time.
  *
- * NOTE: this code has been copy/pasted from vaadin-quarkus extension, credit goes to Vaadin Ltd.
+ * NOTE: this code has been copy/pasted from vaadin-quarkus extension, credits goes to Vaadin Ltd.
  * https://github.com/vaadin/quarkus/blob/master/runtime/src/main/java/com/vaadin/quarkus/EnableWebsockets.java
  */
 public class EnableWebsockets implements ServerApplicationConfig {
