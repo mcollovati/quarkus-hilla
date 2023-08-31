@@ -15,11 +15,12 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import java.util.function.Supplier;
+
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
-import java.util.function.Supplier;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 

@@ -15,7 +15,6 @@
  */
 package com.github.mcollovati.quarkus.testing;
 
-import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,6 +24,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import io.quarkus.test.common.QuarkusTestResourceLifecycleManager;
 import org.junit.jupiter.api.Assertions;
 
 public class HillaCleaner implements QuarkusTestResourceLifecycleManager {

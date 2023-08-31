@@ -15,27 +15,30 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
+import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
-import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.User;
-import com.github.mcollovati.quarkus.hilla.deployment.endpoints.SecureEndpoint;
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.specification.RequestSpecification;
-import java.util.function.UnaryOperator;
-import java.util.stream.Stream;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.User;
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.SecureEndpoint;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
 
 class EndpointSecurityTest {
 

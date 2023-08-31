@@ -15,16 +15,17 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import com.vaadin.flow.server.ServiceInitEvent;
-import com.vaadin.flow.server.VaadinRequest;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.flow.server.auth.ViewAccessChecker;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.security.Principal;
 import java.util.function.Function;
+
+import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinRequest;
+import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import com.vaadin.flow.server.auth.ViewAccessChecker;
+import io.quarkus.security.identity.SecurityIdentity;
 
 @Singleton
 public class QuarkusViewAccessChecker extends ViewAccessChecker {

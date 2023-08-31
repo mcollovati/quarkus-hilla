@@ -15,11 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import com.github.mcollovati.quarkus.hilla.deployment.endpoints.ReactiveEndpoint;
-import io.quarkus.test.QuarkusUnitTest;
-import io.quarkus.test.common.http.TestHTTPResource;
-import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.websocket.ContainerProvider;
 import jakarta.websocket.Session;
@@ -27,12 +22,19 @@ import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+
+import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.common.http.TestHTTPResource;
+import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.hamcrest.Matchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.ReactiveEndpoint;
 
 class ReactiveEndpointTest {
     private static final String ENDPOINT_NAME = ReactiveEndpoint.class.getSimpleName();

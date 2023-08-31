@@ -15,6 +15,13 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.servlet.ServletContext;
+
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import dev.hilla.EndpointController;
 import dev.hilla.EndpointInvoker;
@@ -28,12 +35,6 @@ import dev.hilla.parser.jackson.JacksonObjectMapperFactory;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Produces;
-import jakarta.enterprise.inject.spi.BeanManager;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-import jakarta.servlet.ServletContext;
 import org.springframework.context.ApplicationContext;
 
 @Unremovable

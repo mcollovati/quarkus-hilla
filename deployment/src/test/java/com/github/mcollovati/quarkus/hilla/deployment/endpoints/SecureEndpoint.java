@@ -15,10 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
-import dev.hilla.Endpoint;
 import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
+
+import dev.hilla.Endpoint;
 
 @Endpoint
 public class SecureEndpoint {

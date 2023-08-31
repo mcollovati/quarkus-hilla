@@ -15,12 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.hilla.Endpoint;
-import dev.hilla.EndpointController;
-import dev.hilla.EndpointInvoker;
-import dev.hilla.EndpointRegistry;
-import dev.hilla.auth.CsrfChecker;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.POST;
@@ -30,6 +24,13 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import dev.hilla.Endpoint;
+import dev.hilla.EndpointController;
+import dev.hilla.EndpointInvoker;
+import dev.hilla.EndpointRegistry;
+import dev.hilla.auth.CsrfChecker;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 

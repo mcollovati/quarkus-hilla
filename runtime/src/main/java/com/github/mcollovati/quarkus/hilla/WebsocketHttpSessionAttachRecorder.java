@@ -15,6 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import jakarta.servlet.http.HttpSession;
+import java.security.Principal;
+import java.util.Optional;
+import java.util.concurrent.Executor;
+
 import com.vaadin.flow.server.HandlerHelper;
 import com.vaadin.flow.shared.ApplicationConstants;
 import io.quarkus.runtime.RuntimeValue;
@@ -42,10 +47,6 @@ import io.undertow.websockets.vertx.VertxWebSocketHandler;
 import io.undertow.websockets.vertx.VertxWebSocketHttpExchange;
 import io.vertx.core.Handler;
 import io.vertx.ext.web.RoutingContext;
-import jakarta.servlet.http.HttpSession;
-import java.security.Principal;
-import java.util.Optional;
-import java.util.concurrent.Executor;
 
 /**
  * NOTE: this code has been copy/pasted from vaadin-quarkus extension, credit goes to Vaadin Ltd.

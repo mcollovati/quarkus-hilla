@@ -15,18 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ANONYMOUS;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
-import static java.nio.charset.StandardCharsets.UTF_8;
-
-import com.github.mcollovati.quarkus.hilla.deployment.endpoints.ReactiveSecureEndpoint;
-import io.quarkus.security.test.utils.TestIdentityController;
-import io.quarkus.security.test.utils.TestIdentityProvider;
-import io.quarkus.test.QuarkusUnitTest;
-import io.quarkus.test.common.http.TestHTTPResource;
-import io.vertx.core.http.HttpHeaders;
 import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.websocket.ClientEndpointConfig;
 import jakarta.websocket.ContainerProvider;
@@ -38,6 +26,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import io.quarkus.security.test.utils.TestIdentityController;
+import io.quarkus.security.test.utils.TestIdentityProvider;
+import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.common.http.TestHTTPResource;
+import io.vertx.core.http.HttpHeaders;
 import org.assertj.core.api.AbstractStringAssert;
 import org.assertj.core.api.Assertions;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -46,6 +40,15 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.ReactiveSecureEndpoint;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ANONYMOUS;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
 
 class ReactiveSecureEndpointTest {
     private static final String ENDPOINT_NAME = ReactiveSecureEndpoint.class.getSimpleName();

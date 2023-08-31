@@ -15,27 +15,30 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.github.mcollovati.quarkus.hilla.SpringReplacements;
-import io.quarkus.security.test.utils.AuthData;
-import io.quarkus.security.test.utils.IdentityMock;
-import io.quarkus.security.test.utils.TestIdentityController;
-import io.quarkus.security.test.utils.TestIdentityProvider;
-import io.quarkus.test.QuarkusUnitTest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.security.Principal;
 import java.util.Set;
 import java.util.function.Function;
+
+import io.quarkus.security.test.utils.AuthData;
+import io.quarkus.security.test.utils.IdentityMock;
+import io.quarkus.security.test.utils.TestIdentityController;
+import io.quarkus.security.test.utils.TestIdentityProvider;
+import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import com.github.mcollovati.quarkus.hilla.SpringReplacements;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
 
 class SpringReplacementsTest {
 

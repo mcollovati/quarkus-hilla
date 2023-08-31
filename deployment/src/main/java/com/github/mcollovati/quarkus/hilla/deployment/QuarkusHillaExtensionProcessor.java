@@ -15,18 +15,14 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
-import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
-import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
-import com.github.mcollovati.quarkus.hilla.HillaSecurityRecorder;
-import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
-import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
-import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
-import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.EndpointTransferMapperClassVisitor;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.TransferTypesPluginClassVisitor;
+import jakarta.annotation.security.DenyAll;
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Singleton;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Predicate;
+
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
@@ -62,13 +58,6 @@ import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildIte
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.deployment.RequireBodyHandlerBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
-import jakarta.annotation.security.DenyAll;
-import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
-import jakarta.inject.Singleton;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.cpr.AtmosphereServlet;
@@ -80,6 +69,19 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
+
+import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
+import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
+import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
+import com.github.mcollovati.quarkus.hilla.HillaSecurityRecorder;
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
+import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.EndpointTransferMapperClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.TransferTypesPluginClassVisitor;
 
 class QuarkusHillaExtensionProcessor {
 

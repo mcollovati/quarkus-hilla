@@ -15,13 +15,14 @@
  */
 package com.example.application.flow;
 
+import jakarta.annotation.security.RolesAllowed;
+
 import com.example.application.ClockService;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.Route;
-import jakarta.annotation.security.RolesAllowed;
 import reactor.core.Disposable;
 
 @Route("flow-view")

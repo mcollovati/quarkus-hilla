@@ -15,10 +15,11 @@
  */
 package com.example.application.entities;
 
-import dev.hilla.Nonnull;
-import io.quarkus.security.identity.SecurityIdentity;
 import java.util.HashSet;
 import java.util.Set;
+
+import dev.hilla.Nonnull;
+import io.quarkus.security.identity.SecurityIdentity;
 
 public class UserInfo {
 

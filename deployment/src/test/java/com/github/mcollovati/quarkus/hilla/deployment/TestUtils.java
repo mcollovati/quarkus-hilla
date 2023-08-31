@@ -15,12 +15,13 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
+import java.util.LinkedHashMap;
+import java.util.function.UnaryOperator;
+
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
-import java.util.LinkedHashMap;
-import java.util.function.UnaryOperator;
 
 final class TestUtils {
 

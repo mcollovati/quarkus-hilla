@@ -15,11 +15,12 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
-import java.util.Objects;
 
 @Endpoint
 @AnonymousAllowed

@@ -15,12 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
-
-import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.Parameters;
-import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
 import dev.hilla.exception.EndpointValidationException;
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.RestAssured;
@@ -30,6 +24,14 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+
+import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.Parameters;
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
+
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
 
 class EndpointControllerTest {
 

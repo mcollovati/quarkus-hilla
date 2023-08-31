@@ -15,14 +15,15 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import static com.vaadin.flow.server.HandlerHelper.getPathIfInsideServlet;
+import java.io.Serializable;
+import java.util.Optional;
 
 import com.vaadin.flow.server.HandlerHelper;
 import com.vaadin.flow.server.communication.StreamRequestHandler;
 import com.vaadin.flow.shared.ApplicationConstants;
 import io.vertx.ext.web.RoutingContext;
-import java.io.Serializable;
-import java.util.Optional;
+
+import static com.vaadin.flow.server.HandlerHelper.getPathIfInsideServlet;
 
 public class QuarkusHandlerHelper implements Serializable {
 
