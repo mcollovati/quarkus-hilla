@@ -35,9 +35,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
-import static org.assertj.core.api.Assertions.assertThat;
 
 class SpringReplacementsTest {
 

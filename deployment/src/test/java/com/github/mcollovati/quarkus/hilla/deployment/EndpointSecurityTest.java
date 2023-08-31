@@ -32,12 +32,13 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.User;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.SecureEndpoint;
 
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
+
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.equalTo;
 
 class EndpointSecurityTest {
 

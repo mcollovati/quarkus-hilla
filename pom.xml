@@ -228,7 +228,7 @@
                             <style>PALANTIR</style>
                         </palantirJavaFormat>
                         <importOrder>
-                            <order>jakarta|java|javax,,com.github.mcollovati,\#</order>
+                            <order>jakarta|java|javax,,com.github.mcollovati,\#jakarta|\#java|\#javax,\#,\#com.github.mcollovati</order>
                         </importOrder>
                         <removeUnusedImports/>
                         <formatAnnotations/>

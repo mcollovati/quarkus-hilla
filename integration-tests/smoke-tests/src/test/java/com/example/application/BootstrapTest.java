@@ -15,18 +15,20 @@
  */
 package com.example.application;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
-import com.github.mcollovati.quarkus.testing.HillaCleaner;
-import com.github.mcollovati.quarkus.testing.HillaFrontendGenerated;
-import io.quarkus.test.common.QuarkusTestResource;
-import io.quarkus.test.junit.QuarkusTest;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+
+import io.quarkus.test.common.QuarkusTestResource;
+import io.quarkus.test.junit.QuarkusTest;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+
+import com.github.mcollovati.quarkus.testing.HillaCleaner;
+import com.github.mcollovati.quarkus.testing.HillaFrontendGenerated;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
 @QuarkusTestResource(HillaCleaner.class)

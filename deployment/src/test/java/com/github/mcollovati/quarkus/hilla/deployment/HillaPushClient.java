@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class HillaPushClient extends Endpoint implements MessageHandler.Whole<String> {

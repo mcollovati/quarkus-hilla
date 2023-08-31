@@ -28,9 +28,10 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import com.github.mcollovati.quarkus.hilla.deployment.TestUtils.Parameters;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
 
-import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+
+import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
 
 class EndpointControllerTest {
 

@@ -43,11 +43,12 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.ReactiveSecureEndpoint;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ADMIN;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.ANONYMOUS;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.GUEST;
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 class ReactiveSecureEndpointTest {
     private static final String ENDPOINT_NAME = ReactiveSecureEndpoint.class.getSimpleName();

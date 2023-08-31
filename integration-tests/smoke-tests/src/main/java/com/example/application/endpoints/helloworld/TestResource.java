@@ -17,6 +17,7 @@ package com.example.application.endpoints.helloworld;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+
 import org.jboss.resteasy.reactive.RestResponse;
 
 @Path("test")

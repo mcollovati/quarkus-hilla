@@ -15,6 +15,9 @@
  */
 package com.example.application.endpoints.helloworld;
 
+import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
+
 import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
 import com.vaadin.flow.server.VaadinRequest;
@@ -22,8 +25,6 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointSubscription;
 import dev.hilla.Nonnull;
-import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
 import reactor.core.publisher.Flux;
 
 @Endpoint
