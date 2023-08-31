@@ -20,5 +20,8 @@ import jakarta.enterprise.util.AnnotationLiteral;
 
 /**
  * Literal for the {@link jakarta.enterprise.inject.Any} annotation.
+ *
+ * NOTE: this code has been copy/pasted from vaadin-quarkus extension, credits goes to Vaadin Ltd.
+ * https://github.com/vaadin/quarkus/blob/master/runtime/src/main/java/com/vaadin/quarkus/AnyLiteral.java
  */
 public class AnyLiteral extends AnnotationLiteral<Any> implements Any {}

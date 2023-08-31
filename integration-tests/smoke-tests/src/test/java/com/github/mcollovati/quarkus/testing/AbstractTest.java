@@ -74,8 +74,6 @@ public abstract class AbstractTest {
         Selenide.open(url);
         waitForDevServer();
         selector.get().shouldBe(Condition.visible, Duration.ofSeconds(10));
-        // There should not be typescript errors
-        // $("vite-plugin-checker-error-overlay").shouldNot(Condition.exist);
         $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools")).shouldNot(Condition.exist);
         $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNot(Condition.exist);
     }
