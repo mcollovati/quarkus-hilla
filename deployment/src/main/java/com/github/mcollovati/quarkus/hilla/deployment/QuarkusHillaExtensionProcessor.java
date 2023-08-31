@@ -109,7 +109,7 @@ class QuarkusHillaExtensionProcessor {
             producer.produce(new RequireBodyHandlerBuildItem());
         }
     }
-    
+
     // EndpointsValidator checks for the presence of Spring, so it should be
     // ignored
     @BuildStep
