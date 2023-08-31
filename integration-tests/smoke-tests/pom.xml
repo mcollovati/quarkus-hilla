@@ -82,6 +82,7 @@
                         <goals>
                             <goal>prepare-frontend</goal>
                         </goals>
+                        <phase>compile</phase>
                     </execution>
                 </executions>
             </plugin>
@@ -134,7 +135,7 @@
                                 </native.image.path>
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                                 <maven.home>${maven.home}</maven.home>
-                                <selenide.reportsFolder>${project.build.directory}/selenide/error-screenshots
+                                <selenide.reportsFolder>${project.build.directory}/selenide/selenide-reports
                                 </selenide.reportsFolder>
                                 <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                                 </selenide.downloadsFolder>

@@ -15,7 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import com.vaadin.quarkus.AnyLiteral;
 import jakarta.enterprise.context.spi.CreationalContext;
 import jakarta.enterprise.inject.AmbiguousResolutionException;
 import jakarta.enterprise.inject.spi.Bean;
