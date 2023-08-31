@@ -9,7 +9,7 @@ metadata:
     - "reactive"
   status: "experimental"
   codestart:
-    name: "quarkus-hilla-maven-starter"
+    name: "quarkus-hilla-maven-codestart"
     languages:
       - "java"
     artifact: "com.github.mcollovati:quarkus-hilla:codestarts:jar:${project.version}"
