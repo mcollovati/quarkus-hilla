@@ -44,10 +44,12 @@ class QuarkusHillaStandAloneProcessor {
         }
     }
 
-    // Configuring removed resources causes the index to be rebuilt, but the
-    // hilla-jandex artifact does not contain any classes.
-    // Adding a marker forces indexes to be built against Vaadin artifacts
-    // when Vaadin jandex index is supposed not to be present.
+    // The extension needs to exclude some resources from Hilla dependencies (exclusions configured in the POM file),
+    // and this causes the index to be rebuilt at runtime for those artifacts.
+    // However, the hilla-jandex artifact does not contain classes to scan, so we define an additional marker
+    // to instruct Quarkus to index required Vaadin artifacts.
+    // This is not required in hybrid mode, since the vaadin-quarkus-extension will provide a full jandex index
+    // for Vaadin artifacts.
     @BuildStep
     void addMarkersForHillaJars(
             QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
