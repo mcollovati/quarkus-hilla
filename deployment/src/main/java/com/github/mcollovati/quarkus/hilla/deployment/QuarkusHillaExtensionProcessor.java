@@ -100,7 +100,7 @@ class QuarkusHillaExtensionProcessor {
 
     // In hybrid environment sometimes the requests hangs while reading body, causing the UI to freeze until read
     // timeout is reached.
-    // Requiring the installation of vert.x body handler seems to fix the issue
+    // Requiring the installation of vert.x body handler seems to fix the issue.
     // See https://github.com/mcollovati/quarkus-hilla/issues/182
     @BuildStep
     void requireRequestBodyHandler(
@@ -109,6 +109,7 @@ class QuarkusHillaExtensionProcessor {
             producer.produce(new RequireBodyHandlerBuildItem());
         }
     }
+    
     // EndpointsValidator checks for the presence of Spring, so it should be
     // ignored
     @BuildStep

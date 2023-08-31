@@ -22,11 +22,11 @@ import java.util.Collections;
 import java.util.Set;
 
 /**
- * Only purpose of this class is to automatically enable quarkus WebSocket
+ * Only purpose of this class is to automatically enable Quarkus WebSocket
  * deployment, in order to make Atmosphere JSR365Endpoint work.
  *
  * Quarkus enables WebSocket deployment only if it finds annotated endpoints
- * (@{@link jakarta.websocket.server.ServerEndpoint}) or implementors of
+ * {@link jakarta.websocket.server.ServerEndpoint} or implementors of the
  * {@link ServerApplicationConfig} interface.
  *
  * Unfortunately, if at least one implementation of
@@ -40,7 +40,7 @@ import java.util.Set;
  * file containing the implementation of this interface, Quarkus will instead
  * provide all available annotated endpoints found at build time.
  *
- * NOTE: this code has been copy/pasted from vaadin-quarkus extension, credits goes to Vaadin Ltd.
+ * NOTE: this code has been copy/pasted from vaadin-quarkus extension, credit goes to Vaadin Ltd.
  * https://github.com/vaadin/quarkus/blob/master/runtime/src/main/java/com/vaadin/quarkus/EnableWebsockets.java
  */
 public class EnableWebsockets implements ServerApplicationConfig {

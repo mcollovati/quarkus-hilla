@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>quarkus-hilla-hybrid-smoke-tests</artifactId>
-    <name>Quarkus - Hilla - Hybrid Setup Smoke Tests</name>
+    <name>Quarkus - Hilla - Hybrid Smoke Tests</name>
     <properties>
         <skipITs>true</skipITs>
         <maven.deploy.skip>true</maven.deploy.skip>
