@@ -15,8 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import com.github.mcollovati.quarkus.hilla.EnableWebsockets;
-import com.github.mcollovati.quarkus.hilla.WebsocketHttpSessionAttachRecorder;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -27,6 +25,9 @@ import io.quarkus.undertow.deployment.ServletDeploymentManagerBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
 import io.quarkus.websockets.client.deployment.ServerWebSocketContainerBuildItem;
 import io.quarkus.websockets.client.deployment.WebSocketDeploymentInfoBuildItem;
+
+import com.github.mcollovati.quarkus.hilla.EnableWebsockets;
+import com.github.mcollovati.quarkus.hilla.WebsocketHttpSessionAttachRecorder;
 
 /**
  * A Quarkus processor that configure Vaadin minimal requirements when the Vaadin Quarkus extension is not available.
