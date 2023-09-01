@@ -1,0 +1,43 @@
+name: Flaky test debug
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+env:
+  JAVA_VERSION: 17
+jobs:
+  flaky-build-and-test:
+    name: Build and test
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+      - uses: browser-actions/setup-chrome@latest
+        id: setup-chrome
+        with:
+          chrome-version: stable
+      - name: Build
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp -DskipTests install
+      - name: Test
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp verify -DtrimStackTrace=false -Dquarkus.log.category.\"com.github.mcollovati\".min-level=TRACE -Dquarkus.log.category.\"com.github.mcollovati\".level=TRACE
+      - name: Package test output files
+        if: ${{ failure() || success() }}
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name error-screenshots | tar -czf tests-report-main.tgz -T -
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() || success() }}
+        with:
+          name: tests-output
+          path: tests-report-*.tgz
