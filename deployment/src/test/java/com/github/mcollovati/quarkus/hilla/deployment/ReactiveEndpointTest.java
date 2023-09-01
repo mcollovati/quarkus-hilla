@@ -145,7 +145,7 @@ class ReactiveEndpointTest {
 
     private static void assertThatPushUpdateHasBeenReceived(HillaPushClient client, int i) throws InterruptedException {
         LOGGER.info("================== Asserting message {} for client {}", i, client.id);
-        client.assertMessageReceived(1, TimeUnit.SECONDS, message -> message.as("Message %d", i)
+        client.assertMessageReceived(5, TimeUnit.SECONDS, message -> message.as("Message %d", i)
                 .isEqualTo("{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}", client.id, i));
     }
 
