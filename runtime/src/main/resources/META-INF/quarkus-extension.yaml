@@ -7,7 +7,7 @@ metadata:
   categories:
     - "web"
     - "reactive"
-  status: "experimental"
+  status: "stable"
   codestart:
     name: "quarkus-hilla-maven-codestart"
     languages:
