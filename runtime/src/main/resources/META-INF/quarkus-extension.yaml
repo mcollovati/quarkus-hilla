@@ -7,5 +7,5 @@ metadata:
   categories:
     - "web"
     - "reactive"
-  status: "experimental"
+  status: "stable"
 
