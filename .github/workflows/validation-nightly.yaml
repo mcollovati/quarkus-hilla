@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        hilla: ["2.2-SNAPSHOT", "2.1-SNAPSHOT"]
+        hilla: ["2.3-SNAPSHOT", "2.2-SNAPSHOT", "2.1-SNAPSHOT"]
         java: [ 17, 20 ]
     runs-on: ubuntu-latest
     timeout-minutes: 30
