@@ -62,6 +62,7 @@
         <flatten-maven-plugin.version>1.5.0</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
         <spotless-maven-plugin.version>2.40.0</spotless-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -435,6 +436,71 @@
                 <module>integration-tests/smoke-tests</module>
                 <module>integration-tests/hybrid-smoke-tests</module>
             </modules>
+        </profile>
+        <profile>
+            <id>detect-vaadin-platform</id>
+            <dependencies>
+                <dependency>
+                    <groupId>dev.hilla</groupId>
+                    <artifactId>hilla</artifactId>
+                    <scope>provided</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <defaultGoal>initialize</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>set-version-properties</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>properties</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>${build-helper-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>vaaind-platform-version</id>
+                                <goals>
+                                    <goal>regex-property</goal>
+                                </goals>
+                                <phase>initialize</phase>
+                                <configuration>
+                                    <name>vaadin.platform</name>
+                                    <regex>^.*flow-server-(\d+\.\d+).*</regex>
+                                    <replacement>$1</replacement>
+                                    <value>${com.vaadin:flow-server:jar}</value>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-help-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-cli</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>evaluate</goal>
+                                </goals>
+                                <configuration>
+                                    <expression>vaadin.platform</expression>
+                                    <forceStdout>true</forceStdout>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

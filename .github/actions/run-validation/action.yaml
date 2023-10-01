@@ -39,8 +39,7 @@ runs:
       run: |
         set -x -e -o pipefail
         mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
-        vaadin_version=$(mvn -f runtime/pom.xml dependency:properties help:evaluate -Dexpression=com.vaadin:flow-server:jar -q -DforceStdout \
-          | sed -E 's/^.*flow-server-([0-9]+\.[0-9]+).*/\1/g')-SNAPSHOT
+        vaadin_version=$(mvn -ntp -N -Pdetect-vaadin-platform -q)-SNAPSHOT
         mvn versions:set-property -Dproperty=vaadin.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false -Pit-tests
         echo "Running Validation with Hilla ${{ inputs.hilla_version }} and Vaadin $vaadin_version">> "$GITHUB_STEP_SUMMARY"
         mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
