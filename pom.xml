@@ -468,7 +468,7 @@
                         <version>${build-helper-maven-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>vaaind-platform-version</id>
+                                <id>vaadin-platform-version</id>
                                 <goals>
                                     <goal>regex-property</goal>
                                 </goals>
