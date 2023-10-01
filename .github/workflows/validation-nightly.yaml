@@ -38,3 +38,4 @@ jobs:
           ref: "1.0"
           java_version: ${{ matrix.java }}
           hilla_version: ${{ matrix.hilla }}
+          skip_vaadin_version_detection: true
