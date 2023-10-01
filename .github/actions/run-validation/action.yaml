@@ -16,6 +16,9 @@ inputs:
   hilla_version:
     description: 'Hilla version'
     required: true
+  skip_vaadin_version_detection:
+    description: 'Skips Vaadin platform version detection'
+    default: 'false'
 runs:
   using: composite
   steps:
@@ -38,7 +41,12 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
+        mvn -B -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
+        if [[ "${{ inputs.skip_vaadin_version_detection }}" == "false" ]]; then
+          vaadin_version=$(mvn -ntp -N -Pdetect-vaadin-platform -q)-SNAPSHOT
+          mvn -B -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false -Pit-tests
+          echo "Running Validation with Hilla ${{ inputs.hilla_version }} and Vaadin $vaadin_version">> "$GITHUB_STEP_SUMMARY"
+        fi
         mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
     - name: Test
       shell: bash
@@ -49,12 +57,12 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
     - name: End-to-end Tests (Production mode)
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
     - name: Checkout
       uses: actions/checkout@v3
       if: ${{ always() }}

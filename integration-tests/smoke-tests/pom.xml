@@ -114,7 +114,8 @@
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
-                        <selenide.reportsFolder>${project.build.directory}/selenide/selenide-reports</selenide.reportsFolder>
+                        <selenide.reportsFolder>${project.build.directory}/selenide/selenide-reports
+                        </selenide.reportsFolder>
                         <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                         </selenide.downloadsFolder>
                     </systemPropertyVariables>
@@ -196,6 +197,42 @@
                 <skipITs>false</skipITs>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
+        </profile>
+        <profile>
+            <!--
+                Profile used during snapshot validation that cleans npm stuff to prevent
+                issues with npm packages when using Hilla versions different from the one
+                used to build the lock file
+            -->
+            <id>snapshot-validation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-clean-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>clean-node-stuff</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>clean</goal>
+                                </goals>
+                                <configuration>
+                                    <filesets>
+                                        <fileset>
+                                            <directory>${project.basedir}</directory>
+                                            <includes>
+                                                <include>package-lock.json</include>
+                                                <include>node_modules/**</include>
+                                            </includes>
+                                        </fileset>
+                                    </filesets>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
