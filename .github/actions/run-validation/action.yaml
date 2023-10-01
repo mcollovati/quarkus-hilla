@@ -39,6 +39,10 @@ runs:
       run: |
         set -x -e -o pipefail
         mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
+        vaadin_version=$(mvn -f runtime/pom.xml dependency:properties help:evaluate -Dexpression=com.vaadin:flow-server:jar -q -DforceStdout \
+          | sed -E 's/^.*flow-server-([0-9]+\.[0-9]+).*/\1/g')-SNAPSHOT
+        mvn versions:set-property -Dproperty=vaadin.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false -Pit-tests
+        echo "Running Validation with Hilla ${{ inputs.hilla_version }} and Vaadin $vaadin_version">> "$GITHUB_STEP_SUMMARY"
         mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
     - name: Test
       shell: bash
@@ -49,12 +53,12 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
     - name: End-to-end Tests (Production mode)
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
     - name: Checkout
       uses: actions/checkout@v3
       if: ${{ always() }}
