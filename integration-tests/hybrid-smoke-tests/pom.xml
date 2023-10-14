@@ -18,7 +18,20 @@
 
         <awaitility.version>4.2.0</awaitility.version>
         <selenide.version>6.19.1</selenide.version>
+        <vaadin.version>24.1.12</vaadin.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
