@@ -66,6 +66,18 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+            <!--
+            Selenide provides an implementation of Selenium HttpClient.Factory based on Selenium's NettyClient.Factory,
+            that has been removed since Selenium 4.14.
+            Temporarily pin Selenium version to 4.13 until Selenide releases a version compatible with selenium 4.14.
+            -->
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-bom</artifactId>
+                <version>4.13.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-bom</artifactId>
