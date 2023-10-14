@@ -16,11 +16,11 @@
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.Endpoint;
+import dev.hilla.BrowserCallable;
 
-@Endpoint
+@BrowserCallable
 @AnonymousAllowed
-public class TestEndpoint {
+public class TestBrowserCallable {
 
     public String echo(String message) {
         return message;
