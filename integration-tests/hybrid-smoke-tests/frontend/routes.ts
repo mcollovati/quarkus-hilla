@@ -8,7 +8,7 @@ import {appStore} from "Frontend/stores/app-store";
 
 
 const {serverSideRoutes} = new Flow({
-    imports: () => import('Frontend/generated/flow/generated-flow-imports')
+    imports: () => import('../target/frontend/generated-flow-imports')
 });
 
 export type ViewRoute = Route & {
