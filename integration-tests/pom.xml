@@ -80,9 +80,6 @@
                             <goals>
                                 <goal>build</goal>
                                 <goal>generate-code</goal>
-                                <!--
-                                Fails with flatten POM and ${revision} property
-                                -->
                                 <goal>generate-code-tests</goal>
                             </goals>
                         </execution>
