@@ -36,14 +36,14 @@
     </developers>
 
     <properties>
-        <revision>2.0-SNAPSHOT</revision>
+        <revision>2.3-SNAPSHOT</revision>
 
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.5.0</quarkus.version>
-        <hilla.version>2.2.2</hilla.version>
+        <quarkus.version>3.4.3</quarkus.version>
+        <hilla.version>2.3-SNAPSHOT</hilla.version>
 
         <assertj.version>3.24.2</assertj.version>
 
@@ -66,16 +66,16 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-bom</artifactId>
-                <version>${quarkus.version}</version>
+                <groupId>dev.hilla</groupId>
+                <artifactId>hilla-bom</artifactId>
+                <version>${hilla.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>dev.hilla</groupId>
-                <artifactId>hilla-bom</artifactId>
-                <version>${hilla.version}</version>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
