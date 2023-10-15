@@ -46,8 +46,9 @@ runs:
         fi
         if [[ "${{ inputs.skip_vaadin_version_detection }}" == "false" ]]; then
           vaadin_version=$(mvn -ntp -N -Pdetect-vaadin-platform -q)-SNAPSHOT
+          hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
           mvn -B -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false -Pit-tests
-          echo "Running Validation with Hilla ${{ inputs.hilla_version }} and Vaadin $vaadin_version">> "$GITHUB_STEP_SUMMARY"
+          echo "Running Validation for Hilla $hilla_version and Vaadin $vaadin_version ">> "$GITHUB_STEP_SUMMARY"
         fi
         mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
     - name: Test
