@@ -72,6 +72,9 @@ jobs:
             exit 1
           fi
           echo "Releasing version '${{ inputs.version }}' from branch '${{ inputs.target-branch }}'." >> $GITHUB_STEP_SUMMARY
+          if [[ "${{ github.event.inputs.dry-run }}" == "true" ]]; then
+            echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." >> $GITHUB_STEP_SUMMARY
+          fi
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
