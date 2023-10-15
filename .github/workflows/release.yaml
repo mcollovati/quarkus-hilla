@@ -8,7 +8,9 @@ on:
         type: choice
         default: 'main'
         options:
-        - main
+        - "main"
+        - "2.2"
+        - "2.1"
         - "1.0"
       version:
         description: "Version to release (e.g. 1.1.0 or 1.2.0-alpha1)"
@@ -59,12 +61,17 @@ jobs:
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          if git rev-parse -q --verify "refs/tags/${{ inputs.version }}" > /dev/null; then
-            echo "🚫 Version ${{ inputs.version }} already exists. Please choose a different version." \
+          if [[ "${{ inputs.target-branch }}" != "main" && ! "${{ inputs.version }}" = "${{ inputs.target-branch }}."* ]]; then
+            echo "ERROR: Invalid version specified: '${{ inputs.version }}' does not match the release branch '${{ inputs.target-branch }}'." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
+          if git rev-parse -q --verify "refs/tags/${{ inputs.version }}" > /dev/null; then
+            echo "🚫 Version '${{ inputs.version }}' already exists. Please choose a different version." \
+             | tee -a  $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          echo "Releasing version '${{ inputs.version }}' from branch '${{ inputs.target-branch }}'." >> $GITHUB_STEP_SUMMARY
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
