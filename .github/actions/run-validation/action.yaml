@@ -41,7 +41,9 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -B -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
+        if [[ "${{ inputs.hilla_version }}" != "main-SNAPSHOT" ]]; then
+          mvn -B -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
+        fi
         if [[ "${{ inputs.skip_vaadin_version_detection }}" == "false" ]]; then
           vaadin_version=$(mvn -ntp -N -Pdetect-vaadin-platform -q)-SNAPSHOT
           mvn -B -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false -Pit-tests
