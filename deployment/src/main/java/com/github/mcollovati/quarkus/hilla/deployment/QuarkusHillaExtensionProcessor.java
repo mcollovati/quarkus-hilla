@@ -25,6 +25,7 @@ import java.util.function.Predicate;
 
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import dev.hilla.BrowserCallable;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
@@ -164,6 +165,8 @@ class QuarkusHillaExtensionProcessor {
             BuildProducer<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotationRegistry) {
         additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(
                 DotName.createSimple(Endpoint.class.getName()), BuiltinScope.SINGLETON.getName()));
+        additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(
+                DotName.createSimple(BrowserCallable.class.getName()), BuiltinScope.SINGLETON.getName()));
     }
 
     @BuildStep
