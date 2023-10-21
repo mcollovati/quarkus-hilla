@@ -191,12 +191,12 @@
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <outputDirectory>${project.basedir}</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
                         <id>flatten</id>
-                        <phase>process-resources</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>flatten</goal>
                         </goals>
@@ -425,9 +425,26 @@
         <profile>
             <id>it-tests</id>
             <modules>
-                <module>integration-tests/smoke-tests</module>
-                <module>integration-tests/hybrid-smoke-tests</module>
+                <module>integration-tests</module>
             </modules>
+            <build>
+                <plugins>
+                    <!--
+                        Disable flatten plugin for integration tests to prevent failures with maven-quarkus-plugin
+                        unable to detect artifacts because of ${revision} property
+                    -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>flatten-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>flatten</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>detect-vaadin-platform</id>
