@@ -42,8 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.4.3</quarkus.version>
-        <vaadin.version>24.1.12</vaadin.version>
+        <quarkus.version>3.5.0</quarkus.version>
         <hilla.version>2.2.2</hilla.version>
 
         <assertj.version>3.24.2</assertj.version>
@@ -77,13 +76,6 @@
                 <groupId>dev.hilla</groupId>
                 <artifactId>hilla-bom</artifactId>
                 <version>${hilla.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.vaadin</groupId>
-                <artifactId>vaadin-bom</artifactId>
-                <version>${vaadin.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -199,12 +191,12 @@
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    <outputDirectory>${project.build.directory}</outputDirectory>
+                    <outputDirectory>${project.basedir}</outputDirectory>
                 </configuration>
                 <executions>
                     <execution>
                         <id>flatten</id>
-                        <phase>process-resources</phase>
+                        <phase>process-classes</phase>
                         <goals>
                             <goal>flatten</goal>
                         </goals>
@@ -433,9 +425,26 @@
         <profile>
             <id>it-tests</id>
             <modules>
-                <module>integration-tests/smoke-tests</module>
-                <module>integration-tests/hybrid-smoke-tests</module>
+                <module>integration-tests</module>
             </modules>
+            <build>
+                <plugins>
+                    <!--
+                        Disable flatten plugin for integration tests to prevent failures with maven-quarkus-plugin
+                        unable to detect artifacts because of ${revision} property
+                    -->
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>flatten-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>flatten</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>detect-vaadin-platform</id>
