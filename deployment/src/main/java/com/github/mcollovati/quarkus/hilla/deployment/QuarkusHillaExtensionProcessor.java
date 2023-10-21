@@ -29,8 +29,6 @@ import dev.hilla.BrowserCallable;
 import dev.hilla.Endpoint;
 import dev.hilla.EndpointInvoker;
 import dev.hilla.EndpointRegistry;
-import dev.hilla.endpointransfermapper.EndpointTransferMapper;
-import dev.hilla.parser.plugins.transfertypes.TransferTypesPlugin;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -79,10 +77,8 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.EndpointTransferMapperClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.TransferTypesPluginClassVisitor;
 
 class QuarkusHillaExtensionProcessor {
 
@@ -206,12 +202,14 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new BytecodeTransformerBuildItem(
                 PushMessageHandler.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "handleBrowserSubscribe")));
+        /*
         producer.produce(new BytecodeTransformerBuildItem(
                 EndpointTransferMapper.class.getName(),
                 (s, classVisitor) -> new EndpointTransferMapperClassVisitor(classVisitor)));
         producer.produce(new BytecodeTransformerBuildItem(
                 TransferTypesPlugin.class.getName(),
                 (s, classVisitor) -> new TransferTypesPluginClassVisitor(classVisitor)));
+         */
     }
 
     @BuildStep

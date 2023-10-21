@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.entities;
+package com.example.application.autogrid;
 
 import java.util.UUID;
 
@@ -30,20 +30,20 @@ public class UserPOJO {
         this.surname = surname;
     }
 
-    public String id() {
+    public String getId() {
         return id;
     }
 
-    public String name() {
+    public String getName() {
         return name;
-    }
-
-    public String surname() {
-        return surname;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSurname() {
+        return surname;
     }
 
     public void setSurname(String surname) {

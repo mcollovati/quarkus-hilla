@@ -237,6 +237,7 @@
     <modules>
         <module>test-commons</module>
         <module>smoke-tests</module>
+        <module>react-smoke-test</module>
         <module>hybrid-smoke-tests</module>
     </modules>
 </project>
