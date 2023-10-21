@@ -21,16 +21,16 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.Pojo;
-import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestBrowserCallable;
 
-class EndpointControllerTest extends AbstractEndpointControllerTest {
+class BrowserCallableControllerTest extends AbstractEndpointControllerTest {
 
-    private static final String ENDPOINT_NAME = TestEndpoint.class.getSimpleName();
+    private static final String ENDPOINT_NAME = TestBrowserCallable.class.getSimpleName();
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
-            .setArchiveProducer(() ->
-                    ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class, Pojo.class, TestEndpoint.class));
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                    .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class));
 
     @Override
     protected String getEndpointName() {
