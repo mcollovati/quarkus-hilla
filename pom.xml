@@ -502,5 +502,16 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>all-modules</id>
+            <modules>
+                <module>deployment</module>
+                <module>runtime</module>
+                <module>hilla-jandex</module>
+                <module>hilla-shaded-deps</module>
+                <module>integration-tests/smoke-tests</module>
+                <module>integration-tests/hybrid-smoke-tests</module>
+            </modules>
+        </profile>
     </profiles>
 </project>
