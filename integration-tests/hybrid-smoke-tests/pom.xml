@@ -19,19 +19,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!--
-            Selenide provide an implementation of Selenium HttpClient.Factory loaded through ServiceLoader
-            However, the implementation is based on Selenium NettyClient, that has been removed from Selenium 4.14
-            Pin selenium version to 4.13 until Selenide releases a version compatible with selenium 4.14
-            Management is repeated here because selenium-bom should be imported before vaadin-bom
-            -->
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-bom</artifactId>
-                <version>4.13.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-bom</artifactId>
