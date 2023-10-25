@@ -28,22 +28,6 @@
         -->
         <hilla-maven-plugin.phase>none</hilla-maven-plugin.phase>
     </properties>
-    <dependencyManagement>
-        <dependencies>
-            <!--
-            Selenide provide an implementation of Selenium HttpClient.Factory loaded through ServiceLoader
-            However, the implementation is based on Selenium NettyClient, that has been removed from Selenium 4.14
-            Pin selenium version to 4.13 until Selenide releases a version compatible with selenium 4.14
-            -->
-            <dependency>
-                <groupId>org.seleniumhq.selenium</groupId>
-                <artifactId>selenium-bom</artifactId>
-                <version>4.13.0</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
