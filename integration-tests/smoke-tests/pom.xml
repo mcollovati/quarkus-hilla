@@ -196,5 +196,14 @@
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
         </profile>
+        <profile>
+            <id>java11</id>
+            <activation>
+                <jdk>11</jdk>
+            </activation>
+            <properties>
+                <selenide.version>6.19.1</selenide.version>
+            </properties>
+        </profile>
     </profiles>
 </project>
