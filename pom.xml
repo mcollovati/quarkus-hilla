@@ -43,7 +43,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <quarkus.version>3.5.0</quarkus.version>
-        <vaadin.version>24.1.13</vaadin.version>
+        <vaadin.version>24.1.14</vaadin.version>
         <hilla.version>2.1.14</hilla.version>
 
         <assertj.version>3.24.2</assertj.version>
