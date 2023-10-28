@@ -73,10 +73,12 @@ import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
 import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityRecorder;
+import com.github.mcollovati.quarkus.hilla.NonNullApi;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
 
@@ -202,6 +204,9 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new BytecodeTransformerBuildItem(
                 PushMessageHandler.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "handleBrowserSubscribe")));
+        producer.produce(new BytecodeTransformerBuildItem(
+                "dev.hilla.parser.plugins.nonnull.NonnullPluginConfig$Processor",
+                (s, classVisitor) -> new NonnullPluginConfigClassVisitor(classVisitor)));
     }
 
     @BuildStep
@@ -227,6 +232,27 @@ class QuarkusHillaExtensionProcessor {
                             .remove(isAutowiredAnnotation)
                             .add(DotNames.INJECT)
                             .done();
+                }
+            }
+        }));
+    }
+
+    @BuildStep
+    void replacePackageNonNullApiAnnotations(BuildProducer<AnnotationsTransformerBuildItem> producer) {
+        DotName sourceAnnotation = DotName.createSimple("org.springframework.lang.NonNullApi");
+        DotName targetAnnotation = DotName.createSimple(NonNullApi.class);
+        Predicate<AnnotationInstance> isAnnotated = ann -> ann.name().equals(sourceAnnotation);
+        producer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
+
+            @Override
+            public boolean appliesTo(AnnotationTarget.Kind kind) {
+                return AnnotationTarget.Kind.CLASS == kind;
+            }
+
+            @Override
+            public void transform(TransformationContext ctx) {
+                if (ctx.getAnnotations().stream().anyMatch(isAnnotated)) {
+                    ctx.transform().remove(isAnnotated).add(targetAnnotation).done();
                 }
             }
         }));

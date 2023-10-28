@@ -15,21 +15,21 @@
  */
 package com.example.application;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import java.io.IOException;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import org.jboss.jandex.Index;
+import org.jboss.jandex.Indexer;
+import org.junit.jupiter.api.Test;
 
-@BrowserCallable
-@AnonymousAllowed
-@ApplicationScoped
-public class HelloWorldService {
+public class MyTest {
 
-    public String sayHello(String name) {
-        if (name.isEmpty()) {
-            return "Hello stranger";
-        } else {
-            return "Hello " + name;
-        }
+    @Test
+    void testMe() throws IOException {
+        Indexer indexer = new Indexer();
+        indexer.indexWithSummary(MyTest.class.getResourceAsStream("package-info.class"));
+        Index index = indexer.complete();
+        index.getClassesInPackage("com.example.application").stream()
+                // .flatMap(ci -> ci.annotations().stream())
+                .forEach(ci -> System.out.println(ci.kind()));
     }
 }
