@@ -9,11 +9,19 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+    ignore:
+      - dependency-name: "dev.hilla:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "maven"
     directory: "/"
     target-branch: "2.2"
     schedule:
       interval: "daily"
+    allow:
+      - dependency-name: "dev.hilla:*"
+      - dependency-name: "com.vaadin:*"
     ignore:
       - dependency-name: "dev.hilla:*"
         update-types: [ "version-update:semver-major", "version-update:semver-minor"]
@@ -24,6 +32,9 @@ updates:
     target-branch: "2.1"
     schedule:
       interval: "daily"
+    allow:
+      - dependency-name: "dev.hilla:*"
+      - dependency-name: "com.vaadin:*"
     ignore:
       - dependency-name: "dev.hilla:*"
         update-types: [ "version-update:semver-major", "version-update:semver-minor"]
@@ -36,14 +47,8 @@ updates:
       interval: "daily"
     ignore:
       - dependency-name: "dev.hilla:*"
-        versions: [ ">= 2.0" ]
-      - dependency-name: "com.vaadin:vaadin-quarkus"
-        versions: [ ">= 2.0" ]
-      - dependency-name: "com.vaadin:vaadin-quarkus-deployment"
-        versions: [ ">= 2.0" ]
-      - dependency-name: "com.vaadin:vaadin-quarkus-extension"
-        versions: [ ">= 24.0" ]
-      - dependency-name: "com.vaadin:vaadin-bom"
-        versions: [ ">= 24.0" ]
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "io.quarkus*:*"
-        versions: [ ">= 3.0" ]
+        update-types: [ "version-update:semver-major"]
