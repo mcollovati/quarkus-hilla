@@ -22,7 +22,7 @@ export default function HelloWorldView() {
             Notification.show(serverResponse);
           }}
         >
-          Say hello dddd
+          Say hello
         </Button>
       </section>
     </>
