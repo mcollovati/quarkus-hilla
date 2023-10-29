@@ -202,14 +202,6 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new BytecodeTransformerBuildItem(
                 PushMessageHandler.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "handleBrowserSubscribe")));
-        /*
-        producer.produce(new BytecodeTransformerBuildItem(
-                EndpointTransferMapper.class.getName(),
-                (s, classVisitor) -> new EndpointTransferMapperClassVisitor(classVisitor)));
-        producer.produce(new BytecodeTransformerBuildItem(
-                TransferTypesPlugin.class.getName(),
-                (s, classVisitor) -> new TransferTypesPluginClassVisitor(classVisitor)));
-         */
     }
 
     @BuildStep
