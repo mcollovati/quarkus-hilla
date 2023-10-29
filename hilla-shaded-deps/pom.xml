@@ -94,6 +94,27 @@
                                         </include>
                                     </includes>
                                 </filter>
+                                <filter>
+                                    <artifact>org.springframework.data:spring-data-commons</artifact>
+                                    <includes>
+                                        <include>org/springframework/data/domain/AbstractPageRequest.class</include>
+                                        <include>org/springframework/data/domain/KeysetScrollPosition.class</include>
+                                        <include>org/springframework/data/domain/OffsetScrollPosition.class</include>
+                                        <include>org/springframework/data/domain/ScrollPosition.class</include>
+                                        <include>org/springframework/data/domain/ScrollPosition$Direction.class</include>
+                                        <include>org/springframework/data/domain/Page.class</include>
+                                        <include>org/springframework/data/domain/Pageable.class</include>
+                                        <include>org/springframework/data/domain/PageRequest.class</include>
+                                        <include>org/springframework/data/domain/Slice.class</include>
+                                        <include>org/springframework/data/domain/Sort.class</include>
+                                        <include>org/springframework/data/domain/Sort$Direction.class</include>
+                                        <include>org/springframework/data/domain/Sort$Order.class</include>
+                                        <include>org/springframework/data/domain/Sort$NullHandling.class</include>
+                                        <include>org/springframework/data/domain/Unpaged.class</include>
+                                        <include>org/springframework/data/util/Streamable.class</include>
+                                        <include>org/springframework/data/util/LazyStreamable.class</include>
+                                    </includes>
+                                </filter>
                             </filters>
                             <artifactSet>
                                 <includes>
@@ -101,6 +122,7 @@
                                     <include>org.springframework:spring-core</include>
                                     <include>org.springframework:spring-context</include>
                                     <include>org.springframework:spring-web</include>
+                                    <include>org.springframework.data:spring-data-commons</include>
                                 </includes>
                             </artifactSet>
                         </configuration>

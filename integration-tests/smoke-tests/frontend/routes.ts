@@ -55,6 +55,14 @@ export const views: ViewRoute[] = [
         //action: checkAccessAction
     },
     {
+        path: 'autogrid',
+        component: 'push-view',
+        icon: 'la la-globe',
+        title: 'Autogrid',
+        requiresLogin: false,
+        //action: checkAccessAction
+    },
+    {
         path: 'push',
         component: 'push-view',
         icon: 'la la-globe',
