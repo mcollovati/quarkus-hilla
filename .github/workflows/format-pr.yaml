@@ -20,7 +20,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
         with:
-          #ssh-key: ${{ secrets.ACTIONS_GIT_KEY }}
           token: ${{ steps.generate-token.outputs.token }}
           fetchref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
