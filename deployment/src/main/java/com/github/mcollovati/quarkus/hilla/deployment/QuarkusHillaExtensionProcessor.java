@@ -50,6 +50,7 @@ import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildIt
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
@@ -97,6 +98,17 @@ class QuarkusHillaExtensionProcessor {
         return new QuarkusHillaEnvironmentBuildItem(quarkusVaadinPresent);
     }
 
+    @BuildStep
+    void removeShadedDepsWithSpringData(
+            CurateOutcomeBuildItem outcomeBuildItem, BuildProducer<ExcludeDependencyBuildItem> producer) {
+        boolean springDataJpaPresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
+                .anyMatch(dep -> "io.quarkus".equals(dep.getGroupId())
+                        && dep.getArtifactId().startsWith("quarkus-spring-data-jpa"));
+        if (springDataJpaPresent) {
+            System.out.println("Excluding Hilla shaded deps because there is spring data jpa");
+            producer.produce(new ExcludeDependencyBuildItem("com.github.mcollovati", "hilla-shaded-deps"));
+        }
+    }
     // In hybrid environment sometimes the requests hangs while reading body, causing the UI to freeze until read
     // timeout is reached.
     // Requiring the installation of vert.x body handler seems to fix the issue.
@@ -150,7 +162,7 @@ class QuarkusHillaExtensionProcessor {
 
         beans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(PushEndpoint.class, PushMessageHandler.class)
-                .setDefaultScope(BuiltinScope.APPLICATION.getName())
+                .setDefaultScope(BuiltinScope.SINGLETON.getName())
                 .setUnremovable()
                 .build());
     }

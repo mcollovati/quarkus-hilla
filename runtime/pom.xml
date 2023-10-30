@@ -38,11 +38,19 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-websockets</artifactId>
         </dependency>
+        <!--
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-spring-di</artifactId>
+            <optional>true</optional>
+        </dependency>
+        -->
         <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>hilla-jandex</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
     <build>
         <plugins>
