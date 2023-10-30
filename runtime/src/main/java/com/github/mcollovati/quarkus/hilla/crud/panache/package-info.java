@@ -12,14 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  */
-package com.example.application.autogrid;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+@NonNullApi
+package com.github.mcollovati.quarkus.hilla.crud.panache;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
-
-@BrowserCallable
-@AnonymousAllowed
-public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}
+import com.github.mcollovati.quarkus.hilla.NonNullApi;

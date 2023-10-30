@@ -41,6 +41,7 @@ import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.item.SimpleBuildItem;
+import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
@@ -49,6 +50,7 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
+import io.quarkus.deployment.builditem.CapabilityBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -69,6 +71,7 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
+import org.jboss.jandex.IndexView;
 
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
 import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
@@ -79,6 +82,8 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
+import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
+import com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
@@ -86,6 +91,8 @@ import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClas
 class QuarkusHillaExtensionProcessor {
 
     private static final String FEATURE = "quarkus-hilla";
+    public static final String SPRING_DATA_SUPPORT = "com.github.mcollovati.quarkus.hilla.spring-data-jpa-support";
+    public static final String PANACHE_SUPPORT = "com.github.mcollovati.quarkus.hilla.panache-support";
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -101,15 +108,79 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void removeShadedDepsWithSpringData(
-            CurateOutcomeBuildItem outcomeBuildItem, BuildProducer<ExcludeDependencyBuildItem> producer) {
+    void publishCapabilities(
+            BuildProducer<CapabilityBuildItem> capabilityProducer, CurateOutcomeBuildItem outcomeBuildItem) {
         boolean springDataJpaPresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
                 .anyMatch(dep -> "io.quarkus".equals(dep.getGroupId())
-                        && dep.getArtifactId().startsWith("quarkus-spring-data"));
+                        && dep.getArtifactId().startsWith("quarkus-spring-data-jpa"));
         if (springDataJpaPresent) {
-            producer.produce(new ExcludeDependencyBuildItem("com.github.mcollovati", "hilla-shaded-deps"));
+            capabilityProducer.produce(new CapabilityBuildItem(SPRING_DATA_SUPPORT, "quarkus-hilla"));
+        }
+        boolean panachePresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
+                .anyMatch(dep -> "io.quarkus".equals(dep.getGroupId())
+                        && dep.getArtifactId().startsWith("quarkus-hibernate-orm-panache"));
+        if (panachePresent) {
+            capabilityProducer.produce(new CapabilityBuildItem(PANACHE_SUPPORT, "quarkus-hilla"));
         }
     }
+
+    @BuildStep
+    void setupCrudAndListServiceSupport(
+            Capabilities capabilities,
+            BuildProducer<ExcludeDependencyBuildItem> producer,
+            BuildProducer<AdditionalIndexedClassesBuildItem> additionalClasses) {
+        if (capabilities.isPresent(SPRING_DATA_SUPPORT)) {
+            producer.produce(new ExcludeDependencyBuildItem("com.github.mcollovati", "hilla-shaded-deps"));
+            additionalClasses.produce(new AdditionalIndexedClassesBuildItem(
+                    com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository.class.getName(),
+                    FilterableRepositorySupport.class.getName()));
+        }
+        if (capabilities.isPresent(PANACHE_SUPPORT)) {
+            additionalClasses.produce(new AdditionalIndexedClassesBuildItem(
+                    com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository.class.getName(),
+                    FilterableRepositorySupport.class.getName()));
+        }
+    }
+
+    @BuildStep
+    void implementSpringDataFilterableRepositoryExtension(
+            Capabilities capabilities,
+            CombinedIndexBuildItem index,
+            BuildProducer<BytecodeTransformerBuildItem> byteCodeProducer) {
+        if (capabilities.isPresent(SPRING_DATA_SUPPORT)) {
+            IndexView indexView = index.getComputingIndex();
+            DotName filterableRepositoryInterface = DotName.createSimple(FilterableRepository.class);
+            FilterableRepositoryImplementor visitorFunction =
+                    new FilterableRepositoryImplementor(indexView, filterableRepositoryInterface);
+            indexView
+                    .getKnownDirectImplementors(filterableRepositoryInterface)
+                    .forEach(ci -> byteCodeProducer.produce(new BytecodeTransformerBuildItem.Builder()
+                            .setClassToTransform(ci.name().toString())
+                            .setVisitorFunction(visitorFunction)
+                            .build()));
+        }
+    }
+
+    @BuildStep
+    void implementPanacheFilterableRepositoryExtension(
+            Capabilities capabilities,
+            CombinedIndexBuildItem index,
+            BuildProducer<BytecodeTransformerBuildItem> producer) {
+        if (capabilities.isPresent(PANACHE_SUPPORT)) {
+            IndexView indexView = index.getComputingIndex();
+            DotName filterableRepositoryInterface =
+                    DotName.createSimple(com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository.class);
+            FilterableRepositoryImplementor visitorFunction =
+                    new FilterableRepositoryImplementor(indexView, filterableRepositoryInterface);
+            indexView
+                    .getKnownDirectImplementors(filterableRepositoryInterface)
+                    .forEach(ci -> producer.produce(new BytecodeTransformerBuildItem.Builder()
+                            .setClassToTransform(ci.name().toString())
+                            .setVisitorFunction(visitorFunction)
+                            .build()));
+        }
+    }
+
     // In hybrid environment sometimes the requests hangs while reading body, causing the UI to freeze until read
     // timeout is reached.
     // Requiring the installation of vert.x body handler seems to fix the issue.

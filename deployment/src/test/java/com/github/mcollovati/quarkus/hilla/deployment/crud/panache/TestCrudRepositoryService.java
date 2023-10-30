@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.deployment.crud.panache;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
+import com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService;
 
 @BrowserCallable
 @AnonymousAllowed
-public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}
+public class TestCrudRepositoryService extends CrudRepositoryService<TestEntity, Long, TestRepository> {}

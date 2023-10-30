@@ -13,13 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.deployment.crud.panache;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
-@BrowserCallable
-@AnonymousAllowed
-public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}
+@Entity
+@Table(name = "test_table")
+public class TestEntity extends PanacheEntity {
+
+    private String text;
+
+    private Integer number;
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
+    }
+}

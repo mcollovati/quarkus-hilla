@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.example.application;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.theme.Theme;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
-
-@BrowserCallable
-@AnonymousAllowed
-public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}
+/**
+ * The entry point of the Spring Boot application.
+ *
+ * Use the @PWA annotation make the application installable on phones, tablets
+ * and some desktop browsers.
+ *
+ */
+@Theme(value = "my-hilla-app")
+public class Application implements AppShellConfigurator {}

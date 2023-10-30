@@ -13,13 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.crud.spring;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import java.util.List;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
+import dev.hilla.crud.filter.Filter;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.Repository;
 
-@BrowserCallable
-@AnonymousAllowed
-public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}
+@NoRepositoryBean
+public interface FilterableRepository<T, ID> extends Repository<T, ID> {
+
+    default long count(Filter filter) {
+        throw new UnsupportedOperationException("TODO");
+    }
+
+    default List<T> list(Pageable pageable, Filter filter) {
+        throw new UnsupportedOperationException("TODO");
+    }
+}

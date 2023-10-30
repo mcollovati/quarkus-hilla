@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.crud;
 
 import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
@@ -45,7 +44,7 @@ public class PropertyStringFilterSpecification<T> {
         this.javaType = javaType;
     }
 
-    public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder) {
+    public Predicate toPredicate(Root<T> root, CriteriaBuilder criteriaBuilder) {
         String value = filter.getFilterValue();
         Path<String> propertyPath = getPath(filter.getPropertyId(), root);
         if (javaType == String.class) {
@@ -186,14 +185,14 @@ public class PropertyStringFilterSpecification<T> {
     }
 
     private boolean isLocalDate(Class<?> javaType) {
-        return javaType == java.time.LocalDate.class;
+        return javaType == LocalDate.class;
     }
 
     private boolean isLocalTime(Class<?> javaType) {
-        return javaType == java.time.LocalTime.class;
+        return javaType == LocalTime.class;
     }
 
     private boolean isLocalDateTime(Class<?> javaType) {
-        return javaType == java.time.LocalDateTime.class;
+        return javaType == LocalDateTime.class;
     }
 }

@@ -39,6 +39,12 @@
             <artifactId>quarkus-websockets</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-spring-data-jpa</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>hilla-jandex</artifactId>
             <version>${project.version}</version>

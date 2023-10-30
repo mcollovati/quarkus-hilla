@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.crud.panache;
 
 import java.util.List;
 
 import dev.hilla.crud.filter.Filter;
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import org.springframework.data.domain.Pageable;
 
-public interface UserSpecificationFragment {
+public interface FilterableRepository<T, ID> extends PanacheRepositoryBase<T, ID> {
 
-    long count(Filter filter);
+    default long count(Filter filter) {
+        throw new UnsupportedOperationException("TODO");
+    }
 
-    List<User> list(Pageable pageable, Filter filter);
+    default List<T> list(Pageable pageable, Filter filter) {
+        throw new UnsupportedOperationException("TODO");
+    }
 }
