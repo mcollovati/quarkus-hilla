@@ -18,7 +18,6 @@ package com.example.application;
 import java.util.List;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
@@ -36,6 +35,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @QuarkusTest
 class AutoGridTest extends AbstractTest {
 
+    private static final int ALL_ITEMS = 3;
+
     @Override
     protected String getTestUrl() {
         return getBaseURL() + "auto-grid";
@@ -44,7 +45,7 @@ class AutoGridTest extends AbstractTest {
     @Test
     void autoGrid_gridIsDisplayed() {
         openAndWait(() -> $("vaadin-grid"));
-        Selenide.Wait().until(d -> !collectColumnTexts(1).isEmpty());
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(List.of("Homer", "Jason", "Peter"));
 
         SelenideElement filterRows =
                 $$(shadowCss("thead#header tr[part~=\"row\"]", "vaadin-grid")).last();
@@ -56,25 +57,26 @@ class AutoGridTest extends AbstractTest {
     }
 
     @Test
-    void autoGrid_filter() {
+    void autoGrid_filter() throws InterruptedException {
         openAndWait(() -> $("vaadin-grid"));
         SelenideElement filter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[3]/vaadin-text-field/input"));
 
-        Selenide.Wait().until(d -> !collectColumnTexts(1).isEmpty());
-
-        assertThat(collectColumnTexts(1)).containsExactlyInAnyOrder("Homer", "Jason", "Peter");
+        assertThat(collectColumnTexts(1, ALL_ITEMS)).containsExactlyInAnyOrder("Homer", "Jason", "Peter");
 
         filter.setValue("er");
-        assertThat(collectColumnTexts(1)).containsExactlyInAnyOrder("Homer", "Peter");
+        assertThat(collectColumnTexts(1, 2)).containsExactlyInAnyOrder("Homer", "Peter");
 
         filter.setValue("H");
-        assertThat(collectColumnTexts(1)).containsExactlyInAnyOrder("Homer");
+        assertThat(collectColumnTexts(1, 1)).containsExactlyInAnyOrder("Homer");
+
+        filter.setValue("");
+        assertThat(collectColumnTexts(1, ALL_ITEMS)).containsExactlyInAnyOrder("Homer", "Jason", "Peter");
     }
 
     @Test
     void autoGrid_sort() {
         openAndWait(() -> $("vaadin-grid"));
-        Selenide.Wait().until(d -> !collectColumnTexts(1).isEmpty());
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(List.of("Homer", "Jason", "Peter"));
 
         SelenideElement nameSorter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[1]/vaadin-grid-sorter"));
 
@@ -94,10 +96,15 @@ class AutoGridTest extends AbstractTest {
     }
 
     private static List<String> collectColumnTexts(int column) {
+        return collectColumnTexts(column, ALL_ITEMS);
+    }
+
+    private static List<String> collectColumnTexts(int column, int expectedSize) {
         return $$(shadowCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ")", "vaadin-grid"))
+                .filter(Condition.visible)
+                .shouldHave(size(expectedSize))
                 .asFixedIterable()
                 .stream()
-                .filter(el -> el.is(Condition.visible))
                 .map(el -> $(el).text())
                 .toList();
     }
