@@ -103,7 +103,7 @@ class QuarkusHillaExtensionProcessor {
             CurateOutcomeBuildItem outcomeBuildItem, BuildProducer<ExcludeDependencyBuildItem> producer) {
         boolean springDataJpaPresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
                 .anyMatch(dep -> "io.quarkus".equals(dep.getGroupId())
-                        && dep.getArtifactId().startsWith("quarkus-spring-data-jpa"));
+                        && dep.getArtifactId().startsWith("quarkus-spring-data"));
         if (springDataJpaPresent) {
             System.out.println("Excluding Hilla shaded deps because there is spring data jpa");
             producer.produce(new ExcludeDependencyBuildItem("com.github.mcollovati", "hilla-shaded-deps"));
