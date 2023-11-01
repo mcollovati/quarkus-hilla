@@ -33,7 +33,8 @@ class SpringDataExtensionsSupportTest extends AbstractEndpointControllerTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
-            .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-spring-di", Version.getVersion())))
+            .setForcedDependencies(
+                    List.of(Dependency.of("io.quarkus", "quarkus-spring-data-jpa", Version.getVersion())))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class));
 
