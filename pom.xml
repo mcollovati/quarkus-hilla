@@ -65,6 +65,14 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+            <!-- Pin selenium BOM until Hilla upgrades to Testbench BOM based on selenium 4.15 -->
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-bom</artifactId>
+                <version>4.15.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>dev.hilla</groupId>
                 <artifactId>hilla-bom</artifactId>
