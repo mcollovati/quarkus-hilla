@@ -68,7 +68,7 @@ jobs:
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
         with:
-          chrome-version: latest
+          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -105,7 +105,7 @@ jobs:
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
         with:
-          chrome-version: latest
+          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -142,7 +142,7 @@ jobs:
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
         with:
-          chrome-version: latest
+          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail

@@ -36,7 +36,7 @@ runs:
     - uses: browser-actions/setup-chrome@latest
       id: setup-chrome
       with:
-        chrome-version: latest
+        chrome-version: stable
     - name: Build
       shell: bash
       run: |
