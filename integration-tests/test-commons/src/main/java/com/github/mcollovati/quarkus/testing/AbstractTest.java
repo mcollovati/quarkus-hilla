@@ -37,6 +37,13 @@ public abstract class AbstractTest {
     private static final boolean isMacOS =
             System.getProperty("os.name").toLowerCase().contains("mac");
 
+    static {
+        // Workaround for Selenide 7 issue
+        if (Configuration.browserBinary != null && System.getProperty("webdriver.chrome.driver") == null) {
+            System.setProperty("webdriver.chrome.driver", Configuration.browserBinary);
+        }
+    }
+
     @TestHTTPResource()
     private String baseURL;
 
