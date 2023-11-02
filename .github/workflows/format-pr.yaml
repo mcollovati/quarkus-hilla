@@ -30,7 +30,7 @@ jobs:
           cache: maven
       - name: Apply changes
         run: |
-          mvn -V -e -B -ntp -Pdefault-modules,it-tests spotless:apply
+          mvn -V -e -B -ntp -Pall-modules spotless:apply
       - uses: stefanzweifel/git-auto-commit-action@v4
         id: commit-changes
         with:
