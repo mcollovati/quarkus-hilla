@@ -59,8 +59,9 @@ jobs:
 
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
-          chrome-version: latest
+          chrome-version: stable
 
       - name: Setup and Run Tests
         run: ./ecosystem-ci/setup-and-test
@@ -104,8 +105,9 @@ jobs:
 
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
-          chrome-version: latest
+          chrome-version: stable
 
       - name: Setup and Run Tests
         run: ./ecosystem-ci/setup-and-test

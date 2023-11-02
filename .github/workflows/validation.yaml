@@ -67,8 +67,9 @@ jobs:
           cache: maven
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
-          chrome-version: latest
+          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -104,8 +105,9 @@ jobs:
           cache: maven
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
-          chrome-version: latest
+          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -141,8 +143,9 @@ jobs:
           cache: maven
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
-          chrome-version: latest
+          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
