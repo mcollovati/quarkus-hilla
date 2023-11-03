@@ -21,7 +21,7 @@ jobs:
           ref: ${{ matrix.branch }}
           java_version: ${{ matrix.java }}
           hilla_version: ${{ matrix.branch }}-SNAPSHOT
-          install_chrome: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
+          skip_install_chrome: ${{ vars.QH_DISABLE_CHROME_INSTALL }}
   snapshot-1_0:
     name: "Quarkus-Hilla 1.x"
     strategy:
@@ -40,4 +40,4 @@ jobs:
           java_version: ${{ matrix.java }}
           hilla_version: ${{ matrix.hilla }}
           skip_vaadin_version_detection: true
-          install_chrome: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
+          skip_install_chrome: ${{ vars.QH_DISABLE_CHROME_INSTALL }}
