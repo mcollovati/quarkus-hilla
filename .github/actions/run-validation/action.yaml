@@ -19,6 +19,8 @@ inputs:
   skip_vaadin_version_detection:
     description: 'Skips Vaadin platform version detection'
     default: 'false'
+  install_chrome:
+    description: 'Install chrome'
 runs:
   using: composite
   steps:
@@ -35,7 +37,7 @@ runs:
         cache: maven
     - uses: browser-actions/setup-chrome@latest
       id: setup-chrome
-      if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
+      if: ${{ inputs.install_chrome }}
       with:
         chrome-version: stable
     - name: Build
