@@ -33,7 +33,7 @@ import dev.hilla.crud.filter.PropertyStringFilter;
  * NOTE: this code has been copy/pasted from Hilla code base, credit goes to Vaadin Ltd
  * https://github.com/vaadin/hilla/blob/main/packages/java/endpoint/src/main/java/dev/hilla/crud/PropertyStringFilterSpecification.java
  *
- * Copy/paste is required to remove the Spring Specification<T> interface, not supported by quarkus-spring-data extension
+ * Adaptation is required to remove the Spring Specification<T> interface, not supported by quarkus-spring-data extension
  */
 public class PropertyStringFilterSpecification<T> {
 
