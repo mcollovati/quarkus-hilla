@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application;
+package com.github.mcollovati.quarkus.hilla;
 
-import jakarta.enterprise.context.ApplicationScoped;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import javax.annotation.Nonnull;
+import javax.annotation.meta.TypeQualifierDefault;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
-
-@BrowserCallable
-@AnonymousAllowed
-@ApplicationScoped
-public class HelloWorldService {
-
-    public String sayHello(String name) {
-        if (name.isEmpty()) {
-            return "Hello stranger";
-        } else {
-            return "Hello " + name;
-        }
-    }
-}
+@Target({ElementType.PACKAGE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Nonnull
+@TypeQualifierDefault({ElementType.METHOD, ElementType.PARAMETER})
+public @interface NonNullApi {}
