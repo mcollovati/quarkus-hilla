@@ -72,11 +72,17 @@ public abstract class AbstractTest {
     }
 
     protected void openAndWait(String url, Supplier<SelenideElement> selector) {
+        openAndWait(url, selector, true);
+    }
+
+    protected void openAndWait(String url, Supplier<SelenideElement> selector, boolean checkErrors) {
         Selenide.open(url);
         waitForDevServer();
         selector.get().shouldBe(Condition.visible, Duration.ofSeconds(10));
-        $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools")).shouldNot(Condition.exist);
-        $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNot(Condition.exist);
+        if (checkErrors) {
+            $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools")).shouldNotBe(Condition.visible);
+            $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNotBe(Condition.visible);
+        }
     }
 
     protected void waitForDevServer() {

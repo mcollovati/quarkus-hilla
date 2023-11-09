@@ -59,6 +59,7 @@ jobs:
 
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
           chrome-version: stable
 
@@ -104,6 +105,7 @@ jobs:
 
       - uses: browser-actions/setup-chrome@latest
         id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
           chrome-version: stable
 
