@@ -49,7 +49,6 @@ Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki
 or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
 
 ```xml
-
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
