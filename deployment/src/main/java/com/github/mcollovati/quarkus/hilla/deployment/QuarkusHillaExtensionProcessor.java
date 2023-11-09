@@ -241,7 +241,7 @@ class QuarkusHillaExtensionProcessor {
     void replacePackageNonNullApiAnnotations(BuildProducer<AnnotationsTransformerBuildItem> producer) {
         DotName sourceAnnotation = DotName.createSimple("org.springframework.lang.NonNullApi");
         DotName targetAnnotation = DotName.createSimple(NonNullApi.class);
-        Predicate<AnnotationInstance> isAnnotated = ann -> ann.name().equals(sourceAnnotation);
+        Predicate<AnnotationInstance> isAnnotatedPredicate = ann -> ann.name().equals(sourceAnnotation);
         producer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
 
             @Override
@@ -251,8 +251,11 @@ class QuarkusHillaExtensionProcessor {
 
             @Override
             public void transform(TransformationContext ctx) {
-                if (ctx.getAnnotations().stream().anyMatch(isAnnotated)) {
-                    ctx.transform().remove(isAnnotated).add(targetAnnotation).done();
+                if (ctx.getAnnotations().stream().anyMatch(isAnnotatedPredicate)) {
+                    ctx.transform()
+                            .remove(isAnnotatedPredicate)
+                            .add(targetAnnotation)
+                            .done();
                 }
             }
         }));
