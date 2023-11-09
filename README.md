@@ -52,7 +52,7 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>2.0.0-alpha1</version>
+    <version>2.2.1</version>
 </dependency>
 ```
 
