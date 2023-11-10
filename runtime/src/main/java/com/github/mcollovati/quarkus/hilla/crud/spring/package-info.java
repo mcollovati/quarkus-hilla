@@ -18,4 +18,4 @@
 @NonNullApi
 package com.github.mcollovati.quarkus.hilla.crud.spring;
 
-import com.github.mcollovati.quarkus.hilla.NonNullApi;
+import org.springframework.lang.NonNullApi;

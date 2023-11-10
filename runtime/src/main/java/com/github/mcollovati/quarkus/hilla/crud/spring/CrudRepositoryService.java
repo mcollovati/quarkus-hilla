@@ -21,7 +21,7 @@ import dev.hilla.crud.CrudService;
 import org.springframework.data.repository.CrudRepository;
 
 @EndpointExposed
-public abstract class CrudRepositoryService<T, ID, R extends CrudRepository<T, ID> & FilterableRepository<T, ID>>
+public class CrudRepositoryService<T, ID, R extends CrudRepository<T, ID> & FilterableRepository<T, ID>>
         extends ListRepositoryService<T, ID, R> implements CrudService<T, ID> {
 
     protected CrudRepositoryService() {}

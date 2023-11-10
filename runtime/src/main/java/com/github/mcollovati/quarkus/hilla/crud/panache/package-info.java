@@ -18,4 +18,4 @@
 @NonNullApi
 package com.github.mcollovati.quarkus.hilla.crud.panache;
 
-import com.github.mcollovati.quarkus.hilla.NonNullApi;
+import org.springframework.lang.NonNullApi;

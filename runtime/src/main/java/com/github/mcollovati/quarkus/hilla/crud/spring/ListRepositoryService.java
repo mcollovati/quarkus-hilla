@@ -28,7 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
 @EndpointExposed
-public abstract class ListRepositoryService<T, ID, R extends CrudRepository<T, ID> & FilterableRepository<T, ID>>
+public class ListRepositoryService<T, ID, R extends CrudRepository<T, ID> & FilterableRepository<T, ID>>
         implements ListService<T>, GetService<T, ID>, CountService {
 
     @Inject

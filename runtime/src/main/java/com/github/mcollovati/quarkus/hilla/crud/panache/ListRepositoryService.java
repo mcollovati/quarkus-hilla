@@ -27,7 +27,7 @@ import dev.hilla.crud.filter.Filter;
 import org.springframework.data.domain.Pageable;
 
 @EndpointExposed
-public abstract class ListRepositoryService<T, ID, R extends FilterableRepository<T, ID>>
+public class ListRepositoryService<T, ID, R extends FilterableRepository<T, ID>>
         implements ListService<T>, GetService<T, ID>, CountService {
     @Inject
     R repository;

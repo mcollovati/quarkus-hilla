@@ -17,11 +17,13 @@ package com.github.mcollovati.quarkus.hilla.crud.panache;
 
 import jakarta.transaction.Transactional;
 
+import dev.hilla.EndpointExposed;
 import dev.hilla.Nullable;
 import dev.hilla.crud.CrudService;
 
-public abstract class CrudRepositoryService<T, ID, R extends FilterableRepository<T, ID>>
-        extends ListRepositoryService<T, ID, R> implements CrudService<T, ID> {
+@EndpointExposed
+public class CrudRepositoryService<T, ID, R extends FilterableRepository<T, ID>> extends ListRepositoryService<T, ID, R>
+        implements CrudService<T, ID> {
 
     protected CrudRepositoryService() {}
 
