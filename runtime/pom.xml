@@ -38,13 +38,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-websockets</artifactId>
         </dependency>
-        <!--
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-spring-di</artifactId>
-            <optional>true</optional>
-        </dependency>
-        -->
         <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>hilla-jandex</artifactId>
@@ -65,7 +58,6 @@
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
-                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class,dev/hilla/mappedtypes/Order.class,dev/hilla/mappedtypes/Pageable.class,dev/hilla/mappedtypes/Sort.class</resources>
                             -->
                             <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
                         </artifact>
@@ -74,20 +66,9 @@
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
-                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class,dev/hilla/mappedtypes/Order.class,dev/hilla/mappedtypes/Pageable.class,dev/hilla/mappedtypes/Sort.class</resources>
                             -->
                             <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
                         </artifact>
-                        <!--
-                        <artifact>
-                            <key>dev.hilla:runtime-plugin-transfertypes</key>
-                            <!-\-
-                            There should be no newlines in the classes list, otherwise the filter silently
-                            fails at runtime
-                            -\->
-                            <resources>dev/hilla/mappedtypes/Order.class,dev/hilla/mappedtypes/Pageable.class,dev/hilla/mappedtypes/Sort.class</resources>
-                        </artifact>
-                        -->
                     </removedResources>
                 </configuration>
                 <executions>

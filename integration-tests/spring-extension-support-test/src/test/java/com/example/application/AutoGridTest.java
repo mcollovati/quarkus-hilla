@@ -88,11 +88,16 @@ class AutoGridTest extends AbstractTest {
 
         // Sort by name ascending
         nameSorter.click();
+        assertThat(nameSorter.getAttribute("direction")).isEqualTo("asc");
         assertThat(collectColumnTexts(1)).containsExactlyElementsOf(List.of("Homer", "Jason", "Peter"));
 
         // Sort by name ascending
         nameSorter.click();
+        assertThat(nameSorter.getAttribute("direction")).isEqualTo("desc");
         assertThat(collectColumnTexts(1)).containsExactlyElementsOf(List.of("Peter", "Jason", "Homer"));
+
+        nameSorter.click();
+        assertThat(nameSorter.getAttribute("direction")).isNull();
     }
 
     private static List<String> collectColumnTexts(int column) {
