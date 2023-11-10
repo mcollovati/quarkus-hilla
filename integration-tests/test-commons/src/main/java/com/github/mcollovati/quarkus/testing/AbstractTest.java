@@ -49,6 +49,7 @@ public abstract class AbstractTest {
             Configuration.headless = runHeadless();
             System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
         }
+        Configuration.fastSetValue = true;
     }
 
     protected final String getBaseURL() {
