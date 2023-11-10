@@ -40,7 +40,8 @@ The hope is that, based on this data, Vaadin may consider in the future to provi
 an official extension.
 Statistic are collected only in development mode and no sensitive data is
 gathered.
-For instructions on how to opt-out, see the [client-side collector repository](https://github.com/vaadin/vaadin-usage-statistics#opting-out).
+For instructions on how to opt-out, see
+the [client-side collector repository](https://github.com/vaadin/vaadin-usage-statistics#opting-out).
 
 ## Getting started
 
@@ -49,18 +50,19 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 
 ```xml
 <dependency>
-  <groupId>com.github.mcollovati</groupId>
-  <artifactId>quarkus-hilla</artifactId>
-  <version>2.0.0-alpha1</version>
+    <groupId>com.github.mcollovati</groupId>
+    <artifactId>quarkus-hilla</artifactId>
+    <version>2.2.1</version>
 </dependency>
 ```
 
 ## Compatibility Matrix
 
-|                                                                                                    Quarkus-Hilla                                                                                                     |                                                                               Quarkus                                                                               |                                                                            Hilla                                                                             |                                                                            Vaadin                                                                            |
-|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Maven Central 2.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2" style="visibility: visible;"></picture> |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  | <picture><img alt="Hilla 2.1+" src="https://img.shields.io/badge/HILLA-v2.1%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> | <picture><img alt="Flow 24.1+" src="https://img.shields.io/badge/FLOW-v24.1%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
-| <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture> | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Hilla 1.3+" src="https://img.shields.io/badge/HILLA-v1.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> | <picture><img alt="Flow 23.3+" src="https://img.shields.io/badge/FLOW-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
+|                                                                                                     Quarkus-Hilla                                                                                                      |                                                                               Quarkus                                                                               |                                                        Hilla                                                         |                                                                             Vaadin                                                                             |
+|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Maven Central 2.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.2" style="visibility: visible;"></picture> |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  | <picture><img alt="Hilla 2.2" src="https://tinyurl.com/quarkus-hilla-h-2-2" style="visibility: visible;"></picture>  |   <picture><img alt="Flow 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>   |
+| <picture><img alt="Maven Central 2.1" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.1" style="visibility: visible;"></picture> |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  | <picture><img alt="Hilla 2.1" src="https://tinyurl.com/quarkus-hilla-h-2-1" style="visibility: visible;"></picture>  |   <picture><img alt="Flow 24.1" src="https://img.shields.io/badge/VAADIN-v24.1-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>   |
+|  <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>  | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Hilla 1.3+" src="https://tinyurl.com/quarkus-hilla-h-1-3" style="visibility: visible;"></picture> | <picture><img alt="Flow 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 
 **NOTE**: These versions are known to work together. Other combinations may work, but are not tested.
 
