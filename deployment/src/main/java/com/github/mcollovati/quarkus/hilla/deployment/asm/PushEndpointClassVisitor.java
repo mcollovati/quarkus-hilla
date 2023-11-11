@@ -18,21 +18,21 @@ package com.github.mcollovati.quarkus.hilla.deployment.asm;
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 import java.util.Map;
 
 public class PushEndpointClassVisitor extends ClassVisitor {
-    private final String methodName = "onMessageRequest";
+    private final String methodName;
     private final MethodSignature setContextSignature =
             MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "setContext");
     private final MethodSignature clearContextSignature =
             MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "clearContext");
 
-    public PushEndpointClassVisitor(ClassVisitor classVisitor) {
+    public PushEndpointClassVisitor(ClassVisitor classVisitor, String methodName) {
         super(Gizmo.ASM_API_VERSION, classVisitor);
+        this.methodName = methodName;
     }
 
     @Override
@@ -40,33 +40,14 @@ public class PushEndpointClassVisitor extends ClassVisitor {
             int access, String name, String descriptor, String signature, String[] exceptions) {
         MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
-            return buildMethodVisitorChain(access, name, descriptor, signature, exceptions, superVisitor);
+            return new DropStatementMethodNode(api, access, name, descriptor, signature, exceptions, superVisitor, this::isDropMethodCall);
         }
         return superVisitor;
     }
 
-    private DropStatementMethodNode buildMethodVisitorChain(
-            int access,
-            String name,
-            String descriptor,
-            String signature,
-            String[] exceptions,
-            MethodVisitor superVisitor) {
-        var clearCtxVisitor = new MethodRedirectVisitor(
-                superVisitor, Opcodes.INVOKESTATIC, Map.of(clearContextSignature, MethodSignature.DROP_METHOD));
-        return new DropStatementMethodNode(
-                Gizmo.ASM_API_VERSION,
-                access,
-                name,
-                descriptor,
-                signature,
-                exceptions,
-                clearCtxVisitor,
-                this::isDropMethodCall);
-    }
-
     private boolean isDropMethodCall(AbstractInsnNode instruction) {
         return instruction instanceof MethodInsnNode
-                && AsmUtils.hasMethodInsnSignature(setContextSignature, (MethodInsnNode) instruction);
+                && (AsmUtils.hasMethodInsnSignature(setContextSignature, (MethodInsnNode) instruction)
+                        || AsmUtils.hasMethodInsnSignature(clearContextSignature, (MethodInsnNode) instruction));
     }
 }

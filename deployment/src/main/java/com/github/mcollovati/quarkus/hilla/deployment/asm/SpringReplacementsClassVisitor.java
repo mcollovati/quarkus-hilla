@@ -15,10 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import com.github.mcollovati.quarkus.hilla.SpringReplacements;
+import dev.hilla.AuthenticationUtil;
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
 
 import java.util.Map;
 
@@ -28,22 +29,18 @@ import java.util.Map;
 public class SpringReplacementsClassVisitor extends ClassVisitor {
 
     private static final Map<MethodSignature, MethodSignature> STATIC_SPRING_REDIRECTS = Map.of(
-            MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "getContext"),
-            MethodSignature.DROP_METHOD,
             MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
-            MethodSignature.of("com/github/mcollovati/quarkus/hilla/SpringReplacements", "classUtils_getUserClass"),
+            MethodSignature.of(SpringReplacements.class.getName(), "classUtils_getUserClass"),
             MethodSignature.of(
-                    "dev/hilla/AuthenticationUtil",
+                    AuthenticationUtil.class.getName(),
                     "getSecurityHolderAuthentication",
                     "()Lorg/springframework/security/core/Authentication;"),
             MethodSignature.of(
-                    "com/github/mcollovati/quarkus/hilla/SpringReplacements",
+                    SpringReplacements.class.getName(),
                     "authenticationUtil_getSecurityHolderAuthentication",
                     "()Ljava/security/Principal;"),
-            MethodSignature.of("dev/hilla/AuthenticationUtil", "getSecurityHolderRoleChecker"),
-            MethodSignature.of(
-                    "com/github/mcollovati/quarkus/hilla/SpringReplacements",
-                    "authenticationUtil_getSecurityHolderRoleChecker"));
+            MethodSignature.of(AuthenticationUtil.class.getName(), "getSecurityHolderRoleChecker"),
+            MethodSignature.of(SpringReplacements.class.getName(), "authenticationUtil_getSecurityHolderRoleChecker"));
     private final String methodName;
 
     /**
@@ -60,7 +57,8 @@ public class SpringReplacementsClassVisitor extends ClassVisitor {
             int access, String name, String descriptor, String signature, String[] exceptions) {
         MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
-            return new MethodRedirectVisitor(superVisitor, Opcodes.INVOKESTATIC, STATIC_SPRING_REDIRECTS);
+            return new MethodRedirectNode(
+                    api, access, name, descriptor, signature, exceptions, superVisitor, STATIC_SPRING_REDIRECTS);
         }
         return superVisitor;
     }

@@ -15,7 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+
+import java.util.ListIterator;
 
 public class AsmUtils {
 
@@ -29,5 +33,31 @@ public class AsmUtils {
                 && srcMethod.getName().equals(name)
                 && (srcMethod.getDescriptor() == null
                         || srcMethod.getDescriptor().equals(descriptor));
+    }
+
+    public static void dropStatement(ListIterator<AbstractInsnNode> iterator, AbstractInsnNode currentInsn) {
+        // If we match against a label, then there is no previous instruction to remove
+        if (!(currentInsn instanceof LabelNode)) removeUntilPreviousLabel(iterator);
+        removeUntilNextLabel(iterator);
+    }
+
+    private static void removeUntilPreviousLabel(ListIterator<AbstractInsnNode> iter) {
+        while (iter.hasPrevious()) {
+            var instruction = iter.previous();
+            iter.remove();
+            if (instruction instanceof LabelNode) {
+                break;
+            }
+        }
+    }
+
+    private static void removeUntilNextLabel(ListIterator<AbstractInsnNode> iter) {
+        while (iter.hasNext()) {
+            var instruction = iter.next();
+            if (instruction instanceof LabelNode) {
+                break;
+            }
+            iter.remove();
+        }
     }
 }
