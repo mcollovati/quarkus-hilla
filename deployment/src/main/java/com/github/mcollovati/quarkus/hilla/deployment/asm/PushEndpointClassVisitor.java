@@ -18,8 +18,11 @@ package com.github.mcollovati.quarkus.hilla.deployment.asm;
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
+
+import java.util.Map;
 
 public class PushEndpointClassVisitor extends ClassVisitor {
     private final String methodName = "onMessageRequest";
@@ -49,8 +52,8 @@ public class PushEndpointClassVisitor extends ClassVisitor {
             String signature,
             String[] exceptions,
             MethodVisitor superVisitor) {
-        var clearCtxVisitor =
-                new MethodRedirectVisitor(superVisitor, clearContextSignature, MethodSignature.DROP_METHOD);
+        var clearCtxVisitor = new MethodRedirectVisitor(
+                superVisitor, Opcodes.INVOKESTATIC, Map.of(clearContextSignature, MethodSignature.DROP_METHOD));
         return new DropStatementMethodNode(
                 Gizmo.ASM_API_VERSION,
                 access,
