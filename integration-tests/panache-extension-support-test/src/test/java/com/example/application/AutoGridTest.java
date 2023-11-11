@@ -35,7 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @QuarkusTest
 class AutoGridTest extends AbstractTest {
 
-    private static final int RENDERED_ITEMS = 15;
     public static final List<String> NAMES_ASC = List.of(
             "Aaliyah",
             "Addison",
@@ -84,6 +83,8 @@ class AutoGridTest extends AbstractTest {
             "Nicholas",
             "Madison",
             "Ethan");
+
+    private static final int RENDERED_ITEMS = NAMES_UNSORTED.size();
 
     @Override
     protected String getTestUrl() {

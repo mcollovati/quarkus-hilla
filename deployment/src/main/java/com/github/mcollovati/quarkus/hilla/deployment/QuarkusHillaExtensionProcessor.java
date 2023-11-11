@@ -19,6 +19,7 @@ import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Singleton;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -83,7 +84,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
-import com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
@@ -93,6 +93,10 @@ class QuarkusHillaExtensionProcessor {
     private static final String FEATURE = "quarkus-hilla";
     public static final String SPRING_DATA_SUPPORT = "com.github.mcollovati.quarkus.hilla.spring-data-jpa-support";
     public static final String PANACHE_SUPPORT = "com.github.mcollovati.quarkus.hilla.panache-support";
+    public static final DotName SPRING_FILTERABLE_REPOSITORY =
+            DotName.createSimple("com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository");
+    public static final DotName PANACHE_FILTERABLE_REPOSITORY =
+            DotName.createSimple("com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository");
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -132,53 +136,48 @@ class QuarkusHillaExtensionProcessor {
         if (capabilities.isPresent(SPRING_DATA_SUPPORT)) {
             producer.produce(new ExcludeDependencyBuildItem("com.github.mcollovati", "hilla-shaded-deps"));
             additionalClasses.produce(new AdditionalIndexedClassesBuildItem(
-                    com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository.class.getName(),
-                    FilterableRepositorySupport.class.getName()));
+                    SPRING_FILTERABLE_REPOSITORY.toString(), FilterableRepositorySupport.class.getName()));
         }
         if (capabilities.isPresent(PANACHE_SUPPORT)) {
             additionalClasses.produce(new AdditionalIndexedClassesBuildItem(
-                    com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository.class.getName(),
-                    FilterableRepositorySupport.class.getName()));
+                    PANACHE_FILTERABLE_REPOSITORY.toString(), FilterableRepositorySupport.class.getName()));
         }
     }
 
     @BuildStep
-    void implementSpringDataFilterableRepositoryExtension(
+    void detectFilterableRepositoryImplementors(
             Capabilities capabilities,
             CombinedIndexBuildItem index,
-            BuildProducer<BytecodeTransformerBuildItem> byteCodeProducer) {
+            BuildProducer<FilterableRepositoryImplementorBuildItem> producer) {
+        IndexView indexView = index.getComputingIndex();
         if (capabilities.isPresent(SPRING_DATA_SUPPORT)) {
-            IndexView indexView = index.getComputingIndex();
-            DotName filterableRepositoryInterface = DotName.createSimple(FilterableRepository.class);
-            FilterableRepositoryImplementor visitorFunction =
-                    new FilterableRepositoryImplementor(indexView, filterableRepositoryInterface);
             indexView
-                    .getKnownDirectImplementors(filterableRepositoryInterface)
-                    .forEach(ci -> byteCodeProducer.produce(new BytecodeTransformerBuildItem.Builder()
-                            .setClassToTransform(ci.name().toString())
-                            .setVisitorFunction(visitorFunction)
-                            .build()));
+                    .getKnownDirectImplementors(SPRING_FILTERABLE_REPOSITORY)
+                    .forEach(ci -> producer.produce(
+                            new FilterableRepositoryImplementorBuildItem(SPRING_FILTERABLE_REPOSITORY, ci.name())));
+        }
+        if (capabilities.isPresent(PANACHE_SUPPORT)) {
+            indexView
+                    .getKnownDirectImplementors(PANACHE_FILTERABLE_REPOSITORY)
+                    .forEach(ci -> producer.produce(
+                            new FilterableRepositoryImplementorBuildItem(PANACHE_FILTERABLE_REPOSITORY, ci.name())));
         }
     }
 
     @BuildStep
-    void implementPanacheFilterableRepositoryExtension(
-            Capabilities capabilities,
+    void implementFilterableRepositories(
             CombinedIndexBuildItem index,
-            BuildProducer<BytecodeTransformerBuildItem> producer) {
-        if (capabilities.isPresent(PANACHE_SUPPORT)) {
-            IndexView indexView = index.getComputingIndex();
-            DotName filterableRepositoryInterface =
-                    DotName.createSimple(com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository.class);
+            BuildProducer<BytecodeTransformerBuildItem> producer,
+            List<FilterableRepositoryImplementorBuildItem> filterableRepoImplementors) {
+        IndexView indexView = index.getComputingIndex();
+        filterableRepoImplementors.forEach(item -> {
             FilterableRepositoryImplementor visitorFunction =
-                    new FilterableRepositoryImplementor(indexView, filterableRepositoryInterface);
-            indexView
-                    .getKnownDirectImplementors(filterableRepositoryInterface)
-                    .forEach(ci -> producer.produce(new BytecodeTransformerBuildItem.Builder()
-                            .setClassToTransform(ci.name().toString())
-                            .setVisitorFunction(visitorFunction)
-                            .build()));
-        }
+                    new FilterableRepositoryImplementor(indexView, item.getFilterableInterface());
+            producer.produce(new BytecodeTransformerBuildItem.Builder()
+                    .setClassToTransform(item.getImplementor().toString())
+                    .setVisitorFunction(visitorFunction)
+                    .build());
+        });
     }
 
     // In hybrid environment sometimes the requests hangs while reading body, causing the UI to freeze until read
