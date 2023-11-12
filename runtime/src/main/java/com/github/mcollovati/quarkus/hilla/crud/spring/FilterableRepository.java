@@ -33,10 +33,12 @@ import org.springframework.data.repository.Repository;
 public interface FilterableRepository<T, ID> extends Repository<T, ID> {
 
     default long count(Filter filter) {
-        throw new IllegalStateException("This method is normally automatically overwritten in subclasses at build time.");
+        throw new IllegalStateException(
+                "This method is normally automatically overwritten in subclasses at build time.");
     }
 
     default List<T> list(Pageable pageable, Filter filter) {
-        throw new IllegalStateException("This method is normally automatically overwritten in subclasses at build time.");
+        throw new IllegalStateException(
+                "This method is normally automatically overwritten in subclasses at build time.");
     }
 }
