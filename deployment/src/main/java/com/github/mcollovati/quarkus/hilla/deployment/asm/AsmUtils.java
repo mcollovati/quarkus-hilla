@@ -39,19 +39,18 @@ public class AsmUtils {
     /**
      * It is expected, that the last call to the iterator was next(), otherwise the previous bytecode block is deleted if pointing at a LabelNode.
      * @param iterator the iterator
-     * @param labelsToKeep the labels which should not be deleted
+     * @param keepStartLabel should the start label be kept, e.g. for try-catch blocks
      */
-    public static void deleteStatement(ListIterator<AbstractInsnNode> iterator, Set<LabelNode> labelsToKeep) {
-        removeUntilPreviousLabel(iterator, labelsToKeep);
+    public static void deleteStatement(ListIterator<AbstractInsnNode> iterator, boolean keepStartLabel) {
+        removeUntilPreviousLabel(iterator, keepStartLabel);
         removeUntilNextLabel(iterator);
     }
 
-    private static void removeUntilPreviousLabel(ListIterator<AbstractInsnNode> iter, Set<LabelNode> labelsToKeep) {
+    private static void removeUntilPreviousLabel(ListIterator<AbstractInsnNode> iter, boolean keepStartLabel) {
         while (iter.hasPrevious()) {
             final var instruction = iter.previous();
             if (instruction instanceof LabelNode) {
-                // Some labels need to be kept, e.g. for try-catch blocks
-                if (!labelsToKeep.contains(instruction)) iter.remove();
+                if (!keepStartLabel) iter.remove();
                 break;
             } else iter.remove();
         }

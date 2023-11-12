@@ -17,11 +17,11 @@ package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
 import java.util.ListIterator;
 import java.util.Map;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -45,14 +45,18 @@ class MethodRedirectNode extends MethodNode {
     @Override
     public void visitEnd() {
         final var iterator = instructions.iterator();
+        LabelNode lastLabelNode = null;
         while (iterator.hasNext()) {
             final var instruction = iterator.next();
-            if (instruction instanceof MethodInsnNode) {
+            if (instruction instanceof LabelNode) {
+                lastLabelNode = (LabelNode) instruction;
+            } else if (instruction instanceof MethodInsnNode) {
+                final LabelNode finalLastLabelNode = lastLabelNode;
                 redirects.entrySet().stream()
                         .filter(e -> AsmUtils.hasMethodInsnSignature(e.getKey(), (MethodInsnNode) instruction))
                         .findFirst()
                         .ifPresent(mvr -> {
-                            if (MethodSignature.DROP_METHOD.equals(mvr.getValue())) drop(iterator);
+                            if (MethodSignature.DROP_METHOD.equals(mvr.getValue())) drop(iterator, finalLastLabelNode);
                             else redirect((MethodInsnNode) instruction, mvr.getValue());
                         });
             }
@@ -60,11 +64,11 @@ class MethodRedirectNode extends MethodNode {
         accept(mv);
     }
 
-    private void drop(ListIterator<AbstractInsnNode> iterator) {
-        final var labelsToKeep = tryCatchBlocks.stream()
+    private void drop(ListIterator<AbstractInsnNode> iterator, LabelNode lastLabelNode) {
+        final boolean keepLabel = tryCatchBlocks.stream()
                 .flatMap(block -> Stream.of(block.start, block.end, block.handler))
-                .collect(Collectors.toUnmodifiableSet());
-        AsmUtils.deleteStatement(iterator, labelsToKeep);
+                .anyMatch(node -> node.equals(lastLabelNode));
+        AsmUtils.deleteStatement(iterator, keepLabel);
     }
 
     private void redirect(MethodInsnNode methodInsnNode, MethodSignature targetMethod) {
