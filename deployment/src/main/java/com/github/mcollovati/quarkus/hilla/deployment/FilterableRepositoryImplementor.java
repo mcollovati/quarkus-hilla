@@ -50,7 +50,7 @@ public class FilterableRepositoryImplementor implements BiFunction<String, Class
                 JandexUtil.resolveTypeParameters(repositoryInterface.name(), filterableRepositoryInterface, index);
         if (!(types.get(0) instanceof ClassType)) {
             throw new IllegalArgumentException("Cannot determine the type of the JPA entity that " + className
-                    + " is supposed to handle by implementing FilterableRepository<ENTITY, ID>");
+                    + " is supposed to handle by implementing FilterableRepository<ENTITY, ID>.");
         }
         DotName entityType = types.get(0).name();
         ClassTransformer transformer = new ClassTransformer(className);
