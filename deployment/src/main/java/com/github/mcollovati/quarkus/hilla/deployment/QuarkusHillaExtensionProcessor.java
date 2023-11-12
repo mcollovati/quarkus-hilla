@@ -84,7 +84,7 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigProcessorClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
 
 class QuarkusHillaExtensionProcessor {
@@ -287,7 +287,7 @@ class QuarkusHillaExtensionProcessor {
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "handleBrowserSubscribe")));
         producer.produce(new BytecodeTransformerBuildItem(
                 "dev.hilla.parser.plugins.nonnull.NonnullPluginConfig$Processor",
-                (s, classVisitor) -> new NonnullPluginConfigClassVisitor(classVisitor)));
+                (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
     }
 
     @BuildStep

@@ -16,7 +16,7 @@
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
 import java.util.ListIterator;
-import java.util.Set;
+import java.util.function.Predicate;
 
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LabelNode;
@@ -34,6 +34,22 @@ public class AsmUtils {
                 && srcMethod.getName().equals(name)
                 && (srcMethod.getDescriptor() == null
                         || srcMethod.getDescriptor().equals(descriptor));
+    }
+
+    public static <T extends AbstractInsnNode> T findNextInsnNode(
+            ListIterator<AbstractInsnNode> iterator, Predicate<T> predicate, Class<T> clazz) {
+        return clazz.cast(findNextInsnNode(iterator, node -> clazz.isInstance(node) && predicate.test((T) node)));
+    }
+
+    public static AbstractInsnNode findNextInsnNode(
+            ListIterator<AbstractInsnNode> iterator, Predicate<AbstractInsnNode> predicate) {
+        while (iterator.hasNext()) {
+            final var instruction = iterator.next();
+            if (predicate.test(instruction)) {
+                return instruction;
+            }
+        }
+        return null;
     }
 
     /**
