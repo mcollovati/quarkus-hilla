@@ -28,8 +28,6 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
 import dev.hilla.Endpoint;
-import dev.hilla.EndpointInvoker;
-import dev.hilla.EndpointRegistry;
 import dev.hilla.push.PushEndpoint;
 import dev.hilla.push.PushMessageHandler;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -84,8 +82,7 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigProcessorClassVisitor;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacer;
 
 class QuarkusHillaExtensionProcessor {
 
@@ -273,21 +270,7 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     void replaceCallsToSpring(
             BuildProducer<BytecodeTransformerBuildItem> producer, final CombinedIndexBuildItem index) {
-        producer.produce(new BytecodeTransformerBuildItem(
-                EndpointRegistry.class.getName(),
-                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "registerEndpoint")));
-        producer.produce(new BytecodeTransformerBuildItem(
-                PushEndpoint.class.getName(),
-                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "onMessageRequest")));
-        producer.produce(new BytecodeTransformerBuildItem(
-                EndpointInvoker.class.getName(),
-                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "invokeVaadinEndpointMethod")));
-        producer.produce(new BytecodeTransformerBuildItem(
-                PushMessageHandler.class.getName(),
-                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "handleBrowserSubscribe")));
-        producer.produce(new BytecodeTransformerBuildItem(
-                "dev.hilla.parser.plugins.nonnull.NonnullPluginConfig$Processor",
-                (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
+        SpringReplacer.addClassVisitors(producer);
     }
 
     @BuildStep
