@@ -15,11 +15,9 @@
  */
 package com.example.application.autogrid;
 
-import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import jakarta.enterprise.context.ApplicationScoped;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
+import com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository;
 
-@BrowserCallable
-@AnonymousAllowed
-public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}
+@ApplicationScoped
+public class UserRepository implements FilterableRepository<User, Long> {}

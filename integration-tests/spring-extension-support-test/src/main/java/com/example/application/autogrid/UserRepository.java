@@ -17,4 +17,6 @@ package com.example.application.autogrid;
 
 import org.springframework.data.repository.CrudRepository;
 
-public interface UserRepository extends CrudRepository<User, Long>, UserSpecificationFragment {}
+import com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository;
+
+public interface UserRepository extends CrudRepository<User, Long>, FilterableRepository<User, Long> {}

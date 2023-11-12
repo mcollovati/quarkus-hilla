@@ -50,6 +50,7 @@
                                         <include>org/springframework/core/io/InputStreamSource.class</include>
                                         <include>org/springframework/core/io/Resource.class</include>
                                         <include>org/springframework/core/io/ResourceLoader.class</include>
+                                        <include>org/springframework/lang/NonNullApi.class</include>
                                         <include>
                                             org/springframework/core/io/support/ResourcePatternResolver.class
                                         </include>

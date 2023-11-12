@@ -18,7 +18,7 @@ package com.example.application.autogrid;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
+import com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService;
 
 @BrowserCallable
 @AnonymousAllowed

@@ -13,16 +13,34 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.deployment.crud.panache;
 
-import java.util.List;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 
-import dev.hilla.crud.filter.Filter;
-import org.springframework.data.domain.Pageable;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
-public interface UserSpecificationFragment {
+@Entity
+@Table(name = "test_table")
+public class TestEntity extends PanacheEntity {
 
-    long count(Filter filter);
+    private String text;
 
-    List<User> list(Pageable pageable, Filter filter);
+    private Integer number;
+
+    public String getText() {
+        return text;
+    }
+
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public Integer getNumber() {
+        return number;
+    }
+
+    public void setNumber(Integer number) {
+        this.number = number;
+    }
 }
