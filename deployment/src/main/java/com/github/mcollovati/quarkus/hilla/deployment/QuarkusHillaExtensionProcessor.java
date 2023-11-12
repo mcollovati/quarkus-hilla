@@ -85,7 +85,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.NonnullPluginConfigClassVisitor;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.PushEndpointClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacementsClassVisitor;
 
 class QuarkusHillaExtensionProcessor {
@@ -278,7 +277,8 @@ class QuarkusHillaExtensionProcessor {
                 EndpointRegistry.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "registerEndpoint")));
         producer.produce(new BytecodeTransformerBuildItem(
-                PushEndpoint.class.getName(), (s, classVisitor) -> new PushEndpointClassVisitor(classVisitor)));
+                PushEndpoint.class.getName(),
+                (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "onMessageRequest")));
         producer.produce(new BytecodeTransformerBuildItem(
                 EndpointInvoker.class.getName(),
                 (s, classVisitor) -> new SpringReplacementsClassVisitor(classVisitor, "invokeVaadinEndpointMethod")));

@@ -15,13 +15,15 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import java.util.ListIterator;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 import org.objectweb.asm.tree.MethodNode;
-
-import java.util.ListIterator;
-import java.util.Map;
 
 class MethodRedirectNode extends MethodNode {
     private final Map<MethodSignature, MethodSignature> redirects;
@@ -36,6 +38,7 @@ class MethodRedirectNode extends MethodNode {
             MethodVisitor mv,
             Map<MethodSignature, MethodSignature> redirects) {
         super(api, access, name, descriptor, signature, exceptions);
+        this.mv = mv;
         this.redirects = redirects;
     }
 
@@ -48,20 +51,25 @@ class MethodRedirectNode extends MethodNode {
                 redirects.entrySet().stream()
                         .filter(e -> AsmUtils.hasMethodInsnSignature(e.getKey(), (MethodInsnNode) instruction))
                         .findFirst()
-                        .ifPresent(mvr -> redirect(iterator, (MethodInsnNode) instruction, mvr.getValue()));
+                        .ifPresent(mvr -> {
+                            if (MethodSignature.DROP_METHOD.equals(mvr.getValue())) drop(iterator);
+                            else redirect((MethodInsnNode) instruction, mvr.getValue());
+                        });
             }
         }
         accept(mv);
     }
 
-    private void redirect(
-            ListIterator<AbstractInsnNode> iterator, MethodInsnNode methodInsnNode, MethodSignature targetMethod) {
-        if (MethodSignature.DROP_METHOD.equals(targetMethod)) {
-            AsmUtils.dropStatement(iterator, methodInsnNode);
-        } else {
-            methodInsnNode.owner = targetMethod.getOwner();
-            methodInsnNode.name = targetMethod.getName();
-            if (targetMethod.getDescriptor() != null) methodInsnNode.desc = targetMethod.getDescriptor();
-        }
+    private void drop(ListIterator<AbstractInsnNode> iterator) {
+        final var labelsToKeep = tryCatchBlocks.stream()
+                .flatMap(block -> Stream.of(block.start, block.end, block.handler))
+                .collect(Collectors.toUnmodifiableSet());
+        AsmUtils.deleteStatement(iterator, labelsToKeep);
+    }
+
+    private void redirect(MethodInsnNode methodInsnNode, MethodSignature targetMethod) {
+        methodInsnNode.owner = targetMethod.getOwner();
+        methodInsnNode.name = targetMethod.getName();
+        if (targetMethod.getDescriptor() != null) methodInsnNode.desc = targetMethod.getDescriptor();
     }
 }

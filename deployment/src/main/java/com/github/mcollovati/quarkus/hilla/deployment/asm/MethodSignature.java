@@ -43,8 +43,16 @@ public class MethodSignature {
         return methodDescriptor;
     }
 
+    public static MethodSignature of(Class<?> methodOwner, String methodName) {
+        return of(methodOwner.getName().replace('.', '/'), methodName);
+    }
+
     public static MethodSignature of(String methodOwner, String methodName) {
         return new MethodSignature(methodOwner, methodName, null);
+    }
+
+    public static MethodSignature of(Class<?> methodOwner, String methodName, String methodDescriptor) {
+        return of(methodOwner.getName().replace('.', '/'), methodName, methodDescriptor);
     }
 
     public static MethodSignature of(String methodOwner, String methodName, String methodDescriptor) {

@@ -15,11 +15,12 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import java.util.ListIterator;
+import java.util.Set;
+
 import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
-
-import java.util.ListIterator;
 
 public class AsmUtils {
 
@@ -35,25 +36,30 @@ public class AsmUtils {
                         || srcMethod.getDescriptor().equals(descriptor));
     }
 
-    public static void dropStatement(ListIterator<AbstractInsnNode> iterator, AbstractInsnNode currentInsn) {
-        // If we match against a label, then there is no previous instruction to remove
-        if (!(currentInsn instanceof LabelNode)) removeUntilPreviousLabel(iterator);
+    /**
+     * It is expected, that the last call to the iterator was next(), otherwise the previous bytecode block is deleted if pointing at a LabelNode.
+     * @param iterator the iterator
+     * @param labelsToKeep the labels which should not be deleted
+     */
+    public static void deleteStatement(ListIterator<AbstractInsnNode> iterator, Set<LabelNode> labelsToKeep) {
+        removeUntilPreviousLabel(iterator, labelsToKeep);
         removeUntilNextLabel(iterator);
     }
 
-    private static void removeUntilPreviousLabel(ListIterator<AbstractInsnNode> iter) {
+    private static void removeUntilPreviousLabel(ListIterator<AbstractInsnNode> iter, Set<LabelNode> labelsToKeep) {
         while (iter.hasPrevious()) {
-            var instruction = iter.previous();
-            iter.remove();
+            final var instruction = iter.previous();
             if (instruction instanceof LabelNode) {
+                // Some labels need to be kept, e.g. for try-catch blocks
+                if (!labelsToKeep.contains(instruction)) iter.remove();
                 break;
-            }
+            } else iter.remove();
         }
     }
 
     private static void removeUntilNextLabel(ListIterator<AbstractInsnNode> iter) {
         while (iter.hasNext()) {
-            var instruction = iter.next();
+            final var instruction = iter.next();
             if (instruction instanceof LabelNode) {
                 break;
             }

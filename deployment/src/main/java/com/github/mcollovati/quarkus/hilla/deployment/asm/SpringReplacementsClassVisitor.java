@@ -15,13 +15,14 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
-import com.github.mcollovati.quarkus.hilla.SpringReplacements;
+import java.util.Map;
+
 import dev.hilla.AuthenticationUtil;
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-import java.util.Map;
+import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
 /**
  * This ClassVisitor searches for used methods which are based on Spring and replaces them with a Quarkus equivalent.
@@ -30,17 +31,21 @@ public class SpringReplacementsClassVisitor extends ClassVisitor {
 
     private static final Map<MethodSignature, MethodSignature> STATIC_SPRING_REDIRECTS = Map.of(
             MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
-            MethodSignature.of(SpringReplacements.class.getName(), "classUtils_getUserClass"),
+            MethodSignature.of(SpringReplacements.class, "classUtils_getUserClass"),
             MethodSignature.of(
-                    AuthenticationUtil.class.getName(),
+                    AuthenticationUtil.class,
                     "getSecurityHolderAuthentication",
                     "()Lorg/springframework/security/core/Authentication;"),
             MethodSignature.of(
-                    SpringReplacements.class.getName(),
+                    SpringReplacements.class,
                     "authenticationUtil_getSecurityHolderAuthentication",
                     "()Ljava/security/Principal;"),
-            MethodSignature.of(AuthenticationUtil.class.getName(), "getSecurityHolderRoleChecker"),
-            MethodSignature.of(SpringReplacements.class.getName(), "authenticationUtil_getSecurityHolderRoleChecker"));
+            MethodSignature.of(AuthenticationUtil.class, "getSecurityHolderRoleChecker"),
+            MethodSignature.of(SpringReplacements.class, "authenticationUtil_getSecurityHolderRoleChecker"),
+            MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
+            MethodSignature.DROP_METHOD,
+            MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "clearContext"),
+            MethodSignature.DROP_METHOD);
     private final String methodName;
 
     /**
