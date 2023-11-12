@@ -29,7 +29,7 @@ import com.github.mcollovati.quarkus.hilla.SpringReplacements;
  */
 public class SpringReplacementsClassVisitor extends ClassVisitor {
 
-    private static final Map<MethodSignature, MethodSignature> STATIC_SPRING_REDIRECTS = Map.of(
+    private static final Map<MethodSignature, MethodSignature> SPRING_STATIC_METHOD_REDIRECTS = Map.of(
             MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
             MethodSignature.of(SpringReplacements.class, "classUtils_getUserClass"),
             MethodSignature.of(
@@ -63,7 +63,7 @@ public class SpringReplacementsClassVisitor extends ClassVisitor {
         MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
             return new MethodRedirectNode(
-                    api, access, name, descriptor, signature, exceptions, superVisitor, STATIC_SPRING_REDIRECTS);
+                    api, access, name, descriptor, signature, exceptions, superVisitor, SPRING_STATIC_METHOD_REDIRECTS);
         }
         return superVisitor;
     }
