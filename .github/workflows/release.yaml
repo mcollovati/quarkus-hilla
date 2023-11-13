@@ -83,9 +83,9 @@ jobs:
             echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [[ -n "${{ input.hilla-version }}" ]]; then
-            mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion="${{ input.hilla-version }}"
-            echo "Hilla version set to ${{ input.hilla-version }}." >> $GITHUB_STEP_SUMMARY
+          if [[ -n "${{ inputs.hilla-version }}" ]]; then
+            mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion="${{ inputs.hilla-version }}"
+            echo "Hilla version set to ${{ inputs.hilla-version }}." >> $GITHUB_STEP_SUMMARY
           fi
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
           if [[ "$hilla_version" =~ '.*-SNAPSHOT' ]]; then
