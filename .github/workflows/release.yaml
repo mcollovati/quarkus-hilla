@@ -17,6 +17,12 @@ on:
         description: "Version to release (e.g. 1.1.0 or 1.2.0-alpha1)"
         required: true
         type: string
+      hilla-version:
+        description: |
+          Version of Hilla to pin for this release. If not provided, the value of the hilla.version property in will be used.
+          If the Hilla version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
+        required: false
+        type: string
       dry-run:
         description: "Dry run (skips remote operations)"
         required: true
@@ -75,6 +81,22 @@ jobs:
           echo "Releasing version '${{ inputs.version }}' from branch '${{ inputs.target-branch }}'." >> $GITHUB_STEP_SUMMARY
           if [[ "${{ github.event.inputs.dry-run }}" == "true" ]]; then
             echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [[ -n "${{ input.hilla-version }}" ]]; then
+            mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion="${{ input.hilla-version }}"
+            echo "Hilla version set to ${{ input.hilla-version }}." >> $GITHUB_STEP_SUMMARY
+          fi
+          hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
+          if [[ "$hilla_version" =~ '.*-SNAPSHOT' ]]; then
+            mvn -N -Ppin-hilla-version
+            hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
+            echo "Autodetected Hilla version $hilla_version." >> $GITHUB_STEP_SUMMARY
+          fi
+          if [[ "$hilla_version" =~ '.*-SNAPSHOT' ]]; then
+            echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
+             | tee -a  $GITHUB_STEP_SUMMARY
+            exit 1
           fi
       - name: Setup Java
         uses: actions/setup-java@v3
