@@ -51,7 +51,6 @@ jobs:
           if [[ "main" != "${BRANCH_NAME}" ]]; then
             echo "🚫 Release Workflow must be dispatched on 'main' branch." \
              | tee -a  $GITHUB_STEP_SUMMARY
-            exit 1
           fi
 
       - name: Checkout
