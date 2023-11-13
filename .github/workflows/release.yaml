@@ -87,12 +87,12 @@ jobs:
             echo "Hilla version set to ${{ inputs.hilla-version }}." >> $GITHUB_STEP_SUMMARY
           fi
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
-          if [[ "$hilla_version" =~ '.*-SNAPSHOT' ]]; then
+          if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             mvn -N -Ppin-hilla-version
             hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
             echo "Autodetected Hilla version $hilla_version." >> $GITHUB_STEP_SUMMARY
           fi
-          if [[ "$hilla_version" =~ '.*-SNAPSHOT' ]]; then
+          if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
@@ -105,7 +105,7 @@ jobs:
 
       - name: Staging artifacts
         run: |
-          mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
+          mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy -DskipTests deploy
 
       - name: Run JReleaser
         env:
