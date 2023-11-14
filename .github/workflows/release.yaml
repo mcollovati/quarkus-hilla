@@ -94,6 +94,8 @@ jobs:
             mvn -N -ntp -Dproperty=hilla.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
             hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
             echo "Autodetected Hilla version $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
+          elif
+            echo "Hilla version $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
           fi
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
