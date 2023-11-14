@@ -87,12 +87,13 @@ jobs:
         run: |
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
           hilla_version_major_minor=$(echo "${hilla_version/-*/}" | cut -d. -f1,2)
+          echo "POM file Hilla version: $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
           if [[ -n "${{ inputs.hilla-version }}" ]]; then
             if [[ "${{ inputs.hilla-version }}" = "${hilla_version_major_minor}."* ]]; then
               mvn -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="${{ inputs.hilla-version }}"
-              echo "⚠️ Hilla version set to ${{ inputs.hilla-version }}." | tee -a  $GITHUB_STEP_SUMMARY
+              echo "⚠️ Hilla version forced to ${{ inputs.hilla-version }}." | tee -a  $GITHUB_STEP_SUMMARY
             else
-              echo "🚫 Hilla version '${{ inputs.hilla-version }}' does not match Hilla version on release branch '${{ inputs.target-branch }}'." \
+              echo "🚫 Forced Hilla version '${{ inputs.hilla-version }}' does not match Hilla version on release branch '$hilla_version_major_minor'." \
                 | tee -a  $GITHUB_STEP_SUMMARY
               exit 1
             fi
@@ -100,9 +101,7 @@ jobs:
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             mvn -N -ntp -Dproperty=hilla.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
             hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
-            echo "⚠️ Autodetected Hilla version $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
-          elif
-            echo "Hilla version $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
+            echo "⚠️ SNAPSHOT detected for Hilla version. Forced version to $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
           fi
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
