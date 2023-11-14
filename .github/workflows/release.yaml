@@ -92,6 +92,7 @@ jobs:
             if [[ "${{ inputs.hilla-version }}" = "${hilla_version_major_minor}."* ]]; then
               mvn -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="${{ inputs.hilla-version }}"
               echo "⚠️ Hilla version forced to ${{ inputs.hilla-version }}." | tee -a  $GITHUB_STEP_SUMMARY
+              hilla_version="${{ inputs.hilla-version }}"
             else
               echo "🚫 Forced Hilla version '${{ inputs.hilla-version }}' does not match Hilla version on release branch '$hilla_version_major_minor'." \
                 | tee -a  $GITHUB_STEP_SUMMARY
