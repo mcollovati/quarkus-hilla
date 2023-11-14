@@ -46,11 +46,13 @@ jobs:
           echo "🚫 **${{ github.actor }}** is an external contributor, only **${{ github.repository }}** team members can perform a release" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
       - name: Validate Workflow branch
+        if: ${{ !github.event.inputs.dry-run }}
         run: |
           BRANCH_NAME=${GITHUB_REF##*/}
           if [[ "main" != "${BRANCH_NAME}" ]]; then
             echo "🚫 Release Workflow must be dispatched on 'main' branch." \
              | tee -a  $GITHUB_STEP_SUMMARY
+            exit 1
           fi
 
       - name: Checkout
@@ -81,16 +83,17 @@ jobs:
           if [[ "${{ github.event.inputs.dry-run }}" == "true" ]]; then
             echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." >> $GITHUB_STEP_SUMMARY
           fi
-
+      - name: Pin Hilla version
+        run: |
           if [[ -n "${{ inputs.hilla-version }}" ]]; then
             mvn -N versions:set-property -Dproperty=hilla.version -DnewVersion="${{ inputs.hilla-version }}"
-            echo "Hilla version set to ${{ inputs.hilla-version }}." >> $GITHUB_STEP_SUMMARY
+            echo "Hilla version set to ${{ inputs.hilla-version }}." | tee -a  $GITHUB_STEP_SUMMARY
           fi
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             mvn -N -Dproperty=hilla.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
             hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
-            echo "Autodetected Hilla version $hilla_version." >> $GITHUB_STEP_SUMMARY
+            echo "Autodetected Hilla version $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
           fi
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
