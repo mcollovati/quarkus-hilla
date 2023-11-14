@@ -88,7 +88,7 @@ jobs:
           fi
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
-            mvn -N -Ppin-hilla-version
+            mvn -N -Dproperty=hilla.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
             hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
             echo "Autodetected Hilla version $hilla_version." >> $GITHUB_STEP_SUMMARY
           fi
@@ -105,7 +105,7 @@ jobs:
 
       - name: Staging artifacts
         run: |
-          mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy -DskipTests deploy
+          mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy ${{ github.event.inputs.dry-run && '-DskipTests' || '' }} deploy
 
       - name: Run JReleaser
         env:
