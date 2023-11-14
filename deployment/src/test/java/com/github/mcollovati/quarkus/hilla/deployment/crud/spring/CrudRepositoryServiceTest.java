@@ -79,6 +79,30 @@ class CrudRepositoryServiceTest {
     }
 
     @Test
+    void save_detachedEntity_entityUpdated() {
+        List<TestEntity> allEntities =
+                entityManager.createQuery("from TestEntity", TestEntity.class).getResultList();
+
+        TestEntity existingEntity = allEntities.get(0);
+        long id = existingEntity.getId();
+        entityManager.clear();
+
+        TestEntity copy = new TestEntity();
+        copy.setId(id);
+        copy.setText("Ten");
+        copy.setNumber(10);
+        service.save(copy);
+
+        entityManager.flush();
+        entityManager.clear();
+
+        TestEntity fetchedEntity = entityManager.find(TestEntity.class, id);
+        Assertions.assertThat(fetchedEntity)
+                .extracting(TestEntity::getText, TestEntity::getNumber)
+                .containsExactly("Ten", 10);
+    }
+
+    @Test
     void delete_entityDeleted() {
         List<TestEntity> allEntities =
                 entityManager.createQuery("from TestEntity", TestEntity.class).getResultList();

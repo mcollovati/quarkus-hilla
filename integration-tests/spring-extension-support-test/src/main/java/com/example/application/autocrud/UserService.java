@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.example.application.autocrud;
 
-import org.springframework.data.repository.CrudRepository;
+import com.vaadin.flow.server.auth.AnonymousAllowed;
+import dev.hilla.BrowserCallable;
 
-import com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository;
+import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
 
-public interface UserRepository extends CrudRepository<User, Long>, FilterableRepository<User, Long> {}
+@BrowserCallable
+@AnonymousAllowed
+public class UserService extends CrudRepositoryService<User, Long, UserRepository> {}

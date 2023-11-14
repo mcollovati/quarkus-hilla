@@ -13,24 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.example.application.autocrud;
 
-import java.util.UUID;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import java.io.Serializable;
 
-public class UserPOJO {
+@Entity
+@Table(name = "users_")
+public class User implements Serializable {
 
-    private String id;
+    @Id
+    @GeneratedValue
+    private Long id;
 
     private String name;
     private String surname;
 
-    public UserPOJO(String name, String surname) {
-        this.id = UUID.randomUUID().toString();
+    public User() {}
+
+    public User(String name, String surname) {
         this.name = name;
         this.surname = surname;
     }
 
-    public String getId() {
+    public Long getId() {
         return id;
     }
 

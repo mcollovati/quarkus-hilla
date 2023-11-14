@@ -35,57 +35,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @QuarkusTest
 class AutoGridTest extends AbstractTest {
 
-    public static final List<String> NAMES_ASC = List.of(
-            "Aaliyah",
-            "Addison",
-            "Adrian",
-            "Alexa",
-            "Alexandra",
-            "Alexis",
-            "Alyssa",
-            "Andrew",
-            "Aria",
-            "Aubrey",
-            "Autumn",
-            "Ava",
-            "Avery",
-            "Bentley",
-            "Blake");
-    public static final List<String> NAMES_DESC = List.of(
-            "Zoey",
-            "Zoe",
-            "William",
-            "Victoria",
-            "Tyler",
-            "Tristan",
-            "Sophie",
-            "Sophia",
-            "Sofia",
-            "Skylar",
-            "Seth",
-            "Scarlett",
-            "Samuel",
-            "Sadie",
-            "Ryan");
-    public static final List<String> NAMES_UNSORTED = List.of(
-            "Jason",
-            "Homer",
-            "Peter",
-            "Emily",
-            "Daniel",
-            "Olivia",
-            "William",
-            "Sophia",
-            "Matthew",
-            "Emma",
-            "Christopher",
-            "Ava",
-            "Nicholas",
-            "Madison",
-            "Ethan");
-
-    private static final int RENDERED_ITEMS = NAMES_UNSORTED.size();
-
     @Override
     protected String getTestUrl() {
         return getBaseURL() + "auto-grid";
@@ -94,7 +43,7 @@ class AutoGridTest extends AbstractTest {
     @Test
     void autoGrid_gridIsDisplayed() {
         openAndWait(() -> $("vaadin-grid"));
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_ASC);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
 
         SelenideElement filterRows =
                 $$(shadowCss("thead#header tr[part~=\"row\"]", "vaadin-grid")).last();
@@ -110,7 +59,7 @@ class AutoGridTest extends AbstractTest {
         openAndWait(() -> $("vaadin-grid"));
         SelenideElement filter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[3]/vaadin-text-field/input"));
 
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_ASC);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
 
         filter.setValue("er");
         assertThat(collectColumnTexts(1, 9))
@@ -121,13 +70,13 @@ class AutoGridTest extends AbstractTest {
         assertThat(collectColumnTexts(1, 2)).containsExactlyInAnyOrder("Homer", "Nicholas");
 
         filter.setValue("");
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_ASC);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
     }
 
     @Test
     void autoGrid_sort() {
         openAndWait(() -> $("vaadin-grid"));
-        assertThat(collectColumnTexts(1)).hasSize(RENDERED_ITEMS);
+        assertThat(collectColumnTexts(1)).hasSize(TestData.RENDERED_ITEMS);
 
         SelenideElement nameSorter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[1]/vaadin-grid-sorter"));
 
@@ -137,26 +86,26 @@ class AutoGridTest extends AbstractTest {
             direction = nameSorter.getAttribute("direction");
         }
 
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_UNSORTED);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_UNSORTED);
 
         // Sort by name ascending
         nameSorter.click();
         assertThat(nameSorter.getAttribute("direction")).isEqualTo("asc");
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_ASC);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
 
         // Sort by name ascending
         nameSorter.click();
         assertThat(nameSorter.getAttribute("direction")).isEqualTo("desc");
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_DESC);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_DESC);
 
         // Unsorted
         nameSorter.click();
         assertThat(nameSorter.getAttribute("direction")).isNull();
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(NAMES_UNSORTED);
+        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_UNSORTED);
     }
 
     private static List<String> collectColumnTexts(int column) {
-        return collectColumnTexts(column, RENDERED_ITEMS);
+        return collectColumnTexts(column, TestData.RENDERED_ITEMS);
     }
 
     private static List<String> collectColumnTexts(int column, int expectedSize) {

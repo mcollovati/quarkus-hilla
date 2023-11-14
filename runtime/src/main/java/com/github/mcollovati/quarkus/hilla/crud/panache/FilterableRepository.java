@@ -39,4 +39,9 @@ public interface FilterableRepository<T, ID> extends PanacheRepositoryBase<T, ID
         throw new IllegalStateException(
                 "This method is normally automatically overwritten in subclasses at build time.");
     }
+
+    default boolean isNew(T value) {
+        throw new IllegalStateException(
+                "This method is normally automatically overwritten in subclasses at build time.");
+    }
 }
