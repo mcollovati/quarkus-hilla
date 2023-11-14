@@ -79,9 +79,9 @@ jobs:
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          echo "Releasing version '${{ inputs.version }}' from branch '${{ inputs.target-branch }}'." >> $GITHUB_STEP_SUMMARY
+          echo "Releasing version '${{ inputs.version }}' from branch '${{ inputs.target-branch }}'." | tee -a $GITHUB_STEP_SUMMARY
           if [[ "${{ github.event.inputs.dry-run }}" == "true" ]]; then
-            echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." | tee -a $GITHUB_STEP_SUMMARY
           fi
       - name: Pin Hilla version
         run: |
@@ -95,18 +95,18 @@ jobs:
               hilla_version="${{ inputs.hilla-version }}"
             else
               echo "🚫 Forced Hilla version '${{ inputs.hilla-version }}' does not match Hilla version on release branch '$hilla_version_major_minor'." \
-                | tee -a  $GITHUB_STEP_SUMMARY
+                | tee -a $GITHUB_STEP_SUMMARY
               exit 1
             fi
           fi
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             mvn -N -ntp -Dproperty=hilla.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
             hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
-            echo "⚠️ SNAPSHOT detected for Hilla version. Forced version to $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
+            echo "⚠️ SNAPSHOT detected for Hilla version. Forced version to $hilla_version." | tee -a $GITHUB_STEP_SUMMARY
           fi
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
             echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
-             | tee -a  $GITHUB_STEP_SUMMARY
+             | tee -a $GITHUB_STEP_SUMMARY
             exit 1
           fi
       - name: Setup Java
