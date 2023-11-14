@@ -89,7 +89,7 @@ jobs:
             if [[ "${{ inputs.hilla-version }}" = "${{ inputs.target-branch }}."* ]]; then            
               mvn -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="${{ inputs.hilla-version }}"
               echo "⚠️ Hilla version set to ${{ inputs.hilla-version }}." | tee -a  $GITHUB_STEP_SUMMARY
-            elif
+            else
               echo "🚫 Hilla version '${{ inputs.hilla-version }}' does not match release branch ${{ inputs.target-branch }}." \
                 | tee -a  $GITHUB_STEP_SUMMARY
               exit 1
