@@ -117,7 +117,7 @@ jobs:
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
         run: |
-          mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="${{ github.event.inputs.dry-run }}" jreleaser:full-release
+          mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="${{ github.event.inputs.dry-run }}" ${{ github.event.inputs.dry-run && '-DskipTests' || '' }} jreleaser:full-release
 
       - name: JReleaser release output
         if: always()
