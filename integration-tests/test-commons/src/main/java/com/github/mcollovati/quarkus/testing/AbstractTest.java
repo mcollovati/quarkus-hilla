@@ -19,6 +19,7 @@ import java.lang.management.ManagementFactory;
 import java.time.Duration;
 import java.util.function.Supplier;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.Selectors;
@@ -30,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
 
 @ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
@@ -49,6 +51,7 @@ public abstract class AbstractTest {
             Configuration.headless = runHeadless();
             System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
         }
+        Configuration.fastSetValue = true;
     }
 
     protected final String getBaseURL() {
@@ -72,11 +75,22 @@ public abstract class AbstractTest {
     }
 
     protected void openAndWait(String url, Supplier<SelenideElement> selector) {
+        openAndWait(url, selector, true);
+    }
+
+    protected void openAndWait(String url, Supplier<SelenideElement> selector, boolean checkErrors) {
         Selenide.open(url);
         waitForDevServer();
         selector.get().shouldBe(Condition.visible, Duration.ofSeconds(10));
-        $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools")).shouldNot(Condition.exist);
-        $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNot(Condition.exist);
+        if (checkErrors) {
+            SelenideElement devToolsError = $(Selectors.shadowCss("div.dev-tools.error", "vaadin-dev-tools"));
+            if (devToolsError.is(Condition.visible)) {
+                devToolsError.click();
+                $$(Selectors.shadowCss("div.message-tray div.message.error", "vaadin-dev-tools"))
+                        .shouldBe(CollectionCondition.empty);
+            }
+            $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNotBe(Condition.visible);
+        }
     }
 
     protected void waitForDevServer() {
