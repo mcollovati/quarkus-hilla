@@ -73,11 +73,11 @@ runs:
     - name: Package test output files
       if: ${{ failure()}}
       shell: bash
-      run: find . -name surefire-reports -name failsafe-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-${{ inputs.ref }}-${{ inputs.hilla_version }}.tgz -T -
+      run: find . -name surefire-reports -name failsafe-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-${{ inputs.ref }}-${{ inputs.hilla_version }}-JVM-${{ inputs.java_version }}.tgz -T -
     - uses: actions/upload-artifact@v3
       if: ${{ failure() }}
       with:
-        name: tests-output-${{ inputs.ref }}-${{ inputs.hilla_version }}
+        name: tests-output-${{ inputs.ref }}-${{ inputs.hilla_version }}-JVM-${{ inputs.java_version }}
         path: tests-report-*.tgz
     - name: Checkout
       uses: actions/checkout@v3
