@@ -61,7 +61,7 @@ class SmokeTest extends AbstractTest {
 
     @Test
     void openNotExisingView_errorPageIsDisplayed() {
-        openAndWait(getTestUrl() + "not-existing-view", () -> $("div#outlet"));
+        openAndWait(getTestUrl() + "not-existing-view", () -> $("div#outlet"), false);
 
         $$("h3").filter(Condition.partialText("404 Not Found")).first().shouldBe(visible);
     }
