@@ -35,6 +35,7 @@ runs:
         cache: maven
     - uses: browser-actions/setup-chrome@latest
       id: setup-chrome
+      if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
       with:
         chrome-version: stable
     - name: Build
