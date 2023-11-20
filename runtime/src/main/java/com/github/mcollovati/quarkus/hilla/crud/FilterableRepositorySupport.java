@@ -24,13 +24,7 @@ import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
-import jakarta.persistence.metamodel.SingularAttribute;
-import java.lang.reflect.Field;
-import java.lang.reflect.Member;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.List;
-import java.util.Objects;
 
 import dev.hilla.crud.filter.AndFilter;
 import dev.hilla.crud.filter.Filter;
@@ -76,35 +70,6 @@ public final class FilterableRepositorySupport {
             typedQuery.setFirstResult((int) pageable.getOffset()).setMaxResults(pageable.getPageSize());
         }
         return typedQuery.getResultList();
-    }
-
-    public static <T, ID> boolean isNew(T value, Class<T> entity, Class<ID> idType) {
-        Objects.requireNonNull(value, "Cannot determine ID for null value");
-        EntityManager entityManager = JpaOperations.INSTANCE.getEntityManager(entity);
-        SingularAttribute<? super T, ID> id =
-                entityManager.getMetamodel().entity(entity).getId(idType);
-        Member member = id.getJavaMember();
-        Object idValue;
-        try {
-            if (member instanceof Field f) {
-                if (Modifier.isPublic(f.getModifiers())) {
-                    idValue = f.get(value);
-                } else {
-                    String getter = getGetterName(f.getName(), f.getType().isPrimitive());
-                    member = entity.getMethod(getter);
-                }
-            }
-            if (member instanceof Method m) {
-                idValue = m.invoke(value);
-            } else {
-                throw new IllegalStateException(
-                        "Cannot determine ID value from " + id.getName() + " for entity of type " + entity);
-            }
-            return idValue != null;
-        } catch (Exception e) {
-            throw new IllegalStateException(
-                    "Cannot determine ID value from " + id.getName() + " for entity of type " + entity, e);
-        }
     }
 
     private static <T> Predicate toPredicate(Filter rawFilter, Class<T> entity, CriteriaBuilder builder, Root<T> root) {
@@ -158,25 +123,6 @@ public final class FilterableRepositorySupport {
                     .entity(entity)
                     .getAttribute(propertyId)
                     .getJavaType();
-        }
-    }
-
-    private static String getGetterName(String name, boolean isPrimitiveBoolean) {
-        String prefix = isPrimitiveBoolean ? "is" : "get";
-        return prefix + capitalize(name);
-    }
-
-    public static String capitalize(String name) {
-        if (name != null && !name.isEmpty()) {
-            if (name.length() > 1 && Character.isUpperCase(name.charAt(1))) {
-                return name;
-            } else {
-                char[] chars = name.toCharArray();
-                chars[0] = Character.toUpperCase(chars[0]);
-                return new String(chars);
-            }
-        } else {
-            return name;
         }
     }
 }
