@@ -53,8 +53,8 @@ import static io.quarkus.gizmo.FieldDescriptor.of;
  * The generated {@code list} and {@code count} methods delegate the call to {@link FilterableRepositorySupport},
  * with the addition of the Class of the entity that the repository is supposed to handle.
  *
- * For Panache, an addition {@code isNew} method is generated. This method read the value of the entity {@code @Id}
- * to determine of the entity is new or not.
+ * For Panache, an addition {@code isNew} method is generated. This method reads the value of the entity {@code @Id}
+ * to determine if the entity is new or not.
  * {@code isNew} is used by the CrudRepositoryService implementation for Panache, to chose if {@code save} should
  * call {@code persist} or {@code merge} to save the entity.
  *
