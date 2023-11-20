@@ -109,6 +109,8 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 
 ## Release
 
+The release process is based on the awesome [JReleaser](https://jreleaser.org/) tool.
+
 To perform a manual release type the following commands.
 Version must be in format N.N.N, for example `1.0.0`.
 Pre-releases can use `-alpha`, `-beta` and `-rc` suffix, followed by a number,
