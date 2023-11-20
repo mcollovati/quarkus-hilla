@@ -15,6 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import java.util.ListIterator;
+import java.util.function.Predicate;
+
+import org.objectweb.asm.tree.AbstractInsnNode;
+import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
 public class AsmUtils {
@@ -29,5 +34,51 @@ public class AsmUtils {
                 && srcMethod.getName().equals(name)
                 && (srcMethod.getDescriptor() == null
                         || srcMethod.getDescriptor().equals(descriptor));
+    }
+
+    public static <T extends AbstractInsnNode> T findNextInsnNode(
+            ListIterator<AbstractInsnNode> iterator, Predicate<T> predicate, Class<T> clazz) {
+        return clazz.cast(findNextInsnNode(iterator, node -> clazz.isInstance(node) && predicate.test((T) node)));
+    }
+
+    public static AbstractInsnNode findNextInsnNode(
+            ListIterator<AbstractInsnNode> iterator, Predicate<AbstractInsnNode> predicate) {
+        while (iterator.hasNext()) {
+            final var instruction = iterator.next();
+            if (predicate.test(instruction)) {
+                return instruction;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * It is expected, that the last call to the iterator was next(), otherwise the previous bytecode block is deleted if pointing at a LabelNode.
+     * @param iterator the iterator
+     * @param keepStartLabel should the start label be kept, e.g. for try-catch blocks
+     */
+    public static void deleteStatement(ListIterator<AbstractInsnNode> iterator, boolean keepStartLabel) {
+        removeUntilPreviousLabel(iterator, keepStartLabel);
+        removeUntilNextLabel(iterator);
+    }
+
+    private static void removeUntilPreviousLabel(ListIterator<AbstractInsnNode> iter, boolean keepStartLabel) {
+        while (iter.hasPrevious()) {
+            final var instruction = iter.previous();
+            if (instruction instanceof LabelNode) {
+                if (!keepStartLabel) iter.remove();
+                break;
+            } else iter.remove();
+        }
+    }
+
+    private static void removeUntilNextLabel(ListIterator<AbstractInsnNode> iter) {
+        while (iter.hasNext()) {
+            final var instruction = iter.next();
+            if (instruction instanceof LabelNode) {
+                break;
+            }
+            iter.remove();
+        }
     }
 }

@@ -15,17 +15,26 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import java.util.Map;
+
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
 
-public class SpringReplacementsClassVisitor extends ClassVisitor {
+public class MethodReplacementClassVisitor extends ClassVisitor {
 
     private final String methodName;
+    private final Map<MethodSignature, MethodSignature> replacements;
 
-    public SpringReplacementsClassVisitor(ClassVisitor classVisitor, String methodName) {
+    /**
+     * @param classVisitor the "super" ClassVisitor
+     * @param methodName the method in which to search for replacements
+     */
+    public MethodReplacementClassVisitor(
+            ClassVisitor classVisitor, String methodName, Map<MethodSignature, MethodSignature> replacements) {
         super(Gizmo.ASM_API_VERSION, classVisitor);
         this.methodName = methodName;
+        this.replacements = replacements;
     }
 
     @Override
@@ -33,7 +42,8 @@ public class SpringReplacementsClassVisitor extends ClassVisitor {
             int access, String name, String descriptor, String signature, String[] exceptions) {
         MethodVisitor superVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
         if (methodName.equals(name)) {
-            return new SpringReplacementsRedirectMethodVisitor(superVisitor);
+            return new MethodRedirectNode(
+                    api, access, name, descriptor, signature, exceptions, superVisitor, replacements);
         }
         return superVisitor;
     }
