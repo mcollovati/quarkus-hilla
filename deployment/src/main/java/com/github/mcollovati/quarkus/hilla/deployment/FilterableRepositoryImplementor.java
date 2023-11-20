@@ -82,9 +82,8 @@ public class FilterableRepositoryImplementor implements BiFunction<String, Class
 
     @Override
     public ClassVisitor apply(String className, ClassVisitor classVisitor) {
-        ClassInfo repositoryInterface = index.getClassByName(className);
-        List<Type> types =
-                JandexUtil.resolveTypeParameters(repositoryInterface.name(), filterableRepositoryInterface, index);
+        ClassInfo repository = index.getClassByName(className);
+        List<Type> types = JandexUtil.resolveTypeParameters(repository.name(), filterableRepositoryInterface, index);
         if (!(types.get(0) instanceof ClassType)) {
             throw new IllegalArgumentException("Cannot determine the type of the JPA entity that " + className
                     + " is supposed to handle by implementing FilterableRepository<ENTITY, ID>.");
@@ -92,68 +91,82 @@ public class FilterableRepositoryImplementor implements BiFunction<String, Class
         DotName entityType = types.get(0).name();
         ClassTransformer transformer = new ClassTransformer(className);
 
-        MethodCreator countCreator = transformer.addMethod("count", long.class, Filter.class);
-        countCreator.returnValue(countCreator.invokeStaticMethod(
-                MethodDescriptor.ofMethod(
-                        FilterableRepositorySupport.class.getName(),
-                        "count",
-                        long.class.getName(),
-                        Filter.class.getName(),
-                        Class.class.getName()),
-                countCreator.getMethodParam(0),
-                countCreator.loadClass(entityType.toString())));
+        MethodInfo countMethod =
+                repository.method("count", Type.create(DotName.createSimple(Filter.class), Type.Kind.CLASS));
+        if (countMethod == null) {
+            MethodCreator countCreator = transformer.addMethod("count", long.class, Filter.class);
+            countCreator.returnValue(countCreator.invokeStaticMethod(
+                    MethodDescriptor.ofMethod(
+                            FilterableRepositorySupport.class.getName(),
+                            "count",
+                            long.class.getName(),
+                            Filter.class.getName(),
+                            Class.class.getName()),
+                    countCreator.getMethodParam(0),
+                    countCreator.loadClass(entityType.toString())));
+        }
 
-        MethodCreator listCreator = transformer.addMethod("list", List.class, Pageable.class, Filter.class);
-        listCreator.returnValue(listCreator.invokeStaticMethod(
-                MethodDescriptor.ofMethod(
-                        FilterableRepositorySupport.class.getName(),
-                        "list",
-                        List.class.getName(),
-                        Pageable.class.getName(),
-                        Filter.class.getName(),
-                        Class.class.getName()),
-                listCreator.getMethodParam(0),
-                listCreator.getMethodParam(1),
-                listCreator.loadClassFromTCCL(entityType.toString())));
+        MethodInfo listMethod = repository.method(
+                "list",
+                Type.create(DotName.createSimple(Pageable.class), Type.Kind.CLASS),
+                Type.create(DotName.createSimple(Filter.class), Type.Kind.CLASS));
+        if (listMethod == null) {
+            MethodCreator listCreator = transformer.addMethod("list", List.class, Pageable.class, Filter.class);
+            listCreator.returnValue(listCreator.invokeStaticMethod(
+                    MethodDescriptor.ofMethod(
+                            FilterableRepositorySupport.class.getName(),
+                            "list",
+                            List.class.getName(),
+                            Pageable.class.getName(),
+                            Filter.class.getName(),
+                            Class.class.getName()),
+                    listCreator.getMethodParam(0),
+                    listCreator.getMethodParam(1),
+                    listCreator.loadClassFromTCCL(entityType.toString())));
+        }
 
-        implementIsNew(index, entityType, transformer);
+        implementIsNew(index, repository, entityType, transformer);
 
         return transformer.applyTo(classVisitor);
     }
 
-    private void implementIsNew(IndexView index, DotName entityType, ClassTransformer transformer) {
+    private void implementIsNew(
+            IndexView index, ClassInfo repository, DotName entityType, ClassTransformer transformer) {
         ClassInfo filterableRepository = index.getClassByName(filterableRepositoryInterface);
         MethodInfo isNewMethod = filterableRepository.method("isNew", TypeVariable.create("T"));
         if (isNewMethod == null) {
             return;
         }
 
-        MethodCreator isNewCreator = transformer.addMethod(
-                isNewMethod.name(),
-                isNewMethod.returnType().toString(),
-                isNewMethod.parameterType(0).name().toString());
-        ResultHandle entity = isNewCreator.getMethodParam(0);
-        AnnotationTarget idAnnotationTarget = getIdAnnotationTarget(entityType, index);
-        Type idType = getTypeOfTarget(idAnnotationTarget);
-        ResultHandle idValue = generateObtainValue(isNewCreator, entityType, entity, idAnnotationTarget);
-        if (idType instanceof PrimitiveType) {
-            if (!idType.name().equals(PRIMITIVE_LONG) && !idType.name().equals(PRIMITIVE_INTEGER)) {
-                throw new IllegalArgumentException("Id type of '" + entityType + "' is invalid.");
-            }
-            if (idType.name().equals(PRIMITIVE_LONG)) {
-                ResultHandle longObject = isNewCreator.invokeStaticMethod(
-                        MethodDescriptor.ofMethod(Long.class, "valueOf", Long.class, long.class), idValue);
-                idValue = isNewCreator.invokeVirtualMethod(
-                        MethodDescriptor.ofMethod(Long.class, "intValue", int.class), longObject);
-            }
+        MethodInfo isNewMethodImplementation = repository.method("isNew", Type.create(entityType, Type.Kind.CLASS));
+        if (isNewMethodImplementation == null) {
+            MethodCreator isNewCreator = transformer.addMethod(
+                    isNewMethod.name(),
+                    isNewMethod.returnType().toString(),
+                    isNewMethod.parameterType(0).name().toString());
+            ResultHandle entity = isNewCreator.getMethodParam(0);
+            AnnotationTarget idAnnotationTarget = getIdAnnotationTarget(entityType, index);
+            Type idType = getTypeOfTarget(idAnnotationTarget);
+            ResultHandle idValue = generateObtainValue(isNewCreator, entityType, entity, idAnnotationTarget);
+            if (idType instanceof PrimitiveType) {
+                if (!idType.name().equals(PRIMITIVE_LONG) && !idType.name().equals(PRIMITIVE_INTEGER)) {
+                    throw new IllegalArgumentException("Id type of '" + entityType + "' is invalid.");
+                }
+                if (idType.name().equals(PRIMITIVE_LONG)) {
+                    ResultHandle longObject = isNewCreator.invokeStaticMethod(
+                            MethodDescriptor.ofMethod(Long.class, "valueOf", Long.class, long.class), idValue);
+                    idValue = isNewCreator.invokeVirtualMethod(
+                            MethodDescriptor.ofMethod(Long.class, "intValue", int.class), longObject);
+                }
 
-            BranchResult idValueNonZeroBranch = isNewCreator.ifNonZero(idValue);
-            idValueNonZeroBranch.trueBranch().returnBoolean(false);
-            idValueNonZeroBranch.falseBranch().returnBoolean(true);
-        } else {
-            BranchResult idValueNullBranch = isNewCreator.ifNull(idValue);
-            idValueNullBranch.falseBranch().returnBoolean(false);
-            idValueNullBranch.trueBranch().returnBoolean(true);
+                BranchResult idValueNonZeroBranch = isNewCreator.ifNonZero(idValue);
+                idValueNonZeroBranch.trueBranch().returnBoolean(false);
+                idValueNonZeroBranch.falseBranch().returnBoolean(true);
+            } else {
+                BranchResult idValueNullBranch = isNewCreator.ifNull(idValue);
+                idValueNullBranch.falseBranch().returnBoolean(false);
+                idValueNullBranch.trueBranch().returnBoolean(true);
+            }
         }
     }
 
