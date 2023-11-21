@@ -42,7 +42,7 @@ class AutoFormTest extends AbstractTest {
 
         String name = "Gaio Giulio";
         String surname = "Cesare";
-        formField(name).setValue("name");
+        formField("name").setValue("name");
         formField("surname").setValue("surname");
         submitButton().click();
 
@@ -113,8 +113,8 @@ class AutoFormTest extends AbstractTest {
         return $("div.auto-form vaadin-button[theme=primary]");
     }
 
-    private static SelenideElement formField(String name) {
-        return $("vaadin-text-field[name=" + name + "]");
+    private static SelenideElement formField(String fieldName) {
+        return $("vaadin-text-field[name=" + fieldName + "]");
     }
 
     private static SelenideElement autoForm() {
