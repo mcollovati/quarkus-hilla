@@ -38,13 +38,13 @@ class AutoFormTest extends AbstractTest {
 
     @Test
     void newUser_userSaved() {
-        openAndWait(() -> $("div.auto-form"));
+        openAndWait(AutoFormTest::autoForm);
 
         String name = "Gaio Giulio";
         String surname = "Cesare";
-        $("vaadin-text-field[name=name]").setValue(name);
-        $("vaadin-text-field[name=surname]").setValue(surname);
-        $("div.auto-form vaadin-button[theme=primary]").click();
+        formField(name).setValue("name");
+        formField("surname").setValue("surname");
+        submitButton().click();
 
         notificationShown(name, surname, null);
     }
@@ -53,17 +53,17 @@ class AutoFormTest extends AbstractTest {
     void loadUser_editAndDiscard() {
         TestData.UserData user = TestData.USER_51;
 
-        openAndWait(() -> $("div.auto-form"));
+        openAndWait(AutoFormTest::autoForm);
 
         $("vaadin-button#user" + user.id()).click();
 
-        SelenideElement nameField = $("vaadin-text-field[name=name]");
+        SelenideElement nameField = formField("name");
         nameField.shouldHave(Condition.value(user.name()));
-        SelenideElement surnameField = $("vaadin-text-field[name=surname]");
+        SelenideElement surnameField = formField("surname");
         surnameField.shouldHave(Condition.value(user.surname()));
-        SelenideElement submitButton = $("div.auto-form vaadin-button[theme=primary]");
+        SelenideElement submitButton = submitButton();
         submitButton.shouldBe(VaadinConditions.disabled);
-        SelenideElement discardButton = $("div.auto-form vaadin-button[theme=tertiary]");
+        SelenideElement discardButton = discardButton();
         discardButton.shouldNotBe(Condition.visible);
 
         nameField.setValue("Emanuela");
@@ -82,17 +82,17 @@ class AutoFormTest extends AbstractTest {
     void loadUser_editAndSubmit() {
         TestData.UserData user = TestData.USER_48;
 
-        openAndWait(() -> $("div.auto-form"));
+        openAndWait(AutoFormTest::autoForm);
 
         $("vaadin-button#user" + user.id()).click();
 
-        SelenideElement nameField = $("vaadin-text-field[name=name]");
+        SelenideElement nameField = formField("name");
         nameField.shouldHave(Condition.value(user.name()));
-        SelenideElement surnameField = $("vaadin-text-field[name=surname]");
+        SelenideElement surnameField = formField("surname");
         surnameField.shouldHave(Condition.value(user.surname()));
-        SelenideElement submitButton = $("div.auto-form vaadin-button[theme=primary]");
+        SelenideElement submitButton = submitButton();
         submitButton.shouldBe(VaadinConditions.disabled);
-        SelenideElement discardButton = $("div.auto-form vaadin-button[theme=tertiary]");
+        SelenideElement discardButton = discardButton();
         discardButton.shouldNotBe(Condition.visible);
 
         nameField.setValue("Emanuela");
@@ -107,6 +107,22 @@ class AutoFormTest extends AbstractTest {
         surnameField.shouldHave(Condition.value(user.surname()));
 
         notificationShown("Emanuela", user.surname(), user.id());
+    }
+
+    private static SelenideElement submitButton() {
+        return $("div.auto-form vaadin-button[theme=primary]");
+    }
+
+    private static SelenideElement formField(String name) {
+        return $("vaadin-text-field[name=" + name + "]");
+    }
+
+    private static SelenideElement autoForm() {
+        return $("div.auto-form");
+    }
+
+    private static SelenideElement discardButton() {
+        return $("div.auto-form vaadin-button[theme=tertiary]");
     }
 
     private void notificationShown(String name, String surname, Integer id) {
