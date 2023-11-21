@@ -99,3 +99,5 @@ INSERT INTO users_(id, name, surname) VALUES
                                           (98, 'Micah', 'Conway'),
                                           (99, 'Elena', 'Wilkinson'),
                                           (100, 'Jaxon', 'Casey');
+
+alter sequence users__SEQ restart with 200;

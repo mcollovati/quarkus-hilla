@@ -41,7 +41,7 @@ public final class FilterableRepositorySupport {
     private FilterableRepositorySupport() {}
 
     public static <T> long count(Filter filter, Class<T> entityClass) {
-        EntityManager entityManager = JpaOperations.INSTANCE.getEntityManager();
+        EntityManager entityManager = JpaOperations.INSTANCE.getEntityManager(entityClass);
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
         Root<T> root = countQuery.from(entityClass);
@@ -54,7 +54,7 @@ public final class FilterableRepositorySupport {
     }
 
     public static <T> List<T> list(Pageable pageable, Filter filter, Class<T> entityClass) {
-        EntityManager entityManager = JpaOperations.INSTANCE.getEntityManager();
+        EntityManager entityManager = JpaOperations.INSTANCE.getEntityManager(entityClass);
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<T> query = builder.createQuery(entityClass);
         Root<T> root = query.from(entityClass);

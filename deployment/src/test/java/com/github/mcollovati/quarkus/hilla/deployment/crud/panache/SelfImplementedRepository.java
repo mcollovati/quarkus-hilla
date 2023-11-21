@@ -13,11 +13,35 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.github.mcollovati.quarkus.hilla.deployment.crud.panache;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
+
+import dev.hilla.crud.filter.Filter;
+import org.springframework.data.domain.Pageable;
 
 import com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository;
 
 @ApplicationScoped
-public class UserRepository implements FilterableRepository<User, Long> {}
+public class SelfImplementedRepository implements FilterableRepository<TestEntity, Long> {
+
+    @Override
+    public long count(Filter filter) {
+        return -99;
+    }
+
+    @Override
+    public List<TestEntity> list(Pageable pageable, Filter filter) {
+        TestEntity entity = new TestEntity();
+        entity.id = 0L;
+        entity.setText("Fixed");
+        entity.setNumber(-99);
+        return List.of(entity);
+    }
+
+    @Override
+    public boolean isNew(TestEntity value) {
+        return value.id == null || value.id < 0;
+    }
+}

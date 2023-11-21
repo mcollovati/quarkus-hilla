@@ -15,6 +15,8 @@
  */
 package com.github.mcollovati.quarkus.hilla.crud.spring;
 
+import jakarta.transaction.Transactional;
+
 import dev.hilla.EndpointExposed;
 import dev.hilla.Nullable;
 import dev.hilla.crud.CrudService;
@@ -31,11 +33,13 @@ public class CrudRepositoryService<T, ID, R extends CrudRepository<T, ID> & Filt
     }
 
     @Override
+    @Transactional
     public @Nullable T save(T value) {
         return getRepository().save(value);
     }
 
     @Override
+    @Transactional
     public void delete(ID id) {
         getRepository().deleteById(id);
     }

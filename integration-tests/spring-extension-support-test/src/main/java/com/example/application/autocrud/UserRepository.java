@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.autogrid;
+package com.example.application.autocrud;
 
 import org.springframework.data.repository.CrudRepository;
 

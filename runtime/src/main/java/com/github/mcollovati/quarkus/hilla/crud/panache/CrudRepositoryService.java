@@ -34,7 +34,11 @@ public class CrudRepositoryService<T, ID, R extends FilterableRepository<T, ID>>
     @Override
     @Transactional
     public @Nullable T save(T value) {
-        getRepository().persist(value);
+        if (getRepository().isNew(value)) {
+            getRepository().persist(value);
+        } else {
+            getRepository().getEntityManager().merge(value);
+        }
         return value;
     }
 
