@@ -42,8 +42,8 @@ class AutoFormTest extends AbstractTest {
 
         String name = "Gaio Giulio";
         String surname = "Cesare";
-        formField("name").setValue("name");
-        formField("surname").setValue("surname");
+        formField("name").setValue(name);
+        formField("surname").setValue(surname);
         submitButton().click();
 
         notificationShown(name, surname, null);
