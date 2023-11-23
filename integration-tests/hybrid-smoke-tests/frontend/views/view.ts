@@ -48,7 +48,7 @@ export class MobxElement extends MobxLitElement {
  * The view class also brings the MobX dependency for state management.
  */
 export class View extends MobxElement {
-  createRenderRoot(): Element | ShadowRoot {
+  createRenderRoot(): HTMLElement | DocumentFragment {
     // Do not use a shadow root
     return this;
   }
