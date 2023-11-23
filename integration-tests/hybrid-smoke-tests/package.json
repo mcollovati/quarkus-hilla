@@ -2,7 +2,7 @@
   "name": "no-name",
   "license": "UNLICENSED",
   "dependencies": {
-    "@adobe/lit-mobx": "2.2.0",
+    "@adobe/lit-mobx": "2.0.0",
     "@hilla/form": "2.4.0-rc1",
     "@hilla/frontend": "2.4.0-rc1",
     "@hilla/generator-typescript-cli": "2.4.0-rc1",
@@ -282,6 +282,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "6dddf8557463939f8e54809d3b84e4a91c84e1ceb75bd7b5236d528ecaa449f0"
+    "hash": "88adbfa7d4aee2db0afbf3b34ac68f50b53b0595c9bf20426abf08a1a16991c9"
   }
 }
