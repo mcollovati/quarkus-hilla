@@ -16,6 +16,19 @@ updates:
         update-types: [ "version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: "maven"
     directory: "/"
+    target-branch: "2.4"
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "dev.hilla:*"
+      - dependency-name: "com.vaadin:*"
+    ignore:
+      - dependency-name: "dev.hilla:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+  - package-ecosystem: "maven"
+    directory: "/"
     target-branch: "2.3"
     schedule:
       interval: "daily"
