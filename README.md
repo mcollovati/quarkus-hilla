@@ -70,7 +70,7 @@ or
 </dependency>
 ```
 
-## Stable Releases Compatibility Matrix
+## Releases
 
 |                                                                                                     Quarkus-Hilla                                                                                                      |                                                                               Quarkus                                                                               |                                                          Hilla                                                          |                                                                             Vaadin                                                                             |
 |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -83,11 +83,13 @@ or
 
 **NOTE**: These versions are known to work together. Other combinations may work, but are not tested.
 
-## Development Compatibility Matrix
+## Development
 
-|                                                                                    Quarkus-Hilla                                                                                     |                                                                              Quarkus                                                                              |                                                        Hilla                                                        |                                                                           Vaadin                                                                           |
-|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Development 2.5" src="https://img.shields.io/badge/GITHUB-2.5--SNAPSHOT-green?style=for-the-badge&logo=github&color=blue" style="visibility: visible;"></picture> | <picture><img alt="Quarkus 3.6+" src="https://img.shields.io/badge/QUARKUS-v3.6%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Hilla 2.5" src="https://tinyurl.com/quarkus-hilla-h-2-5" style="visibility: visible;"></picture> | <picture><img alt="Flow 24.3" src="https://img.shields.io/badge/VAADIN-v24.3-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
+<picture><img alt="Development 2.5" src="https://img.shields.io/badge/GITHUB-2.5--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
+<picture><img alt="Quarkus 3.5+" src="https://img.shields.io/badge/QUARKUS-v3.5%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
+<picture><img alt="Hilla 2.5" src="https://tinyurl.com/quarkus-hilla-h-2-5" style="visibility: visible;"></picture>
+<picture><img alt="Flow 24.3" src="https://img.shields.io/badge/VAADIN-v24.3-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
+
 
 ## Build and test
 
