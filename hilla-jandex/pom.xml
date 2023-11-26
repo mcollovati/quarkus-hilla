@@ -35,6 +35,12 @@
         <dependency>
             <groupId>dev.hilla</groupId>
             <artifactId>hilla</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
