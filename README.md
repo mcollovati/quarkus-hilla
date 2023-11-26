@@ -70,7 +70,7 @@ or
 </dependency>
 ```
 
-## Compatibility Matrix
+## Stable Releases Compatibility Matrix
 
 |                                                                                                     Quarkus-Hilla                                                                                                      |                                                                               Quarkus                                                                               |                                                          Hilla                                                          |                                                                             Vaadin                                                                             |
 |:----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -82,6 +82,12 @@ or
 |  <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>  | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> |  <picture><img alt="Hilla 1.3+" src="https://tinyurl.com/quarkus-hilla-h-1-3" style="visibility: visible;"></picture>   | <picture><img alt="Flow 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 
 **NOTE**: These versions are known to work together. Other combinations may work, but are not tested.
+
+## Development Compatibility Matrix
+
+|                                                                                    Quarkus-Hilla                                                                                     |                                                                              Quarkus                                                                              |                                                        Hilla                                                        |                                                                           Vaadin                                                                           |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Development 2.5" src="https://img.shields.io/badge/GITHUB-2.5--SNAPSHOT-green?style=for-the-badge&logo=github&color=blue" style="visibility: visible;"></picture> | <picture><img alt="Quarkus 3.6+" src="https://img.shields.io/badge/QUARKUS-v3.6%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Hilla 2.5" src="https://tinyurl.com/quarkus-hilla-h-2-5" style="visibility: visible;"></picture> | <picture><img alt="Flow 24.3" src="https://img.shields.io/badge/VAADIN-v24.3-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 
 ## Build and test
 
