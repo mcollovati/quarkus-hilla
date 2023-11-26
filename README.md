@@ -123,8 +123,8 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 
 ## Update codestarts
 
-Source code of the extension codestarts are built using the Hilla application scaffold utility (`HillaAppInitUtility`).
-To update the source code, run the following command from the `runtime` and `runtime-react` folders,
+The source code of the extension codestarts are built, using the Hilla application scaffold utility (`HillaAppInitUtility`).
+To update the source code, run the following command in the `runtime` and `runtime-react` folders,
 and commit the changes.
 
 ```terminal
