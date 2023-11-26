@@ -45,6 +45,17 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-orm-panache</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>hilla-shaded-deps</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>hilla-jandex</artifactId>
             <version>${project.version}</version>
@@ -157,4 +168,53 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>update-hilla-codestart</id>
+            <build>
+                <defaultGoal>org.codehaus.mojo:build-helper-maven-plugin:bsh-property@hilla-scaffold</defaultGoal>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.4.0</version>
+                        <executions>
+                            <execution>
+                                <id>hilla-scaffold</id>
+                                <goals>
+                                    <goal>bsh-property</goal>
+                                </goals>
+                                <configuration>
+                                    <source><![CDATA[
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileAttribute;
+import java.util.List;
+import dev.hilla.plugin.base.HillaAppInitUtility;
+
+codeStartFolder = project.getBasedir().toPath().resolve(
+    Path.of("src", new String[] { "main", "codestarts", "quarkus", "quakus-hilla-maven-codestart", "base" })
+);
+HillaAppInitUtility.scaffold(codeStartFolder, List.of("hilla"));
+javaSrcFolder = codeStartFolder.resolve("../java/src/main/java");
+Files.createDirectories(javaSrcFolder, new FileAttribute[0]);
+Files.move(codeStartFolder.resolve("src/main/java"), javaSrcFolder, new CopyOption[] { StandardCopyOption.REPLACE_EXISTING } );
+                            ]]></source>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>dev.hilla</groupId>
+                                <artifactId>plugin-base</artifactId>
+                                <version>${hilla.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

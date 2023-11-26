@@ -29,11 +29,16 @@ class BrowserCallableControllerTest extends AbstractEndpointControllerTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class));
 
     @Override
     protected String getEndpointName() {
         return ENDPOINT_NAME;
+    }
+
+    private static String testResource(String name) {
+        return BrowserCallableControllerTest.class.getPackageName().replace('.', '/') + '/' + name;
     }
 }

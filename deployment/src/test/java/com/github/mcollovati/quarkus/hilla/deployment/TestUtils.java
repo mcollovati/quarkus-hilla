@@ -23,7 +23,7 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
 
-final class TestUtils {
+public final class TestUtils {
 
     static final User ANONYMOUS = new User(null, null);
     static final User ADMIN = new User("admin", "admin");

@@ -23,7 +23,6 @@ import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
 import io.restassured.specification.RequestSpecification;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -43,12 +42,16 @@ import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndp
 class EndpointSecurityTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(() -> ShrinkWrap.create(
-                    JavaArchive.class)
-            .addClasses(TestIdentityProvider.class, TestIdentityController.class, TestUtils.class, SecureEndpoint.class)
-            .addAsResource(
-                    new StringAsset("quarkus.http.auth.basic=true\nquarkus.http.auth.proactive=true\n"),
-                    "application.properties"));
+    static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-application.properties"))
+            .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
+            .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                    .addClasses(
+                            TestIdentityProvider.class,
+                            TestIdentityController.class,
+                            TestUtils.class,
+                            SecureEndpoint.class));
 
     public static final String SECURE_ENDPOINT = "SecureEndpoint";
 
@@ -198,5 +201,9 @@ class EndpointSecurityTest {
 
     private static UnaryOperator<RequestSpecification> authenticate(User user) {
         return spec -> spec.auth().preemptive().basic(user.username, user.pwd);
+    }
+
+    private static String testResource(String name) {
+        return EndpointSecurityTest.class.getPackageName().replace('.', '/') + '/' + name;
     }
 }

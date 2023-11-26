@@ -27,7 +27,6 @@ import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -43,13 +42,16 @@ import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
 class SpringReplacementsTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest().setArchiveProducer(() -> ShrinkWrap.create(
-                    JavaArchive.class)
-            .addClasses(TestIdentityProvider.class, IdentityMock.class, TestIdentityController.class, TestUtils.class)
-            .addAsResource(
-                    new StringAsset("quarkus.http.auth.basic=true\nquarkus.http.auth.proactive=true\n"),
-                    "application.properties")
-            .add(new StringAsset("com.vaadin.experimental.hillaPush=true"), "vaadin-featureflags.properties"));
+    static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-application.properties"))
+            .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
+            .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                    .addClasses(
+                            TestIdentityProvider.class,
+                            IdentityMock.class,
+                            TestIdentityController.class,
+                            TestUtils.class));
 
     @Inject
     MyBean bean;
@@ -111,4 +113,8 @@ class SpringReplacementsTest {
 
     @ApplicationScoped
     public static class MyBean {}
+
+    private static String testResource(String name) {
+        return SpringReplacementsTest.class.getPackageName().replace('.', '/') + '/' + name;
+    }
 }

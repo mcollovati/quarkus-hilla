@@ -17,7 +17,6 @@ package com.github.mcollovati.quarkus.hilla.deployment;
 
 import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -28,12 +27,16 @@ class ReactiveEndpointTest extends AbstractReactiveEndpointTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(ReactiveEndpoint.class, HillaPushClient.class)
-                    .add(new StringAsset("com.vaadin.experimental.hillaPush=true"), "vaadin-featureflags.properties"));
+            .withConfigurationResource(testResource("test-application.properties"))
+            .setArchiveProducer(() ->
+                    ShrinkWrap.create(JavaArchive.class).addClasses(ReactiveEndpoint.class, HillaPushClient.class));
 
     @Override
     public String getEndpointName() {
         return ENDPOINT_NAME;
+    }
+
+    private static String testResource(String name) {
+        return ReactiveEndpointTest.class.getPackageName().replace('.', '/') + '/' + name;
     }
 }

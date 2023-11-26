@@ -20,6 +20,11 @@
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
             <artifactId>quarkus-hilla-test-commons</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>

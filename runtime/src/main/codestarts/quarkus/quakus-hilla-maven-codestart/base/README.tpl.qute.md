@@ -15,19 +15,3 @@ To be able to run the `init-app` goal you need some temporary workarounds in you
     public class temp {
     }
    ```
-- If you plan to use `React` for your project, add the following dependency definition to the POM file
-   ```xml
-    <dependency>
-      <groupId>dev.hilla</groupId>
-      <artifactId>hilla-react</artifactId>
-      <exclusions>
-        <exclusion>
-          <groupId>*</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency> 
-   ```
-
-Once the maven goal created the Hilla application code examples, you can remove both the temporary Java class and the
-`hilla-react` dependency.

@@ -33,11 +33,16 @@ class SpringDiExtensionsSupportTest extends AbstractEndpointControllerTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-spring-di-application.properties"))
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-spring-di", Version.getVersion())))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class));
 
     protected String getEndpointName() {
         return ENDPOINT_NAME;
+    }
+
+    private static String testResource(String name) {
+        return SpringDiExtensionsSupportTest.class.getPackageName().replace('.', '/') + '/' + name;
     }
 }

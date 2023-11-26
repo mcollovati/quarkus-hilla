@@ -18,6 +18,9 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
+The extension is composed by two main artifacts: `quarkus-hilla` for Lit based application,
+and `quarkus-hilla-react` for application using React as front-end framework.
+
 **NOTE**: This is an **unofficial community extension**, and it is **not**
 directly related **nor** supported by Vaadin Ltd.
 
@@ -51,8 +54,8 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 ```xml
 <dependency>
     <groupId>com.github.mcollovati</groupId>
-    <artifactId>quarkus-hilla</artifactId>
-    <version>2.3.0</version>
+    <artifactId>quarkus-hilla-react</artifactId>
+    <version>2.4.x</version>
 </dependency>
 ```
 
@@ -105,6 +108,16 @@ unless a debugger is attached to the JVM, either by running the tests in debug m
 
 ```terminal
 mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
+```
+
+## Update codestarts
+
+Source code of the extension codestarts are built using the Hilla application scaffold utility (`HillaAppInitUtility`).
+To update the source code, run the following command from the `runtime` and `runtime-react` folders,
+and commit the changes.
+
+```terminal
+mvn -Pupdate-hilla-codestart
 ```
 
 ## Release

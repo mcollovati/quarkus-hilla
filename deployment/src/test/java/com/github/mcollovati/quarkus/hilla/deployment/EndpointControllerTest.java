@@ -29,11 +29,16 @@ class EndpointControllerTest extends AbstractEndpointControllerTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() ->
                     ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class, Pojo.class, TestEndpoint.class));
 
     @Override
     protected String getEndpointName() {
         return ENDPOINT_NAME;
+    }
+
+    private static String testResource(String name) {
+        return EndpointControllerTest.class.getPackageName().replace('.', '/') + '/' + name;
     }
 }

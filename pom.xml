@@ -417,10 +417,13 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>hilla-shaded-deps</module>
+                <module>hilla-jandex</module>
                 <module>deployment</module>
                 <module>runtime</module>
-                <module>hilla-jandex</module>
-                <module>hilla-shaded-deps</module>
+                <module>hilla-react-jandex</module>
+                <module>deployment-react</module>
+                <module>runtime-react</module>
             </modules>
         </profile>
         <profile>
@@ -515,10 +518,13 @@
         <profile>
             <id>all-modules</id>
             <modules>
+                <module>hilla-shaded-deps</module>
+                <module>hilla-jandex</module>
                 <module>deployment</module>
                 <module>runtime</module>
-                <module>hilla-jandex</module>
-                <module>hilla-shaded-deps</module>
+                <module>hilla-react-jandex</module>
+                <module>deployment-react</module>
+                <module>runtime-react</module>
                 <module>integration-tests</module>
             </modules>
         </profile>

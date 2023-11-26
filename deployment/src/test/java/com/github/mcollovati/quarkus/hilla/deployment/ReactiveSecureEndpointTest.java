@@ -35,7 +35,6 @@ import io.vertx.core.http.HttpHeaders;
 import org.assertj.core.api.AbstractStringAssert;
 import org.assertj.core.api.Assertions;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -55,17 +54,16 @@ class ReactiveSecureEndpointTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-application.properties"))
+            .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
+            .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(
                             TestIdentityProvider.class,
                             TestIdentityController.class,
                             TestUtils.class,
                             ReactiveSecureEndpoint.class,
-                            HillaPushClient.class)
-                    .addAsResource(
-                            new StringAsset("quarkus.http.auth.basic=true\nquarkus.http.auth.proactive=true\n"),
-                            "application.properties")
-                    .add(new StringAsset("com.vaadin.experimental.hillaPush=true"), "vaadin-featureflags.properties"));
+                            HillaPushClient.class));
 
     @BeforeAll
     public static void setupUsers() {
@@ -163,5 +161,9 @@ class ReactiveSecureEndpointTest {
                 headers.put(HttpHeaders.AUTHORIZATION.toString(), List.of(authHeader));
             }
         }
+    }
+
+    private static String testResource(String name) {
+        return ReactiveSecureEndpointTest.class.getPackageName().replace('.', '/') + '/' + name;
     }
 }

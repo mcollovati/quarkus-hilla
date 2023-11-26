@@ -21,7 +21,6 @@ import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
 import io.quarkus.test.QuarkusUnitTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -32,13 +31,21 @@ class SpringDiExtensionSupportReactiveEndpointTest extends AbstractReactiveEndpo
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .withConfigurationResource(testResource("test-spring-di-application.properties"))
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-spring-di", Version.getVersion())))
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(ReactiveEndpoint.class, HillaPushClient.class)
-                    .add(new StringAsset("com.vaadin.experimental.hillaPush=true"), "vaadin-featureflags.properties"));
+            .setArchiveProducer(() ->
+                    ShrinkWrap.create(JavaArchive.class).addClasses(ReactiveEndpoint.class, HillaPushClient.class));
 
     @Override
     public String getEndpointName() {
         return ENDPOINT_NAME;
+    }
+
+    private static String testResource(String name) {
+        return SpringDiExtensionSupportReactiveEndpointTest.class
+                        .getPackageName()
+                        .replace('.', '/')
+                + '/'
+                + name;
     }
 }
