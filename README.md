@@ -90,7 +90,6 @@ or
 <picture><img alt="Hilla 2.5" src="https://tinyurl.com/quarkus-hilla-h-2-5" style="visibility: visible;"></picture>
 <picture><img alt="Flow 24.3" src="https://img.shields.io/badge/VAADIN-v24.3-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
 
-
 ## Build and test
 
 To build the extension locally you need to install JDK 17 or later and Maven 3.8 or later.
