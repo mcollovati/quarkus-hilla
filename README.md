@@ -18,8 +18,9 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
-The extension is composed by two main artifacts: `quarkus-hilla` for Lit based application,
-and `quarkus-hilla-react` for application using React as front-end framework.
+The extension is subdivided into two main artifacts based on the desired front-end framework:
+* `quarkus-hilla` for `Lit` based applications
+* `quarkus-hilla-react` for `React` based applications
 
 **NOTE**: This is an **unofficial community extension**, and it is **not**
 directly related **nor** supported by Vaadin Ltd.
@@ -50,6 +51,16 @@ the [client-side collector repository](https://github.com/vaadin/vaadin-usage-st
 
 Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart)
 or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
+
+```xml
+<dependency>
+    <groupId>com.github.mcollovati</groupId>
+    <artifactId>quarkus-hilla</artifactId>
+    <version>2.4.x</version>
+</dependency>
+```
+
+or
 
 ```xml
 <dependency>
