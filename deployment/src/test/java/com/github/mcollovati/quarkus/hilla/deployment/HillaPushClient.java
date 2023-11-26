@@ -91,7 +91,8 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
     }
 
     public void onMessage(String msg) {
-        if (msg != null && !msg.isBlank()) {
+        // 'X' message is from Atmosphere heartbeat handler
+        if (msg != null && !msg.isBlank() || "X".equals(msg)) {
             LOGGER.trace("Message received for client {} :: {}", id, msg);
             messages.add(msg);
         } else {
