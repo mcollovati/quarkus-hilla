@@ -6,7 +6,7 @@ tags:
   - maven-only
 
 metadata:
-  title: Quarkus-Hilla React Starter
+  title: Quarkus-Hilla-React Starter
   description: Start to code with the Quarkus-Hilla React extension.
   related-guide-section: https://github.com/mcollovati/quarkus-hilla/wiki/QuickStart-react
 language:

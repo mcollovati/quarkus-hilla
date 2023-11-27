@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>quarkus-hilla-react</artifactId>
-    <name>Quarkus - Hilla React - Runtime</name>
+    <name>Quarkus - Hilla - React - Runtime</name>
     <description>
         <![CDATA[A Quarkus extension to run Hilla React applications on Quarkus.]]></description>
     <dependencies>

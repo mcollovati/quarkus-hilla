@@ -10,7 +10,7 @@
     </parent>
 
     <artifactId>quarkus-hilla-react-deployment</artifactId>
-    <name>Quarkus - Hilla React - Deployment</name>
+    <name>Quarkus - Hilla - React - Deployment</name>
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>

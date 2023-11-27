@@ -10,8 +10,8 @@
     </parent>
 
     <artifactId>hilla-react-jandex</artifactId>
-    <name>Hilla React - Jandex</name>
-    <description>Jandex index for Hilla React packages</description>
+    <name>Hilla - React - Jandex</name>
+    <description>Jandex index for Hilla-React packages</description>
 
     <dependencies>
         <dependency>
