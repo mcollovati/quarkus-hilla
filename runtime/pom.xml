@@ -15,44 +15,8 @@
         <![CDATA[A Quarkus extension to run Hilla applications on Quarkus.]]></description>
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-arc</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-reactive-servlet</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-undertow</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-websockets</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-spring-data-jpa</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-hibernate-orm-panache</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>com.github.mcollovati</groupId>
-            <artifactId>hilla-shaded-deps</artifactId>
+            <artifactId>quarkus-hilla-commons</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -76,7 +40,9 @@
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
                             -->
-                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
+                            <resources>
+                                dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class
+                            </resources>
                         </artifact>
                         <artifact>
                             <key>dev.hilla:endpoint</key>
@@ -84,7 +50,9 @@
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
                             -->
-                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
+                            <resources>
+                                dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class
+                            </resources>
                         </artifact>
                     </removedResources>
                 </configuration>
@@ -160,6 +128,9 @@
                             <includes>
                                 <include>codestarts/**</include>
                             </includes>
+                            <excludes>
+                                <exclude>codestarts/**/hilla-scaffold-package-name-holder.txt</exclude>
+                            </excludes>
                             <classifier>codestarts</classifier>
                             <skipIfEmpty>true</skipIfEmpty>
                         </configuration>

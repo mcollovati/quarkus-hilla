@@ -14,6 +14,9 @@
     "@hilla/generator-typescript-plugin-push": "2.4.0-rc1",
     "@hilla/generator-typescript-plugin-subtypes": "2.4.0-rc1",
     "@hilla/generator-typescript-utils": "2.4.0-rc1",
+    "@hilla/react-auth": "2.4.0-rc1",
+    "@hilla/react-crud": "2.4.0-rc1",
+    "@hilla/react-form": "2.4.0-rc1",
     "@polymer/polymer": "3.5.1",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
     "@vaadin/a11y-base": "24.2.3",
@@ -192,7 +195,10 @@
     "@vaadin/grid-pro": "$@vaadin/grid-pro",
     "@vaadin/map": "$@vaadin/map",
     "@vaadin/rich-text-editor": "$@vaadin/rich-text-editor",
-    "@hilla/generator-typescript-plugin-subtypes": "$@hilla/generator-typescript-plugin-subtypes"
+    "@hilla/generator-typescript-plugin-subtypes": "$@hilla/generator-typescript-plugin-subtypes",
+    "@hilla/react-auth": "$@hilla/react-auth",
+    "@hilla/react-form": "$@hilla/react-form",
+    "@hilla/react-crud": "$@hilla/react-crud"
   },
   "vaadin": {
     "dependencies": {
@@ -207,6 +213,9 @@
       "@hilla/generator-typescript-plugin-push": "2.4.0-rc1",
       "@hilla/generator-typescript-plugin-subtypes": "2.4.0-rc1",
       "@hilla/generator-typescript-utils": "2.4.0-rc1",
+      "@hilla/react-auth": "2.4.0-rc1",
+      "@hilla/react-crud": "2.4.0-rc1",
+      "@hilla/react-form": "2.4.0-rc1",
       "@polymer/polymer": "3.5.1",
       "@vaadin/a11y-base": "24.2.3",
       "@vaadin/accordion": "24.2.3",
@@ -297,6 +306,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "f743bed49e2ba1aa19dfafd27660ef8928df531c8eff6ad839a0ccbcc8dd7f96"
+    "hash": "d9c4e0b495dfdedc56242af49115685fa5ecb7ebe91f0bc29223761a3f3bc334"
   }
 }

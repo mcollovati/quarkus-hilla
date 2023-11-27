@@ -14,6 +14,9 @@
     "@hilla/generator-typescript-plugin-push": "2.4.0-rc1",
     "@hilla/generator-typescript-plugin-subtypes": "2.4.0-rc1",
     "@hilla/generator-typescript-utils": "2.4.0-rc1",
+    "@hilla/react-auth": "2.4.0-rc1",
+    "@hilla/react-crud": "2.4.0-rc1",
+    "@hilla/react-form": "2.4.0-rc1",
     "@polymer/polymer": "3.5.1",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
     "@vaadin/a11y-base": "24.2.3",
@@ -182,7 +185,10 @@
     "@vaadin/side-nav": "$@vaadin/side-nav",
     "date-fns": "$date-fns",
     "@hilla/generator-typescript-plugin-subtypes": "$@hilla/generator-typescript-plugin-subtypes",
-    "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin"
+    "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
+    "@hilla/react-auth": "$@hilla/react-auth",
+    "@hilla/react-crud": "$@hilla/react-crud",
+    "@hilla/react-form": "$@hilla/react-form"
   },
   "vaadin": {
     "dependencies": {
@@ -197,6 +203,9 @@
       "@hilla/generator-typescript-plugin-push": "2.4.0-rc1",
       "@hilla/generator-typescript-plugin-subtypes": "2.4.0-rc1",
       "@hilla/generator-typescript-utils": "2.4.0-rc1",
+      "@hilla/react-auth": "2.4.0-rc1",
+      "@hilla/react-crud": "2.4.0-rc1",
+      "@hilla/react-form": "2.4.0-rc1",
       "@polymer/polymer": "3.5.1",
       "@vaadin/a11y-base": "24.2.3",
       "@vaadin/accordion": "24.2.3",
@@ -282,6 +291,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "0d640a495f1d2e13821eaaf89f42d5b42cfa7ab7f7fe57108f506643e172bcf6"
+    "hash": "efa0626498d84a18826ea18c451f78fcff1b67efe0e9af491621cf301cd932f7"
   }
 }

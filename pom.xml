@@ -419,11 +419,13 @@
             <modules>
                 <module>hilla-shaded-deps</module>
                 <module>hilla-jandex</module>
-                <module>deployment</module>
-                <module>runtime</module>
                 <module>hilla-react-jandex</module>
-                <module>deployment-react</module>
+                <module>runtime-commons</module>
+                <module>runtime</module>
                 <module>runtime-react</module>
+                <module>deployment-commons</module>
+                <module>deployment</module>
+                <module>deployment-react</module>
             </modules>
         </profile>
         <profile>
@@ -520,11 +522,13 @@
             <modules>
                 <module>hilla-shaded-deps</module>
                 <module>hilla-jandex</module>
-                <module>deployment</module>
-                <module>runtime</module>
                 <module>hilla-react-jandex</module>
-                <module>deployment-react</module>
+                <module>runtime-commons</module>
+                <module>runtime</module>
                 <module>runtime-react</module>
+                <module>deployment-commons</module>
+                <module>deployment</module>
+                <module>deployment-react</module>
                 <module>integration-tests</module>
             </modules>
         </profile>

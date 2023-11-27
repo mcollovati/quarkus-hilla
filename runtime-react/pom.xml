@@ -16,14 +16,8 @@
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
-            <artifactId>quarkus-hilla</artifactId>
+            <artifactId>quarkus-hilla-commons</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.github.mcollovati</groupId>
-                    <artifactId>hilla-jandex</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>

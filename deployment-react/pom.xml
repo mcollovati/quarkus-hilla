@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
-            <artifactId>quarkus-hilla-deployment</artifactId>
+            <artifactId>quarkus-hilla-commons-deployment</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
