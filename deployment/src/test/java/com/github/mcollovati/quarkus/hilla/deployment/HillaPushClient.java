@@ -49,6 +49,7 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HillaPushClient.class);
     private static final AtomicInteger CLIENT_ID_GEN = new AtomicInteger();
+    private static final String HEARTBEAT_MESSAGE = "^\\d+\\|X$";
 
     final LinkedBlockingDeque<String> messages = new LinkedBlockingDeque<>();
 
@@ -92,7 +93,7 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
 
     public void onMessage(String msg) {
         // 'X' message is from Atmosphere heartbeat handler
-        if (msg != null && !msg.isBlank() && !"X".equals(msg)) {
+        if (msg != null && !msg.isBlank() && !msg.matches(HEARTBEAT_MESSAGE)) {
             LOGGER.trace("Message received for client {} :: {}", id, msg);
             messages.add(msg);
         } else {
