@@ -3,15 +3,15 @@ metadata:
   keywords:
     - "hilla"
     - "web"
-    - "react"
+    - "lit"
     - "reactive"
   categories:
     - "web"
     - "reactive"
   status: "stable"
   codestart:
-    name: "quarkus-hilla-react-maven-codestart"
+    name: "quarkus-hilla-maven-codestart"
     languages:
       - "java"
-    artifact: "com.github.mcollovati:quarkus-hilla-react:codestarts:jar:${project.version}"
+    artifact: "com.github.mcollovati:quarkus-hilla:codestarts:jar:${project.version}"
 
