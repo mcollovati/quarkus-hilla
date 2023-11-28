@@ -62,12 +62,6 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-extension-maven-plugin</artifactId>
                 <version>${quarkus.version}</version>
-                <configuration>
-                    <conditionalDependencies>
-                        <extension>com.github.mcollovati:quarkus-hilla:${project.version}</extension>
-                        <extension>com.github.mcollovati:quarkus-hilla-react:${project.version}</extension>
-                    </conditionalDependencies>
-                </configuration>
                 <executions>
                     <execution>
                         <phase>compile</phase>
