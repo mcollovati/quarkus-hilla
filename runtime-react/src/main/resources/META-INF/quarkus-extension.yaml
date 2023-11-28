@@ -1,0 +1,17 @@
+name: Quarkus Hilla React Extension
+metadata:
+  keywords:
+    - "hilla"
+    - "web"
+    - "react"
+    - "reactive"
+  categories:
+    - "web"
+    - "reactive"
+  status: "stable"
+  codestart:
+    name: "quarkus-hilla-react-maven-codestart"
+    languages:
+      - "java"
+    artifact: "com.github.mcollovati:quarkus-hilla-react:codestarts:jar:${project.version}"
+

@@ -1,0 +1,20 @@
+name: quarkus-hilla-react-maven-codestart
+ref: quarkus-hilla-react
+type: code
+tags:
+  - extension-codestart
+  - maven-only
+
+metadata:
+  title: Quarkus-Hilla-React Starter
+  description: Start to code with the Quarkus-Hilla React extension.
+  related-guide-section: https://github.com/mcollovati/quarkus-hilla/wiki/QuickStart-react
+language:
+  base:
+    shared-data:
+      boms:
+        - groupId: dev.hilla
+          artifactId: hilla-bom
+          version: "\${hilla.version}"
+    data:
+      hillaVersion: ${hilla.version}

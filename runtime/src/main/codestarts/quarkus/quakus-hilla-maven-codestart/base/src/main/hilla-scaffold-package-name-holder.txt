@@ -1,0 +1,5 @@
+// This file is used only to execute HillaAppInitUtility.scaffold and generate
+// the source code to be included in the codestart
+// @SpringBootApplication
+package org.acme;
+

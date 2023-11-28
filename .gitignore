@@ -10,6 +10,7 @@ pom.xml.versionsBackup
 *.iml
 .DS_Store
 
+
 # The following files are generated/updated by vaadin-maven-plugin
 node_modules/
 **/frontend/generated/
@@ -19,6 +20,12 @@ package*.json
 vite*.ts
 tsconfig.json
 types.d.ts
+
+# Codestarts
+!**/codestarts/**/package*.json
+!**/codestarts/**/tsconfig.json
+!**/codestarts/**/types.d.ts
+!**/codestarts/**/vite.config.ts
 
 # Browser drivers for local integration tests
 drivers/
