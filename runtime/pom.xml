@@ -40,9 +40,7 @@
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
                             -->
-                            <resources>
-                                dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class
-                            </resources>
+                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
                         </artifact>
                         <artifact>
                             <key>dev.hilla:endpoint</key>
@@ -50,9 +48,7 @@
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
                             -->
-                            <resources>
-                                dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class
-                            </resources>
+                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
                         </artifact>
                     </removedResources>
                 </configuration>
