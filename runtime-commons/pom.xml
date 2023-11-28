@@ -12,7 +12,7 @@
     <artifactId>quarkus-hilla-commons</artifactId>
     <name>Quarkus - Hilla - Runtime Commons</name>
     <description>
-        <![CDATA[Commons classes for Quarkus Hilla extension.]]></description>
+        <![CDATA[Common files for Quarkus Hilla extension.]]></description>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>

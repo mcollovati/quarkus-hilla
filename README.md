@@ -18,7 +18,7 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
-The extension is subdivided into two main artifacts based on the desired front-end framework:
+Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
 * `quarkus-hilla` for `Lit` based applications
 * `quarkus-hilla-react` for `React` based applications
 
