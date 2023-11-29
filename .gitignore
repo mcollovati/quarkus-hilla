@@ -21,6 +21,7 @@ vite*.ts
 tsconfig.json
 types.d.ts
 **/src/main/bundles/
+.flow-node-tasks.lock
 
 # Codestarts
 !**/codestarts/**/package*.json
