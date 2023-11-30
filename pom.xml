@@ -44,7 +44,7 @@
 
         <quarkus.version>3.5.0</quarkus.version>
         <vaadin.version>24.1.15</vaadin.version>
-        <hilla.version>2.1.14</hilla.version>
+        <hilla.version>2.1.15</hilla.version>
 
         <assertj.version>3.24.2</assertj.version>
 
