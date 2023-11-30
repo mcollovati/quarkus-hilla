@@ -47,14 +47,14 @@ final class QuarkusHillaExtension {
         if (version == null) {
             try (final InputStream vaadinPomProperties = Thread.currentThread()
                     .getContextClassLoader()
-                    .getResourceAsStream("META-INF/maven/com.github.mcollovati/quarkus-hilla/pom.properties")) {
+                    .getResourceAsStream("META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom.properties")) {
                 if (vaadinPomProperties != null) {
                     final Properties properties = new Properties();
                     properties.load(vaadinPomProperties);
                     version = properties.getProperty("version", "");
                 } else {
                     LOGGER.info("Unable to determine Quarkus-Hilla version. "
-                            + "No META-INF/maven/com.github.mcollovati/quarkus-hilla/pom.properties found");
+                            + "No META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom.properties found");
                     version = "";
                 }
             } catch (Exception e) {
