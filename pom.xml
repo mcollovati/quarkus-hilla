@@ -63,9 +63,26 @@
         <build-helper-maven-plugin.version>3.5.0</build-helper-maven-plugin.version>
         <spotless-maven-plugin.version>2.41.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
+
+        <hibernate.version>6.2.13.Final</hibernate.version>
     </properties>
     <dependencyManagement>
         <dependencies>
+            <!--
+                Hibernate version brought by Hilla is not compatible with Quarkus 3.6
+                Pinning a supported version until Quarkus 3.7 will be out
+            -->
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-graalvm</artifactId>
+                <version>${hibernate.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>dev.hilla</groupId>
                 <artifactId>hilla-bom</artifactId>

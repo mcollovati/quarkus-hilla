@@ -91,6 +91,10 @@ public abstract class AbstractTest {
             }
             $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNotBe(Condition.visible);
         }
+        // Close Dev Tools messages
+        $$(Selectors.shadowCss("div.dismiss-message", "vaadin-dev-tools"))
+                .filter(Condition.visible)
+                .forEach(SelenideElement::click);
     }
 
     protected void waitForDevServer() {

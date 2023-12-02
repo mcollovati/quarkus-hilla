@@ -75,7 +75,7 @@ class AutoCrudTest extends AbstractTest {
         submitButton(form).click();
 
         SelenideElement grid = autoCrudGrid().shouldBe(Condition.visible);
-        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/vaadin-text-field/input"));
+        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/div/vaadin-text-field/input"));
         nameFilter.setValue(name);
         getCell(grid, 1, 1).shouldHave(Condition.text(name));
         getCell(grid, 1, 2).shouldHave(Condition.text(surname));
@@ -87,10 +87,12 @@ class AutoCrudTest extends AbstractTest {
 
         SelenideElement grid = autoCrudGrid().shouldBe(Condition.visible);
 
-        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/vaadin-text-field/input"));
+        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/div/vaadin-text-field/input"));
         nameFilter.setValue(TestData.USER_48.name());
 
-        getCell(grid, 1, 1).click();
+        getCell(grid, 1, 2)
+                .shouldHave(Condition.text(TestData.USER_48.surname()))
+                .click();
 
         SelenideElement form = autoCrudForm().shouldBe(Condition.visible);
         SelenideElement surnameField = formField(form, "surname").shouldNotHave(VaadinConditions.disabled);
@@ -113,10 +115,12 @@ class AutoCrudTest extends AbstractTest {
 
         SelenideElement grid = autoCrudGrid().shouldBe(Condition.visible);
 
-        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/vaadin-text-field/input"));
+        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/div/vaadin-text-field/input"));
         nameFilter.setValue(TestData.USER_74.name());
 
-        getCell(grid, 1, 1).click();
+        getCell(grid, 1, 2)
+                .shouldHave(Condition.text(TestData.USER_74.surname()))
+                .click();
 
         SelenideElement form = autoCrudForm().shouldBe(Condition.visible);
         SelenideElement surnameField = formField(form, "surname").shouldNotHave(VaadinConditions.disabled);
@@ -138,10 +142,12 @@ class AutoCrudTest extends AbstractTest {
         openAndWait(AutoCrudTest::autoCrud);
 
         SelenideElement grid = autoCrudGrid().shouldBe(Condition.visible);
-        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/vaadin-text-field/input"));
+        SelenideElement nameFilter = grid.$(byXpath("./vaadin-grid-cell-content[3]/div/vaadin-text-field/input"));
         nameFilter.setValue(TestData.USER_54.name());
 
-        getCell(grid, 1, 1).click();
+        getCell(grid, 1, 2)
+                .shouldHave(Condition.text(TestData.USER_54.surname()))
+                .click();
 
         SelenideElement form = autoCrudForm().shouldBe(Condition.visible);
         deleteButton(form)
@@ -202,8 +208,10 @@ class AutoCrudTest extends AbstractTest {
     }
 
     private static SelenideElement getCell(SelenideElement grid, int row, int column) {
-        String slotName = grid.$$(shadowDeepCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ") slot"))
+        String slotName = grid.$$(shadowDeepCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ")"))
+                .filter(Condition.visible)
                 .get(row - 1)
+                .$("slot")
                 .getAttribute("name");
         return grid.$("vaadin-grid-cell-content[slot=" + slotName + "]").should(Condition.exist);
     }

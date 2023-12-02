@@ -16,7 +16,7 @@ export default function AutoFormView() {
     }
 
     function loadUser(id: number): void {
-        UserService.get(id).then(setEditedItem);
+        UserService.get(id).then(user => user && setEditedItem(user));
     }
 
     return <div>

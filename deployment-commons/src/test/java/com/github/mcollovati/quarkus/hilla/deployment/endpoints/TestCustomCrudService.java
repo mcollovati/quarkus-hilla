@@ -17,19 +17,21 @@ package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
+import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import dev.hilla.BrowserCallable;
 import dev.hilla.Nullable;
 import dev.hilla.crud.CountService;
 import dev.hilla.crud.CrudService;
+import dev.hilla.crud.GetService;
 import dev.hilla.crud.filter.Filter;
 import org.springframework.data.domain.Pageable;
 
 @BrowserCallable
 @ApplicationScoped
 @AnonymousAllowed
-public class TestCustomCrudService implements CrudService<Pojo, Integer>, CountService {
+public class TestCustomCrudService implements CrudService<Pojo, Integer>, GetService<Pojo, Integer>, CountService {
 
     @Override
     public long count(@Nullable Filter filter) {
@@ -45,8 +47,8 @@ public class TestCustomCrudService implements CrudService<Pojo, Integer>, CountS
     public void delete(Integer integer) {}
 
     @Override
-    public Pojo get(Integer integer) {
-        return null;
+    public Optional<Pojo> get(Integer integer) {
+        return Optional.empty();
     }
 
     @Override

@@ -55,19 +55,19 @@ class AutoGridTest extends AbstractTest {
     }
 
     @Test
-    void autoGrid_sort() {
+    void autoGrid_filter() {
         openAndWait(() -> $("vaadin-grid"));
 
         // Sort by name ascending
-        $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[5]/vaadin-text-field/input"))
+        $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[5]/div/vaadin-text-field/input"))
                 .setValue("10");
 
-        List<String> filteredTexts = collectColumnTexts(2);
+        List<String> filteredTexts = collectColumnTexts(2, 2);
         assertThat(filteredTexts).containsExactlyInAnyOrder("Name 10", "Name 100");
     }
 
     @Test
-    void autoGrid_filter() {
+    void autoGrid_sort() {
         openAndWait(() -> $("vaadin-grid"));
 
         // Get texts from 'Name' column
@@ -103,10 +103,15 @@ class AutoGridTest extends AbstractTest {
     }
 
     private static List<String> collectColumnTexts(int column) {
+        return collectColumnTexts(column, 15);
+    }
+
+    private static List<String> collectColumnTexts(int column, int expectedSize) {
         return $$(shadowCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ")", "vaadin-grid"))
+                .filter(Condition.visible)
+                .shouldHave(size(expectedSize))
                 .asFixedIterable()
                 .stream()
-                .filter(el -> el.is(Condition.visible))
                 .map(el -> $(el).text())
                 .toList();
     }
