@@ -34,6 +34,14 @@ The current Hilla support has some known limitations:
   is not supported
 * Native image compilation does not work
 
+## Auto CRUD, Auto Grid and Auto Form
+
+Support for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid[)
+and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
+However, both extensions provides custom implementations of `CrudRepositoryService` and `ListRepositoryService`,
+based on `quarkus-spring-data-jpa` or `quarkus-hibernate-orm-panache` extension.
+See the [documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for additional details.
+
 ## Usage statistics
 
 As discussed in this Hilla [ticket](https://github.com/vaadin/hilla/issues/211),
