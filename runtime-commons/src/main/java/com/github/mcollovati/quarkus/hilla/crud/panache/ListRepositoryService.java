@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.crud.panache;
 
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 
 import dev.hilla.EndpointExposed;
 import dev.hilla.Nullable;
@@ -48,8 +49,8 @@ public class ListRepositoryService<T, ID, R extends FilterableRepository<T, ID>>
     }
 
     @Override
-    public T get(ID id) {
-        return repository.findById(id);
+    public Optional<T> get(ID id) {
+        return repository.findByIdOptional(id);
     }
 
     @Override

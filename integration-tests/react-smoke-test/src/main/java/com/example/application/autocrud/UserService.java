@@ -62,8 +62,8 @@ public class UserService implements ListService<UserPOJO>, GetService<UserPOJO, 
     }
 
     @Override
-    public UserPOJO get(String id) {
-        return data.get(id);
+    public Optional<UserPOJO> get(String id) {
+        return Optional.ofNullable(data.get(id));
     }
 
     @Override

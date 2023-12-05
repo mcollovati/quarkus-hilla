@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.crud.spring;
 
 import jakarta.inject.Inject;
 import java.util.List;
+import java.util.Optional;
 
 import dev.hilla.EndpointExposed;
 import dev.hilla.Nullable;
@@ -50,8 +51,8 @@ public class ListRepositoryService<T, ID, R extends CrudRepository<T, ID> & Filt
     }
 
     @Override
-    public T get(ID id) {
-        return repository.findById(id).orElse(null);
+    public Optional<T> get(ID id) {
+        return repository.findById(id);
     }
 
     @Override

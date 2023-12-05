@@ -57,7 +57,7 @@ class AutoGridTest extends AbstractTest {
     @Test
     void autoGrid_filter() throws InterruptedException {
         openAndWait(() -> $("vaadin-grid"));
-        SelenideElement filter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[3]/vaadin-text-field/input"));
+        SelenideElement filter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[3]/div/vaadin-text-field/input"));
 
         assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
 
