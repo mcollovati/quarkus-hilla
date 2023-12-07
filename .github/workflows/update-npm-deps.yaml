@@ -41,11 +41,19 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.compute-matrix.outputs.matrix)}}
     steps:
+      - name: Generate token
+        uses: tibdex/github-app-token@v1
+        if: ${{ steps.commit-changes.outputs.changes_detected == 'true' && steps.searchpr.outputs.prNumber == '0' }}
+        id: generate-token
+        with:
+          app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
+          private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Checkout
         uses: actions/checkout@v3
         with:
           ref: refs/heads/${{ matrix.branch }}
           fetch-depth: 0
+          token: ${{ steps.generate-token.outputs.token }}
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
@@ -66,7 +74,7 @@ jobs:
           git -c user.name="quarkus-hilla-bot[bot]" -c user.email="141157179+quarkus-hilla-bot[bot]@users.noreply.github.com" \
             rebase ${{ matrix.branch }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -82,13 +90,6 @@ jobs:
           create_branch: ${{ steps.searchpr.outputs.prNumber == '0' }}
           file_pattern: ':(glob)**/package*.json'
           push_options: '--force-with-lease'
-      - name: Generate token
-        uses: tibdex/github-app-token@v1
-        if: ${{ steps.commit-changes.outputs.changes_detected == 'true' && steps.searchpr.outputs.prNumber == '0' }}
-        id: generate-token
-        with:
-          app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
-          private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Create PR
         if: ${{ steps.commit-changes.outputs.changes_detected == 'true' && steps.searchpr.outputs.prNumber == '0' }}
         run: |
