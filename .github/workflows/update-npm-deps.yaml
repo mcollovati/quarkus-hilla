@@ -43,7 +43,6 @@ jobs:
     steps:
       - name: Generate token
         uses: tibdex/github-app-token@v1
-        if: ${{ steps.commit-changes.outputs.changes_detected == 'true' && steps.searchpr.outputs.prNumber == '0' }}
         id: generate-token
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
