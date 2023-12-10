@@ -534,6 +534,7 @@
                 <module>integration-tests</module>
             </modules>
         </profile>
+        <!--
         <profile>
             <id>not-quarkus-snapshot</id>
             <activation>
@@ -546,10 +547,10 @@
             </properties>
             <dependencyManagement>
                 <dependencies>
-                    <!--
+                    <!-\-
                         Hibernate version brought by Hilla is not compatible with Quarkus 3.6
                         Pinning a supported version until Quarkus 3.7 will be out
-                    -->
+                    -\->
                     <dependency>
                         <groupId>org.hibernate.orm</groupId>
                         <artifactId>hibernate-core</artifactId>
@@ -563,5 +564,6 @@
                 </dependencies>
             </dependencyManagement>
         </profile>
+        -->
     </profiles>
 </project>
