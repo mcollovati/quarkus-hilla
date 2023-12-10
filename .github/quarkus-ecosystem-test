@@ -6,16 +6,22 @@ MNV_OPTS="-B -e -V -ntp -DtrimStackTrace=false"
 # update the versions
 mvn ${MNV_OPTS} -N versions:set-property -Dproperty=${QUARKUS_VERSION_POM_PROPERTY} -DnewVersion=${QUARKUS_VERSION} -DgenerateBackupPoms=false
 
+mvn -N help:all-profiles
+
 # run the tests
-echo "Build"
+echo "::group::Quarkus-Hilla Build"
 mvn ${MNV_OPTS} -DskipTests install
+echo "::endgroup::"
 
-echo "Test"
+echo "::group::Quarkus-Hilla Test"
 mvn ${MNV_OPTS} verify
+echo "::endgroup::"
 
-echo "End-to-end Test (Development mode)"
+echo "::group::Quarkus-Hilla End-to-end Test (Development mode)"
 mvn ${MNV_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests verify
+echo "::endgroup::"
 
-echo "End-to-end Test (Production mode)"
+echo "::group::Quarkus-Hilla End-to-end Test (Production mode)"
 mvn ${MNV_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests,production verify
+echo "::endgroup::"
 
