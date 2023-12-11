@@ -2,20 +2,29 @@
 set -e
 
 #MNV_OPTS="--settings .github/quarkus-ecosystem-maven-settings.xml -B -e -V -ntp -DtrimStackTrace=false"
-MNV_OPTS="-B -e -V -ntp -DtrimStackTrace=false"
+MVN_OPTS="-B -e -V -ntp -DtrimStackTrace=false -Dquarkus-hilla.quarkus-snapshot=${QUARKUS_VERSION}"
 # update the versions
-mvn ${MNV_OPTS} -N versions:set-property -Dproperty=${QUARKUS_VERSION_POM_PROPERTY} -DnewVersion=${QUARKUS_VERSION} -DgenerateBackupPoms=false
+mvn ${MVN_OPTS} -N versions:set-property -Dproperty=${QUARKUS_VERSION_POM_PROPERTY} -DnewVersion=${QUARKUS_VERSION} -DgenerateBackupPoms=false
+
+echo "::group::Verify dependencies"
+mvn ${MVN_OPTS} -N help:all-profiles
+mvn ${MVN_OPTS} dependency:tree -Dincludes=org.hibernate.orm:hibernate-core -Dverbose
+echo "::endgroup::"
 
 # run the tests
-echo "Build"
-mvn ${MNV_OPTS} -DskipTests install
+echo "::group::Quarkus-Hilla Build"
+mvn ${MVN_OPTS} -DskipTests install -Pdefault-modules
+echo "::endgroup::"
 
-echo "Test"
-mvn ${MNV_OPTS} verify
+echo "::group::Quarkus-Hilla Test"
+mvn ${MVN_OPTS} verify -Pdefault-modules
+echo "::endgroup::"
 
-echo "End-to-end Test (Development mode)"
-mvn ${MNV_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests verify
+echo "::group::Quarkus-Hilla End-to-end Test (Development mode)"
+mvn ${MVN_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests verify
+echo "::endgroup::"
 
-echo "End-to-end Test (Production mode)"
-mvn ${MNV_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests,production verify
+echo "::group::Quarkus-Hilla End-to-end Test (Production mode)"
+mvn ${MVN_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests,production verify
+echo "::endgroup::"
 

@@ -65,6 +65,7 @@
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
 
         <hibernate.version>6.2.13.Final</hibernate.version>
+
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -549,6 +550,17 @@
                 <module>deployment-react</module>
                 <module>integration-tests</module>
             </modules>
+        </profile>
+        <profile>
+            <id>not-quarkus-snapshot</id>
+            <activation>
+                <property>
+                    <name>quarkus-hilla.quarkus-snapshot</name>
+                </property>
+            </activation>
+            <properties>
+                <hibernate.version>6.4.0.Final</hibernate.version>
+            </properties>
         </profile>
     </profiles>
 </project>
