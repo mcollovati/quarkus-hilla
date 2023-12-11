@@ -13,7 +13,7 @@ echo "::endgroup::"
 
 # run the tests
 echo "::group::Quarkus-Hilla Build"
-mvn ${MNV_OPTS} -DskipTests install
+mvn ${MNV_OPTS} -DskipTests install -Pdefault-modules
 echo "::endgroup::"
 
 echo "::group::Quarkus-Hilla Test"
