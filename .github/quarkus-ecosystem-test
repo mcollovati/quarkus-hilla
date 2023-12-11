@@ -17,7 +17,7 @@ mvn ${MNV_OPTS} -DskipTests install -Pdefault-modules
 echo "::endgroup::"
 
 echo "::group::Quarkus-Hilla Test"
-mvn ${MNV_OPTS} verify
+mvn ${MNV_OPTS} verify -Pdefault-modules
 echo "::endgroup::"
 
 echo "::group::Quarkus-Hilla End-to-end Test (Development mode)"
