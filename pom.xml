@@ -538,7 +538,7 @@
             <id>not-quarkus-snapshot</id>
             <activation>
                 <property>
-                    <name>!env.QUARKUS_VERSION_POM_PROPERTY</name>
+                    <name>!quarkus-hilla.quarkus-snapshot</name>
                 </property>
             </activation>
             <properties>
