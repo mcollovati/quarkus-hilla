@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.6.1</quarkus.version>
+        <quarkus.version>3.6.2</quarkus.version>
         <hilla.version>2.5-SNAPSHOT</hilla.version>
 
         <assertj.version>3.24.2</assertj.version>
