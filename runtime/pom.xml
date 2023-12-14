@@ -54,6 +54,16 @@
                             <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
                             <!-- @formatter:on -->
                         </artifact>
+                        <artifact>
+                            <key>dev.hilla:hilla-dev-mode</key>
+                            <!--
+                            There should be no newlines in the classes list, otherwise the filter silently
+                            fails at runtime
+                            @formatter:off
+                            -->
+                            <resources>META-INF/services/com.vaadin.base.devserver.DevToolsMessageHandler</resources>
+                            <!-- @formatter:on -->
+                        </artifact>
                     </removedResources>
                 </configuration>
                 <executions>
