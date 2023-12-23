@@ -25,7 +25,9 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
 import dev.hilla.BrowserCallable;
 import dev.hilla.Endpoint;
 import dev.hilla.push.PushEndpoint;
@@ -39,6 +41,7 @@ import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
+import io.quarkus.builder.item.MultiBuildItem;
 import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -57,7 +60,8 @@ import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
 import io.quarkus.undertow.deployment.ServletBuildItem;
-import io.quarkus.vertx.http.deployment.RequireBodyHandlerBuildItem;
+import io.quarkus.vertx.http.deployment.BodyHandlerBuildItem;
+import io.quarkus.vertx.http.deployment.FilterBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
@@ -72,6 +76,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
 
+import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
 import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
@@ -80,7 +85,7 @@ import com.github.mcollovati.quarkus.hilla.NonNullApi;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
-import com.github.mcollovati.quarkus.hilla.QuarkusViewAccessChecker;
+import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacer;
 
@@ -181,10 +186,14 @@ class QuarkusHillaExtensionProcessor {
     // Requiring the installation of vert.x body handler seems to fix the issue.
     // See https://github.com/mcollovati/quarkus-hilla/issues/182
     @BuildStep
-    void requireRequestBodyHandler(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv, BuildProducer<RequireBodyHandlerBuildItem> producer) {
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void installRequestBodyHandler(
+            BodyHandlerRecorder recorder,
+            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
+            BodyHandlerBuildItem bodyHandlerBuildItem,
+            BuildProducer<FilterBuildItem> producer) {
         if (quarkusHillaEnv.isHybrid()) {
-            producer.produce(new RequireBodyHandlerBuildItem());
+            producer.produce(new FilterBuildItem(recorder.installBodyHandler(bodyHandlerBuildItem.getHandler()), 120));
         }
     }
 
@@ -366,21 +375,34 @@ class QuarkusHillaExtensionProcessor {
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
-    void configureFlowViewAccessChecker(
+    void configureNavigationAccessControl(
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer,
-            Optional<FlowViewAccessCheckerBuildItem> viewAccessCheckerBuildItem) {
-        viewAccessCheckerBuildItem
-                .map(FlowViewAccessCheckerBuildItem::getLoginPath)
-                .ifPresent(loginPath -> recorder.configureFlowViewAccessChecker(beanContainer.getValue(), loginPath));
+            Optional<NavigationAccessControlBuildItem> navigationAccessControlBuildItem) {
+        navigationAccessControlBuildItem
+                .map(NavigationAccessControlBuildItem::getLoginPath)
+                .ifPresent(loginPath -> recorder.configureNavigationAccessControl(beanContainer.getValue(), loginPath));
     }
 
     @BuildStep
-    void registerViewAccessChecker(
+    void configureNavigationControlAccessCheckers(
+            List<NavigationAccessCheckerBuildItem> accessCheckers, BuildProducer<AdditionalBeanBuildItem> beans) {
+        beans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClasses(accessCheckers.stream()
+                        .map(item -> item.getAccessChecker().toString())
+                        .toList())
+                .setUnremovable()
+                .setDefaultScope(DotNames.SINGLETON)
+                .build());
+    }
+
+    @BuildStep
+    void registerNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
             CombinedIndexBuildItem index,
             BuildProducer<AdditionalBeanBuildItem> beans,
-            BuildProducer<FlowViewAccessCheckerBuildItem> loginProducer) {
+            BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
+            BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
 
         Set<DotName> securityAnnotations = Set.of(
                 DotName.createSimple(DenyAll.class.getName()),
@@ -391,29 +413,49 @@ class QuarkusHillaExtensionProcessor {
                 index.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
                         .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
                         .anyMatch(securityAnnotations::contains);
-
-        if (authFormBuildItem.isEnabled() && hasSecuredRoutes) {
+        if (authFormBuildItem.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
-                    .addBeanClasses(QuarkusViewAccessChecker.class, QuarkusViewAccessChecker.Installer.class)
+                    .addBeanClasses(
+                            QuarkusNavigationAccessControl.class,
+                            QuarkusNavigationAccessControl.Installer.class,
+                            DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
+            if (hasSecuredRoutes) {
+                accessCheckerProducer.produce(
+                        new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
+            }
+
             ConfigProvider.getConfig()
                     .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                    .map(FlowViewAccessCheckerBuildItem::new)
-                    .ifPresent(loginProducer::produce);
+                    .map(NavigationAccessControlBuildItem::new)
+                    .ifPresent(accessControlProducer::produce);
         }
     }
 
-    public static final class FlowViewAccessCheckerBuildItem extends SimpleBuildItem {
+    public static final class NavigationAccessControlBuildItem extends SimpleBuildItem {
 
         private final String loginPath;
 
-        public FlowViewAccessCheckerBuildItem(String loginPath) {
+        public NavigationAccessControlBuildItem(String loginPath) {
             this.loginPath = loginPath;
         }
 
         public String getLoginPath() {
             return loginPath;
+        }
+    }
+
+    public static final class NavigationAccessCheckerBuildItem extends MultiBuildItem {
+
+        private final DotName accessChecker;
+
+        public NavigationAccessCheckerBuildItem(DotName accessChecker) {
+            this.accessChecker = accessChecker;
+        }
+
+        public DotName getAccessChecker() {
+            return accessChecker;
         }
     }
 }

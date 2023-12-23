@@ -19,10 +19,13 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
-import com.vaadin.flow.component.Component;
+import com.vaadin.flow.router.Location;
+import com.vaadin.flow.router.QueryParameters;
 import com.vaadin.flow.router.Router;
 import com.vaadin.flow.router.internal.NavigationRouteTarget;
 import com.vaadin.flow.router.internal.RouteTarget;
@@ -30,13 +33,17 @@ import com.vaadin.flow.server.HandlerHelper;
 import com.vaadin.flow.server.RouteRegistry;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinService;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import com.vaadin.flow.server.auth.AccessCheckDecision;
+import com.vaadin.flow.server.auth.AccessCheckResult;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
+import com.vaadin.flow.server.auth.NavigationContext;
 import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.PathMatcher;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
 import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
@@ -49,7 +56,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private final AuthenticatedHttpSecurityPolicy authenticatedHttpSecurityPolicy;
 
     @Inject
-    AccessAnnotationChecker accessAnnotationChecker;
+    NavigationAccessControl accessControl;
 
     VaadinService vaadinService;
 
@@ -67,10 +74,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
         Boolean permittedPath = pathMatcher.match(request.request().path()).getValue();
-        Class<? extends Component> maybeRoot = detectRoute(request);
+        NavigationContext navigationContext = tryCreateNavigationContext(request);
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
-                || isAnonymousRoute(maybeRoot, request.normalizedPath())) {
+                || isAnonymousRoute(navigationContext, request.normalizedPath())) {
             return Uni.createFrom().item(CheckResult.PERMIT);
         }
         return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
@@ -118,25 +125,40 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping, request);
     }
 
-    private boolean isAnonymousRoute(Class<? extends Component> routeClass, String path) {
+    private boolean isAnonymousRoute(NavigationContext navigationContext, String path) {
 
         if (vaadinService == null) {
             getLogger().warn("VaadinService not set. Cannot determine server route for {}", path);
             return true;
         }
-        if (routeClass == null) {
+        if (navigationContext == null) {
             getLogger().trace("No route defined for {}", path);
             return true;
         }
+        boolean productionMode = vaadinService.getDeploymentConfiguration().isProductionMode();
 
-        boolean result = accessAnnotationChecker.hasAccess(routeClass, null, role -> false);
-        if (result) {
-            getLogger().debug("{} refers to a public view", path);
+        if (!accessControl.isEnabled()) {
+            String message =
+                    "Navigation Access Control is disabled. Cannot determine if {} refers to a public view, thus access is denied. Please add an explicit request matcher rule for this URL.";
+            if (productionMode) {
+                getLogger().debug(message, path);
+            } else {
+                getLogger().info(message, path);
+            }
+            return true;
         }
-        return result;
+
+        AccessCheckResult result = accessControl.checkAccess(navigationContext, productionMode);
+        boolean isAllowed = result.decision() == AccessCheckDecision.ALLOW;
+        if (isAllowed) {
+            getLogger().debug("{} refers to a public view", path);
+        } else {
+            getLogger().debug("Access to {} denied by Flow navigation access control. {}", path, result.reason());
+        }
+        return isAllowed;
     }
 
-    private Class<? extends Component> detectRoute(RoutingContext request) {
+    private NavigationContext tryCreateNavigationContext(RoutingContext request) {
 
         String vaadinMapping = "/*";
         String requestedPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
@@ -147,7 +169,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         Router router = vaadinService.getRouter();
         RouteRegistry routeRegistry = router.getRegistry();
 
-        return HandlerHelper.getPathIfInsideServlet(vaadinMapping, requestedPath)
+        NavigationRouteTarget target = HandlerHelper.getPathIfInsideServlet(vaadinMapping, requestedPath)
                 .map(path -> {
                     if (path.startsWith("/")) {
                         // Requested path includes a beginning "/" but route
@@ -158,9 +180,34 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                     return path;
                 })
                 .map(routeRegistry::getNavigationRouteTarget)
-                .map(NavigationRouteTarget::getRouteTarget)
-                .map(RouteTarget::getTarget)
                 .orElse(null);
+        if (target == null) {
+            return null;
+        }
+        RouteTarget routeTarget = target.getRouteTarget();
+        if (routeTarget == null) {
+            return null;
+        }
+        Class<? extends com.vaadin.flow.component.Component> targetView = routeTarget.getTarget();
+        if (targetView == null) {
+            return null;
+        }
+
+        return new NavigationContext(
+                router,
+                targetView,
+                new Location(requestedPath, queryParametersFromRequest(request)),
+                target.getRouteParameters(),
+                null,
+                role -> false,
+                false);
+    }
+
+    private QueryParameters queryParametersFromRequest(RoutingContext routingContext) {
+        MultiMap params = routingContext.request().params();
+        return QueryParameters.full(params.names().stream()
+                .map(name -> Map.entry(name, params.getAll(name).toArray(String[]::new)))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     private Logger getLogger() {

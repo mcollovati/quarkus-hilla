@@ -19,24 +19,28 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.security.Principal;
-import java.util.function.Function;
+import java.util.List;
+import java.util.function.Predicate;
 
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinRequest;
-import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.flow.server.auth.ViewAccessChecker;
+import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
+import com.vaadin.flow.server.auth.NavigationAccessChecker;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
+import io.quarkus.arc.All;
 import io.quarkus.security.identity.SecurityIdentity;
 
 @Singleton
-public class QuarkusViewAccessChecker extends ViewAccessChecker {
+public class QuarkusNavigationAccessControl extends NavigationAccessControl {
 
     private final SecurityIdentity securityIdentity;
-    private final AccessAnnotationChecker annotationChecker;
 
-    @Inject
-    public QuarkusViewAccessChecker(SecurityIdentity securityIdentity, AccessAnnotationChecker annotationChecker) {
+    public QuarkusNavigationAccessControl(
+            @All List<NavigationAccessChecker> checkerList,
+            AccessCheckDecisionResolver decisionResolver,
+            SecurityIdentity securityIdentity) {
+        super(checkerList, decisionResolver);
         this.securityIdentity = securityIdentity;
-        this.annotationChecker = annotationChecker;
     }
 
     @Override
@@ -48,7 +52,7 @@ public class QuarkusViewAccessChecker extends ViewAccessChecker {
     }
 
     @Override
-    protected Function<String, Boolean> getRolesChecker(VaadinRequest request) {
+    protected Predicate<String> getRolesChecker(VaadinRequest request) {
         if (request == null) {
             return securityIdentity::hasRole;
         }
@@ -58,16 +62,16 @@ public class QuarkusViewAccessChecker extends ViewAccessChecker {
     @Singleton
     public static class Installer {
 
-        private final ViewAccessChecker viewAccessChecker;
+        private final NavigationAccessControl accessControl;
 
         @Inject
-        public Installer(ViewAccessChecker viewAccessChecker) {
-            this.viewAccessChecker = viewAccessChecker;
+        public Installer(NavigationAccessControl accessControl) {
+            this.accessControl = accessControl;
         }
 
         void installViewAccessChecker(@Observes ServiceInitEvent event) {
             event.getSource()
-                    .addUIInitListener(uiInitEvent -> uiInitEvent.getUI().addBeforeEnterListener(viewAccessChecker));
+                    .addUIInitListener(uiInitEvent -> uiInitEvent.getUI().addBeforeEnterListener(accessControl));
         }
     }
 }
