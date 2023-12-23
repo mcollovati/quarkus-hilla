@@ -185,6 +185,7 @@ class QuarkusHillaExtensionProcessor {
     // timeout is reached.
     // Requiring the installation of vert.x body handler seems to fix the issue.
     // See https://github.com/mcollovati/quarkus-hilla/issues/182
+    // See https://github.com/mcollovati/quarkus-hilla/issues/490
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void installRequestBodyHandler(

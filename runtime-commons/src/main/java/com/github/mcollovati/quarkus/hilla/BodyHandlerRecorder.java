@@ -30,6 +30,7 @@ public class BodyHandlerRecorder {
      * This method returns a vert.x handler that delegates Flow requests to the Quarkus request body handler before
      * proceeding with the execution.
      * See https://github.com/mcollovati/quarkus-hilla/issues/182
+     * See https://github.com/mcollovati/quarkus-hilla/issues/490
      *
      * @param bodyHandler Quarkus request body handler
      * @return a new handler that delegates Flow requests to request body handler.
