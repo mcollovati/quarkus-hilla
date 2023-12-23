@@ -22,6 +22,7 @@ import java.util.function.Supplier;
 import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.Wait;
 
 @ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
@@ -92,9 +94,15 @@ public abstract class AbstractTest {
             $(Selectors.shadowCss("main", "vite-plugin-checker-error-overlay")).shouldNotBe(Condition.visible);
         }
         // Close Dev Tools messages
-        $$(Selectors.shadowCss("div.dismiss-message", "vaadin-dev-tools"))
-                .filter(Condition.visible)
-                .forEach(SelenideElement::click);
+        Wait().until(d -> {
+            ElementsCollection dismissElements = $$(Selectors.shadowCss("div.dismiss-message", "vaadin-dev-tools"))
+                    .filter(Condition.visible);
+            int visibleElements = dismissElements.size();
+            if (!dismissElements.isEmpty()) {
+                dismissElements.first().click();
+            }
+            return visibleElements <= 1;
+        });
     }
 
     protected void waitForDevServer() {
