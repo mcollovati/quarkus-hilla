@@ -43,9 +43,8 @@ public class HillaSecurityRecorder {
         QuarkusHillaExtension.markSecurityPolicyUsed();
     }
 
-    public void configureFlowViewAccessChecker(BeanContainer container, String loginPath) {
-        QuarkusViewAccessChecker accessChecker = container.beanInstance(QuarkusViewAccessChecker.class);
+    public void configureNavigationAccessControl(BeanContainer container, String loginPath) {
+        QuarkusNavigationAccessControl accessChecker = container.beanInstance(QuarkusNavigationAccessControl.class);
         accessChecker.setLoginView(loginPath);
-        accessChecker.enable();
     }
 }

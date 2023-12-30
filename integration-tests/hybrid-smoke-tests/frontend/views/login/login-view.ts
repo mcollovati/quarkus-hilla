@@ -19,7 +19,7 @@ export class LoginView extends View {
 
     render() {
         return html`
-      <h1>Hilla CRM</h1>
+      <h1>Hilla Test Application</h1>
       <vaadin-login-form
         no-forgot-password
         action="/login"
