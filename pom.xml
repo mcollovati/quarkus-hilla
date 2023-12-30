@@ -388,11 +388,21 @@
                                             </contributors>
                                         </changelog>
                                         <draft>true</draft>
-                                        <tagName>${project.version}</tagName>
-                                        <releaseName>Release ${project.version}</releaseName>
+                                        <tagName>{{projectVersion}}</tagName>
+                                        <releaseName>Release {{tagName}}</releaseName>
                                         <prerelease>
                                             <pattern>.*-(alpha|beta|rc)\d+</pattern>
                                         </prerelease>
+                                        <issues>
+                                            <enabled>true</enabled>
+                                            <comment>This issue has been resolved in `{{tagName}}` ([Release Notes]({{releaseNotesUrl}}))</comment>
+                                            <applyMilestone>ALWAYS</applyMilestone>
+                                            <label>
+                                                <name>released</name>
+                                                <color>#7CFC33</color>
+                                                <description>Issue has been released</description>
+                                            </label>
+                                        </issues>
                                     </github>
                                 </release>
                                 <deploy>
