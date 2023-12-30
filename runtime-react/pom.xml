@@ -174,11 +174,23 @@ import java.nio.file.attribute.FileAttribute;
 import java.util.List;
 import dev.hilla.plugin.base.HillaAppInitUtility;
 
+void deleteDirectory(File directoryToBeDeleted) {
+    if (directoryToBeDeleted.exists()) {
+        File[] allContents = directoryToBeDeleted.listFiles();
+        if (allContents != null) {
+            for (File file : allContents) {
+                deleteDirectory(file);
+            }
+        }
+        directoryToBeDeleted.delete();
+    }
+}
 codeStartFolder = project.getBasedir().toPath().resolve(
     Path.of("src", new String[] { "main", "codestarts", "quarkus", "quakus-hilla-maven-codestart", "base" })
 );
 HillaAppInitUtility.scaffold(codeStartFolder, List.of("hilla-react"));
 javaSrcFolder = codeStartFolder.resolve("../java/src/main/java");
+deleteDirectory(javaSrcFolder.toFile());
 Files.createDirectories(javaSrcFolder, new FileAttribute[0]);
 Files.move(codeStartFolder.resolve("src/main/java"), javaSrcFolder, new CopyOption[] { StandardCopyOption.REPLACE_EXISTING } );
                             ]]></source>
