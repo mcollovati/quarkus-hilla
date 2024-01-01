@@ -387,7 +387,7 @@
                                                 <format>- {{contributorName}}</format>
                                             </contributors>
                                         </changelog>
-                                        <draft>true</draft>
+                                        <draft>false</draft>
                                         <tagName>{{projectVersion}}</tagName>
                                         <releaseName>Release {{tagName}}</releaseName>
                                         <prerelease>
