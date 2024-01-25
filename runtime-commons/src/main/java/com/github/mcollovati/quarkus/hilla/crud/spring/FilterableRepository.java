@@ -17,7 +17,7 @@ package com.github.mcollovati.quarkus.hilla.crud.spring;
 
 import java.util.List;
 
-import dev.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.Filter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;

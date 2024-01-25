@@ -26,10 +26,10 @@ import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 
-import dev.hilla.crud.filter.AndFilter;
-import dev.hilla.crud.filter.Filter;
-import dev.hilla.crud.filter.OrFilter;
-import dev.hilla.crud.filter.PropertyStringFilter;
+import com.vaadin.hilla.crud.filter.AndFilter;
+import com.vaadin.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.OrFilter;
+import com.vaadin.hilla.crud.filter.PropertyStringFilter;
 import io.quarkus.hibernate.orm.panache.runtime.JpaOperations;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;

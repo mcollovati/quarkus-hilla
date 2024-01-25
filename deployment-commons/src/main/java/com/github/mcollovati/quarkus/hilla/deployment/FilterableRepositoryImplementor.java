@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import dev.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.Filter;
 import io.quarkus.deployment.bean.JavaBeanUtil;
 import io.quarkus.deployment.util.JandexUtil;
 import io.quarkus.gizmo.BranchResult;

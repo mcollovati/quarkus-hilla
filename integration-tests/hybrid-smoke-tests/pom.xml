@@ -13,7 +13,7 @@
     <artifactId>quarkus-hilla-hybrid-smoke-tests</artifactId>
     <name>Quarkus - Hilla - Hybrid Smoke Tests</name>
     <properties>
-        <vaadin.version>24.3.3</vaadin.version>
+        <vaadin.version>24.4.0.alpha2</vaadin.version>
         <hilla-maven-plugin.phase>compile</hilla-maven-plugin.phase>
     </properties>
 
@@ -50,7 +50,7 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>dev.hilla</groupId>
+                <groupId>com.vaadin.hilla</groupId>
                 <artifactId>hilla-maven-plugin</artifactId>
             </plugin>
             <plugin>

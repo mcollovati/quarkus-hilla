@@ -19,12 +19,12 @@ import jakarta.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 
-import dev.hilla.EndpointExposed;
-import dev.hilla.Nullable;
-import dev.hilla.crud.CountService;
-import dev.hilla.crud.GetService;
-import dev.hilla.crud.ListService;
-import dev.hilla.crud.filter.Filter;
+import com.vaadin.hilla.EndpointExposed;
+import com.vaadin.hilla.Nullable;
+import com.vaadin.hilla.crud.CountService;
+import com.vaadin.hilla.crud.GetService;
+import com.vaadin.hilla.crud.ListService;
+import com.vaadin.hilla.crud.filter.Filter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 

@@ -22,9 +22,9 @@ import com.example.application.ClockService;
 import com.example.application.entities.UserPOJO;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
-import dev.hilla.EndpointSubscription;
-import dev.hilla.Nonnull;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.EndpointSubscription;
+import com.vaadin.hilla.Nonnull;
 import reactor.core.publisher.Flux;
 
 @BrowserCallable

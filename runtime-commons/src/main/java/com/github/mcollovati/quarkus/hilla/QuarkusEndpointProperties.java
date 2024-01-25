@@ -18,7 +18,7 @@ package com.github.mcollovati.quarkus.hilla;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import dev.hilla.EndpointProperties;
+import com.vaadin.hilla.EndpointProperties;
 
 @ApplicationScoped
 public class QuarkusEndpointProperties extends EndpointProperties {

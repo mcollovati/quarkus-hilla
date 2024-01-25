@@ -20,7 +20,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.UUID;
 
-import dev.hilla.Nonnull;
+import com.vaadin.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
 import org.eclipse.microprofile.context.ThreadContext;
 import reactor.core.publisher.Flux;

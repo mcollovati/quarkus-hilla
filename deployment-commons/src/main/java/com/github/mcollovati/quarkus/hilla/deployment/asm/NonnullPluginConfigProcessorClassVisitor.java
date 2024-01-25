@@ -84,14 +84,14 @@ public class NonnullPluginConfigProcessorClassVisitor extends ClassVisitor {
                 private static InsnList constructNewAnnotationMatcherNonNullApi() {
                     final InsnList instructions = new InsnList();
                     instructions.add(
-                            new TypeInsnNode(Opcodes.NEW, "dev/hilla/parser/plugins/nonnull/AnnotationMatcher"));
+                            new TypeInsnNode(Opcodes.NEW, "com/vaadin/hilla/parser/plugins/nonnull/AnnotationMatcher"));
                     instructions.add(new InsnNode(Opcodes.DUP));
                     instructions.add(new LdcInsnNode("com.github.mcollovati.quarkus.hilla.NonNullApi"));
                     instructions.add(new InsnNode(Opcodes.ICONST_0));
                     instructions.add(new IntInsnNode(Opcodes.BIPUSH, 10));
                     instructions.add(new MethodInsnNode(
                             Opcodes.INVOKESPECIAL,
-                            "dev/hilla/parser/plugins/nonnull/AnnotationMatcher",
+                            "com/vaadin/hilla/parser/plugins/nonnull/AnnotationMatcher",
                             "<init>",
                             "(Ljava/lang/String;ZI)V"));
                     return instructions;

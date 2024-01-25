@@ -18,7 +18,7 @@ package com.example.application.entities;
 import java.util.HashSet;
 import java.util.Set;
 
-import dev.hilla.Nonnull;
+import com.vaadin.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
 
 public class UserInfo {

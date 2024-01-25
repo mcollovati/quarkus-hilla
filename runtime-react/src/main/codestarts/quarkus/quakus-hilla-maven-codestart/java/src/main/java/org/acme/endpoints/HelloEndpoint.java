@@ -1,7 +1,7 @@
 package org.acme.endpoints;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.Endpoint;
+import com.vaadin.hilla.Endpoint;
 
 @Endpoint
 @AnonymousAllowed
@@ -20,7 +20,7 @@ public class HelloEndpoint {
      * <p>
      * Note that you can override the default Nonnull
      * behavior by annotating the parameter with
-     * <code>@dev.hilla.Nullable</code>.
+     * <code>@com.vaadin.hilla.Nullable</code>.
      *
      * @param name that assumed to be nonnull
      * @return a nonnull greeting

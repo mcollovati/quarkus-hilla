@@ -15,7 +15,7 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import dev.hilla.exception.EndpointValidationException;
+import com.vaadin.hilla.exception.EndpointValidationException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import org.hamcrest.CoreMatchers;

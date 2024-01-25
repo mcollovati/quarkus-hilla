@@ -20,8 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.Endpoint;
-import dev.hilla.EndpointSubscription;
+import com.vaadin.hilla.Endpoint;
+import com.vaadin.hilla.EndpointSubscription;
 import reactor.core.publisher.Flux;
 
 @Endpoint

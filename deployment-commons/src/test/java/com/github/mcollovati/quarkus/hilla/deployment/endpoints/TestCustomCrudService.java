@@ -20,12 +20,12 @@ import java.util.List;
 import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
-import dev.hilla.Nullable;
-import dev.hilla.crud.CountService;
-import dev.hilla.crud.CrudService;
-import dev.hilla.crud.GetService;
-import dev.hilla.crud.filter.Filter;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.Nullable;
+import com.vaadin.hilla.crud.CountService;
+import com.vaadin.hilla.crud.CrudService;
+import com.vaadin.hilla.crud.GetService;
+import com.vaadin.hilla.crud.filter.Filter;
 import org.springframework.data.domain.Pageable;
 
 @BrowserCallable

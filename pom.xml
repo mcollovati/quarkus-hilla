@@ -36,14 +36,14 @@
     </developers>
 
     <properties>
-        <revision>2.5-SNAPSHOT</revision>
+        <revision>24.4-SNAPSHOT</revision>
 
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.6.7</quarkus.version>
-        <hilla.version>2.5.6</hilla.version>
+        <quarkus.version>3.7.0</quarkus.version>
+        <hilla.version>24.4.0.alpha2</hilla.version>
 
         <assertj.version>3.25.2</assertj.version>
 
@@ -64,28 +64,11 @@
         <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
 
-        <hibernate.version>6.2.13.Final</hibernate.version>
-
     </properties>
     <dependencyManagement>
         <dependencies>
-            <!--
-                Hibernate version brought by Hilla is not compatible with Quarkus 3.6
-                Pinning a supported version until Quarkus 3.7 will be out
-            -->
             <dependency>
-                <groupId>org.hibernate.orm</groupId>
-                <artifactId>hibernate-core</artifactId>
-                <version>${hibernate.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.hibernate.orm</groupId>
-                <artifactId>hibernate-graalvm</artifactId>
-                <version>${hibernate.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>dev.hilla</groupId>
+                <groupId>com.vaadin.hilla</groupId>
                 <artifactId>hilla-bom</artifactId>
                 <version>${hilla.version}</version>
                 <type>pom</type>
@@ -116,7 +99,7 @@
                     <version>${quarkus.version}</version>
                 </plugin>
                 <plugin>
-                    <groupId>dev.hilla</groupId>
+                    <groupId>com.vaadin.hilla</groupId>
                     <artifactId>hilla-maven-plugin</artifactId>
                     <version>${hilla.version}</version>
                 </plugin>
@@ -485,7 +468,7 @@
             <id>detect-vaadin-platform</id>
             <dependencies>
                 <dependency>
-                    <groupId>dev.hilla</groupId>
+                    <groupId>com.vaadin.hilla</groupId>
                     <artifactId>hilla</artifactId>
                     <scope>provided</scope>
                 </dependency>

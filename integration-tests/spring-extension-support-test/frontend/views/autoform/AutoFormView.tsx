@@ -1,9 +1,9 @@
-import {AutoForm} from '@hilla/react-crud';
+import {AutoForm} from '@vaadin/hilla-react-crud';
 import {Notification} from '@vaadin/notification';
 import {UserService} from 'Frontend/generated/endpoints';
 import UserModel from 'Frontend/generated/com/example/application/autocrud/UserModel';
 import User from "Frontend/generated/com/example/application/autocrud/User";
-import {Button} from '@hilla/react-components/Button.js';
+import {Button} from '@vaadin/react-components/Button.js';
 import {useState} from 'react';
 
 export default function AutoFormView() {

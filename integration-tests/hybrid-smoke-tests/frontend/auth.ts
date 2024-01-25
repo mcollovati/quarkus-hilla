@@ -1,5 +1,5 @@
 // Uses the Vaadin provided login an logout helper methods
-import { login as loginImpl, LoginResult, logout as logoutImpl } from '@hilla/frontend';
+import { login as loginImpl, LoginResult, logout as logoutImpl } from '@vaadin/hilla-core';
 import * as UserInfoEndpoint from 'Frontend/generated/UserInfoEndpoint';
 import UserInfo from 'Frontend/generated/com/example/application/entities/UserInfo';
 import {appStore} from "Frontend/stores/app-store";
