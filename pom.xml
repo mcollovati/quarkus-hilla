@@ -64,7 +64,7 @@
         <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.4.0</build-helper-maven-plugin.version>
 
-        <hibernate.version>6.2.13.Final</hibernate.version>
+        <hibernate.version>6.4.2.Final</hibernate.version>
 
     </properties>
     <dependencyManagement>
