@@ -17,7 +17,7 @@ package com.github.mcollovati.quarkus.hilla.crud.panache;
 
 import java.util.List;
 
-import dev.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.Filter;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import org.springframework.data.domain.Pageable;
 

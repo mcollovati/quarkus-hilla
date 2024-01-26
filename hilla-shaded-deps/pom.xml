@@ -15,11 +15,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>dev.hilla</groupId>
+            <groupId>com.vaadin.hilla</groupId>
             <artifactId>endpoint</artifactId>
         </dependency>
         <dependency>
-            <groupId>dev.hilla</groupId>
+            <groupId>com.vaadin.hilla</groupId>
             <artifactId>engine-runtime</artifactId>
         </dependency>
     </dependencies>

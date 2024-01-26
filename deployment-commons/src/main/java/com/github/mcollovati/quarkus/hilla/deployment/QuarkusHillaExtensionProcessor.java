@@ -28,10 +28,10 @@ import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
-import dev.hilla.BrowserCallable;
-import dev.hilla.Endpoint;
-import dev.hilla.push.PushEndpoint;
-import dev.hilla.push.PushMessageHandler;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.Endpoint;
+import com.vaadin.hilla.push.PushEndpoint;
+import com.vaadin.hilla.push.PushMessageHandler;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -202,7 +202,7 @@ class QuarkusHillaExtensionProcessor {
     // ignored
     @BuildStep
     IgnoredServletContainerInitializerBuildItem ignoreEndpointsValidator() {
-        return new IgnoredServletContainerInitializerBuildItem("dev.hilla.startup.EndpointsValidator");
+        return new IgnoredServletContainerInitializerBuildItem("com.vaadin.hilla.startup.EndpointsValidator");
     }
 
     // Configuring removed resources causes the index to be rebuilt, but the
@@ -211,7 +211,7 @@ class QuarkusHillaExtensionProcessor {
     // Removed resources should also be configured for the endpoint artifact.
     @BuildStep
     void addMarkersForHillaJars(BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
-        producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("dev/hilla"));
+        producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/hilla"));
     }
 
     @BuildStep
@@ -288,8 +288,8 @@ class QuarkusHillaExtensionProcessor {
         DotName autowiredAnnotation = DotName.createSimple("org.springframework.beans.factory.annotation.Autowired");
         Predicate<AnnotationInstance> isAutowiredAnnotation = ann -> ann.name().equals(autowiredAnnotation);
         Set<DotName> classesToTransform = Set.of(
-                DotName.createSimple("dev.hilla.push.PushEndpoint"),
-                DotName.createSimple("dev.hilla.push.PushMessageHandler"));
+                DotName.createSimple("com.vaadin.hilla.push.PushEndpoint"),
+                DotName.createSimple("com.vaadin.hilla.push.PushMessageHandler"));
         producer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
 
             @Override

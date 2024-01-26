@@ -18,7 +18,7 @@ package com.github.mcollovati.quarkus.hilla.deployment.crud.panache;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 
-import dev.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.Filter;
 import org.springframework.data.domain.Pageable;
 
 import com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository;

@@ -19,9 +19,9 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import java.util.List;
 
-import dev.hilla.crud.filter.AndFilter;
-import dev.hilla.crud.filter.OrFilter;
-import dev.hilla.crud.filter.PropertyStringFilter;
+import com.vaadin.hilla.crud.filter.AndFilter;
+import com.vaadin.hilla.crud.filter.OrFilter;
+import com.vaadin.hilla.crud.filter.PropertyStringFilter;
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
 import io.quarkus.test.QuarkusUnitTest;

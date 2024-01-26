@@ -16,7 +16,7 @@
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.Endpoint;
+import com.vaadin.hilla.Endpoint;
 
 @Endpoint
 @AnonymousAllowed

@@ -17,12 +17,12 @@ package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
 import java.util.Map;
 
-import dev.hilla.AuthenticationUtil;
-import dev.hilla.EndpointInvoker;
-import dev.hilla.EndpointRegistry;
-import dev.hilla.parser.utils.ConfigList;
-import dev.hilla.push.PushEndpoint;
-import dev.hilla.push.PushMessageHandler;
+import com.vaadin.hilla.AuthenticationUtil;
+import com.vaadin.hilla.EndpointInvoker;
+import com.vaadin.hilla.EndpointRegistry;
+import com.vaadin.hilla.parser.utils.ConfigList;
+import com.vaadin.hilla.push.PushEndpoint;
+import com.vaadin.hilla.push.PushMessageHandler;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 

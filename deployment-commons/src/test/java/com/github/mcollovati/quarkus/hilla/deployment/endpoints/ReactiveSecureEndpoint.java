@@ -19,7 +19,7 @@ import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
-import dev.hilla.Endpoint;
+import com.vaadin.hilla.Endpoint;
 import reactor.core.publisher.Flux;
 
 @Endpoint

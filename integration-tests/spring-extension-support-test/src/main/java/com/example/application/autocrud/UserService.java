@@ -16,7 +16,7 @@
 package com.example.application.autocrud;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import com.vaadin.hilla.BrowserCallable;
 
 import com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService;
 

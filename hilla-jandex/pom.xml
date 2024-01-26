@@ -15,7 +15,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>dev.hilla</groupId>
+            <groupId>com.vaadin.hilla</groupId>
             <artifactId>endpoint</artifactId>
             <exclusions>
                 <exclusion>
@@ -33,7 +33,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>dev.hilla</groupId>
+            <groupId>com.vaadin.hilla</groupId>
             <artifactId>hilla</artifactId>
             <exclusions>
                 <exclusion>
@@ -57,9 +57,7 @@
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
-                            <includes>
-                                **/dev/hilla/**/*.class,**/com/vaadin/**/*.class
-                            </includes>
+                            <includes>**/com/vaadin/**/*.class</includes>
                             <outputDirectory>${project.build.outputDirectory}</outputDirectory>
                             <overWriteReleases>false</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
@@ -84,8 +82,6 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>dev</exclude>
-                        <exclude>dev/**/*</exclude>
                         <exclude>com</exclude>
                         <exclude>com/**/*</exclude>
                         <exclude>OSGI-INF</exclude>

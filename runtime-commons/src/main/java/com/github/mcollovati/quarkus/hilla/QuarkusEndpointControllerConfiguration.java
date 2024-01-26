@@ -22,16 +22,19 @@ import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import dev.hilla.EndpointController;
-import dev.hilla.EndpointInvoker;
-import dev.hilla.EndpointNameChecker;
-import dev.hilla.EndpointRegistry;
-import dev.hilla.EndpointUtil;
-import dev.hilla.ExplicitNullableTypeChecker;
-import dev.hilla.auth.CsrfChecker;
-import dev.hilla.auth.EndpointAccessChecker;
-import dev.hilla.parser.jackson.JacksonObjectMapperFactory;
+import com.vaadin.hilla.EndpointController;
+import com.vaadin.hilla.EndpointInvoker;
+import com.vaadin.hilla.EndpointNameChecker;
+import com.vaadin.hilla.EndpointRegistry;
+import com.vaadin.hilla.EndpointUtil;
+import com.vaadin.hilla.ExplicitNullableTypeChecker;
+import com.vaadin.hilla.auth.CsrfChecker;
+import com.vaadin.hilla.auth.EndpointAccessChecker;
+import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
@@ -142,7 +145,17 @@ class QuarkusEndpointControllerConfiguration {
     @DefaultBean
     @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
     JacksonObjectMapperFactory objectMapperFactory() {
-        return new JacksonObjectMapperFactory.Json();
+        class Factory extends JacksonObjectMapperFactory.Json {
+            @Override
+            @SuppressWarnings("deprecation")
+            public ObjectMapper build() {
+                // Emulate Spring default configuration
+                return super.build()
+                        .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
+                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            }
+        }
+        return new Factory();
     }
 
     @Produces

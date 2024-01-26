@@ -41,21 +41,21 @@
                             fails at runtime
                             @formatter:off
                             -->
-                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
+                            <resources>com/vaadin/hilla/ConditionalOnFeatureFlag.class,com/vaadin/hilla/EndpointControllerConfiguration.class,com/vaadin/hilla/FeatureFlagCondition.class,com/vaadin/hilla/startup/EndpointsValidator.class,com/vaadin/hilla/push/PushConfigurer.class</resources>
                             <!-- @formatter:on -->
                         </artifact>
                         <artifact>
-                            <key>dev.hilla:endpoint</key>
+                            <key>com.vaadin.hilla:endpoint</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
                             @formatter:off
                             -->
-                            <resources>dev/hilla/ConditionalOnFeatureFlag.class,dev/hilla/EndpointControllerConfiguration.class,dev/hilla/FeatureFlagCondition.class,dev/hilla/startup/EndpointsValidator.class,dev/hilla/push/PushConfigurer.class</resources>
+                            <resources>com/vaadin/hilla/ConditionalOnFeatureFlag.class,com/vaadin/hilla/EndpointControllerConfiguration.class,com/vaadin/hilla/FeatureFlagCondition.class,com/vaadin/hilla/startup/EndpointsValidator.class,com/vaadin/hilla/push/PushConfigurer.class</resources>
                             <!-- @formatter:on -->
                         </artifact>
                         <artifact>
-                            <key>dev.hilla:hilla-dev-mode</key>
+                            <key>com.vaadin.hilla:hilla-dev-mode</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
@@ -172,7 +172,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileAttribute;
 import java.util.List;
-import dev.hilla.plugin.base.HillaAppInitUtility;
+import com.vaadin.hilla.plugin.base.HillaAppInitUtility;
 
 void deleteDirectory(File directoryToBeDeleted) {
     if (directoryToBeDeleted.exists()) {
@@ -199,7 +199,7 @@ Files.move(codeStartFolder.resolve("src/main/java"), javaSrcFolder, new CopyOpti
                         </executions>
                         <dependencies>
                             <dependency>
-                                <groupId>dev.hilla</groupId>
+                                <groupId>com.vaadin.hilla</groupId>
                                 <artifactId>plugin-base</artifactId>
                                 <version>${hilla.version}</version>
                             </dependency>

@@ -30,15 +30,15 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
-import dev.hilla.Nullable;
-import dev.hilla.crud.CountService;
-import dev.hilla.crud.GetService;
-import dev.hilla.crud.ListService;
-import dev.hilla.crud.filter.AndFilter;
-import dev.hilla.crud.filter.Filter;
-import dev.hilla.crud.filter.OrFilter;
-import dev.hilla.crud.filter.PropertyStringFilter;
+import com.vaadin.hilla.BrowserCallable;
+import com.vaadin.hilla.Nullable;
+import com.vaadin.hilla.crud.CountService;
+import com.vaadin.hilla.crud.GetService;
+import com.vaadin.hilla.crud.ListService;
+import com.vaadin.hilla.crud.filter.AndFilter;
+import com.vaadin.hilla.crud.filter.Filter;
+import com.vaadin.hilla.crud.filter.OrFilter;
+import com.vaadin.hilla.crud.filter.PropertyStringFilter;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 

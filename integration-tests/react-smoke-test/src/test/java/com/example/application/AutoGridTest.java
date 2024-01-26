@@ -58,7 +58,7 @@ class AutoGridTest extends AbstractTest {
     void autoGrid_filter() {
         openAndWait(() -> $("vaadin-grid"));
 
-        // Sort by name ascending
+        // Filter by name
         $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[5]/div/vaadin-text-field/input"))
                 .setValue("10");
 

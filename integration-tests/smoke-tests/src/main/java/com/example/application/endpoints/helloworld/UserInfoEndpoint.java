@@ -19,8 +19,8 @@ import jakarta.annotation.security.PermitAll;
 
 import com.example.application.entities.UserInfo;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.Endpoint;
-import dev.hilla.Nonnull;
+import com.vaadin.hilla.Endpoint;
+import com.vaadin.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
 
 @Endpoint

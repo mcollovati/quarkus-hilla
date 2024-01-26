@@ -26,11 +26,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import dev.hilla.Endpoint;
-import dev.hilla.EndpointController;
-import dev.hilla.EndpointInvoker;
-import dev.hilla.EndpointRegistry;
-import dev.hilla.auth.CsrfChecker;
+import com.vaadin.hilla.Endpoint;
+import com.vaadin.hilla.EndpointController;
+import com.vaadin.hilla.EndpointInvoker;
+import com.vaadin.hilla.EndpointRegistry;
+import com.vaadin.hilla.auth.CsrfChecker;
 import org.springframework.context.ApplicationContext;
 import org.springframework.http.ResponseEntity;
 

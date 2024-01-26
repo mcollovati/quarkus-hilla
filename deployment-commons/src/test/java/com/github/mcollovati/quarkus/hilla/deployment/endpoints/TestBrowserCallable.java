@@ -16,7 +16,7 @@
 package com.github.mcollovati.quarkus.hilla.deployment.endpoints;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import dev.hilla.BrowserCallable;
+import com.vaadin.hilla.BrowserCallable;
 
 @BrowserCallable
 @AnonymousAllowed

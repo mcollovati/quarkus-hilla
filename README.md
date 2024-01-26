@@ -18,12 +18,19 @@ as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints),
 [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints)
 and [Security](https://hilla.dev/docs/lit/guides/security).
 
+**NOTE**: This is an **unofficial community extension**, and it is **not**
+directly related **nor** supported by Vaadin Ltd.
+
 Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
 * `quarkus-hilla` for `Lit` based applications
 * `quarkus-hilla-react` for `React` based applications
 
-**NOTE**: This is an **unofficial community extension**, and it is **not**
-directly related **nor** supported by Vaadin Ltd.
+Since Vaadin `24.4`, Flow and Hilla are unified in a single platform.
+As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven artifacts
+and Java package names moved from `dev.hilla` to `com.vaadin.hilla`.
+Quarkus-hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
+In addition, the minimum supported Quarkus version will be `3.7`.
+
 
 ## Limitations
 
@@ -64,7 +71,7 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>2.4.x</version>
+    <version>2.5.x</version>
 </dependency>
 ```
 
@@ -74,7 +81,7 @@ or
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-react</artifactId>
-    <version>2.4.x</version>
+    <version>2.5.x</version>
 </dependency>
 ```
 
@@ -82,6 +89,7 @@ or
 
 |                                                                                                         Quarkus-Hilla / Hilla                                                                                                          |                                                                                Quarkus                                                                                 |                                                                             Vaadin                                                                              |
 |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|         <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    |   <picture><img alt="Flow 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
 |         <picture><img alt="Maven Central 2.4" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.4" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    |   <picture><img alt="Flow 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
 |         <picture><img alt="Maven Central 2.3" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.3" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    |   <picture><img alt="Flow 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
 |         <picture><img alt="Maven Central 2.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.2" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    | <picture><img alt="Flow 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
@@ -92,10 +100,9 @@ or
 
 ## Development
 
-<picture><img alt="Development 2.5" src="https://img.shields.io/badge/GITHUB-2.5--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
-<picture><img alt="Quarkus 3.5+" src="https://img.shields.io/badge/QUARKUS-v3.5%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
-<picture><img alt="Hilla 2.5" src="https://tinyurl.com/quarkus-hilla-h-2-5" style="visibility: visible;"></picture>
-<picture><img alt="Flow 24.3" src="https://img.shields.io/badge/VAADIN-v24.3-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
+<picture><img alt="Development 24.4" src="https://img.shields.io/badge/GITHUB-24.4--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
+<picture><img alt="Quarkus 3.7+" src="https://img.shields.io/badge/QUARKUS-v3.7%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
+<picture><img alt="Vaadin 24.4" src="https://img.shields.io/badge/VAADIN-v24.4-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
 
 ## Build and test
 
