@@ -13,7 +13,7 @@ language:
   base:
     shared-data:
       boms:
-        - groupId: dev.hilla
+        - groupId: com.vaadin.hilla
           artifactId: hilla-bom
           version: "\${hilla.version}"
     data:
