@@ -203,7 +203,19 @@
             </activation>
             <properties>
                 <selenide.version>6.19.1</selenide.version>
+                <selenium.version>4.13.0</selenium.version>
             </properties>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.seleniumhq.selenium</groupId>
+                        <artifactId>selenium-bom</artifactId>
+                        <version>${selenium.version}</version>
+                        <type>pom</type>
+                        <scope>import</scope>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
         </profile>
     </profiles>
 </project>
