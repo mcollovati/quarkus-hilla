@@ -43,7 +43,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <quarkus.version>3.7.2</quarkus.version>
-        <hilla.version>24.4.0.alpha2</hilla.version>
+        <hilla.version>24.4.0.alpha3</hilla.version>
 
         <assertj.version>3.25.3</assertj.version>
 
