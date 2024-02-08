@@ -34,8 +34,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.vaadin.hilla</groupId>
-                <artifactId>hilla-maven-plugin</artifactId>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>io.quarkus</groupId>

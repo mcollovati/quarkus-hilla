@@ -43,7 +43,8 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <quarkus.version>3.7.2</quarkus.version>
-        <hilla.version>24.4.0.alpha2</hilla.version>
+        <vaadin.version>24.4.0.alpha4</vaadin.version>
+        <hilla.version>24.4.0.alpha4</hilla.version>
 
         <assertj.version>3.25.3</assertj.version>
 
@@ -71,6 +72,13 @@
                 <groupId>com.vaadin.hilla</groupId>
                 <artifactId>hilla-bom</artifactId>
                 <version>${hilla.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-bom</artifactId>
+                <version>${vaadin.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
