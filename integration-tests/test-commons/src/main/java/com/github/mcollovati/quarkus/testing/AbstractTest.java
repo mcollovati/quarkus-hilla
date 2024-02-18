@@ -54,6 +54,10 @@ public abstract class AbstractTest {
             System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
         }
         Configuration.fastSetValue = true;
+
+        // Disable Copilot because currently it slows down the page load
+        // because of license checking
+        System.setProperty("vaadin.copilot.enable", "false");
     }
 
     protected final String getBaseURL() {
