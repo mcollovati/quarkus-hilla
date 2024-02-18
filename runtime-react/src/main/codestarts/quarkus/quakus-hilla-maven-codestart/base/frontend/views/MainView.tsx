@@ -1,6 +1,6 @@
-import { Button } from "@hilla/react-components/Button.js";
-import { Notification } from "@hilla/react-components/Notification.js";
-import { TextField } from "@hilla/react-components/TextField.js";
+import { Button } from "@vaadin/react-components/Button.js";
+import { Notification } from "@vaadin/react-components/Notification.js";
+import { TextField } from "@vaadin/react-components/TextField.js";
 import { HelloEndpoint } from "Frontend/generated/endpoints.js";
 import { useState } from "react";
 

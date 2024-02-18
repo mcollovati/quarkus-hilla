@@ -13,8 +13,8 @@ language:
   base:
     shared-data:
       boms:
-        - groupId: com.vaadin.hilla
-          artifactId: hilla-bom
-          version: "\${hilla.version}"
+        - groupId: com.vaadin
+          artifactId: vaadin-bom
+          version: "\${vaadin.version}"
     data:
-      hillaVersion: ${hilla.version}
+      vaadinVersion: ${vaadin.version}

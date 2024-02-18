@@ -14,7 +14,7 @@
     <name>Quarkus - Hilla - Smoke Tests</name>
 
     <properties>
-        <hilla-maven-plugin.phase>compile</hilla-maven-plugin.phase>
+        <vaadin-maven-plugin.phase>compile</vaadin-maven-plugin.phase>
     </properties>
 
     <dependencies>
@@ -34,8 +34,8 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>com.vaadin.hilla</groupId>
-                <artifactId>hilla-maven-plugin</artifactId>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
             </plugin>
             <plugin>
                 <groupId>io.quarkus</groupId>

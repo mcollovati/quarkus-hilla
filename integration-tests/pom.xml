@@ -26,7 +26,7 @@
             Hilla plugin execution should be enabled in child modules setting the 'compile' value
             for the property
         -->
-        <hilla-maven-plugin.phase>none</hilla-maven-plugin.phase>
+        <vaadin-maven-plugin.phase>none</vaadin-maven-plugin.phase>
     </properties>
     <dependencies>
         <dependency>
@@ -64,14 +64,14 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>com.vaadin.hilla</groupId>
-                    <artifactId>hilla-maven-plugin</artifactId>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin-maven-plugin</artifactId>
                     <executions>
                         <execution>
                             <goals>
                                 <goal>prepare-frontend</goal>
                             </goals>
-                            <phase>${hilla-maven-plugin.phase}</phase>
+                            <phase>${vaadin-maven-plugin.phase}</phase>
                         </execution>
                     </executions>
                 </plugin>
@@ -149,14 +149,14 @@
             <build>
                 <plugins>
                     <plugin>
-                        <groupId>com.vaadin.hilla</groupId>
-                        <artifactId>hilla-maven-plugin</artifactId>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>vaadin-maven-plugin</artifactId>
                         <executions>
                             <execution>
                                 <goals>
                                     <goal>build-frontend</goal>
                                 </goals>
-                                <phase>${hilla-maven-plugin.phase}</phase>
+                                <phase>${vaadin-maven-plugin.phase}</phase>
                             </execution>
                         </executions>
                     </plugin>

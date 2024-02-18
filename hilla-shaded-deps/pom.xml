@@ -22,6 +22,16 @@
             <groupId>com.vaadin.hilla</groupId>
             <artifactId>engine-runtime</artifactId>
         </dependency>
+        <!--
+            vaadin-core-versions.json and vaadin-versions.json have been removed frm the Hilla artifacts in
+            unified platform. Since quarkus-hilla currently still focus on Hilla only, for the moment we repack the
+            json files in the shaded deps module.
+        -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin</artifactId>
+            <version>${vaadin.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -103,7 +113,8 @@
                                         <include>org/springframework/data/domain/KeysetScrollPosition.class</include>
                                         <include>org/springframework/data/domain/OffsetScrollPosition.class</include>
                                         <include>org/springframework/data/domain/ScrollPosition.class</include>
-                                        <include>org/springframework/data/domain/ScrollPosition$Direction.class</include>
+                                        <include>org/springframework/data/domain/ScrollPosition$Direction.class
+                                        </include>
                                         <include>org/springframework/data/domain/Page.class</include>
                                         <include>org/springframework/data/domain/Pageable.class</include>
                                         <include>org/springframework/data/domain/PageRequest.class</include>
@@ -117,6 +128,18 @@
                                         <include>org/springframework/data/util/LazyStreamable.class</include>
                                     </includes>
                                 </filter>
+                                <filter>
+                                    <artifact>com.vaadin:vaadin-core-internal</artifact>
+                                    <includes>
+                                        <include>vaadin-core-versions.json</include>
+                                    </includes>
+                                </filter>
+                                <filter>
+                                    <artifact>com.vaadin:vaadin-internal</artifact>
+                                    <includes>
+                                        <include>vaadin-versions.json</include>
+                                    </includes>
+                                </filter>
                             </filters>
                             <artifactSet>
                                 <includes>
@@ -125,6 +148,8 @@
                                     <include>org.springframework:spring-context</include>
                                     <include>org.springframework:spring-web</include>
                                     <include>org.springframework.data:spring-data-commons</include>
+                                    <include>com.vaadin:vaadin-core-internal</include>
+                                    <include>com.vaadin:vaadin-internal</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
