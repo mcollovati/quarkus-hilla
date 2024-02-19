@@ -89,7 +89,14 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.1.2",
-    "mobx": "^6.3.5"
+    "mobx": "^6.3.5",
+    "proj4": "2.10.0",
+    "react-dom": "18.2.0",
+    "@vaadin/hilla-react-auth": "24.4.0-alpha3",
+    "react-router-dom": "6.22.0",
+    "react": "18.2.0",
+    "@vaadin/hilla-react-crud": "24.4.0-alpha3",
+    "@vaadin/hilla-react-form": "24.4.0-alpha3"
   },
   "devDependencies": {
     "@babel/preset-react": "^7",
@@ -107,7 +114,9 @@
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.0.0",
     "workbox-core": "7.0.0",
-    "workbox-precaching": "7.0.0"
+    "workbox-precaching": "7.0.0",
+    "@types/react-dom": "18.2.19",
+    "@types/react": "18.2.55"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -197,7 +206,8 @@
     "@vaadin/grid-pro": "$@vaadin/grid-pro",
     "@vaadin/map": "$@vaadin/map",
     "@vaadin/rich-text-editor": "$@vaadin/rich-text-editor",
-    "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend"
+    "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
+    "proj4": "$proj4"
   },
   "vaadin": {
     "dependencies": {
@@ -285,7 +295,14 @@
       "@vaadin/virtual-list": "24.4.0-alpha13",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
-      "lit": "3.1.2"
+      "lit": "3.1.2",
+      "proj4": "2.10.0",
+      "react-dom": "18.2.0",
+      "@vaadin/hilla-react-auth": "24.4.0-alpha3",
+      "react-router-dom": "6.22.0",
+      "react": "18.2.0",
+      "@vaadin/hilla-react-crud": "24.4.0-alpha3",
+      "@vaadin/hilla-react-form": "24.4.0-alpha3"
     },
     "devDependencies": {
       "@babel/preset-react": "^7",
@@ -303,8 +320,10 @@
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.0.0",
       "workbox-core": "7.0.0",
-      "workbox-precaching": "7.0.0"
+      "workbox-precaching": "7.0.0",
+      "@types/react-dom": "18.2.19",
+      "@types/react": "18.2.55"
     },
-    "hash": "889caf2507715c626d17e9acbfa805603dee67577a3fc80ae84684419962c196"
+    "hash": "6fba62518784155b5a13d847dff4a83f1e27d2920047f19dae05841ead5f16b6"
   }
 }
