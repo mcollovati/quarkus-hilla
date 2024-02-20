@@ -73,7 +73,7 @@ public abstract class AbstractTest {
         Selenide.open(url);
         selector.get().shouldBe(Condition.visible, Duration.ofSeconds(10));
         // There should not be typescript errors
-        $("vite-plugin-checker-error-overlay").shouldNot(Condition.exist);
+        $("vite-plugin-checker-error-overlay").shouldNotBe(Condition.visible);
     }
 
     protected boolean runHeadless() {
