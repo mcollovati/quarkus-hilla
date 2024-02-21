@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.7.3</quarkus.version>
+        <quarkus.version>3.8.0</quarkus.version>
         <vaadin.version>24.4.0.alpha4</vaadin.version>
         <hilla.version>24.4.0.alpha4</hilla.version>
 
