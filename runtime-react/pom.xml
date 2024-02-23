@@ -45,7 +45,7 @@
                             <!-- @formatter:on -->
                         </artifact>
                         <artifact>
-                            <key>com.vaadin.hilla:endpoint</key>
+                            <key>com.vaadin:hilla-endpoint</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
@@ -55,7 +55,7 @@
                             <!-- @formatter:on -->
                         </artifact>
                         <artifact>
-                            <key>com.vaadin.hilla:hilla-dev-mode</key>
+                            <key>com.vaadin:hilla-dev</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
@@ -199,9 +199,9 @@ Files.move(codeStartFolder.resolve("src/main/java"), javaSrcFolder, new CopyOpti
                         </executions>
                         <dependencies>
                             <dependency>
-                                <groupId>com.vaadin.hilla</groupId>
-                                <artifactId>plugin-base</artifactId>
-                                <version>${hilla.version}</version>
+                                <groupId>com.vaadin</groupId>
+                                <artifactId>hilla-plugin-base</artifactId>
+                                <version>${vaadin.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
