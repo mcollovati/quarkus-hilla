@@ -15,8 +15,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.vaadin.hilla</groupId>
-            <artifactId>endpoint</artifactId>
+            <groupId>com.vaadin</groupId>
+            <artifactId>hilla-endpoint</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework</groupId>
@@ -33,14 +33,18 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.vaadin.hilla</groupId>
-            <artifactId>hilla-react</artifactId>
+            <groupId>com.vaadin</groupId>
+            <artifactId>hilla</artifactId>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
         </dependency>
     </dependencies>
 

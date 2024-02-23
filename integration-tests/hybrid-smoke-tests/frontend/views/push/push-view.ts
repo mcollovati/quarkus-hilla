@@ -5,7 +5,7 @@ import * as HelloWorldEndpoint from 'Frontend/generated/HelloWorldEndpoint';
 import {html, nothing} from 'lit';
 import {customElement, state} from 'lit/decorators.js';
 import {View} from '../../views/view';
-import {Subscription} from "@vaadin/hilla-core";
+import {Subscription} from "@vaadin/hilla-frontend";
 import {
     getClock,
     getClockCancellable,
