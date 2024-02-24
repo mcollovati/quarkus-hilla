@@ -43,7 +43,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <quarkus.version>3.8.0</quarkus.version>
-        <vaadin.version>24.4-SNAPSHOT</vaadin.version>
+        <!--
+            For backward compatibility of GH actions workflows
+            To be removed in the future
+        -->
+        <hilla.version>24.4-SNAPSHOT</hilla.version>
+        <vaadin.version>${hilla.version}</vaadin.version>
 
         <jackson.version>2.16.1</jackson.version>
         <assertj.version>3.25.3</assertj.version>
@@ -89,7 +94,7 @@
             <dependency>
                 <groupId>com.vaadin</groupId>
                 <artifactId>hilla-bom</artifactId>
-                <version>${vaadin.version}</version>
+                <version>${hilla.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
