@@ -80,7 +80,14 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.1.2",
-    "mobx": "^6.3.5"
+    "mobx": "^6.3.5",
+    "proj4": "2.10.0",
+    "react-dom": "18.2.0",
+    "@vaadin/hilla-react-auth": "24.4.0-alpha4",
+    "react-router-dom": "6.22.1",
+    "react": "18.2.0",
+    "@vaadin/hilla-react-crud": "24.4.0-alpha4",
+    "@vaadin/hilla-react-form": "24.4.0-alpha4"
   },
   "devDependencies": {
     "@babel/preset-react": "^7",
@@ -107,7 +114,9 @@
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.0.0",
     "workbox-core": "7.0.0",
-    "workbox-precaching": "7.0.0"
+    "workbox-precaching": "7.0.0",
+    "@types/react-dom": "18.2.19",
+    "@types/react": "18.2.57"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -197,7 +206,8 @@
     "@vaadin/grid-pro": "$@vaadin/grid-pro",
     "@vaadin/map": "$@vaadin/map",
     "@vaadin/rich-text-editor": "$@vaadin/rich-text-editor",
-    "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend"
+    "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
+    "proj4": "$proj4"
   },
   "vaadin": {
     "dependencies": {
@@ -276,7 +286,14 @@
       "@vaadin/virtual-list": "24.4.0-alpha13",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
-      "lit": "3.1.2"
+      "lit": "3.1.2",
+      "proj4": "2.10.0",
+      "react-dom": "18.2.0",
+      "@vaadin/hilla-react-auth": "24.4.0-alpha4",
+      "react-router-dom": "6.22.1",
+      "react": "18.2.0",
+      "@vaadin/hilla-react-crud": "24.4.0-alpha4",
+      "@vaadin/hilla-react-form": "24.4.0-alpha4"
     },
     "devDependencies": {
       "@babel/preset-react": "^7",
@@ -303,8 +320,10 @@
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.0.0",
       "workbox-core": "7.0.0",
-      "workbox-precaching": "7.0.0"
+      "workbox-precaching": "7.0.0",
+      "@types/react-dom": "18.2.19",
+      "@types/react": "18.2.57"
     },
-    "hash": "b7bea75d1c0082b709cffbbde584f93ed22c8de7d0cff1a70a57e9c16d2c770a"
+    "hash": "aca4db1d2d81fd28701d166768a9b56af3f2b633b20b08f02946fbb08c5308b7"
   }
 }
