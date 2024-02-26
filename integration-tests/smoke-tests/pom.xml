@@ -203,7 +203,7 @@
             </activation>
             <properties>
                 <selenide.version>6.19.1</selenide.version>
-                <selenium.version>4.13.0</selenium.version>
+                <selenium.version>4.18.1</selenium.version>
             </properties>
             <dependencyManagement>
                 <dependencies>
