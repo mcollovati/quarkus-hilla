@@ -6,6 +6,7 @@
     "@polymer/polymer": "3.5.1",
     "@vaadin/bundles": "24.4.0-alpha15",
     "@vaadin/common-frontend": "0.0.19",
+    "@vaadin/hilla-file-router": "24.4.0-alpha7",
     "@vaadin/hilla-frontend": "24.4.0-alpha7",
     "@vaadin/hilla-lit-form": "24.4.0-alpha7",
     "@vaadin/hilla-react-auth": "24.4.0-alpha7",
@@ -36,7 +37,6 @@
     "@rollup/pluginutils": "5.1.0",
     "@types/react": "18.2.57",
     "@types/react-dom": "18.2.19",
-    "@vaadin/hilla-file-router": "24.4.0-alpha7",
     "@vaadin/hilla-generator-cli": "24.4.0-alpha7",
     "@vaadin/hilla-generator-core": "24.4.0-alpha7",
     "@vaadin/hilla-generator-plugin-backbone": "24.4.0-alpha7",
@@ -94,13 +94,15 @@
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "date-fns": "$date-fns",
     "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
-    "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals"
+    "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals",
+    "@vaadin/hilla-file-router": "$@vaadin/hilla-file-router"
   },
   "vaadin": {
     "dependencies": {
       "@polymer/polymer": "3.5.1",
       "@vaadin/bundles": "24.4.0-alpha15",
       "@vaadin/common-frontend": "0.0.19",
+      "@vaadin/hilla-file-router": "24.4.0-alpha7",
       "@vaadin/hilla-frontend": "24.4.0-alpha7",
       "@vaadin/hilla-lit-form": "24.4.0-alpha7",
       "@vaadin/hilla-react-auth": "24.4.0-alpha7",
@@ -129,7 +131,6 @@
       "@rollup/pluginutils": "5.1.0",
       "@types/react": "18.2.57",
       "@types/react-dom": "18.2.19",
-      "@vaadin/hilla-file-router": "24.4.0-alpha7",
       "@vaadin/hilla-generator-cli": "24.4.0-alpha7",
       "@vaadin/hilla-generator-core": "24.4.0-alpha7",
       "@vaadin/hilla-generator-plugin-backbone": "24.4.0-alpha7",
@@ -153,6 +154,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "11e3ce761c3baad5662d4b0d3955f468190f159dc52a4d92290e1480422d0039"
+    "hash": "a94fc41a8a260dfb44726b09ff751dba7758c7a942b8d490ee8b8a007d840f12"
   }
 }
