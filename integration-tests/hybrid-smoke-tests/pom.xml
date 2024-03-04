@@ -13,7 +13,7 @@
     <artifactId>quarkus-hilla-hybrid-smoke-tests</artifactId>
     <name>Quarkus - Hilla - Hybrid Smoke Tests</name>
     <properties>
-        <vaadin.version>24.3.5</vaadin.version>
+        <vaadin.version>24.3.6</vaadin.version>
         <hilla-maven-plugin.phase>compile</hilla-maven-plugin.phase>
     </properties>
 
