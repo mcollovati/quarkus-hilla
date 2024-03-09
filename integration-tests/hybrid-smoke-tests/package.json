@@ -81,15 +81,7 @@
     "date-fns": "2.29.3",
     "lit": "3.1.2",
     "mobx": "^6.3.5",
-    "proj4": "2.10.0",
-    "react-dom": "18.2.0",
-    "@vaadin/hilla-react-auth": "24.4.0-alpha10",
-    "react": "18.2.0",
-    "@vaadin/hilla-react-crud": "24.4.0-alpha10",
-    "@vaadin/hilla-file-router": "24.4.0-alpha10",
-    "react-router-dom": "6.22.2",
-    "@vaadin/hilla-react-form": "24.4.0-alpha10",
-    "@vaadin/hilla-react-signals": "24.4.0-alpha10"
+    "proj4": "2.10.0"
   },
   "devDependencies": {
     "@babel/preset-react": "^7",
@@ -116,9 +108,7 @@
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.0.0",
     "workbox-core": "7.0.0",
-    "workbox-precaching": "7.0.0",
-    "@types/react-dom": "18.2.19",
-    "@types/react": "18.2.60"
+    "workbox-precaching": "7.0.0"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -289,15 +279,7 @@
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
       "lit": "3.1.2",
-      "proj4": "2.10.0",
-      "react-dom": "18.2.0",
-      "@vaadin/hilla-react-auth": "24.4.0-alpha10",
-      "react": "18.2.0",
-      "@vaadin/hilla-react-crud": "24.4.0-alpha10",
-      "@vaadin/hilla-file-router": "24.4.0-alpha10",
-      "react-router-dom": "6.22.2",
-      "@vaadin/hilla-react-form": "24.4.0-alpha10",
-      "@vaadin/hilla-react-signals": "24.4.0-alpha10"
+      "proj4": "2.10.0"
     },
     "devDependencies": {
       "@babel/preset-react": "^7",
@@ -324,9 +306,7 @@
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.0.0",
       "workbox-core": "7.0.0",
-      "workbox-precaching": "7.0.0",
-      "@types/react-dom": "18.2.19",
-      "@types/react": "18.2.60"
+      "workbox-precaching": "7.0.0"
     },
     "hash": "277c8dc117a4d788e53a70c32c4b44a008a7660274a35225399181630d9bc0f4"
   }
