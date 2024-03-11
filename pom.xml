@@ -50,7 +50,7 @@
         <hilla.version>24.4-SNAPSHOT</hilla.version>
         <vaadin.version>${hilla.version}</vaadin.version>
 
-        <jackson.version>2.16.1</jackson.version>
+        <jackson.version>2.16.2</jackson.version>
         <assertj.version>3.25.3</assertj.version>
 
         <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
