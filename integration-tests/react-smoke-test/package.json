@@ -12,6 +12,7 @@
     "@vaadin/hilla-react-auth": "24.4.0-alpha13",
     "@vaadin/hilla-react-crud": "24.4.0-alpha13",
     "@vaadin/hilla-react-form": "24.4.0-alpha13",
+    "@vaadin/hilla-react-i18n": "24.4.0-alpha13",
     "@vaadin/hilla-react-signals": "24.4.0-alpha13",
     "@vaadin/polymer-legacy-adapter": "24.4.0-alpha16",
     "@vaadin/react-components": "24.4.0-alpha16",
@@ -95,7 +96,8 @@
     "date-fns": "$date-fns",
     "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
     "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals",
-    "@vaadin/hilla-file-router": "$@vaadin/hilla-file-router"
+    "@vaadin/hilla-file-router": "$@vaadin/hilla-file-router",
+    "@vaadin/hilla-react-i18n": "$@vaadin/hilla-react-i18n"
   },
   "vaadin": {
     "dependencies": {
@@ -108,6 +110,7 @@
       "@vaadin/hilla-react-auth": "24.4.0-alpha13",
       "@vaadin/hilla-react-crud": "24.4.0-alpha13",
       "@vaadin/hilla-react-form": "24.4.0-alpha13",
+      "@vaadin/hilla-react-i18n": "24.4.0-alpha13",
       "@vaadin/hilla-react-signals": "24.4.0-alpha13",
       "@vaadin/polymer-legacy-adapter": "24.4.0-alpha16",
       "@vaadin/react-components": "24.4.0-alpha16",
@@ -154,6 +157,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "647f6de4c69ba872b6b4d4e2df66dba822112c8c3e1bc032cb00e208cea2be98"
+    "hash": "167fdb34b8476fff6836b7cfd363a59de2caf4a241f3d8afafbd949ba15eb5cf"
   }
 }
