@@ -19,12 +19,14 @@ import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Singleton;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
@@ -57,6 +59,7 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
 import io.quarkus.undertow.deployment.ServletBuildItem;
@@ -86,6 +89,7 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
+import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacer;
 
@@ -432,6 +436,19 @@ class QuarkusHillaExtensionProcessor {
                     .map(NavigationAccessControlBuildItem::new)
                     .ifPresent(accessControlProducer::produce);
         }
+    }
+
+    @BuildStep
+    void registerServiceInitEventPropagator(
+            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
+            BuildProducer<GeneratedResourceBuildItem> resourceProducer,
+            BuildProducer<ServiceProviderBuildItem> serviceProviderProducer) {
+        String descriptor = QuarkusVaadinServiceListenerPropagator.class.getName() + System.lineSeparator();
+        resourceProducer.produce(new GeneratedResourceBuildItem(
+                "META-INF/services/" + VaadinServiceInitListener.class.getName(),
+                descriptor.getBytes(StandardCharsets.UTF_8)));
+        serviceProviderProducer.produce(new ServiceProviderBuildItem(
+                VaadinServiceInitListener.class.getName(), QuarkusVaadinServiceListenerPropagator.class.getName()));
     }
 
     public static final class NavigationAccessControlBuildItem extends SimpleBuildItem {
