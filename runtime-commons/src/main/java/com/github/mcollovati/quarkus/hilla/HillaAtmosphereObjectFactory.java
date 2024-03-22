@@ -15,8 +15,10 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
 
+import com.vaadin.hilla.EndpointController;
 import com.vaadin.hilla.push.PushEndpoint;
 import org.atmosphere.cpr.AtmosphereConfig;
 import org.atmosphere.inject.InjectableObjectFactory;
@@ -34,8 +36,10 @@ public class HillaAtmosphereObjectFactory extends InjectableObjectFactory {
     public <T, U extends T> U newClassInstance(Class<T> classType, Class<U> defaultType)
             throws InstantiationException, IllegalAccessException {
         if (PushEndpoint.class.equals(defaultType)) {
-            U instance = defaultType.cast(
-                    QuarkusApplicationContext.getBean(CDI.current().getBeanManager(), PushEndpoint.class));
+            BeanManager beanManager = CDI.current().getBeanManager();
+            // ensure EndpointController gets initialized so that also EndpointRegistry is populated
+            QuarkusApplicationContext.getBean(beanManager, EndpointController.class);
+            U instance = defaultType.cast(QuarkusApplicationContext.getBean(beanManager, PushEndpoint.class));
             injectInjectable(instance, defaultType, config.framework());
             applyMethods(instance, defaultType);
             return instance;

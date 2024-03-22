@@ -25,6 +25,7 @@ import jakarta.servlet.ServletContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.hilla.EndpointController;
 import com.vaadin.hilla.EndpointInvoker;
@@ -35,6 +36,7 @@ import com.vaadin.hilla.ExplicitNullableTypeChecker;
 import com.vaadin.hilla.auth.CsrfChecker;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
+import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
@@ -128,7 +130,7 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
             @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
@@ -159,22 +161,33 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     @Produces
-    @ApplicationScoped
-    @Startup
+    @Singleton
     ApplicationContext applicationContext(BeanManager beanManager) {
         return new QuarkusApplicationContext(beanManager);
     }
 
+    private EndpointController endpointController;
+
     @Produces
-    @ApplicationScoped
-    @Startup
+    @Singleton
     EndpointController endpointController(
             ApplicationContext context,
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker) {
-        EndpointController controller = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
-        controller.registerEndpoints();
-        return controller;
+        this.endpointController = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
+        return this.endpointController;
+    }
+
+    @Startup
+    void initializeEndpointRegistry() {
+        new EndpointRegistryInitializer(this.endpointController).serviceInit(vaadinServiceInitEvent);
+        this.vaadinServiceInitEvent = null;
+    }
+
+    private ServiceInitEvent vaadinServiceInitEvent;
+
+    void onVaadinServiceInit(ServiceInitEvent event) {
+        this.vaadinServiceInitEvent = event;
     }
 }
