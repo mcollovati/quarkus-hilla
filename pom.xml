@@ -41,6 +41,7 @@
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <vaadin.useBun>false</vaadin.useBun>
 
         <quarkus.version>3.15.1</quarkus.version>
         <!--
@@ -123,6 +124,9 @@
                     <groupId>com.vaadin</groupId>
                     <artifactId>vaadin-maven-plugin</artifactId>
                     <version>${vaadin.version}</version>
+                    <configuration>
+                        <bunEnable>${vaadin.useBun}</bunEnable>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <artifactId>maven-surefire-plugin</artifactId>

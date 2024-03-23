@@ -70,14 +70,15 @@ jobs:
         if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
           chrome-version: stable
+      - uses: oven-sh/setup-bun@v1
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -Dvaadin.useBun=true -Dmaven.javadoc.skip=false install
       - name: Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+          mvn -V -e -B -ntp verify -Dvaadin.useBun=true -Dmaven.javadoc.skip=false -DtrimStackTrace=false
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main.tgz -T -
@@ -108,14 +109,15 @@ jobs:
         if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
           chrome-version: stable
+      - uses: oven-sh/setup-bun@v1
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -Dvaadin.useBun=true -DskipTests -Dmaven.javadoc.skip=false install
       - name: End-to-end Test (Development mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests
+          mvn -V -e -B -ntp verify -Dvaadin.useBun=true -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-dev.tgz -T -
@@ -146,14 +148,15 @@ jobs:
         if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:
           chrome-version: stable
+      - uses: oven-sh/setup-bun@v1
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -Dvaadin.useBun=true -DskipTests -Dmaven.javadoc.skip=false install
       - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production
+          mvn -V -e -B -ntp verify -Dvaadin.useBun=true -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-prod.tgz -T -
