@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -41,7 +42,7 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.PathMatcher;
+import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
 import io.vertx.ext.web.RoutingContext;
@@ -52,7 +53,7 @@ import org.slf4j.LoggerFactory;
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
-    private final PathMatcher<Boolean> pathMatcher;
+    private ImmutablePathMatcher<Boolean> pathMatcher;
     private final AuthenticatedHttpSecurityPolicy authenticatedHttpSecurityPolicy;
 
     @Inject
@@ -62,12 +63,23 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     public HillaSecurityPolicy() {
         authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
-        pathMatcher = new PathMatcher<>();
+        buildPathMatcher(null);
+    }
+
+    private void buildPathMatcher(Consumer<ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean>> customizer) {
+        ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean> pathMatcherBuilder = ImmutablePathMatcher.builder();
         Arrays.stream(HandlerHelper.getPublicResourcesRequiringSecurityContext())
-                .forEach(this::addPathMatcher);
-        addPathMatcher("/HILLA/**");
-        addPathMatcher("/connect/**");
-        Arrays.stream(HandlerHelper.getPublicResources()).forEach(this::addPathMatcher);
+                .map(this::computePath)
+                .forEach(p -> pathMatcherBuilder.addPath(p, true));
+        pathMatcherBuilder.addPath("/HILLA/*", true);
+        pathMatcherBuilder.addPath("/connect/*", true);
+        Arrays.stream(HandlerHelper.getPublicResources())
+                .map(this::computePath)
+                .forEach(p -> pathMatcherBuilder.addPath(p, true));
+        if (customizer != null) {
+            customizer.accept(pathMatcherBuilder);
+        }
+        this.pathMatcher = pathMatcherBuilder.build();
     }
 
     @Override
@@ -94,15 +106,14 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .map(removeQueryString)
                 .ifPresent(paths::add);
         paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
-        paths.forEach(this::addPathMatcher);
+        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(computePath(p), true)));
     }
 
-    private void addPathMatcher(String path) {
+    private String computePath(String path) {
         if (path.endsWith("/") || path.endsWith("/**")) {
-            pathMatcher.addPrefixPath(path.replaceFirst("/(\\*\\*)?$", ""), true);
-        } else {
-            pathMatcher.addExactPath(path, true);
+            path = path.replaceFirst("/(\\*\\*)?$", "/*");
         }
+        return path;
     }
 
     /**
