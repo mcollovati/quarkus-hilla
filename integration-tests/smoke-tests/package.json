@@ -98,13 +98,13 @@
     "@vaadin/hilla-generator-utils": "24.4.0-alpha18",
     "@vitejs/plugin-react": "4.2.1",
     "async": "3.2.5",
-    "glob": "10.3.10",
+    "glob": "10.3.12",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "5.12.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.4.3",
-    "vite": "5.2.6",
+    "vite": "5.2.7",
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.0.0",
     "workbox-core": "7.0.0",
@@ -296,19 +296,19 @@
       "@vaadin/hilla-generator-utils": "24.4.0-alpha18",
       "@vitejs/plugin-react": "4.2.1",
       "async": "3.2.5",
-      "glob": "10.3.10",
+      "glob": "10.3.12",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "5.12.0",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.4.3",
-      "vite": "5.2.6",
+      "vite": "5.2.7",
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.0.0",
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "88b3c2cca89694180924323590e9e5c2418fa6fe182dcde29c86662f0076c00f"
+    "hash": "42cf34a6ca2ab905d1d46fef9cf9742f351f714808d5e2f06e0180850f477602"
   },
   "type": "module"
 }
