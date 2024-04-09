@@ -103,8 +103,8 @@
     "rollup-plugin-visualizer": "5.12.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
-    "typescript": "5.4.3",
-    "vite": "5.2.7",
+    "typescript": "5.4.4",
+    "vite": "5.2.8",
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.0.0",
     "workbox-core": "7.0.0",
@@ -301,14 +301,14 @@
       "rollup-plugin-visualizer": "5.12.0",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
-      "typescript": "5.4.3",
-      "vite": "5.2.7",
+      "typescript": "5.4.4",
+      "vite": "5.2.8",
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.0.0",
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "cc5007e7ef270385ca305bd309f1527138b480252af8dcbca45294742b921080"
+    "hash": "fc9715e3e8f310f0b545e1ab410268ce1c446bbe294b7a5350da46e02bd64cd8"
   },
   "type": "module"
 }
