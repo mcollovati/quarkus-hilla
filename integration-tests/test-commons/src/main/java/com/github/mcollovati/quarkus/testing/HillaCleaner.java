@@ -34,7 +34,8 @@ public class HillaCleaner implements QuarkusTestResourceLifecycleManager {
 
     @Override
     public Map<String, String> start() {
-        frontendGenerated = Paths.get(System.getProperty("user.dir")).resolve(Paths.get("frontend", "generated"));
+        frontendGenerated =
+                Paths.get(System.getProperty("user.dir")).resolve(Paths.get("src", "main", "frontend", "generated"));
         if (Files.isDirectory(frontendGenerated)) {
             try (Stream<Path> paths = Files.walk(frontendGenerated)) {
                 paths.sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
