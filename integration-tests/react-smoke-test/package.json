@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.1",
-    "@vaadin/bundles": "24.4.0-alpha19",
+    "@vaadin/bundles": "24.4.0-alpha22",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.4.0-alpha21",
     "@vaadin/hilla-frontend": "24.4.0-alpha21",
@@ -14,13 +14,13 @@
     "@vaadin/hilla-react-form": "24.4.0-alpha21",
     "@vaadin/hilla-react-i18n": "24.4.0-alpha21",
     "@vaadin/hilla-react-signals": "24.4.0-alpha21",
-    "@vaadin/polymer-legacy-adapter": "24.4.0-alpha20",
-    "@vaadin/react-components": "24.4.0-alpha19",
+    "@vaadin/polymer-legacy-adapter": "24.4.0-alpha22",
+    "@vaadin/react-components": "24.4.0-alpha22",
     "@vaadin/router": "1.7.5",
     "@vaadin/vaadin-development-mode-detector": "2.0.6",
-    "@vaadin/vaadin-lumo-styles": "24.4.0-alpha20",
-    "@vaadin/vaadin-material-styles": "24.4.0-alpha20",
-    "@vaadin/vaadin-themable-mixin": "24.4.0-alpha20",
+    "@vaadin/vaadin-lumo-styles": "24.4.0-alpha22",
+    "@vaadin/vaadin-material-styles": "24.4.0-alpha22",
+    "@vaadin/vaadin-themable-mixin": "24.4.0-alpha22",
     "@vaadin/vaadin-usage-statistics": "2.1.2",
     "classnames": "^2.3.2",
     "construct-style-sheets-polyfill": "3.1.0",
@@ -102,7 +102,7 @@
   "vaadin": {
     "dependencies": {
       "@polymer/polymer": "3.5.1",
-      "@vaadin/bundles": "24.4.0-alpha19",
+      "@vaadin/bundles": "24.4.0-alpha22",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "24.4.0-alpha21",
       "@vaadin/hilla-frontend": "24.4.0-alpha21",
@@ -112,13 +112,13 @@
       "@vaadin/hilla-react-form": "24.4.0-alpha21",
       "@vaadin/hilla-react-i18n": "24.4.0-alpha21",
       "@vaadin/hilla-react-signals": "24.4.0-alpha21",
-      "@vaadin/polymer-legacy-adapter": "24.4.0-alpha20",
-      "@vaadin/react-components": "24.4.0-alpha19",
+      "@vaadin/polymer-legacy-adapter": "24.4.0-alpha22",
+      "@vaadin/react-components": "24.4.0-alpha22",
       "@vaadin/router": "1.7.5",
       "@vaadin/vaadin-development-mode-detector": "2.0.6",
-      "@vaadin/vaadin-lumo-styles": "24.4.0-alpha20",
-      "@vaadin/vaadin-material-styles": "24.4.0-alpha20",
-      "@vaadin/vaadin-themable-mixin": "24.4.0-alpha20",
+      "@vaadin/vaadin-lumo-styles": "24.4.0-alpha22",
+      "@vaadin/vaadin-material-styles": "24.4.0-alpha22",
+      "@vaadin/vaadin-themable-mixin": "24.4.0-alpha22",
       "@vaadin/vaadin-usage-statistics": "2.1.2",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
@@ -157,6 +157,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "b1549045ebbe457331c20173c50f0df4bcf2899dad959ae9e8660a5ca20e0bb9"
+    "hash": "cc14ba3e7984cb1e9c4f8d73ec79f55868a5fa46b255c2902f6d6458114bb7ec"
   }
 }
