@@ -81,7 +81,7 @@
     "date-fns": "2.29.3",
     "lit": "3.1.3",
     "mobx": "^6.3.5",
-    "proj4": "2.10.0"
+    "proj4": "2.11.0"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.1",
@@ -279,7 +279,7 @@
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
       "lit": "3.1.3",
-      "proj4": "2.10.0"
+      "proj4": "2.11.0"
     },
     "devDependencies": {
       "@babel/preset-react": "7.24.1",
@@ -308,7 +308,7 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "fecff730ce28da44f82cda9cb264ce81625aea11753964d8dba4e50743b8f742"
+    "hash": "02934b2c88cf198c82c7883039e86cf091eed4e2c9567ba92601dfcca487b777"
   },
   "type": "module"
 }
