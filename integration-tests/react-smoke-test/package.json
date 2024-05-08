@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.1",
-    "@vaadin/bundles": "24.4.0-beta1",
+    "@vaadin/bundles": "24.4.0-beta2",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.4.0-beta1",
     "@vaadin/hilla-frontend": "24.4.0-beta1",
@@ -14,13 +14,14 @@
     "@vaadin/hilla-react-form": "24.4.0-beta1",
     "@vaadin/hilla-react-i18n": "24.4.0-beta1",
     "@vaadin/hilla-react-signals": "24.4.0-beta1",
-    "@vaadin/polymer-legacy-adapter": "24.4.0-beta1",
-    "@vaadin/react-components": "24.4.0-beta1",
+    "@vaadin/polymer-legacy-adapter": "24.4.0-beta2",
+    "@vaadin/react-components": "24.4.0-beta2",
+    "@vaadin/react-components-pro": "24.4.0-beta2",
     "@vaadin/router": "1.7.5",
-    "@vaadin/vaadin-development-mode-detector": "2.0.6",
-    "@vaadin/vaadin-lumo-styles": "24.4.0-beta1",
-    "@vaadin/vaadin-material-styles": "24.4.0-beta1",
-    "@vaadin/vaadin-themable-mixin": "24.4.0-beta1",
+    "@vaadin/vaadin-development-mode-detector": "2.0.7",
+    "@vaadin/vaadin-lumo-styles": "24.4.0-beta2",
+    "@vaadin/vaadin-material-styles": "24.4.0-beta2",
+    "@vaadin/vaadin-themable-mixin": "24.4.0-beta2",
     "@vaadin/vaadin-usage-statistics": "2.1.2",
     "classnames": "^2.3.2",
     "construct-style-sheets-polyfill": "3.1.0",
@@ -97,12 +98,13 @@
     "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
     "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals",
     "@vaadin/hilla-file-router": "$@vaadin/hilla-file-router",
-    "@vaadin/hilla-react-i18n": "$@vaadin/hilla-react-i18n"
+    "@vaadin/hilla-react-i18n": "$@vaadin/hilla-react-i18n",
+    "@vaadin/react-components-pro": "$@vaadin/react-components-pro"
   },
   "vaadin": {
     "dependencies": {
       "@polymer/polymer": "3.5.1",
-      "@vaadin/bundles": "24.4.0-beta1",
+      "@vaadin/bundles": "24.4.0-beta2",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "24.4.0-beta1",
       "@vaadin/hilla-frontend": "24.4.0-beta1",
@@ -112,13 +114,14 @@
       "@vaadin/hilla-react-form": "24.4.0-beta1",
       "@vaadin/hilla-react-i18n": "24.4.0-beta1",
       "@vaadin/hilla-react-signals": "24.4.0-beta1",
-      "@vaadin/polymer-legacy-adapter": "24.4.0-beta1",
-      "@vaadin/react-components": "24.4.0-beta1",
+      "@vaadin/polymer-legacy-adapter": "24.4.0-beta2",
+      "@vaadin/react-components": "24.4.0-beta2",
+      "@vaadin/react-components-pro": "24.4.0-beta2",
       "@vaadin/router": "1.7.5",
-      "@vaadin/vaadin-development-mode-detector": "2.0.6",
-      "@vaadin/vaadin-lumo-styles": "24.4.0-beta1",
-      "@vaadin/vaadin-material-styles": "24.4.0-beta1",
-      "@vaadin/vaadin-themable-mixin": "24.4.0-beta1",
+      "@vaadin/vaadin-development-mode-detector": "2.0.7",
+      "@vaadin/vaadin-lumo-styles": "24.4.0-beta2",
+      "@vaadin/vaadin-material-styles": "24.4.0-beta2",
+      "@vaadin/vaadin-themable-mixin": "24.4.0-beta2",
       "@vaadin/vaadin-usage-statistics": "2.1.2",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
@@ -157,6 +160,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "bc14da69acb032a82113b78999345d7c150ed1ae3215c478f91b59eb73278cae"
+    "hash": "c781ed8e61d7dc8a6275ce0dbee38f040d54df36141083cbac60981f1fda3bf7"
   }
 }
