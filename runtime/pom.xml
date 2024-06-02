@@ -55,7 +55,7 @@
                             <!-- @formatter:on -->
                         </artifact>
                         <artifact>
-                            <key>com.vaadin:hilla-dev</key>
+                            <key>com.vaadin:copilot</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime

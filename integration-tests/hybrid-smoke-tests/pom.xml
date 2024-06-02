@@ -33,6 +33,15 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <!--
+            Currently there's an issue with tests in production mode finding DevModeStartupListener
+            in vaadin-core-jandex, but not at runtime because of parent pom exclusion
+        -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
