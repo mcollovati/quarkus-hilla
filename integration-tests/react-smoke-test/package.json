@@ -15,13 +15,14 @@
     "@hilla/generator-typescript-plugin-subtypes": "2.5.7",
     "@hilla/generator-typescript-utils": "2.5.7",
     "@hilla/react-auth": "2.5.7",
-    "@hilla/react-components": "2.3.0",
+    "@hilla/react-components": "^2.3.0",
     "@hilla/react-crud": "2.5.7",
     "@hilla/react-form": "2.5.7",
     "@polymer/polymer": "3.5.1",
-    "@vaadin/bundles": "24.3.0",
+    "@vaadin/bundles": "24.3.13",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/router": "1.7.5",
+    "@vaadin/vaadin-lumo-styles": "^24.3.0",
     "classnames": "^2.3.2",
     "construct-style-sheets-polyfill": "3.1.0",
     "lit": "3.1.2",
@@ -44,7 +45,7 @@
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.3.3",
-    "vite": "5.1.1",
+    "vite": "5.1.7",
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.0.0",
     "workbox-core": "7.0.0",
@@ -75,7 +76,8 @@
     "@hilla/react-components": "$@hilla/react-components",
     "@hilla/react-auth": "$@hilla/react-auth",
     "@hilla/react-form": "$@hilla/react-form",
-    "@hilla/react-crud": "$@hilla/react-crud"
+    "@hilla/react-crud": "$@hilla/react-crud",
+    "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles"
   },
   "vaadin": {
     "dependencies": {
@@ -91,11 +93,11 @@
       "@hilla/generator-typescript-plugin-subtypes": "2.5.7",
       "@hilla/generator-typescript-utils": "2.5.7",
       "@hilla/react-auth": "2.5.7",
-      "@hilla/react-components": "2.3.0",
+      "@hilla/react-components": "2.3.13",
       "@hilla/react-crud": "2.5.7",
       "@hilla/react-form": "2.5.7",
       "@polymer/polymer": "3.5.1",
-      "@vaadin/bundles": "24.3.0",
+      "@vaadin/bundles": "24.3.13",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/router": "1.7.5",
       "construct-style-sheets-polyfill": "3.1.0",
@@ -113,12 +115,12 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.3.3",
-      "vite": "5.1.1",
+      "vite": "5.1.7",
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.0.0",
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "f5434ac024f73dbe8b84e89785c56733a3040983f15b93a1cfe01e73329677d0"
+    "hash": "15d32165cf0c67aa967bb720e1e5b63239eab78958a846eb9fdf953caf34c5aa"
   }
 }
