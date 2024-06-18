@@ -104,7 +104,7 @@
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.4.5",
-    "vite": "5.3.1",
+    "vite": "5.2.13",
     "vite-plugin-checker": "0.6.4",
     "workbox-build": "7.1.1",
     "workbox-core": "7.1.0",
@@ -302,13 +302,13 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.4.5",
-      "vite": "5.3.1",
+      "vite": "5.2.13",
       "vite-plugin-checker": "0.6.4",
       "workbox-build": "7.1.1",
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "969ac09c3de5783f97367f53016a41da9996a13101b4904a864df28cee13b250"
+    "hash": "8f693f698029e3449e6294cbff23a390931e282da18d63a1174794d54926b41e"
   },
   "type": "module"
 }
