@@ -9,6 +9,7 @@ on:
         default: 'main'
         options:
           - "main"
+          - "24.4"
           - "2.5"
           - "2.4"
           - "2.3"
