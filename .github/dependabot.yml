@@ -18,7 +18,7 @@ updates:
     schedule:
       interval: "daily"
     ignore:
-      - dependency-name: "com.vaadin:*"
+      - dependency-name: "com.vaadin.hilla:*"
         update-types: [ "version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "com.vaadin:*"
         update-types: [ "version-update:semver-major", "version-update:semver-minor"]
