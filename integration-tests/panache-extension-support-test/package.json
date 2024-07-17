@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.1",
-    "@vaadin/bundles": "24.5.0-alpha4",
+    "@vaadin/bundles": "24.5.0-alpha5",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.5.0-alpha4",
     "@vaadin/hilla-frontend": "24.5.0-alpha4",
@@ -15,8 +15,8 @@
     "@vaadin/hilla-react-i18n": "24.5.0-alpha4",
     "@vaadin/hilla-react-signals": "24.5.0-alpha4",
     "@vaadin/polymer-legacy-adapter": "24.5.0-alpha5",
-    "@vaadin/react-components": "24.5.0-alpha4",
-    "@vaadin/react-components-pro": "24.5.0-alpha4",
+    "@vaadin/react-components": "24.5.0-alpha5",
+    "@vaadin/react-components-pro": "24.5.0-alpha5",
     "@vaadin/router": "1.7.5",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
     "@vaadin/vaadin-lumo-styles": "24.5.0-alpha5",
@@ -105,7 +105,7 @@
   "vaadin": {
     "dependencies": {
       "@polymer/polymer": "3.5.1",
-      "@vaadin/bundles": "24.5.0-alpha4",
+      "@vaadin/bundles": "24.5.0-alpha5",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "24.5.0-alpha4",
       "@vaadin/hilla-frontend": "24.5.0-alpha4",
@@ -116,8 +116,8 @@
       "@vaadin/hilla-react-i18n": "24.5.0-alpha4",
       "@vaadin/hilla-react-signals": "24.5.0-alpha4",
       "@vaadin/polymer-legacy-adapter": "24.5.0-alpha5",
-      "@vaadin/react-components": "24.5.0-alpha4",
-      "@vaadin/react-components-pro": "24.5.0-alpha4",
+      "@vaadin/react-components": "24.5.0-alpha5",
+      "@vaadin/react-components-pro": "24.5.0-alpha5",
       "@vaadin/router": "1.7.5",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
       "@vaadin/vaadin-lumo-styles": "24.5.0-alpha5",
@@ -162,6 +162,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "3988d2954f379db0dcbb1250bbc74617673e412b163091c86cfcd86adc536f07"
+    "hash": "53fb4464b43398daeb74f61b6a4f6c9236347e4e057cea4ad37dfb2c1b1c00e2"
   }
 }
