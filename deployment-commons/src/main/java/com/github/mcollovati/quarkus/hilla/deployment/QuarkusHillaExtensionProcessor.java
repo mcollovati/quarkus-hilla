@@ -76,6 +76,7 @@ import org.atmosphere.util.SimpleBroadcaster;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationTransformation;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
@@ -453,7 +454,26 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void fullstackSignalsSupport(BuildProducer<AdditionalBeanBuildItem> producer) {
+    void fullstackSignalsSupport(
+            BuildProducer<AdditionalBeanBuildItem> producer,
+            BuildProducer<AnnotationsTransformerBuildItem> annotationsBuilder) {
+        DotName autowiredAnnotation = DotName.createSimple("org.springframework.stereotype.Component");
+        Predicate<AnnotationInstance> isComponentAnnotation = ann -> ann.name().equals(autowiredAnnotation);
+        DotName signalRegistryDotName = DotName.createSimple(SignalsRegistry.class);
+        annotationsBuilder.produce(new AnnotationsTransformerBuildItem(new AnnotationTransformation() {
+
+            @Override
+            public boolean supports(AnnotationTarget.Kind kind) {
+                return AnnotationTarget.Kind.CLASS == kind;
+            }
+
+            @Override
+            public void apply(TransformationContext ctx) {
+                if (signalRegistryDotName.equals(ctx.declaration().asClass().name())) {
+                    ctx.remove(isComponentAnnotation);
+                }
+            }
+        }));
         producer.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(SignalsRegistry.class)
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
