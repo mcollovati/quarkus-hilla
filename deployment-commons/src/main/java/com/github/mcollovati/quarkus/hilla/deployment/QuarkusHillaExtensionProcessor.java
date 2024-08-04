@@ -34,11 +34,11 @@ import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
-import com.vaadin.hilla.signals.core.SignalsRegistry;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
+import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.processor.AnnotationsTransformer;
@@ -76,7 +76,6 @@ import org.atmosphere.util.SimpleBroadcaster;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
-import org.jboss.jandex.AnnotationTransformation;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
@@ -453,32 +452,25 @@ class QuarkusHillaExtensionProcessor {
                 VaadinServiceInitListener.class.getName(), QuarkusVaadinServiceListenerPropagator.class.getName()));
     }
 
-    @BuildStep
-    void fullstackSignalsSupport(
-            BuildProducer<AdditionalBeanBuildItem> producer,
-            BuildProducer<AnnotationsTransformerBuildItem> annotationsBuilder) {
-        DotName autowiredAnnotation = DotName.createSimple("org.springframework.stereotype.Component");
-        Predicate<AnnotationInstance> isComponentAnnotation = ann -> ann.name().equals(autowiredAnnotation);
-        DotName signalRegistryDotName = DotName.createSimple(SignalsRegistry.class);
-        annotationsBuilder.produce(new AnnotationsTransformerBuildItem(new AnnotationTransformation() {
-
-            @Override
-            public boolean supports(AnnotationTarget.Kind kind) {
-                return AnnotationTarget.Kind.CLASS == kind;
-            }
-
-            @Override
-            public void apply(TransformationContext ctx) {
-                if (signalRegistryDotName.equals(ctx.declaration().asClass().name())) {
-                    ctx.remove(isComponentAnnotation);
-                }
-            }
-        }));
+    // @BuildStep
+    void fullstackSignalsSupport(BuildProducer<AdditionalBeanBuildItem> producer) {
         producer.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClasses(SignalsRegistry.class)
+                .addBeanClasses("com.vaadin.hilla.signals.core.SignalsRegistry")
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
                 .setUnremovable()
                 .build());
+    }
+
+    @BuildStep
+    void preventHillaSpringBeansDetection(BuildProducer<ExcludedTypeBuildItem> producer) {
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.crud.**"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.startup.**"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.signals.**"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.route.**"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.push.PushConfigurer"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointCodeGenerator"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointControllerConfiguration"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointProperties"));
     }
 
     public static final class NavigationAccessControlBuildItem extends SimpleBuildItem {
