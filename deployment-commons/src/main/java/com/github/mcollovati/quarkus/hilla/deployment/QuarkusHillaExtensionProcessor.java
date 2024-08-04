@@ -452,15 +452,6 @@ class QuarkusHillaExtensionProcessor {
                 VaadinServiceInitListener.class.getName(), QuarkusVaadinServiceListenerPropagator.class.getName()));
     }
 
-    // @BuildStep
-    void fullstackSignalsSupport(BuildProducer<AdditionalBeanBuildItem> producer) {
-        producer.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClasses("com.vaadin.hilla.signals.core.SignalsRegistry")
-                .setDefaultScope(BuiltinScope.SINGLETON.getName())
-                .setUnremovable()
-                .build());
-    }
-
     @BuildStep
     void preventHillaSpringBeansDetection(BuildProducer<ExcludedTypeBuildItem> producer) {
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.crud.**"));
