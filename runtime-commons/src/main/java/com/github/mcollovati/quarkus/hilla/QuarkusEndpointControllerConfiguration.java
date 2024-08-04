@@ -48,6 +48,7 @@ import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.springframework.context.ApplicationContext;
 
 @Unremovable
@@ -213,12 +214,13 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @Singleton
     RouteUnifyingServiceInitListener routeUnifyingServiceInitListener(
-            QuarkusHillaConfigurationProperties config,
+            @ConfigProperty(name = "exposeServerRoutesToClient", defaultValue = "true")
+                    boolean exposeServerRoutesToClient,
             RouteUtil routeUtil,
             Instance<NavigationAccessControl> navigationAccessControlInstance) {
         RouteUnifyingConfigurationProperties routeUnifyingConfigurationProperties =
                 new RouteUnifyingConfigurationProperties();
-        routeUnifyingConfigurationProperties.setExposeServerRoutesToClient(config.exposeServerRoutesToClient());
+        routeUnifyingConfigurationProperties.setExposeServerRoutesToClient(exposeServerRoutesToClient);
         NavigationAccessControl navigationAccessControl =
                 navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
         return new RouteUnifyingServiceInitListener(
