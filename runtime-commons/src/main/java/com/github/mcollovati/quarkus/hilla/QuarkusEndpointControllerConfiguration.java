@@ -16,6 +16,7 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Named;
@@ -26,7 +27,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
+import com.vaadin.hilla.EndpointCodeGenerator;
 import com.vaadin.hilla.EndpointController;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointNameChecker;
@@ -36,10 +40,15 @@ import com.vaadin.hilla.ExplicitNullableTypeChecker;
 import com.vaadin.hilla.auth.CsrfChecker;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
+import com.vaadin.hilla.route.RouteUnifyingConfigurationProperties;
+import com.vaadin.hilla.route.RouteUtil;
+import com.vaadin.hilla.signals.core.SignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
+import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.Startup;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.springframework.context.ApplicationContext;
 
 @Unremovable
@@ -131,6 +140,7 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
+    @DefaultBean
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
             @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
@@ -170,6 +180,7 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
+    @DefaultBean
     EndpointController endpointController(
             ApplicationContext context,
             EndpointRegistry endpointRegistry,
@@ -177,6 +188,43 @@ class QuarkusEndpointControllerConfiguration {
             CsrfChecker csrfChecker) {
         this.endpointController = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
         return this.endpointController;
+    }
+
+    @Produces
+    @ApplicationScoped
+    @DefaultBean
+    EndpointCodeGenerator endpointCodeGenerator(ServletContext servletContext, EndpointController endpointController) {
+        return new EndpointCodeGenerator(new VaadinServletContext(servletContext), endpointController);
+    }
+
+    @Produces
+    @Singleton
+    @DefaultBean
+    SignalsRegistry signalsRegistry() {
+        return new SignalsRegistry();
+    }
+
+    @Produces
+    @Singleton
+    @DefaultBean
+    RouteUtil routeUtil() {
+        return new RouteUtil();
+    }
+
+    @Produces
+    @Singleton
+    RouteUnifyingServiceInitListener routeUnifyingServiceInitListener(
+            @ConfigProperty(name = "exposeServerRoutesToClient", defaultValue = "true")
+                    boolean exposeServerRoutesToClient,
+            RouteUtil routeUtil,
+            Instance<NavigationAccessControl> navigationAccessControlInstance) {
+        RouteUnifyingConfigurationProperties routeUnifyingConfigurationProperties =
+                new RouteUnifyingConfigurationProperties();
+        routeUnifyingConfigurationProperties.setExposeServerRoutesToClient(exposeServerRoutesToClient);
+        NavigationAccessControl navigationAccessControl =
+                navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
+        return new RouteUnifyingServiceInitListener(
+                routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl, null);
     }
 
     @Startup
