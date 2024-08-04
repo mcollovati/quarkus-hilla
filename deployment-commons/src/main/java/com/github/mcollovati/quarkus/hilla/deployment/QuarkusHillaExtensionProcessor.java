@@ -34,7 +34,7 @@ import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
-import com.vaadin.hilla.signals.handler.SignalsHandler;
+import com.vaadin.hilla.signals.core.SignalsRegistry;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -455,7 +455,7 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     void fullstackSignalsSupport(BuildProducer<AdditionalBeanBuildItem> producer) {
         producer.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClasses(SignalsHandler.class)
+                .addBeanClasses(SignalsRegistry.class)
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
                 .setUnremovable()
                 .build());
