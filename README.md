@@ -72,7 +72,7 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>2.5.x</version>
+    <version>24.4.x</version>
 </dependency>
 ```
 
@@ -82,7 +82,7 @@ or
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-react</artifactId>
-    <version>2.5.x</version>
+    <version>24.4.x</version>
 </dependency>
 ```
 
