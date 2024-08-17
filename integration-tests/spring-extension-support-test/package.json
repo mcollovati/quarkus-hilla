@@ -15,11 +15,11 @@
     "@hilla/generator-typescript-plugin-subtypes": "2.5.8",
     "@hilla/generator-typescript-utils": "2.5.8",
     "@hilla/react-auth": "2.5.8",
-    "@hilla/react-components": "2.3.18",
+    "@hilla/react-components": "2.3.19",
     "@hilla/react-crud": "2.5.8",
     "@hilla/react-form": "2.5.8",
     "@polymer/polymer": "3.5.1",
-    "@vaadin/bundles": "24.3.18",
+    "@vaadin/bundles": "24.3.19",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/router": "1.7.5",
     "@vaadin/vaadin-lumo-styles": "24.3.19",
@@ -121,6 +121,6 @@
       "workbox-core": "7.0.0",
       "workbox-precaching": "7.0.0"
     },
-    "hash": "8a37888d4bf609a0f3cb439668123bfce18d1ed4f18b8ae87a37fc7097aa6d56"
+    "hash": "42bb06026f3860aed6e49b728aed1b51e6f7702c186eb8421ee5a56bae5a3e10"
   }
 }
