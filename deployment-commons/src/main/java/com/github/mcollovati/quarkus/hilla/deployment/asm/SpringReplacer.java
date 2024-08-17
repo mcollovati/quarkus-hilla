@@ -20,9 +20,11 @@ import java.util.Map;
 import com.vaadin.hilla.AuthenticationUtil;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
+import com.vaadin.hilla.EndpointUtil;
 import com.vaadin.hilla.parser.utils.ConfigList;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
+import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 
@@ -56,7 +58,19 @@ public class SpringReplacer {
 
     public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
         producer.produce(transform(EndpointRegistry.class, "registerEndpoint", ClassUtils_getUserClass));
+        producer.produce(transform(EndpointUtil.class, "isAnonymousEndpoint", ClassUtils_getUserClass));
+        producer.produce(transform(EndpointInvoker.class, "checkAccess", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "invokeVaadinEndpointMethod", ClassUtils_getUserClass));
+        producer.produce(transform(
+                SecureSignalsRegistry.class,
+                "register",
+                AuthenticationUtil_getSecurityHolderAuthentication,
+                AuthenticationUtil_getSecurityHolderRoleChecker));
+        producer.produce(transform(
+                SecureSignalsRegistry.class,
+                "checkAccess",
+                AuthenticationUtil_getSecurityHolderAuthentication,
+                AuthenticationUtil_getSecurityHolderRoleChecker));
         producer.produce(transform(
                 PushMessageHandler.class,
                 "handleBrowserSubscribe",

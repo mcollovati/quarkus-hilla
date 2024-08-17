@@ -42,7 +42,7 @@ import com.vaadin.hilla.auth.EndpointAccessChecker;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
 import com.vaadin.hilla.route.RouteUnifyingConfigurationProperties;
 import com.vaadin.hilla.route.RouteUtil;
-import com.vaadin.hilla.signals.core.SignalsRegistry;
+import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
@@ -200,8 +200,8 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @Singleton
     @DefaultBean
-    SignalsRegistry signalsRegistry() {
-        return new SignalsRegistry();
+    SecureSignalsRegistry signalsRegistry(EndpointInvoker endpointInvoker) {
+        return new SecureSignalsRegistry(endpointInvoker);
     }
 
     @Produces

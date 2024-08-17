@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
@@ -71,14 +72,16 @@ public class QuarkusEndpointController {
             @PathParam("endpoint") String endpointName,
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
+            @Context HttpServletResponse response,
             ObjectNode body) {
 
-        ResponseEntity<String> response = delegate.serveEndpoint(endpointName, methodName, body, request);
+        ResponseEntity<String> endpointResponse =
+                delegate.serveEndpoint(endpointName, methodName, body, request, response);
         Response.ResponseBuilder builder =
-                Response.status(response.getStatusCode().value());
-        response.getHeaders().forEach((name, values) -> values.forEach(value -> builder.header(name, value)));
-        if (response.hasBody()) {
-            builder.entity(response.getBody());
+                Response.status(endpointResponse.getStatusCode().value());
+        endpointResponse.getHeaders().forEach((name, values) -> values.forEach(value -> builder.header(name, value)));
+        if (endpointResponse.hasBody()) {
+            builder.entity(endpointResponse.getBody());
         }
         return builder.build();
     }
