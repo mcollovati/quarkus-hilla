@@ -283,8 +283,7 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void replaceCallsToSpring(
-            BuildProducer<BytecodeTransformerBuildItem> producer, final CombinedIndexBuildItem index) {
+    void replaceCallsToSpring(BuildProducer<BytecodeTransformerBuildItem> producer) {
         SpringReplacer.addClassVisitors(producer);
     }
 
