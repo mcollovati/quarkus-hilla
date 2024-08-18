@@ -81,7 +81,8 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.2.0",
-    "mobx": "^6.3.5"
+    "mobx": "^6.3.5",
+    "proj4": "2.11.0"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.7",
@@ -201,7 +202,8 @@
     "@vaadin/map": "$@vaadin/map",
     "@vaadin/rich-text-editor": "$@vaadin/rich-text-editor",
     "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
-    "@vaadin/popover": "$@vaadin/popover"
+    "@vaadin/popover": "$@vaadin/popover",
+    "proj4": "$proj4"
   },
   "vaadin": {
     "dependencies": {
@@ -281,7 +283,8 @@
       "@vaadin/virtual-list": "24.5.0-alpha8",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
-      "lit": "3.2.0"
+      "lit": "3.2.0",
+      "proj4": "2.11.0"
     },
     "devDependencies": {
       "@babel/preset-react": "7.24.7",
@@ -312,7 +315,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "2aa74fecf75e35de53584da4d65ff3838c2a9fef03cd94120b48370e6e853a98"
+    "hash": "8df198c308e529871d9e4a9486a01e1e1c0d4b4c71dc90a546998e650bf24191"
   },
   "type": "module"
 }
