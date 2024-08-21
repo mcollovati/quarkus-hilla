@@ -33,5 +33,6 @@ public class QuarkusVaadinServiceListenerPropagator implements VaadinServiceInit
     @Override
     public void serviceInit(ServiceInitEvent event) {
         CDI.current().select(QuarkusEndpointControllerConfiguration.class).get().onVaadinServiceInit(event);
+        CDI.current().select(VaadinServiceInitListener.class).forEach(listener -> listener.serviceInit(event));
     }
 }
