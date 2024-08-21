@@ -40,9 +40,9 @@ import com.vaadin.hilla.ExplicitNullableTypeChecker;
 import com.vaadin.hilla.auth.CsrfChecker;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
+import com.vaadin.hilla.route.ClientRouteRegistry;
 import com.vaadin.hilla.route.RouteUnifyingConfigurationProperties;
 import com.vaadin.hilla.route.RouteUtil;
-import com.vaadin.hilla.signals.core.SignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
@@ -200,15 +200,15 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @Singleton
     @DefaultBean
-    SignalsRegistry signalsRegistry() {
-        return new SignalsRegistry();
+    ClientRouteRegistry clientRouteRegistry() {
+        return new ClientRouteRegistry();
     }
 
     @Produces
     @Singleton
     @DefaultBean
-    RouteUtil routeUtil() {
-        return new RouteUtil();
+    RouteUtil routeUtil(ClientRouteRegistry registry) {
+        return new RouteUtil(registry);
     }
 
     @Produces
@@ -217,6 +217,7 @@ class QuarkusEndpointControllerConfiguration {
             @ConfigProperty(name = "exposeServerRoutesToClient", defaultValue = "true")
                     boolean exposeServerRoutesToClient,
             RouteUtil routeUtil,
+            ClientRouteRegistry clientRouteRegistry,
             Instance<NavigationAccessControl> navigationAccessControlInstance) {
         RouteUnifyingConfigurationProperties routeUnifyingConfigurationProperties =
                 new RouteUnifyingConfigurationProperties();
@@ -224,7 +225,7 @@ class QuarkusEndpointControllerConfiguration {
         NavigationAccessControl navigationAccessControl =
                 navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
         return new RouteUnifyingServiceInitListener(
-                routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl, null);
+                clientRouteRegistry, routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl, null);
     }
 
     @Startup
