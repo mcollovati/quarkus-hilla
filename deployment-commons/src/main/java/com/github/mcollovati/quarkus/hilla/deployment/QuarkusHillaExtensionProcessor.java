@@ -34,6 +34,7 @@ import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
+import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -245,6 +246,12 @@ class QuarkusHillaExtensionProcessor {
         beans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(PushEndpoint.class, PushMessageHandler.class)
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
+                .setUnremovable()
+                .build());
+
+        beans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(RouteUnifyingServiceInitListener.class)
+                .setDefaultScope(BuiltinScope.APPLICATION.getName())
                 .setUnremovable()
                 .build());
     }

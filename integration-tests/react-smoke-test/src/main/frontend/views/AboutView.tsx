@@ -1,3 +1,10 @@
+import { ViewConfig } from "@vaadin/hilla-file-router/types.js";
+
+export const config: ViewConfig = {
+    title: "About",
+    route: "about"
+};
+
 export default function AboutView() {
   return (
     <div className="flex flex-col h-full items-center justify-center p-l text-center box-border">
