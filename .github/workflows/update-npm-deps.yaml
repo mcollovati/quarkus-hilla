@@ -40,19 +40,19 @@ jobs:
       matrix: ${{fromJson(needs.compute-matrix.outputs.matrix)}}
     steps:
       - name: Generate token
-        uses: tibdex/github-app-token@v1
+        uses: tibdex/github-app-token@v2
         id: generate-token
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
           private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: refs/heads/${{ matrix.branch }}
           fetch-depth: 0
           token: ${{ steps.generate-token.outputs.token }}
       - name: Setup Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'temurin'
@@ -77,7 +77,7 @@ jobs:
           set -x -e -o pipefail
           mvn -V -e -ntp install -Pall-modules,production -DskipTests
       - name: Commit changes
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         id: commit-changes
         with:
           commit_message: "chore(npm-deps): update npm dependencies"

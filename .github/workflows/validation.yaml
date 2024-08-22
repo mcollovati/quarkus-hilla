@@ -39,10 +39,10 @@ jobs:
       validation-required: ${{ steps.filter.outputs.validate }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: dorny/paths-filter@v2
+      - uses: dorny/paths-filter@v3
         id: filter
         with:
           filters: |
@@ -56,11 +56,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
@@ -81,10 +81,10 @@ jobs:
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main.tgz -T -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output
+          name: tests-output-ut
           path: tests-report-*.tgz
   e2e-dev-tests:
     name: End-to-end tests (Development)
@@ -94,11 +94,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
@@ -119,10 +119,10 @@ jobs:
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-dev.tgz -T -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output
+          name: tests-output-it-dev
           path: tests-report-*.tgz
   e2e-prod-tests:
     name: End-to-end tests (Production)
@@ -132,11 +132,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Set up Java
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
@@ -157,10 +157,10 @@ jobs:
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-prod.tgz -T -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output
+          name: tests-output-it-prod
           path: tests-report-*.tgz
   test-results:
     permissions:
@@ -171,13 +171,14 @@ jobs:
     needs: [changes, build-and-test, e2e-dev-tests, e2e-prod-tests]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         with:
-          name: tests-output
+          pattern: tests-output-*
+          merge-multiple: true
       - name: Extract downloaded files
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         run: for i in *.tgz; do tar xvf $i; done
