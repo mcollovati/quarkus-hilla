@@ -81,7 +81,7 @@ jobs:
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main.tgz -T -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
           name: tests-output-ut
@@ -119,7 +119,7 @@ jobs:
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-dev.tgz -T -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
           name: tests-output-it-dev
@@ -157,7 +157,7 @@ jobs:
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-prod.tgz -T -
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
           name: tests-output-it-prod
