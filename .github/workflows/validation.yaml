@@ -177,7 +177,7 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         with:
-          name: tests-output-*
+          pattern: tests-output-*
           merge-multiple: true
       - name: Extract downloaded files
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
