@@ -22,6 +22,7 @@ import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
+import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -64,8 +65,7 @@ class QuarkusEndpointControllerConfiguration {
     /**
      * Registers a default {@link EndpointAccessChecker} bean instance.
      *
-     * @param accessAnnotationChecker
-     *            the access controlks checker to use
+     * @param accessAnnotationChecker the access controlks checker to use
      * @return the default Vaadin endpoint access checker bean
      */
     @Produces
@@ -90,8 +90,7 @@ class QuarkusEndpointControllerConfiguration {
     /**
      * Registers a default {@link CsrfChecker} bean instance.
      *
-     * @param servletContext
-     *            the servlet context
+     * @param servletContext the servlet context
      * @return the default bean
      */
     @Produces
@@ -127,8 +126,7 @@ class QuarkusEndpointControllerConfiguration {
     /**
      * Registers the endpoint registry.
      *
-     * @param endpointNameChecker
-     *            the name checker to use
+     * @param endpointNameChecker the name checker to use
      * @return the endpoint registry
      */
     @Produces
@@ -229,13 +227,14 @@ class QuarkusEndpointControllerConfiguration {
 
     @Startup
     void initializeEndpointRegistry() {
-        new EndpointRegistryInitializer(this.endpointController).serviceInit(vaadinServiceInitEvent);
+        EndpointRegistryInitializer registryInitializer = new EndpointRegistryInitializer(this.endpointController);
+        this.vaadinServiceInitEvent.thenAccept(registryInitializer::serviceInit);
         this.vaadinServiceInitEvent = null;
     }
 
-    private ServiceInitEvent vaadinServiceInitEvent;
+    private CompletableFuture<ServiceInitEvent> vaadinServiceInitEvent = new CompletableFuture<ServiceInitEvent>();
 
     void onVaadinServiceInit(ServiceInitEvent event) {
-        this.vaadinServiceInitEvent = event;
+        this.vaadinServiceInitEvent.complete(event);
     }
 }
