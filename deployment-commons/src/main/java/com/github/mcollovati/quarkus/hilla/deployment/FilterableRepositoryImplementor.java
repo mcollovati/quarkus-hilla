@@ -41,7 +41,6 @@ import org.jboss.jandex.PrimitiveType;
 import org.jboss.jandex.Type;
 import org.jboss.jandex.TypeVariable;
 import org.objectweb.asm.ClassVisitor;
-import org.springframework.data.domain.Pageable;
 
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 
@@ -71,6 +70,7 @@ public class FilterableRepositoryImplementor implements BiFunction<String, Class
     public static final DotName PRIMITIVE_INTEGER = DotName.createSimple(int.class.getName());
     public static final DotName JPA_ID = DotName.createSimple("jakarta.persistence.Id");
     public static final DotName JPA_EMBEDDED_ID = DotName.createSimple("jakarta.persistence.EmbeddedId");
+    public static final DotName SPRING_PAGEABLE = DotName.createSimple("org.springframework.data.domain.Pageable");
 
     private final IndexView index;
     private final DotName filterableRepositoryInterface;
@@ -108,16 +108,17 @@ public class FilterableRepositoryImplementor implements BiFunction<String, Class
 
         MethodInfo listMethod = repository.method(
                 "list",
-                Type.create(DotName.createSimple(Pageable.class), Type.Kind.CLASS),
+                Type.create(SPRING_PAGEABLE, Type.Kind.CLASS),
                 Type.create(DotName.createSimple(Filter.class), Type.Kind.CLASS));
         if (listMethod == null) {
-            MethodCreator listCreator = transformer.addMethod("list", List.class, Pageable.class, Filter.class);
+            MethodCreator listCreator =
+                    transformer.addMethod("list", List.class, "L" + SPRING_PAGEABLE.toString('/') + ";", Filter.class);
             listCreator.returnValue(listCreator.invokeStaticMethod(
                     MethodDescriptor.ofMethod(
                             FilterableRepositorySupport.class.getName(),
                             "list",
                             List.class.getName(),
-                            Pageable.class.getName(),
+                            SPRING_PAGEABLE.toString(),
                             Filter.class.getName(),
                             Class.class.getName()),
                     listCreator.getMethodParam(0),
