@@ -455,7 +455,8 @@ class QuarkusHillaExtensionProcessor {
     void preventHillaSpringBeansDetection(BuildProducer<ExcludedTypeBuildItem> producer) {
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.crud.**"));
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.startup.**"));
-        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.signals.**"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.signals.config.**"));
+        producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.signals.core.**"));
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.route.**"));
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.push.PushConfigurer"));
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointCodeGenerator"));
