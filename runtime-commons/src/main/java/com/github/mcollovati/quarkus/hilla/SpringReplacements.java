@@ -66,4 +66,12 @@ public class SpringReplacements {
     public static ObjectMapper endpointInvoker_createDefaultEndpointMapper(ApplicationContext context) {
         return null;
     }
+
+    public static Class<?> class_forName(String className) throws ClassNotFoundException {
+        try {
+            return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            return Class.forName(className);
+        }
+    }
 }
