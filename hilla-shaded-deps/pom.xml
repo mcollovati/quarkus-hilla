@@ -79,6 +79,7 @@
                                     <artifact>org.springframework:spring-context</artifact>
                                     <includes>
                                         <include>org/springframework/context/ApplicationContext.class</include>
+                                        <include>org/springframework/context/ApplicationContextAware.class</include>
                                         <include>org/springframework/context/ApplicationEventPublisher.class</include>
                                         <include>org/springframework/context/MessageSourceResolvable.class</include>
                                         <include>org/springframework/context/MessageSource.class</include>
@@ -98,6 +99,7 @@
                                     <artifact>org.springframework:spring-beans</artifact>
                                     <includes>
                                         <include>org/springframework/beans/*Exception.class</include>
+                                        <include>org/springframework/beans/factory/Aware.class</include>
                                         <include>org/springframework/beans/factory/*Exception.class</include>
                                         <include>org/springframework/beans/factory/*Factory.class</include>
                                         <include>org/springframework/beans/factory/ObjectProvider.class</include>
