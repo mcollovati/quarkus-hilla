@@ -28,6 +28,7 @@
     "date-fns": "2.29.3",
     "lit": "3.2.0",
     "mobx": "^6.3.5",
+    "proj4": "2.11.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.26.1"
@@ -101,7 +102,8 @@
     "react-router-dom": "$react-router-dom",
     "@vaadin/hilla-react-i18n": "$@vaadin/hilla-react-i18n",
     "@vaadin/hilla-react-form": "$@vaadin/hilla-react-form",
-    "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals"
+    "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals",
+    "proj4": "$proj4"
   },
   "vaadin": {
     "dependencies": {
@@ -128,6 +130,7 @@
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
       "lit": "3.2.0",
+      "proj4": "2.11.0",
       "react": "18.3.1",
       "react-dom": "18.3.1",
       "react-router-dom": "6.26.1"
@@ -163,7 +166,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "22513eec407ce7a170f5840e9325e4dacb5037b078fcb4e58a6fe8ba8e203b17"
+    "hash": "d3a5a9688c7fcd5dc4688c6aed39fb627b60d4d43ff2650ea9095c9bc3be25aa"
   },
   "type": "module"
 }
