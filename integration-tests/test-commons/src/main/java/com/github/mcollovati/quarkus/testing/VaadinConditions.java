@@ -31,6 +31,8 @@ public final class VaadinConditions {
                 "SideNavItem[" + href + "]",
                 element -> "vaadin-side-nav-item".equals(element.getTagName())
                         && $(element.getShadowRoot().findElement(By.cssSelector("a")))
+                                .exists()
+                        && $(element.getShadowRoot().findElement(By.cssSelector("a")))
                                 .has(Condition.and(
                                         "Visible SideNavItem[" + href + "]",
                                         Condition.domAttribute("href", href),
