@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.github.mcollovati</groupId>
+        <artifactId>quarkus-hilla-tests</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>quarkus-hilla-hybrid-vaadin-router-smoke-tests</artifactId>
+    <name>Quarkus - Hilla - Hybrid Vaadin Router Smoke Tests</name>
+    <properties>
+        <vaadin-maven-plugin.phase>compile</vaadin-maven-plugin.phase>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-quarkus-extension</artifactId>
+            <version>${vaadin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla-test-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!--
+            Currently there's an issue with tests in production mode finding DevModeStartupListener
+            in vaadin-core-jandex, but not at runtime because of parent pom exclusion
+        -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!--
+            https://github.com/vaadin/flow/issues/19842
+            flow-react currently contains a fronted resource that imports react-router-dom, making the build
+            fail because vaadin-router is in use.
+            Unfortunately, excluding flow-react as a workaround does not work because the Java classes are indexed
+            in vaadin-core-jandex, dependency of the vaadin-quarkus-extension
+            Setting test scope fixes the build issues
+        -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>flow-react</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

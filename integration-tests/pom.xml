@@ -249,5 +249,8 @@
         <module>spring-extension-support-test</module>
         <module>panache-extension-support-test</module>
         <module>hybrid-smoke-tests</module>
+        <!--
+        <module>hybrid-vaadin-router-smoke-tests</module>
+        -->
     </modules>
 </project>

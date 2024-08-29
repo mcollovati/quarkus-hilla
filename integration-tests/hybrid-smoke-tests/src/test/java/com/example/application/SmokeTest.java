@@ -18,13 +18,13 @@ package com.example.application;
 import java.time.Duration;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
+import com.github.mcollovati.quarkus.testing.VaadinConditions;
 
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -36,7 +36,7 @@ class SmokeTest extends AbstractTest {
 
     @Test
     void rootPath_viewDisplayed() {
-        openAndWait(() -> $("hello-world-view"));
+        openAndWait(() -> $("div.home-view"));
 
         $("vaadin-text-field").shouldBe(visible);
         SelenideElement button =
@@ -45,7 +45,7 @@ class SmokeTest extends AbstractTest {
 
     @Test
     void publicEndpoint_invocationSucceeded() {
-        openAndWait(() -> $("hello-world-view"));
+        openAndWait(() -> $("div.home-view"));
 
         SelenideElement textField = $("vaadin-text-field").shouldBe(visible);
         SelenideElement button =
@@ -67,21 +67,12 @@ class SmokeTest extends AbstractTest {
 
     @Test
     void home_navigateToFlowView_viewDisplayed() {
-        openAndWait(() -> $("hello-world-view"));
-
-        $$(Selectors.shadowCss("vcf-nav-item", "main-layout"))
-                .filter(Condition.attribute("path", "/flow-view"))
+        openAndWait(() -> $("div.home-view"));
+        $$("vaadin-side-nav-item")
+                .filter(VaadinConditions.sideNavItem("/flow-public-view"))
                 .first()
                 .click();
-        $("span#title").shouldBe(visible);
-
-        $("vaadin-button").click();
-        $("div#time").shouldBe(visible).should(Condition.partialText("Anonymous"));
-
-        Selenide.Wait().pollingEvery(Duration.ofSeconds(3)).until(d -> true);
-
-        $("vaadin-button").click();
-        $("div#time").shouldBe(visible).shouldHave(Condition.exactText("Stopped"));
+        $("div#public-view").shouldBe(visible);
     }
 
     @Test
@@ -99,7 +90,7 @@ class SmokeTest extends AbstractTest {
 
     @Test
     void openNotExisingView_flowErrorPageIsDisplayed() {
-        openAndWait(getTestUrl() + "not-existing-view", () -> $("main-layout"));
+        openAndWait(getTestUrl() + "not-existing-view", () -> $("section.view"));
 
         $$("div")
                 .filter(Condition.partialText("Could not navigate to 'not-existing-view'"))
