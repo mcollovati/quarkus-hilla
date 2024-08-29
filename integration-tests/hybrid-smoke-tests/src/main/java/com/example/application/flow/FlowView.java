@@ -22,9 +22,13 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Menu;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import reactor.core.Disposable;
 
+@Menu(title = "Flow Role Protected View")
+@PageTitle("Flow Role Protected View")
 @Route("flow-view")
 @RolesAllowed({"ADMIN", "ROLE_ADMIN"})
 public class FlowView extends VerticalLayout {

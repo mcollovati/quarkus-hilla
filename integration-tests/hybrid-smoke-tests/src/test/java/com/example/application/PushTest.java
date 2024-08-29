@@ -41,7 +41,7 @@ class PushTest extends AbstractTest {
 
     @Test
     void publicEndpoint_anonymousUser_changesPushed() {
-        openAndWait(() -> $("push-view"));
+        openAndWait(() -> $("div.push-view"));
 
         $("vaadin-button#public").click();
 
@@ -55,7 +55,7 @@ class PushTest extends AbstractTest {
 
     @Test
     void publicEndpoint_anonymousUser_subscriptionAutoClose() {
-        openAndWait(() -> $("push-view"));
+        openAndWait(() -> $("div.push-view"));
 
         $("vaadin-button#public-limit").click();
 
@@ -69,7 +69,7 @@ class PushTest extends AbstractTest {
 
     @Test
     void protectedEndpoint_anonymousUser_subscriptionFails() {
-        openAndWait(() -> $("push-view"));
+        openAndWait(() -> $("div.push-view"));
 
         $("vaadin-button#protected").click();
 

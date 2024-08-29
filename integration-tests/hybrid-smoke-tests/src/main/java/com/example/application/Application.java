@@ -15,9 +15,16 @@
  */
 package com.example.application;
 
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
+
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
+import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
+import com.vaadin.flow.server.auth.MenuAccessControl;
 import com.vaadin.flow.theme.Theme;
+import io.quarkus.arc.DefaultBean;
+import io.quarkus.runtime.Startup;
 
 /**
  * The entry point of the Spring Boot application.
@@ -28,4 +35,13 @@ import com.vaadin.flow.theme.Theme;
  */
 @Theme(value = "my-hilla-app")
 @Push
-public class Application implements AppShellConfigurator {}
+public class Application implements AppShellConfigurator {
+
+    @Produces
+    @Singleton
+    @DefaultBean
+    @Startup
+    public MenuAccessControl menuAccessControl() {
+        return new DefaultMenuAccessControl();
+    }
+}

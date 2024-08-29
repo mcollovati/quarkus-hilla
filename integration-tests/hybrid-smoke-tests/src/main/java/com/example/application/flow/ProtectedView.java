@@ -18,8 +18,12 @@ package com.example.application.flow;
 import jakarta.annotation.security.PermitAll;
 
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Menu;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+@Menu(title = "Flow Protected View")
+@PageTitle("Flow Protected View")
 @Route("flow-protected-view")
 @PermitAll
 public class ProtectedView extends Div {

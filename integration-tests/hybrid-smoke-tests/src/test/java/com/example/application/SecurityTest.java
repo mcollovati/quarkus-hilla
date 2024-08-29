@@ -16,7 +16,6 @@
 package com.example.application;
 
 import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import io.quarkus.test.junit.QuarkusTest;
@@ -25,6 +24,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
+import com.github.mcollovati.quarkus.testing.VaadinConditions;
 
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
@@ -78,11 +78,10 @@ class SecurityTest extends AbstractTest {
     void notAdminUser_navigateToAdminView_notFoundPage() {
         openAndWait(getTestUrl() + "login", () -> $("vaadin-login-form"));
         login("scott", "pwd");
-        $$(Selectors.shadowCss("vcf-nav-item", "main-layout"))
-                .filter(Condition.attribute("path", "/flow-public-view"))
+        $$("vaadin-side-nav-item")
+                .filter(VaadinConditions.sideNavItem("/flow-public-view"))
                 .first()
                 .click();
-
         $("div#public-view").shouldBe(visible);
         $("a#admin-link").click();
         $$("div")

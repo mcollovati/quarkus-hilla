@@ -18,8 +18,12 @@ package com.example.application.flow;
 import jakarta.annotation.security.RolesAllowed;
 
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Menu;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 
+@Menu(title = "Flow Admin View")
+@PageTitle("Flow Admin View")
 @Route("flow-admin-view")
 @RolesAllowed("ADMIN")
 public class AdminView extends Div {
