@@ -28,9 +28,11 @@ import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
+import io.quarkus.arc.DefaultBean;
 import io.quarkus.security.identity.SecurityIdentity;
 
 @Singleton
+@DefaultBean
 public class QuarkusNavigationAccessControl extends NavigationAccessControl {
 
     private final SecurityIdentity securityIdentity;

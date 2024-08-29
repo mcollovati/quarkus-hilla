@@ -26,17 +26,21 @@ import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
+import io.vertx.core.http.HttpServerRequest;
+import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
 public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
-    private String logoutPath;
-    private String cookieName;
+    private final String landingPage;
+    private final String logoutPath;
+    private final String cookieName;
 
     FormAuthenticationMechanism delegate;
 
     public HillaFormAuthenticationMechanism(
-            FormAuthenticationMechanism delegate, String cookieName, String logoutPath) {
+            FormAuthenticationMechanism delegate, String cookieName, String landingPage, String logoutPath) {
         this.delegate = delegate;
+        this.landingPage = landingPage;
         this.logoutPath = logoutPath;
         this.cookieName = cookieName;
     }
@@ -47,11 +51,36 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
             logout(context);
             return Uni.createFrom().optional(Optional.empty());
         }
+        HttpServerRequest request = context.request();
+        if ("typescript".equals(request.getHeader("source"))) {
+            HttpServerResponse response = context.response();
+            response.headersEndHandler(event -> {
+                boolean loginFailure = context.get("typescript-login-failure", false);
+                if (response.getStatusCode() == 302 || response.getStatusCode() == 200) {
+                    response.setStatusCode(200);
+                    String redirectUrl = response.headers().get("Location");
+                    response.headers().remove("Location");
+                    if (loginFailure) {
+                        response.setStatusCode(401);
+                    } else {
+                        response.putHeader("Default-url", landingPage);
+                        if (redirectUrl != null) {
+                            response.putHeader("Saved-url", redirectUrl);
+                        }
+                        response.putHeader("Result", "success");
+                    }
+                }
+            });
+        }
         return delegate.authenticate(context, identityProviderManager);
     }
 
     @Override
     public Uni<ChallengeData> getChallenge(RoutingContext context) {
+        if ("typescript".equals(context.request().getHeader("source"))) {
+            context.put("typescript-login-failure", true);
+        }
+        ;
         return delegate.getChallenge(context);
     }
 
