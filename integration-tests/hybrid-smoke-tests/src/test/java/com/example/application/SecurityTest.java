@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import com.github.mcollovati.quarkus.testing.AbstractTest;
 import com.github.mcollovati.quarkus.testing.VaadinConditions;
 
+import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -78,6 +79,7 @@ class SecurityTest extends AbstractTest {
     void notAdminUser_navigateToAdminView_notFoundPage() {
         openAndWait(getTestUrl() + "login", () -> $("vaadin-login-form"));
         login("scott", "pwd");
+        $("vaadin-login-form").shouldNot(exist);
         $("vaadin-side-nav").shouldBe(visible);
         $$("vaadin-side-nav-item")
                 .filter(VaadinConditions.sideNavItem("/flow-public-view"))
