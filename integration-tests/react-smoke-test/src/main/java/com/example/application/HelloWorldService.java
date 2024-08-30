@@ -32,8 +32,4 @@ public class HelloWorldService {
             return "Hello " + name;
         }
     }
-
-    public int sum(int a, int b) {
-        return a + b;
-    }
 }
