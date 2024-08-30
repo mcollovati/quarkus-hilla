@@ -189,7 +189,8 @@ class SignalsSecurityTest {
         HillaPushClient client = new HillaPushClient(
                 "SignalsHandler",
                 "subscribe",
-                SecureNumberSignalService.class.getSimpleName() + "." + methodName,
+                SecureNumberSignalService.class.getSimpleName(),
+                methodName,
                 clientSignalId);
         ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
                 .configurator(new BasicAuthConfigurator(user))

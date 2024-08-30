@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.vaadin.hilla.signals.handler.SignalsHandler;
+import io.quarkus.logging.Log;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 import org.hamcrest.CoreMatchers;
@@ -57,7 +58,7 @@ class SignalsTest {
         URI connectURI = HillaPushClient.createPUSHConnectURI(pushURI);
         String clientSignalId = UUID.randomUUID().toString();
         HillaPushClient client =
-                new HillaPushClient("SignalsHandler", "subscribe", "NumberSignalService.counter", clientSignalId);
+                new HillaPushClient("SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             String serverSignalId = assertUpdateReceived(client, 3);
@@ -72,7 +73,7 @@ class SignalsTest {
         URI connectURI = HillaPushClient.createPUSHConnectURI(pushURI);
         String clientSignalId = UUID.randomUUID().toString();
         HillaPushClient client =
-                new HillaPushClient("SignalsHandler", "subscribe", "NumberSignalService.counter", clientSignalId);
+                new HillaPushClient("SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             AtomicReference<String> serverSignalId = new AtomicReference<>();
@@ -105,6 +106,10 @@ class SignalsTest {
     private static String assertUpdateReceived(HillaPushClient client, int expectedValue) throws InterruptedException {
         AtomicReference<String> serverSignalId = new AtomicReference<>();
         client.assertJsonMessageReceived(3, TimeUnit.SECONDS, json -> {
+            if ("error".equals(json.getString("@type"))) {
+                Log.errorf("Unexpected error response %s", json);
+            }
+
             assertThat(json.getString("@type")).isEqualTo("update");
             assertThat(json.getString("id")).isNotEmpty();
             JsonObject item = json.getJsonObject("item");
