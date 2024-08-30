@@ -15,6 +15,7 @@
  */
 package com.example.application;
 
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,21 +102,27 @@ public class SignalsTest extends AbstractTest {
     }
 
     private double getSharedValue() {
-        return Double.parseDouble($("span[id=\"sharedValue\"]").getText());
+        return Double.parseDouble(
+                $("span[id=\"sharedValue\"]").shouldNotBe(Condition.empty).getText());
     }
 
     private long getCounterValue() {
-        return Long.parseLong($("span[id=\"counter\"]").getText());
+        return Long.parseLong(
+                $("span[id=\"counter\"]").shouldNotBe(Condition.empty).getText());
     }
 
     private double fetchSharedValue() {
         clickButton("fetchSharedValue");
-        return Double.parseDouble($("span[id=\"sharedValueFromServer\"]").getText());
+        return Double.parseDouble($("span[id=\"sharedValueFromServer\"]")
+                .shouldNotBe(Condition.empty)
+                .getText());
     }
 
     private long fetchCounterValue() {
         clickButton("fetchCounterValue");
-        return Long.parseLong($("span[id=\"counterValueFromServer\"]").getText());
+        return Long.parseLong($("span[id=\"counterValueFromServer\"]")
+                .shouldNotBe(Condition.empty)
+                .getText());
     }
 
     private void clickButton(String id) {
