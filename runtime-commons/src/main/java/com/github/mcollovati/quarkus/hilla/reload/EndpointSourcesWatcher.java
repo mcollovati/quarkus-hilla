@@ -33,6 +33,11 @@ import io.quarkus.dev.spi.HotReplacementContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Endpoint live reload watcher that detect changes in source code.
+ * <p></p>
+ * This watcher acts every time a source file is saved.
+ */
 class EndpointSourcesWatcher extends AbstractEndpointsWatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointSourcesWatcher.class);

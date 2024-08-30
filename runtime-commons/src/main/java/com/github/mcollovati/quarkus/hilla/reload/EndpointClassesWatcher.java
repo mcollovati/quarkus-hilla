@@ -29,6 +29,11 @@ import io.quarkus.dev.spi.HotReplacementContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Endpoint live reload watcher that detect changes in compiled class files.
+ * <p></p>
+ * This watcher acts after a compilation completes.
+ */
 class EndpointClassesWatcher extends AbstractEndpointsWatcher {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointClassesWatcher.class);

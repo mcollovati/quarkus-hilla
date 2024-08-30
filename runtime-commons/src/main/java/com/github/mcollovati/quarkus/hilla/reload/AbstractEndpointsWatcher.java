@@ -45,6 +45,15 @@ import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_DELETE;
 import static java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY;
 
+/**
+ * Base class to trigger Quarkus live reload upon changes on interesting files.
+ * <p></p>
+ * The class registers filesystem watchers on all given root paths and subfolder. When a file changes it tries to detect potential related class names,
+ * and if they are used in any Hilla endpoint, it triggers Quarkus live reload.
+ * Change detection can be restricted to a smaller set of root subfolders.
+ *
+ * @see WatchService
+ */
 abstract class AbstractEndpointsWatcher implements Runnable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEndpointsWatcher.class);
@@ -56,17 +65,25 @@ abstract class AbstractEndpointsWatcher implements Runnable {
     private final Map<Path, WatchKey> watchKeys = new HashMap<>();
     private volatile boolean running;
 
-    AbstractEndpointsWatcher(HotReplacementContext context, List<Path> rootPaths, Set<Path> watchedPaths)
+    /**
+     * Base constructor for endpoints watcher.
+     *
+     * @param context Quarkus {@link HotReplacementContext} instance.
+     * @param rootPaths root paths to watch for file changes.
+     * @param endpointRelatedPaths paths relative to root paths that contains endpoint related code.
+     * @throws IOException if a filesystem watcher cannot be registered.
+     */
+    AbstractEndpointsWatcher(HotReplacementContext context, List<Path> rootPaths, Set<Path> endpointRelatedPaths)
             throws IOException {
         this.context = context;
         this.rootPaths = rootPaths;
-        this.watchedPaths = watchedPaths != null ? watchedPaths : Set.of();
+        this.watchedPaths = endpointRelatedPaths != null ? endpointRelatedPaths : Set.of();
         this.watchService = FileSystems.getDefault().newWatchService();
         rootPaths.forEach(root -> {
             if (this.watchedPaths.isEmpty()) {
                 LOGGER.debug("Watching for changes in folder {}", root);
             } else {
-                LOGGER.debug("Watching for changes in folder {} sub-trees {}", root, watchedPaths);
+                LOGGER.debug("Watching for changes in folder {} sub-trees {}", root, endpointRelatedPaths);
             }
             this.registerRecursive(root);
         });
