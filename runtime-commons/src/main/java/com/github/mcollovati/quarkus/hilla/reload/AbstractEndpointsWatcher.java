@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.reload;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -27,6 +28,7 @@ import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -130,14 +132,7 @@ abstract class AbstractEndpointsWatcher implements Runnable {
                 boolean requiresHotswap = false;
                 if (!changedFiles.isEmpty()) {
                     LOGGER.trace("Searching for endpoints related class in changed files {}", changedFiles.keySet());
-                    Set<String> usedClasses = null;
-                    try {
-                        usedClasses = EndpointCodeGenerator.getInstance()
-                                .getClassesUsedInOpenApi()
-                                .orElse(Set.of());
-                    } catch (Exception ex) {
-                        LOGGER.debug("Cannot get used classes from Open API. Force scan for changes", ex);
-                    }
+                    Set<String> usedClasses = collectClassesUsedInEndpoints();
                     try {
                         if (usedClasses == null) {
                             // Force a scan if we cannot get the list of changed classes
@@ -150,7 +145,8 @@ abstract class AbstractEndpointsWatcher implements Runnable {
                         } else {
                             for (var pair : changedFiles.entrySet()) {
                                 Path classFile = pair.getKey();
-                                if (fileContainsEndpointUsedClasses(classFile, usedClasses)) {
+                                if (Files.exists(classFile)
+                                        && fileContainsEndpointUsedClasses(classFile, usedClasses)) {
                                     requiresHotswap = !context.doScan(false);
                                     break;
                                 }
@@ -160,7 +156,7 @@ abstract class AbstractEndpointsWatcher implements Runnable {
                             LOGGER.debug(
                                     "Server not restarted because classes replaced via instrumentation. Forcing Hilla hotswap. {}",
                                     Thread.currentThread().getContextClassLoader());
-                            Hotswapper.onHotswap(true, changedFiles.values().toArray(new String[0]));
+                            forceHillaHotswap(changedFiles.values());
                         }
                     } catch (Exception ex) {
                         LOGGER.debug("Endpoint live reload failed", ex);
@@ -168,13 +164,30 @@ abstract class AbstractEndpointsWatcher implements Runnable {
                 }
                 key.reset();
             }
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ex) {
             stop();
             Thread.currentThread().interrupt();
-        } catch (Exception exception) {
-            LOGGER.error("Unrecoverable error. Endpoint changes watcher will be stopped", exception);
+        } catch (ClosedWatchServiceException ex) {
+            LOGGER.trace("WatchService closed, most likely because of stop being invoked", ex);
+        } catch (Exception ex) {
+            LOGGER.error("Unrecoverable error. Endpoint changes watcher will be stopped", ex);
         }
         LOGGER.debug("Stopped endpoints changes watcher");
+    }
+
+    // Visible for test
+    Set<String> collectClassesUsedInEndpoints() {
+        try {
+            return EndpointCodeGenerator.getInstance().getClassesUsedInOpenApi().orElse(Set.of());
+        } catch (Exception ex) {
+            LOGGER.debug("Cannot get used classes from Open API. Force scan for changes", ex);
+        }
+        return null;
+    }
+
+    // Visible for test
+    void forceHillaHotswap(Collection<String> changedFiles) {
+        Hotswapper.onHotswap(true, changedFiles.toArray(new String[0]));
     }
 
     private Map<Path, String> computeChangedSources(WatchKey key) {
@@ -201,7 +214,6 @@ abstract class AbstractEndpointsWatcher implements Runnable {
             LOGGER.trace("Event {} on file {} (happened {} time(s)).", eventKind, event.context(), event.count());
             Path affectedPath = parentPath.resolve(affectedRelativePath);
             boolean isDirectory = Files.isDirectory(affectedPath) || watchKeys.containsKey(affectedPath);
-            boolean isAddedOrChanged = eventKind == ENTRY_CREATE || eventKind == ENTRY_MODIFY;
             if (isDirectory) {
                 if (eventKind == ENTRY_CREATE) {
                     LOGGER.debug("New directory: {}", affectedRelativePath);
@@ -210,9 +222,7 @@ abstract class AbstractEndpointsWatcher implements Runnable {
                     LOGGER.debug("Directory removed: {}", affectedRelativePath);
                     unregisterRecursive(affectedPath);
                 }
-            } else if (!processedPaths.contains(affectedRelativePath)
-                    && isAddedOrChanged
-                    && isPotentialEndpointRelatedFile(affectedPath)) {
+            } else if (!processedPaths.contains(affectedRelativePath) && isPotentialEndpointRelatedFile(affectedPath)) {
                 processedPaths.add(affectedRelativePath);
                 LOGGER.trace("Java source file {} changed ({})", affectedRelativePath, eventKind.name());
                 rootPaths.stream()
