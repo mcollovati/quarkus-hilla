@@ -20,9 +20,9 @@ import io.quarkus.dev.spi.HotReplacementSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class EndpointsHotReplacementSetup implements HotReplacementSetup {
+public class HillaHotReplacementSetup implements HotReplacementSetup {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointsHotReplacementSetup.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(HillaHotReplacementSetup.class);
 
     @Override
     public void setupHotDeployment(HotReplacementContext context) {

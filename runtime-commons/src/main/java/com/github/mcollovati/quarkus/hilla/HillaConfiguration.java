@@ -41,23 +41,26 @@ public interface HillaConfiguration {
     /**
      * Configuration properties for endpoints hot reload.
      * <p></p>
-     * The extension watches source folders for changes in Java files and triggers a live reload if affected classes are Hilla endpoints or used in endpoints.
+     * The extension watches source folders for changes in Java files and triggers a live reload if affected classes
+     * are Hilla endpoints or used in endpoints.
      */
     interface LiveReloadConfig {
 
         /**
-         * Enabled endpoints live reload.
+         * Enable endpoints live reload.
+         *
          * @return {@literal true} if live reload is enabled, otherwise {@literal false}
          */
-        @WithDefault("true")
+        @WithDefault("false")
         boolean enable();
 
         /**
          * The list of paths to watch for changes, relative to a root folder.
          * <p></p>
-         * For example, given a SOURCE {@link #watchStrategy()} and Maven project with source code in the default {@literal src/main/java} folder and
-         * endpoints related classes in {@literal src/main/java/com/example/service} and {@literal src/main/java/com/example/model},
-         * the configuration should be {@literal vaadin.hilla.live-reload.watchedSourcePaths=com/example/service,com/example/model}.
+         * For example, given a SOURCE {@link #watchStrategy()} and Maven project with source code in the default
+         * {@literal src/main/java} folder and endpoints related classes in {@literal src/main/java/com/example/service}
+         * and {@literal src/main/java/com/example/model}, the configuration should be
+         * {@literal vaadin.hilla.live-reload.watchedSourcePaths=com/example/service,com/example/model}.
          * <p></p>
          * By default, all sub folders are watched.
          *
@@ -84,7 +87,8 @@ public interface HillaConfiguration {
             /**
              * Watch for changes in compiled classes.
              * <p></p>
-             * Best to be used in combination with {@literal quarkus.live-reload.instrumentation=true} to prevent excessive server restarts.
+             * Best to be used in combination with {@literal quarkus.live-reload.instrumentation=true} to prevent
+             * excessive server restarts.
              */
             CLASS
         }

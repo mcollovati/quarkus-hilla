@@ -15,4 +15,4 @@
 #
 #
 
-com.github.mcollovati.quarkus.hilla.reload.EndpointsHotReplacementSetup
+com.github.mcollovati.quarkus.hilla.reload.HillaHotReplacementSetup
