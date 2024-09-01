@@ -64,10 +64,11 @@ reload.
 To simplify development, `quarkus-hilla` extends Quarkus Live Reload feature to re-generated client side code upon
 changes on Hilla endpoint related classes. To trigger live reload, the extension scans for file changes either in source
 code or compiled classes folders (e.g. `src/main/java` or `target/classes` in a Maven project).
+The default strategy is to watch for class files, but it can be changed with the
+`vaadin.hilla.live-reload.watch-strategy`
+property.
 Endpoints live reload is disabled by default, but can be activated setting the `vaadin.hilla.live-reload.enable`
 property to `true` in the `application.properties` file.
-The default strategy is to watch for class files, but it can be changed with the `vaadin.hilla.live-reload.watch-strategy`
-property.
 To prevent excessive reloads, the watched folders can be restricted by providing a list of relative paths with the
 `vaadin.hilla.live-reload.watched-paths` property.
 The Endpoints live reload feature works better if `quarkus.live-reload.instrumentation` is set to true, since this
@@ -82,6 +83,9 @@ vaadin.hilla.live-reload.enable=true
 vaadin.hilla.live-reload.watch-strategy=source
 vaadin.hilla.live-reload.watched-paths=com/example/ui
 ```
+
+**NOTE**: currently source file watch strategy supports only Java file, not Kotlin. This is because the watcher inspects
+the source code to detect all declared type, but the parser currently works only for Java source files.
 
 ## Usage statistics
 
