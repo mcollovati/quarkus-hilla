@@ -62,6 +62,8 @@ public class SignalsTest extends AbstractTest {
     public void shouldUpdateValue_forOtherClients() {
         var currentSharedValue = getSharedValue();
         var currentCounterValue = getCounterValue();
+        System.out.println(
+                "====================== INITIAL STATE WINDOW 1: " + currentSharedValue + " -- " + currentCounterValue);
         var firstWindowHandle = Selenide.webdriver().driver().getWebDriver().getWindowHandle();
 
         var secondWindowDriver = Selenide.switchTo().newWindow(WindowType.WINDOW);
@@ -103,12 +105,11 @@ public class SignalsTest extends AbstractTest {
 
     private double getSharedValue() {
         return Double.parseDouble(
-                $("span[id=\"sharedValue\"]").shouldNotBe(Condition.empty).getText());
+                $(By.id("sharedValue")).shouldNotBe(Condition.empty).getText());
     }
 
     private long getCounterValue() {
-        return Long.parseLong(
-                $("span[id=\"counter\"]").shouldNotBe(Condition.empty).getText());
+        return Long.parseLong($(By.id("counter")).shouldNotBe(Condition.empty).getText());
     }
 
     private double fetchSharedValue() {
