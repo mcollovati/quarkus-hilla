@@ -25,8 +25,9 @@ import com.vaadin.hilla.signals.NumberSignal;
 @AnonymousAllowed
 @BrowserCallable
 public class NumberSignalService {
+    public static final double INITIAL_SHARED_VALUE = 0.5;
     private final NumberSignal counter = new NumberSignal();
-    private final NumberSignal sharedValue = new NumberSignal(0.5);
+    private final NumberSignal sharedValue = new NumberSignal(INITIAL_SHARED_VALUE);
 
     public NumberSignal counter() {
         return counter;
