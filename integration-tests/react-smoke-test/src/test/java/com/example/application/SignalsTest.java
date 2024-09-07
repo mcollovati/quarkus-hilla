@@ -62,8 +62,6 @@ public class SignalsTest extends AbstractTest {
     public void shouldUpdateValue_forOtherClients() {
         var currentSharedValue = getSharedValue();
         var currentCounterValue = getCounterValue();
-        System.out.println(
-                "====================== INITIAL STATE WINDOW 1: " + currentSharedValue + " -- " + currentCounterValue);
         var firstWindowHandle = Selenide.webdriver().driver().getWebDriver().getWindowHandle();
 
         var secondWindowDriver = Selenide.switchTo().newWindow(WindowType.WINDOW);
