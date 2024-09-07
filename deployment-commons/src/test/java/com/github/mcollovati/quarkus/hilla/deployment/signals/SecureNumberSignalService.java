@@ -22,7 +22,7 @@ import java.util.UUID;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.signals.NumberSignal;
-import com.vaadin.hilla.signals.core.StateEvent;
+import com.vaadin.hilla.signals.core.event.StateEvent;
 
 @BrowserCallable
 public class SecureNumberSignalService {

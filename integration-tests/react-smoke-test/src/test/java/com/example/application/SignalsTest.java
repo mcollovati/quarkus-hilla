@@ -29,6 +29,7 @@ import static com.codeborne.selenide.Condition.id;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.Wait;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -60,8 +61,15 @@ public class SignalsTest extends AbstractTest {
 
     @Test
     public void shouldUpdateValue_forOtherClients() {
-        var currentSharedValue = getSharedValue();
+        var currentSharedValue = Wait().until(d -> {
+            var value = getSharedValue();
+            if (value > 0.0) {
+                return value;
+            }
+            return null;
+        });
         var currentCounterValue = getCounterValue();
+
         var firstWindowHandle = Selenide.webdriver().driver().getWebDriver().getWindowHandle();
 
         var secondWindowDriver = Selenide.switchTo().newWindow(WindowType.WINDOW);
@@ -103,12 +111,11 @@ public class SignalsTest extends AbstractTest {
 
     private double getSharedValue() {
         return Double.parseDouble(
-                $("span[id=\"sharedValue\"]").shouldNotBe(Condition.empty).getText());
+                $(By.id("sharedValue")).shouldNotBe(Condition.empty).getText());
     }
 
     private long getCounterValue() {
-        return Long.parseLong(
-                $("span[id=\"counter\"]").shouldNotBe(Condition.empty).getText());
+        return Long.parseLong($(By.id("counter")).shouldNotBe(Condition.empty).getText());
     }
 
     private double fetchSharedValue() {
