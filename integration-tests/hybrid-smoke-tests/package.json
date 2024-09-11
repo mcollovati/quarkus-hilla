@@ -31,7 +31,7 @@
     "proj4": "2.11.0",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.26.1"
+    "react-router-dom": "6.26.2"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.7",
@@ -59,7 +59,7 @@
     "transform-ast": "2.4.4",
     "typescript": "5.5.4",
     "vite": "5.4.3",
-    "vite-plugin-checker": "0.7.2",
+    "vite-plugin-checker": "0.8.0",
     "workbox-build": "7.1.1",
     "workbox-core": "7.1.0",
     "workbox-precaching": "7.1.0"
@@ -133,7 +133,7 @@
       "proj4": "2.11.0",
       "react": "18.3.1",
       "react-dom": "18.3.1",
-      "react-router-dom": "6.26.1"
+      "react-router-dom": "6.26.2"
     },
     "devDependencies": {
       "@babel/preset-react": "7.24.7",
@@ -161,12 +161,12 @@
       "transform-ast": "2.4.4",
       "typescript": "5.5.4",
       "vite": "5.4.3",
-      "vite-plugin-checker": "0.7.2",
+      "vite-plugin-checker": "0.8.0",
       "workbox-build": "7.1.1",
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "b9346c6ee955d701fea2aee3ad0d43ba22ee34a8a0bdc9a515505983b00f0ec9"
+    "hash": "c059d4330fc765eb38bcd1fb91f0c0d88136b2da119f6e13d606f178c1a8aff2"
   },
   "type": "module"
 }
