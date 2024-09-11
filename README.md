@@ -1,3 +1,5 @@
+![quarkus-hilla-banner.svg](etc/quarkus-hilla-banner.svg)
+
 # Quarkus - Hilla
 
 [![Maven Central 24.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
