@@ -83,6 +83,7 @@ jobs:
           commit_message: "chore(npm-deps): update npm dependencies"
           commit_user_name: "quarkus-hilla-bot[bot]"
           commit_user_email: "141157179+quarkus-hilla-bot[bot]@users.noreply.github.com"
+          commit_author: "quarkus-hilla-bot[bot] <quarkus-hilla-bot[bot]@141157179+users.noreply.github.com>"
           branch: "chore/update_npm_deps_${{ matrix.branch }}"
           create_branch: ${{ steps.searchpr.outputs.prNumber == '0' }}
           file_pattern: ':(glob)**/package*.json'
