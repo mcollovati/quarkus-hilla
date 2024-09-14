@@ -15,13 +15,17 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
+import com.vaadin.flow.server.InitParameters;
+import com.vaadin.flow.server.VaadinServlet;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
+import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.undertow.deployment.ServletDeploymentManagerBuildItem;
+import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
 import io.quarkus.websockets.client.deployment.ServerWebSocketContainerBuildItem;
 import io.quarkus.websockets.client.deployment.WebSocketDeploymentInfoBuildItem;
@@ -77,6 +81,25 @@ class QuarkusHillaStandAloneProcessor {
                             serverWebSocketContainerBuildItem.getContainer(),
                             deployment.getDeploymentManager()),
                     120));
+        }
+    }
+
+    @BuildStep
+    void preventVaadinServletAutoRegistration(BuildProducer<ServletInitParamBuildItem> servletParameter) {
+        servletParameter.produce(
+                new ServletInitParamBuildItem(InitParameters.DISABLE_AUTOMATIC_SERVLET_REGISTRATION, "true"));
+    }
+
+    @BuildStep
+    void registerVaadinServlet(
+            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv, BuildProducer<ServletBuildItem> servletProducer) {
+        if (!quarkusHillaEnv.isHybrid()) {
+            servletProducer.produce(
+                    ServletBuildItem.builder(VaadinServlet.class.getName(), VaadinServlet.class.getName())
+                            .addMapping("/*")
+                            .setAsyncSupported(true)
+                            .setLoadOnStartup(1)
+                            .build());
         }
     }
 }

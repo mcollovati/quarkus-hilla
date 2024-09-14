@@ -56,11 +56,16 @@ public class SpringReplacer {
             MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "clearContext"),
             MethodSignature.DROP_METHOD);
 
+    private static Map.Entry<MethodSignature, MethodSignature> EndpointInvoker_createDefaultEndpointMapper = Map.entry(
+            MethodSignature.of(EndpointInvoker.class, "createDefaultEndpointMapper"),
+            MethodSignature.of(SpringReplacements.class, "endpointInvoker_createDefaultEndpointMapper"));
+
     public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
         producer.produce(transform(EndpointRegistry.class, "registerEndpoint", ClassUtils_getUserClass));
         producer.produce(transform(EndpointUtil.class, "isAnonymousEndpoint", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "checkAccess", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "invokeVaadinEndpointMethod", ClassUtils_getUserClass));
+        producer.produce(transform(EndpointInvoker.class, "<init>", EndpointInvoker_createDefaultEndpointMapper));
         producer.produce(transform(
                 SecureSignalsRegistry.class,
                 "register",
@@ -86,6 +91,7 @@ public class SpringReplacer {
                 (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
     }
 
+    @SafeVarargs
     private static BytecodeTransformerBuildItem transform(
             Class<?> clazz, String method, Map.Entry<MethodSignature, MethodSignature>... replacements) {
         return new BytecodeTransformerBuildItem(

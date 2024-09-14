@@ -16,6 +16,7 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
@@ -48,7 +49,7 @@ import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.springframework.context.ApplicationContext;
 
@@ -174,8 +175,6 @@ class QuarkusEndpointControllerConfiguration {
         return new QuarkusApplicationContext(beanManager);
     }
 
-    private EndpointController endpointController;
-
     @Produces
     @Singleton
     @DefaultBean
@@ -184,8 +183,7 @@ class QuarkusEndpointControllerConfiguration {
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker) {
-        this.endpointController = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
-        return this.endpointController;
+        return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
     }
 
     @Produces
@@ -196,7 +194,7 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     @Produces
-    @Singleton
+    @ApplicationScoped
     @DefaultBean
     SecureSignalsRegistry signalsRegistry(EndpointInvoker endpointInvoker) {
         return new SecureSignalsRegistry(endpointInvoker);
@@ -225,14 +223,14 @@ class QuarkusEndpointControllerConfiguration {
                 routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl, null);
     }
 
-    @Startup
-    void initializeEndpointRegistry() {
-        EndpointRegistryInitializer registryInitializer = new EndpointRegistryInitializer(this.endpointController);
-        this.vaadinServiceInitEvent.thenAccept(registryInitializer::serviceInit);
-        this.vaadinServiceInitEvent = null;
+    void initializeEndpointRegistry(@Observes StartupEvent event, EndpointController endpointController) {
+        EndpointRegistryInitializer registryInitializer = new EndpointRegistryInitializer(endpointController);
+        this.vaadinServiceInitEvent
+                .thenAccept(registryInitializer::serviceInit)
+                .whenComplete((unused, throwable) -> this.vaadinServiceInitEvent = null);
     }
 
-    private CompletableFuture<ServiceInitEvent> vaadinServiceInitEvent = new CompletableFuture<ServiceInitEvent>();
+    private CompletableFuture<ServiceInitEvent> vaadinServiceInitEvent = new CompletableFuture<>();
 
     void onVaadinServiceInit(ServiceInitEvent event) {
         this.vaadinServiceInitEvent.complete(event);
