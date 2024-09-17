@@ -57,8 +57,8 @@ class SignalsTest {
     void subscribeSignal_signalWorking() throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(pushURI);
         String clientSignalId = UUID.randomUUID().toString();
-        HillaPushClient client =
-                new HillaPushClient("SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId);
+        HillaPushClient client = new HillaPushClient(
+                "SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId, null);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             String serverSignalId = assertUpdateReceived(client, 3);
@@ -72,8 +72,8 @@ class SignalsTest {
     void updateSignal_signalWorking() throws Exception {
         URI connectURI = HillaPushClient.createPUSHConnectURI(pushURI);
         String clientSignalId = UUID.randomUUID().toString();
-        HillaPushClient client =
-                new HillaPushClient("SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId);
+        HillaPushClient client = new HillaPushClient(
+                "SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId, null);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             AtomicReference<String> serverSignalId = new AtomicReference<>();
