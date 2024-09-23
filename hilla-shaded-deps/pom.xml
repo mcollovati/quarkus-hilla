@@ -16,11 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <artifactId>hilla-endpoint</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>hilla-engine-runtime</artifactId>
+            <artifactId>hilla</artifactId>
         </dependency>
         <!--
             vaadin-core-versions.json and vaadin-versions.json have been removed frm the Hilla artifacts in
@@ -29,8 +25,14 @@
         -->
         <dependency>
             <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-core</artifactId>
+            <version>${vaadin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
             <artifactId>vaadin</artifactId>
             <version>${vaadin.version}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
