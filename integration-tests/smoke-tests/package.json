@@ -81,8 +81,7 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.2.0",
-    "mobx": "^6.3.5",
-    "proj4": "2.11.0"
+    "mobx": "^6.3.5"
   },
   "devDependencies": {
     "@babel/preset-react": "7.24.7",
@@ -199,7 +198,6 @@
     "@vaadin/hilla-generator-core": "$@vaadin/hilla-generator-core",
     "@vaadin/hilla-generator-plugin-push": "$@vaadin/hilla-generator-plugin-push",
     "@vaadin/hilla-generator-plugin-backbone": "$@vaadin/hilla-generator-plugin-backbone",
-    "proj4": "$proj4",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "date-fns": "$date-fns",
     "@vaadin/hilla-frontend": "$@vaadin/hilla-frontend",
@@ -283,8 +281,7 @@
       "@vaadin/virtual-list": "24.5.0-beta1",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
-      "lit": "3.2.0",
-      "proj4": "2.11.0"
+      "lit": "3.2.0"
     },
     "devDependencies": {
       "@babel/preset-react": "7.24.7",
@@ -315,7 +312,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "3c79cbd991c683f02d4e5779b276c0ebe55547ddc72faf11f32740bda62d6df3"
+    "hash": "a971b9239e6afb0366d9e788a8d63e945386195a385041257cf47ffa9f57da05"
   },
   "type": "module"
 }
