@@ -38,7 +38,7 @@ public class SpringReplacements {
     }
 
     public static Principal authenticationUtil_getSecurityHolderAuthentication() {
-        SecurityIdentity identity = CurrentIdentityAssociation.current();
+        SecurityIdentity identity = currentIdentity();
         if (identity != null && !identity.isAnonymous()) {
             return identity.getPrincipal();
         }
@@ -46,10 +46,18 @@ public class SpringReplacements {
     }
 
     public static Function<String, Boolean> authenticationUtil_getSecurityHolderRoleChecker() {
-        SecurityIdentity identity = CurrentIdentityAssociation.current();
+        SecurityIdentity identity = currentIdentity();
         if (identity == null || identity.isAnonymous()) {
             return role -> false;
         }
         return role -> role != null && identity.hasRole(role);
+    }
+
+    private static SecurityIdentity currentIdentity() {
+        try {
+            return CurrentIdentityAssociation.current();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }
