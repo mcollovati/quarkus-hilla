@@ -18,8 +18,10 @@ package com.github.mcollovati.quarkus.hilla;
 import java.security.Principal;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.springframework.context.ApplicationContext;
 
 public class SpringReplacements {
 
@@ -59,5 +61,9 @@ public class SpringReplacements {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public static ObjectMapper endpointInvoker_createDefaultEndpointMapper(ApplicationContext context) {
+        return null;
     }
 }

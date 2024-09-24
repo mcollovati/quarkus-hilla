@@ -18,7 +18,7 @@ package com.github.mcollovati.quarkus.hilla.deployment;
 import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.inject.Singleton;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +30,7 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
+import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.push.PushEndpoint;
@@ -61,6 +62,7 @@ import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
+import io.quarkus.deployment.pkg.NativeConfig;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
 import io.quarkus.undertow.deployment.ServletBuildItem;
@@ -69,10 +71,8 @@ import io.quarkus.vertx.http.deployment.FilterBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
-import org.atmosphere.cpr.AtmosphereServlet;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.atmosphere.interceptor.SuspendTrackerInterceptor;
-import org.atmosphere.util.SimpleBroadcaster;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
@@ -86,6 +86,7 @@ import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityRecorder;
 import com.github.mcollovati.quarkus.hilla.NonNullApi;
+import com.github.mcollovati.quarkus.hilla.QuarkusAtmosphereServlet;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
@@ -93,6 +94,7 @@ import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacer;
+import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 
 class QuarkusHillaExtensionProcessor {
 
@@ -237,13 +239,19 @@ class QuarkusHillaExtensionProcessor {
         beans.produce(new AdditionalBeanBuildItem(QuarkusEndpointProperties.class));
         beans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses("com.github.mcollovati.quarkus.hilla.QuarkusEndpointControllerConfiguration")
-                .addBeanClasses(QuarkusEndpointConfiguration.class, QuarkusEndpointController.class)
-                .setDefaultScope(BuiltinScope.SINGLETON.getName())
+                // .addBeanClasses(QuarkusEndpointConfiguration.class, QuarkusEndpointController.class)
+                .setDefaultScope(BuiltinScope.APPLICATION.getName())
                 .setUnremovable()
                 .build());
 
         beans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses(PushEndpoint.class, PushMessageHandler.class)
+                .setDefaultScope(BuiltinScope.SINGLETON.getName())
+                .setUnremovable()
+                .build());
+
+        beans.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClasses(QuarkusEndpointConfiguration.class, QuarkusEndpointController.class)
                 .setDefaultScope(BuiltinScope.SINGLETON.getName())
                 .setUnremovable()
                 .build());
@@ -254,32 +262,33 @@ class QuarkusHillaExtensionProcessor {
             final BuildProducer<AdditionalBeanBuildItem> additionalBeanProducer,
             BuildProducer<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotationRegistry) {
         additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(
-                DotName.createSimple(Endpoint.class.getName()), BuiltinScope.SINGLETON.getName()));
+                DotName.createSimple(Endpoint.class.getName()), BuiltinScope.APPLICATION.getName()));
         additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(
-                DotName.createSimple(BrowserCallable.class.getName()), BuiltinScope.SINGLETON.getName()));
+                DotName.createSimple(BrowserCallable.class.getName()), BuiltinScope.APPLICATION.getName()));
     }
 
     @BuildStep
-    void registerHillaPushServlet(
-            BuildProducer<ServletBuildItem> servletProducer,
-            BuildProducer<GeneratedResourceBuildItem> resourceProducer) {
-        servletProducer.produce(
-                ServletBuildItem.builder(AtmosphereServlet.class.getName(), AtmosphereServlet.class.getName())
-                        .addMapping("/HILLA/push")
-                        .setAsyncSupported(true)
-                        .addInitParam(ApplicationConfig.JSR356_MAPPING_PATH, "/HILLA/push")
-                        .addInitParam(ApplicationConfig.BROADCASTER_CLASS, SimpleBroadcaster.class.getName())
-                        .addInitParam(ApplicationConfig.ATMOSPHERE_HANDLER, PushEndpoint.class.getName())
-                        .addInitParam(ApplicationConfig.OBJECT_FACTORY, HillaAtmosphereObjectFactory.class.getName())
-                        .addInitParam(
-                                ApplicationConfig.ATMOSPHERE_INTERCEPTORS,
-                                AtmosphereResourceLifecycleInterceptor.class.getName()
-                                        + ","
-                                        + TrackMessageSizeInterceptor.class.getName()
-                                        + ","
-                                        + SuspendTrackerInterceptor.class.getName())
-                        .setLoadOnStartup(1)
-                        .build());
+    void registerHillaPushServlet(BuildProducer<ServletBuildItem> servletProducer, NativeConfig nativeConfig) {
+        ServletBuildItem.Builder builder = ServletBuildItem.builder(
+                QuarkusAtmosphereServlet.class.getName(), QuarkusAtmosphereServlet.class.getName());
+        builder.addMapping("/HILLA/push")
+                .setAsyncSupported(true)
+                .addInitParam(ApplicationConfig.JSR356_MAPPING_PATH, "/HILLA/push")
+                .addInitParam(ApplicationConfig.ATMOSPHERE_HANDLER, PushEndpoint.class.getName())
+                .addInitParam(ApplicationConfig.OBJECT_FACTORY, HillaAtmosphereObjectFactory.class.getName())
+                .addInitParam(ApplicationConfig.ANALYTICS, "false")
+                .addInitParam(
+                        ApplicationConfig.ATMOSPHERE_INTERCEPTORS,
+                        AtmosphereResourceLifecycleInterceptor.class.getName()
+                                + ","
+                                + TrackMessageSizeInterceptor.class.getName()
+                                + ","
+                                + SuspendTrackerInterceptor.class.getName())
+                .setLoadOnStartup(1);
+        if (nativeConfig.enabled()) {
+            builder.addInitParam(ApplicationConfig.BROADCASTER_CLASS, DelayedInitBroadcaster.class.getName());
+        }
+        servletProducer.produce(builder.build());
     }
 
     @BuildStep
@@ -344,7 +353,7 @@ class QuarkusHillaExtensionProcessor {
         if (authFormEnabled.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class)
-                    .setDefaultScope(DotNames.SINGLETON)
+                    .setDefaultScope(DotNames.APPLICATION_SCOPED)
                     .setUnremovable()
                     .build());
         }
@@ -360,7 +369,7 @@ class QuarkusHillaExtensionProcessor {
             producer.produce(SyntheticBeanBuildItem.configure(HillaFormAuthenticationMechanism.class)
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
-                    .scope(Singleton.class)
+                    .scope(ApplicationScoped.class)
                     .alternative(true)
                     .priority(1)
                     .supplier(recorder.setupFormAuthenticationMechanism())
@@ -397,7 +406,7 @@ class QuarkusHillaExtensionProcessor {
                         .map(item -> item.getAccessChecker().toString())
                         .toList())
                 .setUnremovable()
-                .setDefaultScope(DotNames.SINGLETON)
+                .setDefaultScope(DotNames.APPLICATION_SCOPED)
                 .build());
     }
 
@@ -462,6 +471,10 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointCodeGenerator"));
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointControllerConfiguration"));
         producer.produce(new ExcludedTypeBuildItem("com.vaadin.hilla.EndpointProperties"));
+
+        producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.ContainerInitializer"));
+        producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.AnnotationScanningServletContainerInitializer"));
+        producer.produce(new ExcludedTypeBuildItem(ServletDeployer.class.getName()));
     }
 
     public static final class NavigationAccessControlBuildItem extends SimpleBuildItem {

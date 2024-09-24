@@ -66,7 +66,13 @@ public class AsmUtils {
         while (iter.hasPrevious()) {
             final var instruction = iter.previous();
             if (instruction instanceof LabelNode) {
-                if (!keepStartLabel) iter.remove();
+                if (keepStartLabel) {
+                    // If label should be preserved, move to next node
+                    // otherwise removeUntilNextLabel will exit immediately
+                    iter.next();
+                } else {
+                    iter.remove();
+                }
                 break;
             } else iter.remove();
         }
