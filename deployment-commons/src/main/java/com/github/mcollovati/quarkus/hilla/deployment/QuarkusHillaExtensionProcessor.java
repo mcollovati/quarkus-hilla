@@ -97,8 +97,8 @@ import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
-import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
+import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 
 class QuarkusHillaExtensionProcessor {
 
