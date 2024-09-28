@@ -63,7 +63,11 @@ public final class TestUtils {
         private final LinkedHashMap<String, Object> params = new LinkedHashMap<>();
 
         public Parameters add(String name, Object value) {
-            params.put(name, value);
+            if (value instanceof Parameters p) {
+                params.put(name, new LinkedHashMap<>(p.params));
+            } else {
+                params.put(name, value);
+            }
             return this;
         }
 

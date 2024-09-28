@@ -15,12 +15,15 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.Endpoint;
 import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.MessageHandler;
 import jakarta.websocket.Session;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -37,6 +40,7 @@ import java.util.function.Consumer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.AbstractStringAssert;
+import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -147,6 +151,16 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
         String msg = pollMessage(timeout, unit);
         AbstractStringAssert<?> stringAssert = assertThat(msg).isNotNull();
         consumer.accept(stringAssert);
+    }
+
+    public void assertJsonMessageReceived(long timeout, TimeUnit unit, Consumer<JsonObject> consumer)
+            throws InterruptedException {
+        String msg = pollMessage(timeout, unit);
+        assertThat(msg).isNotNull();
+        try (var reader = Json.createReader(new StringReader(msg))) {
+            JsonObject jsonObject = reader.readObject();
+            new ObjectAssert<>(jsonObject).satisfies(consumer);
+        }
     }
 
     private String createSubscribeMessage() {

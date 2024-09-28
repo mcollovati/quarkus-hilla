@@ -118,7 +118,7 @@ public final class FilterableRepositorySupport {
             return path.getJavaType();
         } else {
             return JpaOperations.INSTANCE
-                    .getEntityManager()
+                    .getEntityManager(entity)
                     .getMetamodel()
                     .entity(entity)
                     .getAttribute(propertyId)

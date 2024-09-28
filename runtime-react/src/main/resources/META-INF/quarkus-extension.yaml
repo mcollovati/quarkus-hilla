@@ -9,6 +9,7 @@ metadata:
     - "web"
     - "reactive"
   status: "stable"
+  icon-url: "https://raw.githubusercontent.com/mcollovati/quarkus-hilla/main/etc/quarkus-hilla-logo.svg"
   codestart:
     name: "quarkus-hilla-react-maven-codestart"
     languages:

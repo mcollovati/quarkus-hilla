@@ -19,10 +19,10 @@ import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
-import com.vaadin.hilla.Endpoint;
+import com.vaadin.hilla.BrowserCallable;
 import reactor.core.publisher.Flux;
 
-@Endpoint
+@BrowserCallable
 public class ReactiveSecureEndpoint {
 
     @RolesAllowed("ADMIN")

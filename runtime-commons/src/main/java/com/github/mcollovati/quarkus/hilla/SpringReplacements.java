@@ -18,8 +18,10 @@ package com.github.mcollovati.quarkus.hilla;
 import java.security.Principal;
 import java.util.function.Function;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.springframework.context.ApplicationContext;
 
 public class SpringReplacements {
 
@@ -38,7 +40,7 @@ public class SpringReplacements {
     }
 
     public static Principal authenticationUtil_getSecurityHolderAuthentication() {
-        SecurityIdentity identity = CurrentIdentityAssociation.current();
+        SecurityIdentity identity = currentIdentity();
         if (identity != null && !identity.isAnonymous()) {
             return identity.getPrincipal();
         }
@@ -46,10 +48,22 @@ public class SpringReplacements {
     }
 
     public static Function<String, Boolean> authenticationUtil_getSecurityHolderRoleChecker() {
-        SecurityIdentity identity = CurrentIdentityAssociation.current();
+        SecurityIdentity identity = currentIdentity();
         if (identity == null || identity.isAnonymous()) {
             return role -> false;
         }
         return role -> role != null && identity.hasRole(role);
+    }
+
+    private static SecurityIdentity currentIdentity() {
+        try {
+            return CurrentIdentityAssociation.current();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static ObjectMapper endpointInvoker_createDefaultEndpointMapper(ApplicationContext context) {
+        return null;
     }
 }

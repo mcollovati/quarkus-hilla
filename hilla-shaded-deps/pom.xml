@@ -16,11 +16,7 @@
     <dependencies>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <artifactId>hilla-endpoint</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>hilla-engine-runtime</artifactId>
+            <artifactId>hilla</artifactId>
         </dependency>
         <!--
             vaadin-core-versions.json and vaadin-versions.json have been removed frm the Hilla artifacts in
@@ -29,8 +25,14 @@
         -->
         <dependency>
             <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-core</artifactId>
+            <version>${vaadin.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
             <artifactId>vaadin</artifactId>
             <version>${vaadin.version}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -52,6 +54,7 @@
                                     <artifact>org.springframework:spring-core</artifact>
                                     <includes>
                                         <include>org/springframework/core/*Exception.class</include>
+                                        <include>org/springframework/core/NativeDetector.class</include>
                                         <include>org/springframework/core/ResolvableType**.class</include>
                                         <include>org/springframework/core/SerializableTypeWrapper**.class</include>
                                         <include>org/springframework/core/env/Environment.class</include>
@@ -60,6 +63,7 @@
                                         <include>org/springframework/core/io/InputStreamSource.class</include>
                                         <include>org/springframework/core/io/Resource.class</include>
                                         <include>org/springframework/core/io/ResourceLoader.class</include>
+                                        <include>org/springframework/lang/Nullable.class</include>
                                         <include>org/springframework/lang/NonNullApi.class</include>
                                         <include>
                                             org/springframework/core/io/support/ResourcePatternResolver.class
@@ -70,8 +74,10 @@
                                         <include>org/springframework/util/ConcurrentReferenceHashMap**.class</include>
                                         <include>org/springframework/util/MultiValueMap.class</include>
                                         <include>org/springframework/util/MultiValueMapAdapter.class</include>
+                                        <include>org/springframework/util/ObjectUtils.class</include>
                                         <include>org/springframework/util/LinkedMultiValueMap.class</include>
                                         <include>org/springframework/util/LinkedCaseInsensitiveMap**.class</include>
+                                        <include>org/springframework/util/ReflectionUtils**.class</include>
                                         <include>org/springframework/util/StringUtils.class</include>
                                     </includes>
                                 </filter>
@@ -79,6 +85,7 @@
                                     <artifact>org.springframework:spring-context</artifact>
                                     <includes>
                                         <include>org/springframework/context/ApplicationContext.class</include>
+                                        <include>org/springframework/context/ApplicationContextAware.class</include>
                                         <include>org/springframework/context/ApplicationEventPublisher.class</include>
                                         <include>org/springframework/context/MessageSourceResolvable.class</include>
                                         <include>org/springframework/context/MessageSource.class</include>
@@ -98,6 +105,7 @@
                                     <artifact>org.springframework:spring-beans</artifact>
                                     <includes>
                                         <include>org/springframework/beans/*Exception.class</include>
+                                        <include>org/springframework/beans/factory/Aware.class</include>
                                         <include>org/springframework/beans/factory/*Exception.class</include>
                                         <include>org/springframework/beans/factory/*Factory.class</include>
                                         <include>org/springframework/beans/factory/ObjectProvider.class</include>
@@ -110,6 +118,7 @@
                                     <artifact>org.springframework.data:spring-data-commons</artifact>
                                     <includes>
                                         <include>org/springframework/data/domain/AbstractPageRequest.class</include>
+                                        <include>org/springframework/data/domain/Chunk.class</include>
                                         <include>org/springframework/data/domain/KeysetScrollPosition.class</include>
                                         <include>org/springframework/data/domain/OffsetScrollPosition.class</include>
                                         <include>org/springframework/data/domain/ScrollPosition.class</include>
@@ -117,6 +126,7 @@
                                         </include>
                                         <include>org/springframework/data/domain/Page.class</include>
                                         <include>org/springframework/data/domain/Pageable.class</include>
+                                        <include>org/springframework/data/domain/PageImpl.class</include>
                                         <include>org/springframework/data/domain/PageRequest.class</include>
                                         <include>org/springframework/data/domain/Slice.class</include>
                                         <include>org/springframework/data/domain/Sort.class</include>
@@ -125,6 +135,7 @@
                                         <include>org/springframework/data/domain/Sort$NullHandling.class</include>
                                         <include>org/springframework/data/domain/Unpaged.class</include>
                                         <include>org/springframework/data/util/Streamable.class</include>
+                                        <include>org/springframework/data/util/StreamUtils.class</include>
                                         <include>org/springframework/data/util/LazyStreamable.class</include>
                                     </includes>
                                 </filter>

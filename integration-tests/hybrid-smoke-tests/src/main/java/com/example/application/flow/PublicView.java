@@ -16,10 +16,14 @@
 package com.example.application.flow;
 
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.router.Menu;
+import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 
+@Menu(title = "Flow Public View")
+@PageTitle("Flow Public View")
 @Route("flow-public-view")
 @AnonymousAllowed
 public class PublicView extends Div {

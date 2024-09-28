@@ -17,8 +17,25 @@ package com.github.mcollovati.quarkus.testing;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.WebElementCondition;
+import com.codeborne.selenide.conditions.CustomMatch;
+import org.openqa.selenium.By;
 
-public class VaadinConditions {
+import static com.codeborne.selenide.Selenide.$;
+
+public final class VaadinConditions {
 
     public static final WebElementCondition disabled = Condition.attribute("disabled");
+
+    public static WebElementCondition sideNavItem(String href) {
+        return new CustomMatch(
+                "SideNavItem[" + href + "]",
+                element -> "vaadin-side-nav-item".equals(element.getTagName())
+                        && $(element.getShadowRoot().findElement(By.cssSelector("a")))
+                                .exists()
+                        && $(element.getShadowRoot().findElement(By.cssSelector("a")))
+                                .has(Condition.and(
+                                        "Visible SideNavItem[" + href + "]",
+                                        Condition.domAttribute("href", href),
+                                        Condition.visible)));
+    }
 }

@@ -19,9 +19,9 @@ import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
-import com.vaadin.hilla.Endpoint;
+import com.vaadin.hilla.BrowserCallable;
 
-@Endpoint
+@BrowserCallable
 public class SecureEndpoint {
 
     @RolesAllowed("ADMIN")

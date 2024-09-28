@@ -16,17 +16,23 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
+import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
+import com.vaadin.hilla.EndpointCodeGenerator;
 import com.vaadin.hilla.EndpointController;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointNameChecker;
@@ -36,10 +42,15 @@ import com.vaadin.hilla.ExplicitNullableTypeChecker;
 import com.vaadin.hilla.auth.CsrfChecker;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
+import com.vaadin.hilla.route.RouteUnifyingConfigurationProperties;
+import com.vaadin.hilla.route.RouteUtil;
+import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
+import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
-import io.quarkus.runtime.Startup;
+import io.quarkus.runtime.StartupEvent;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.springframework.context.ApplicationContext;
 
 @Unremovable
@@ -55,8 +66,7 @@ class QuarkusEndpointControllerConfiguration {
     /**
      * Registers a default {@link EndpointAccessChecker} bean instance.
      *
-     * @param accessAnnotationChecker
-     *            the access controlks checker to use
+     * @param accessAnnotationChecker the access controlks checker to use
      * @return the default Vaadin endpoint access checker bean
      */
     @Produces
@@ -81,8 +91,7 @@ class QuarkusEndpointControllerConfiguration {
     /**
      * Registers a default {@link CsrfChecker} bean instance.
      *
-     * @param servletContext
-     *            the servlet context
+     * @param servletContext the servlet context
      * @return the default bean
      */
     @Produces
@@ -118,8 +127,7 @@ class QuarkusEndpointControllerConfiguration {
     /**
      * Registers the endpoint registry.
      *
-     * @param endpointNameChecker
-     *            the name checker to use
+     * @param endpointNameChecker the name checker to use
      * @return the endpoint registry
      */
     @Produces
@@ -131,6 +139,7 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
+    @DefaultBean
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
             @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
@@ -166,28 +175,64 @@ class QuarkusEndpointControllerConfiguration {
         return new QuarkusApplicationContext(beanManager);
     }
 
-    private EndpointController endpointController;
-
     @Produces
     @Singleton
+    @DefaultBean
     EndpointController endpointController(
             ApplicationContext context,
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker) {
-        this.endpointController = new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
-        return this.endpointController;
+        return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
     }
 
-    @Startup
-    void initializeEndpointRegistry() {
-        new EndpointRegistryInitializer(this.endpointController).serviceInit(vaadinServiceInitEvent);
-        this.vaadinServiceInitEvent = null;
+    @Produces
+    @ApplicationScoped
+    @DefaultBean
+    EndpointCodeGenerator endpointCodeGenerator(ServletContext servletContext, EndpointController endpointController) {
+        return new EndpointCodeGenerator(new VaadinServletContext(servletContext), endpointController);
     }
 
-    private ServiceInitEvent vaadinServiceInitEvent;
+    @Produces
+    @ApplicationScoped
+    @DefaultBean
+    SecureSignalsRegistry signalsRegistry(EndpointInvoker endpointInvoker) {
+        return new SecureSignalsRegistry(endpointInvoker);
+    }
+
+    @Produces
+    @Singleton
+    @DefaultBean
+    RouteUtil routeUtil() {
+        return new RouteUtil();
+    }
+
+    @Produces
+    @Singleton
+    RouteUnifyingServiceInitListener routeUnifyingServiceInitListener(
+            @ConfigProperty(name = "exposeServerRoutesToClient", defaultValue = "true")
+                    boolean exposeServerRoutesToClient,
+            RouteUtil routeUtil,
+            Instance<NavigationAccessControl> navigationAccessControlInstance) {
+        RouteUnifyingConfigurationProperties routeUnifyingConfigurationProperties =
+                new RouteUnifyingConfigurationProperties();
+        routeUnifyingConfigurationProperties.setExposeServerRoutesToClient(exposeServerRoutesToClient);
+        NavigationAccessControl navigationAccessControl =
+                navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
+        return new RouteUnifyingServiceInitListener(
+                routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl, null);
+    }
+
+    void initializeEndpointRegistry(@Observes StartupEvent event, EndpointController endpointController) {
+        EndpointRegistryInitializer registryInitializer = new EndpointRegistryInitializer(endpointController);
+        this.vaadinServiceInitEvent
+                .thenAccept(registryInitializer::serviceInit)
+                .whenComplete((unused, throwable) -> this.vaadinServiceInitEvent = null);
+    }
+
+    private CompletableFuture<ServiceInitEvent> vaadinServiceInitEvent = new CompletableFuture<>();
 
     void onVaadinServiceInit(ServiceInitEvent event) {
-        this.vaadinServiceInitEvent = event;
+        this.vaadinServiceInitEvent.complete(event);
     }
 }
