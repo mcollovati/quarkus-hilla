@@ -110,6 +110,7 @@
                         </selenide.reportsFolder>
                         <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                         </selenide.downloadsFolder>
+                        <vaadin.reuseDevServer>false</vaadin.reuseDevServer>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
