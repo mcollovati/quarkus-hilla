@@ -186,12 +186,11 @@ public class QuarkusHillaNativeProcessor {
     @BuildStep
     void hillaNativeSupport(
             CombinedIndexBuildItem combinedIndex,
-            BuildProducer<RuntimeInitializedPackageBuildItem> runtimeInitializedPackage,
             BuildProducer<NativeImageResourcePatternsBuildItem> nativeImageResource,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
 
         nativeImageResource.produce(NativeImageResourcePatternsBuildItem.builder()
-                .includePatterns("hilla-openapi\\.json")
+                .includePatterns("hilla-openapi\\.json", "hilla-engine-configuration\\.json", "file-routes\\.json")
                 .includePatterns("META-INF/microprofile-config\\.properties")
                 .build());
 
