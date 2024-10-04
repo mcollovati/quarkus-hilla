@@ -21,6 +21,7 @@ import com.vaadin.hilla.AuthenticationUtil;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
 import com.vaadin.hilla.EndpointUtil;
+import com.vaadin.hilla.Hotswapper;
 import com.vaadin.hilla.parser.utils.ConfigList;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
@@ -30,11 +31,15 @@ import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
-public class SpringReplacer {
+public class OffendingMethodCallsReplacer {
 
     private static Map.Entry<MethodSignature, MethodSignature> ClassUtils_getUserClass = Map.entry(
             MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
             MethodSignature.of(SpringReplacements.class, "classUtils_getUserClass"));
+    private static Map.Entry<MethodSignature, MethodSignature> Class_forName = Map.entry(
+            MethodSignature.of(Class.class, "forName", "(Ljava/lang/String;)Ljava/lang/Class;"),
+            MethodSignature.of(SpringReplacements.class, "class_forName"));
+
     private static Map.Entry<MethodSignature, MethodSignature> AuthenticationUtil_getSecurityHolderAuthentication =
             Map.entry(
                     MethodSignature.of(
@@ -61,6 +66,7 @@ public class SpringReplacer {
             MethodSignature.of(SpringReplacements.class, "endpointInvoker_createDefaultEndpointMapper"));
 
     public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
+        producer.produce(transform(Hotswapper.class, "affectsEndpoints", Class_forName));
         producer.produce(transform(EndpointRegistry.class, "registerEndpoint", ClassUtils_getUserClass));
         producer.produce(transform(EndpointUtil.class, "isAnonymousEndpoint", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "checkAccess", ClassUtils_getUserClass));

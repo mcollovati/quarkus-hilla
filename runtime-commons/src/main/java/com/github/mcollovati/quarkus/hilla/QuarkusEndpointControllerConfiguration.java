@@ -32,6 +32,7 @@ import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
+import com.vaadin.hilla.ApplicationContextProvider;
 import com.vaadin.hilla.EndpointCodeGenerator;
 import com.vaadin.hilla.EndpointController;
 import com.vaadin.hilla.EndpointInvoker;
@@ -171,8 +172,17 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
-    ApplicationContext applicationContext(BeanManager beanManager) {
-        return new QuarkusApplicationContext(beanManager);
+    ApplicationContext applicationContext(BeanManager beanManager, ApplicationContextProvider appCtxProvider) {
+        QuarkusApplicationContext applicationContext = new QuarkusApplicationContext(beanManager);
+        appCtxProvider.setApplicationContext(applicationContext);
+        return applicationContext;
+    }
+
+    @Produces
+    @Singleton
+    @DefaultBean
+    ApplicationContextProvider applicationContextProvider() {
+        return new ApplicationContextProvider();
     }
 
     @Produces
