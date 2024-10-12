@@ -32,11 +32,14 @@ import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.di.LookupInitializer;
 import com.vaadin.flow.router.HasErrorParameter;
 import com.vaadin.flow.router.HasUrlParameter;
+import com.vaadin.flow.router.Layout;
+import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.MenuData;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouterLayout;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
+import com.vaadin.flow.server.menu.RouteParamType;
 import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
@@ -246,15 +249,18 @@ public class QuarkusHillaNativeProcessor {
         runtimeInitializedPackage.produce(new RuntimeInitializedPackageBuildItem("org.atmosphere.util.analytics"));
 
         // JSON serialization
-        reflectiveClass.produce(ReflectiveClassBuildItem.builder(AvailableViewInfo.class, MenuData.class)
-                .constructors()
-                .methods()
-                .fields()
-                .build());
+        reflectiveClass.produce(
+                ReflectiveClassBuildItem.builder(AvailableViewInfo.class, MenuData.class, RouteParamType.class)
+                        .constructors()
+                        .methods()
+                        .fields()
+                        .build());
 
         Set<ClassInfo> classes = new HashSet<>();
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Route.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(RouteAlias.class)));
+        classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Layout.class)));
+        classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Menu.class)));
         classes.addAll(index.getAllKnownImplementors(AppShellConfigurator.class));
         classes.addAll(getCommonComponentClasses(index));
         classes.addAll(index.getAllKnownSubclasses(Component.class));
