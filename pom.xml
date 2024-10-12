@@ -47,9 +47,9 @@
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>24.5-SNAPSHOT</hilla.version>
+        <hilla.version>24.5.0.rc1</hilla.version>
         <vaadin.version>${hilla.version}</vaadin.version>
-        <vaadin.quarkus.version>2.1-SNAPSHOT</vaadin.quarkus.version>
+        <vaadin.quarkus.version>2.1.0.rc1</vaadin.quarkus.version>
 
         <jackson.version>2.17.2</jackson.version>
         <assertj.version>3.26.3</assertj.version>
@@ -95,6 +95,11 @@
                 <version>${hilla.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-quarkus</artifactId>
+                <version>${vaadin.quarkus.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
