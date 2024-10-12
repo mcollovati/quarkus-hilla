@@ -16,9 +16,12 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.inject.spi.CDI;
+import jakarta.inject.Singleton;
 
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServiceInitListener;
+import com.vaadin.quarkus.annotation.VaadinServiceEnabled;
+import io.quarkus.arc.Unremovable;
 
 /**
  * A {@link VaadinServiceInitListener} implementation that forward the {@link ServiceInitEvent} to the extension CDI
@@ -28,6 +31,9 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
  * The service init event is saved into QuarkusEndpointControllerConfiguration so that the endpoint registry can be
  * initialized in a @Startup observer.
  */
+@VaadinServiceEnabled
+@Singleton
+@Unremovable
 public class QuarkusVaadinServiceListenerPropagator implements VaadinServiceInitListener {
 
     @Override

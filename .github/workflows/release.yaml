@@ -113,6 +113,12 @@ jobs:
              | tee -a $GITHUB_STEP_SUMMARY
             exit 1
           fi
+          vaadin_quarkus_version=$(mvn -ntp -N -q help:evaluate -Dexpression=vaadin.quarkus.version -DforceStdout)
+          if [[ "$vaadin_quarkus_version" =~ .*-SNAPSHOT ]]; then
+            mvn -N -ntp -Dproperty=vaadin.quarkus.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
+            vaadin_quarkus_version=$(mvn -ntp -N -q help:evaluate -Dexpression=vaadin.quarkus.version -DforceStdout)
+            echo "⚠️ SNAPSHOT detected for vaadin-quarkus version. Automatically forcing version to $vaadin_quarkus_version." | tee -a $GITHUB_STEP_SUMMARY
+          fi
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
