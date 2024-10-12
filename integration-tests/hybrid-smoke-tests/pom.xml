@@ -18,11 +18,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-quarkus-extension</artifactId>
-            <version>${vaadin.version}</version>
-        </dependency>
-        <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>quarkus-hilla-react</artifactId>
             <version>${project.version}</version>

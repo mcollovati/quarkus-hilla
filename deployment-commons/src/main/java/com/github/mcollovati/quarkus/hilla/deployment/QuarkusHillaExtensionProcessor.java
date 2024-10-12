@@ -30,6 +30,7 @@ import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
+import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
 import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
@@ -490,6 +491,19 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.ContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.AnnotationScanningServletContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem(ServletDeployer.class.getName()));
+    }
+
+    /*
+     * Temporary step to register missing beans
+     * See https://github.com/vaadin/quarkus/issues/175
+     */
+    @BuildStep
+    void registerVaadinQuarkusServices(BuildProducer<AdditionalBeanBuildItem> producer) {
+        producer.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(DefaultMenuAccessControl.class)
+                .setDefaultScope(DotNames.SINGLETON)
+                .setUnremovable()
+                .build());
     }
 
     public static final class NavigationAccessControlBuildItem extends SimpleBuildItem {

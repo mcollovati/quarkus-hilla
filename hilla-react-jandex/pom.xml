@@ -44,12 +44,6 @@
             </exclusions>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-dev</artifactId>
-            <optional>true</optional>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 
     <build>

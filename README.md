@@ -25,17 +25,31 @@ and [Security](https://hilla.dev/docs/lit/guides/security).
 **NOTE**: This is an **unofficial community extension**, and it is **not**
 directly related **nor** supported by Vaadin Ltd.
 
+## Notable changes
+
+### Lit and React extensions
+
 Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
 
 * `quarkus-hilla` for `Lit` based applications
 * `quarkus-hilla-react` for `React` based applications
 
+### Vaadin Unified platform
+
 Since Vaadin `24.4`, Flow and Hilla are unified in a single platform.
 As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven
 artifacts
 and Java package names moved from `dev.hilla` to `com.vaadin.hilla`.
-Quarkus-hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
+Quarkus-Hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
 In addition, the minimum supported Quarkus version will be `3.7`.
+
+### Integration with Vaadin Quarkus extension
+
+To provide better support for Hilla on the Quarkus platform and simplify maintenance, the `quarkus-hilla` extension will
+depend on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), starting with `24.5`. This
+integration eliminates the need for code duplication and ensures tighter alignment with Vaadin's ecosystem, offering
+more streamlined updates and improved stability. By leveraging the Vaadin Quarkus extension, users of `quarkus-hilla`
+will benefit from enhanced compatibility with future Vaadin features.
 
 ## Limitations
 
