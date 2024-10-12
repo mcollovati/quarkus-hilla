@@ -18,9 +18,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-quarkus-extension</artifactId>
-            <version>${vaadin.version}</version>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla</artifactId>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.vaadin</groupId>
@@ -31,11 +31,6 @@
                     <artifactId>flow-react</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.github.mcollovati</groupId>
-            <artifactId>quarkus-hilla</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>

@@ -15,91 +15,78 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import com.vaadin.flow.server.InitParameters;
-import com.vaadin.flow.server.VaadinServlet;
-import io.quarkus.deployment.annotations.BuildProducer;
-import io.quarkus.deployment.annotations.BuildStep;
-import io.quarkus.deployment.annotations.ExecutionTime;
-import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
-import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
-import io.quarkus.undertow.deployment.ServletBuildItem;
-import io.quarkus.undertow.deployment.ServletDeploymentManagerBuildItem;
-import io.quarkus.undertow.deployment.ServletInitParamBuildItem;
-import io.quarkus.vertx.http.deployment.FilterBuildItem;
-import io.quarkus.websockets.client.deployment.ServerWebSocketContainerBuildItem;
-import io.quarkus.websockets.client.deployment.WebSocketDeploymentInfoBuildItem;
-
-import com.github.mcollovati.quarkus.hilla.EnableWebsockets;
-import com.github.mcollovati.quarkus.hilla.WebsocketHttpSessionAttachRecorder;
+// import com.github.mcollovati.quarkus.hilla.EnableWebsockets;
+// import com.github.mcollovati.quarkus.hilla.WebsocketHttpSessionAttachRecorder;
 
 /**
  * A Quarkus processor that configure Vaadin minimal requirements when the Vaadin Quarkus extension is not available.
  *
  * Most of the code is copy/pasted from {@code com.vaadin.quarkus.deployment.VaadinQuarkusProcessor}.
  */
+@Deprecated
 class QuarkusHillaStandAloneProcessor {
-
-    @BuildStep
-    void indexWebsocketEnablerClass(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
-            BuildProducer<AdditionalIndexedClassesBuildItem> producer) {
-        if (!quarkusHillaEnv.isHybrid()) {
-            producer.produce(new AdditionalIndexedClassesBuildItem(EnableWebsockets.class.getName()));
+    /*
+        //@BuildStep
+        void indexWebsocketEnablerClass(
+                QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
+                BuildProducer<AdditionalIndexedClassesBuildItem> producer) {
+            if (!quarkusHillaEnv.isHybrid()) {
+                producer.produce(new AdditionalIndexedClassesBuildItem(EnableWebsockets.class.getName()));
+            }
         }
-    }
 
-    // The extension needs to exclude some resources from Hilla dependencies (exclusions configured in the POM file),
-    // and this causes the index to be rebuilt at runtime for those artifacts.
-    // However, the hilla-jandex artifact does not contain classes to scan, so we define an additional marker
-    // to instruct Quarkus to index required Vaadin artifacts.
-    // This is not required in hybrid mode, since the vaadin-quarkus-extension will provide a full jandex index
-    // for Vaadin artifacts.
-    @BuildStep
-    void addMarkersForHillaJars(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
-            BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
-        if (!quarkusHillaEnv.isHybrid()) {
-            producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin"));
+        // The extension needs to exclude some resources from Hilla dependencies (exclusions configured in the POM file),
+        // and this causes the index to be rebuilt at runtime for those artifacts.
+        // However, the hilla-jandex artifact does not contain classes to scan, so we define an additional marker
+        // to instruct Quarkus to index required Vaadin artifacts.
+        // This is not required in hybrid mode, since the vaadin-quarkus-extension will provide a full jandex index
+        // for Vaadin artifacts.
+        //@BuildStep
+        void addMarkersForHillaJars(
+                QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
+                BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
+            if (!quarkusHillaEnv.isHybrid()) {
+                producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin"));
+            }
         }
-    }
 
-    @BuildStep
-    @Record(ExecutionTime.RUNTIME_INIT)
-    void configurePush(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
-            ServletDeploymentManagerBuildItem deployment,
-            WebSocketDeploymentInfoBuildItem webSocketDeploymentInfoBuildItem,
-            ServerWebSocketContainerBuildItem serverWebSocketContainerBuildItem,
-            BuildProducer<FilterBuildItem> filterProd,
-            WebsocketHttpSessionAttachRecorder recorder) {
+        //@BuildStep
+        //@Record(ExecutionTime.RUNTIME_INIT)
+        void configurePush(
+                QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
+                ServletDeploymentManagerBuildItem deployment,
+                WebSocketDeploymentInfoBuildItem webSocketDeploymentInfoBuildItem,
+                ServerWebSocketContainerBuildItem serverWebSocketContainerBuildItem,
+                BuildProducer<FilterBuildItem> filterProd,
+                WebsocketHttpSessionAttachRecorder recorder) {
 
-        if (!quarkusHillaEnv.isHybrid() && webSocketDeploymentInfoBuildItem != null) {
-            filterProd.produce(new FilterBuildItem(
-                    recorder.createWebSocketHandler(
-                            webSocketDeploymentInfoBuildItem.getInfo(),
-                            serverWebSocketContainerBuildItem.getContainer(),
-                            deployment.getDeploymentManager()),
-                    120));
+            if (!quarkusHillaEnv.isHybrid() && webSocketDeploymentInfoBuildItem != null) {
+                filterProd.produce(new FilterBuildItem(
+                        recorder.createWebSocketHandler(
+                                webSocketDeploymentInfoBuildItem.getInfo(),
+                                serverWebSocketContainerBuildItem.getContainer(),
+                                deployment.getDeploymentManager()),
+                        120));
+            }
         }
-    }
 
-    @BuildStep
-    void preventVaadinServletAutoRegistration(BuildProducer<ServletInitParamBuildItem> servletParameter) {
-        servletParameter.produce(
-                new ServletInitParamBuildItem(InitParameters.DISABLE_AUTOMATIC_SERVLET_REGISTRATION, "true"));
-    }
-
-    @BuildStep
-    void registerVaadinServlet(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv, BuildProducer<ServletBuildItem> servletProducer) {
-        if (!quarkusHillaEnv.isHybrid()) {
-            servletProducer.produce(
-                    ServletBuildItem.builder(VaadinServlet.class.getName(), VaadinServlet.class.getName())
-                            .addMapping("/*")
-                            .setAsyncSupported(true)
-                            .setLoadOnStartup(1)
-                            .build());
+        //@BuildStep
+        void preventVaadinServletAutoRegistration(BuildProducer<ServletInitParamBuildItem> servletParameter) {
+            servletParameter.produce(
+                    new ServletInitParamBuildItem(InitParameters.DISABLE_AUTOMATIC_SERVLET_REGISTRATION, "true"));
         }
-    }
+
+        //@BuildStep
+        void registerVaadinServlet(
+                QuarkusHillaEnvironmentBuildItem quarkusHillaEnv, BuildProducer<ServletBuildItem> servletProducer) {
+            if (!quarkusHillaEnv.isHybrid()) {
+                servletProducer.produce(
+                        ServletBuildItem.builder(VaadinServlet.class.getName(), VaadinServlet.class.getName())
+                                .addMapping("/*")
+                                .setAsyncSupported(true)
+                                .setLoadOnStartup(1)
+                                .build());
+            }
+        }
+    */
 }

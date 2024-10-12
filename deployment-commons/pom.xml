@@ -46,6 +46,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-quarkus-deployment</artifactId>
+            <version>${vaadin.quarkus.version}</version>
+        </dependency>
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-internal</artifactId>
             <scope>test</scope>

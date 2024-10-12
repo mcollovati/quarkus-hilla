@@ -49,6 +49,7 @@
         -->
         <hilla.version>24.5-SNAPSHOT</hilla.version>
         <vaadin.version>${hilla.version}</vaadin.version>
+        <vaadin.quarkus.version>2.1-SNAPSHOT</vaadin.quarkus.version>
 
         <jackson.version>2.17.2</jackson.version>
         <assertj.version>3.26.3</assertj.version>
@@ -243,7 +244,9 @@
                             <style>PALANTIR</style>
                         </palantirJavaFormat>
                         <importOrder>
-                            <order>jakarta|java|javax,,com.github.mcollovati,\#jakarta|\#java|\#javax,\#,\#com.github.mcollovati</order>
+                            <order>
+                                jakarta|java|javax,,com.github.mcollovati,\#jakarta|\#java|\#javax,\#,\#com.github.mcollovati
+                            </order>
                         </importOrder>
                         <removeUnusedImports/>
                         <formatAnnotations/>
@@ -399,7 +402,9 @@
                                         </prerelease>
                                         <issues>
                                             <enabled>true</enabled>
-                                            <comment>This issue has been resolved in `{{tagName}}` ([Release Notes]({{releaseNotesUrl}}))</comment>
+                                            <comment>This issue has been resolved in `{{tagName}}` ([Release
+                                                Notes]({{releaseNotesUrl}}))
+                                            </comment>
                                             <applyMilestone>ALWAYS</applyMilestone>
                                             <label>
                                                 <name>released</name>
@@ -487,11 +492,18 @@
         </profile>
         <profile>
             <id>detect-vaadin-platform</id>
+            <properties>
+                <expression>vaadin.platform</expression>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>com.vaadin</groupId>
                     <artifactId>vaadin</artifactId>
-                    <version>${vaadin.version}</version>
+                    <scope>provided</scope>
+                </dependency>
+                <dependency>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin-quarkus</artifactId>
                     <scope>provided</scope>
                 </dependency>
             </dependencies>
@@ -519,14 +531,24 @@
                             <execution>
                                 <id>vaadin-platform-version</id>
                                 <goals>
-                                    <goal>regex-property</goal>
+                                    <goal>regex-properties</goal>
                                 </goals>
                                 <phase>initialize</phase>
                                 <configuration>
-                                    <name>vaadin.platform</name>
-                                    <regex>^.*vaadin-(\d+\.\d+).*</regex>
-                                    <replacement>$1</replacement>
-                                    <value>${com.vaadin:vaadin:jar}</value>
+                                    <regexPropertySettings>
+                                        <regexPropertySetting>
+                                            <name>vaadin.platform</name>
+                                            <regex>^.*vaadin-(\d+\.\d+).*</regex>
+                                            <replacement>$1</replacement>
+                                            <value>${com.vaadin:vaadin:jar}</value>
+                                        </regexPropertySetting>
+                                        <regexPropertySetting>
+                                            <name>vaadin.quarkus</name>
+                                            <regex>^.*vaadin-quarkus-(\d+\.\d+).*</regex>
+                                            <replacement>$1</replacement>
+                                            <value>${com.vaadin:vaadin-quarkus:jar}</value>
+                                        </regexPropertySetting>
+                                    </regexPropertySettings>
                                 </configuration>
                             </execution>
                         </executions>
@@ -542,7 +564,7 @@
                                     <goal>evaluate</goal>
                                 </goals>
                                 <configuration>
-                                    <expression>vaadin.platform</expression>
+                                    <expression>${expression}</expression>
                                     <forceStdout>true</forceStdout>
                                 </configuration>
                             </execution>
