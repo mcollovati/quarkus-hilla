@@ -44,6 +44,17 @@
             <groupId>com.github.mcollovati</groupId>
             <artifactId>quarkus-hilla-commons</artifactId>
             <version>${project.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>vaadin-dev-server</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-quarkus-deployment</artifactId>
+            <version>${vaadin.quarkus.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

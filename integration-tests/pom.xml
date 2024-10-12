@@ -162,6 +162,31 @@
             <build>
                 <plugins>
                     <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.6.0</version>
+                        <executions>
+                            <!--
+                                Workaround to enable full stack signals feature flag
+                                Vaadin maven plugin has a bug that causes the vaadin-featureflags.properties file
+                                from the vaadin-dev-bundle to be read instead of the project one.
+                                As a workaround we set the feature flag value using a system property.
+                            -->
+                            <execution>
+                                <id>featureflags-workaround</id>
+                                <phase>initialize</phase>
+                                <goals>
+                                    <goal>bsh-property</goal>
+                                </goals>
+                                <configuration>
+                                    <source><![CDATA[
+                                    System.setProperty("vaadin.experimental.fullstackSignals", "true");
+                                    ]]></source>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
                         <groupId>com.vaadin</groupId>
                         <artifactId>vaadin-maven-plugin</artifactId>
                         <executions>

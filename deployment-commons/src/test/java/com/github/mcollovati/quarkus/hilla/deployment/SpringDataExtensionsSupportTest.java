@@ -33,6 +33,7 @@ class SpringDataExtensionsSupportTest extends AbstractEndpointControllerTest {
 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
+            .overrideConfigKey("quarkus.class-loading.removed-artifacts", "com.vaadin:vaadin-dev-server")
             .setForcedDependencies(
                     List.of(Dependency.of("io.quarkus", "quarkus-spring-data-jpa", Version.getVersion())))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)

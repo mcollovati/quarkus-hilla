@@ -25,16 +25,31 @@ and [Security](https://hilla.dev/docs/lit/guides/security).
 **NOTE**: This is an **unofficial community extension**, and it is **not**
 directly related **nor** supported by Vaadin Ltd.
 
+## Notable changes
+
+### Lit and React extensions
+
 Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
+
 * `quarkus-hilla` for `Lit` based applications
 * `quarkus-hilla-react` for `React` based applications
 
+### Vaadin Unified platform
+
 Since Vaadin `24.4`, Flow and Hilla are unified in a single platform.
-As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven artifacts
+As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven
+artifacts
 and Java package names moved from `dev.hilla` to `com.vaadin.hilla`.
-Quarkus-hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
+Quarkus-Hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
 In addition, the minimum supported Quarkus version will be `3.7`.
 
+### Integration with Vaadin Quarkus extension
+
+To provide better support for Hilla on the Quarkus platform and simplify maintenance, the `quarkus-hilla` extension will
+depend on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), starting with `24.5`. This
+integration eliminates the need for code duplication and ensures tighter alignment with Vaadin's ecosystem, offering
+more streamlined updates and improved stability. By leveraging the Vaadin Quarkus extension, users of `quarkus-hilla`
+will benefit from enhanced compatibility with future Vaadin features.
 
 ## Limitations
 
@@ -47,11 +62,13 @@ The current Hilla support has some known limitations:
 
 ## Auto CRUD, Auto Grid and Auto Form
 
-Support for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid[)
+Support
+for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid[)
 and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
 However, both extensions provides custom implementations of `CrudRepositoryService` and `ListRepositoryService`,
 based on `quarkus-spring-data-jpa` or `quarkus-hibernate-orm-panache` extension.
-See the [documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for additional details.
+See the [documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for additional
+details.
 
 ## Usage statistics
 
@@ -72,6 +89,7 @@ Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki
 or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
 
 ```xml
+
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
@@ -82,6 +100,7 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 or
 
 ```xml
+
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-react</artifactId>
@@ -91,15 +110,15 @@ or
 
 ## Releases
 
-|                                                                                                         Quarkus-Hilla / Hilla                                                                                                          |                                                                                Quarkus                                                                                 |                                                                              Vaadin                                                                               |
-|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|                                                                                                         Quarkus-Hilla / Hilla                                                                                                          |                                                                                 Quarkus                                                                                  |                                                                              Vaadin                                                                               |
+|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|
 |        <picture><img alt="Maven Central 24.4" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.4" style="visibility: visible;"></picture>        | <picture><img alt="Quarkus 3.12+" src="https://img.shields.io/badge/QUARKUS-v3.12%2B-limegreen?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Vaadin 24.4" src="https://img.shields.io/badge/VAADIN-v24.4-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
-|         <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
-|         <picture><img alt="Maven Central 2.4" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.4" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
-|         <picture><img alt="Maven Central 2.3" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.3" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
-|         <picture><img alt="Maven Central 2.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.2" style="visibility: visible;"></picture>         |   <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    | <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
-| <picture><img alt="Maven Central 2.1" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?color=limegreen&style=for-the-badge&logo=apache-maven&versionPrefix=2.1" style="visibility: visible;"></picture> | <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-limegreen?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Vaadin 24.1" src="https://img.shields.io/badge/VAADIN-v24.1-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
-|          <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>          |  <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>   | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>  |
+|         <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5" style="visibility: visible;"></picture>         |    <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>     |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
+|         <picture><img alt="Maven Central 2.4" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.4" style="visibility: visible;"></picture>         |    <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>     |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
+|         <picture><img alt="Maven Central 2.3" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.3" style="visibility: visible;"></picture>         |    <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>     |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
+|         <picture><img alt="Maven Central 2.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.2" style="visibility: visible;"></picture>         |    <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>     | <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
+| <picture><img alt="Maven Central 2.1" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?color=limegreen&style=for-the-badge&logo=apache-maven&versionPrefix=2.1" style="visibility: visible;"></picture> |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-limegreen?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  | <picture><img alt="Vaadin 24.1" src="https://img.shields.io/badge/VAADIN-v24.1-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
+|          <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>          |   <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>  |
 
 **NOTE**: The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
 
