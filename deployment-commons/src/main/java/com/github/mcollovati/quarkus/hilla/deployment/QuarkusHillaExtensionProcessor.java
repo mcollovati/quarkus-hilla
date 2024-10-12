@@ -49,6 +49,7 @@ import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.Capabilities;
+import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
@@ -62,6 +63,7 @@ import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
+import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.deployment.pkg.NativeConfig;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
@@ -83,6 +85,7 @@ import org.jboss.jandex.IndexView;
 
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
+import com.github.mcollovati.quarkus.hilla.HillaConfiguration;
 import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.HillaSecurityRecorder;
@@ -94,8 +97,9 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.SpringReplacer;
+import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
+import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 
 class QuarkusHillaExtensionProcessor {
 
@@ -206,6 +210,17 @@ class QuarkusHillaExtensionProcessor {
         }
     }
 
+    @BuildStep(onlyIf = IsDevelopment.class)
+    @Record(value = ExecutionTime.RUNTIME_INIT)
+    void setupEndpointLiveReload(
+            LiveReloadBuildItem liveReloadBuildItem,
+            HillaConfiguration hillaConfiguration,
+            HillaLiveReloadRecorder recorder) {
+        if (hillaConfiguration.liveReload().enable()) {
+            recorder.startEndpointWatcher(liveReloadBuildItem.isLiveReload(), hillaConfiguration);
+        }
+    }
+
     // EndpointsValidator checks for the presence of Spring, so it should be
     // ignored
     @BuildStep
@@ -293,8 +308,8 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void replaceCallsToSpring(BuildProducer<BytecodeTransformerBuildItem> producer) {
-        SpringReplacer.addClassVisitors(producer);
+    void replaceOffendingMethodCalls(BuildProducer<BytecodeTransformerBuildItem> producer) {
+        OffendingMethodCallsReplacer.addClassVisitors(producer);
     }
 
     @BuildStep

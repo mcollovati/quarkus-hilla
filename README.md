@@ -70,6 +70,37 @@ based on `quarkus-spring-data-jpa` or `quarkus-hibernate-orm-panache` extension.
 See the [documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for additional
 details.
 
+## Endpoints live reload
+
+In dev mode, Quarkus uses a ClassLoader hierarchy that enables the live reload of user code without requiring a rebuild
+and restart of the application. However, the reload is usually triggered by a HTTP request, for example a browser page
+reload.
+To simplify development, `quarkus-hilla` extends Quarkus Live Reload feature to re-generated client side code upon
+changes on Hilla endpoint related classes. To trigger live reload, the extension scans for file changes either in source
+code or compiled classes folders (e.g. `src/main/java` or `target/classes` in a Maven project).
+The default strategy is to watch for class files, but it can be changed with the
+`vaadin.hilla.live-reload.watch-strategy`
+property.
+Endpoints live reload is disabled by default, but can be activated setting the `vaadin.hilla.live-reload.enable`
+property to `true` in the `application.properties` file.
+To prevent excessive reloads, the watched folders can be restricted by providing a list of relative paths with the
+`vaadin.hilla.live-reload.watched-paths` property.
+The Endpoints live reload feature works better if `quarkus.live-reload.instrumentation` is set to true, since this
+setting allows Quarkus to potentially redefine classes at runtime without triggering a server restart.
+
+Below, there's an example configuration, for an application that stored Hilla related classes in
+`src/main/java/com/example/ui` folder.
+
+```
+quarkus.live-reload.instrumentation=true
+vaadin.hilla.live-reload.enable=true
+vaadin.hilla.live-reload.watch-strategy=source
+vaadin.hilla.live-reload.watched-paths=com/example/ui
+```
+
+**NOTE**: currently source file watch strategy supports only Java file, not Kotlin. This is because the watcher inspects
+the source code to detect all declared type, but the parser currently works only for Java source files.
+
 ## Usage statistics
 
 As discussed in this Hilla [ticket](https://github.com/vaadin/hilla/issues/211),

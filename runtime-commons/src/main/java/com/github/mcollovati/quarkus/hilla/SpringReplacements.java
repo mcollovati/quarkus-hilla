@@ -66,4 +66,22 @@ public class SpringReplacements {
     public static ObjectMapper endpointInvoker_createDefaultEndpointMapper(ApplicationContext context) {
         return null;
     }
+
+    /**
+     * Replacement for {@link Class#forName(String)} that first tries to load the class from thread context class loader and then delegates to the original method.
+     * <p></p>
+     * Useful for example when library code is using Class.forName be the calling class hsa been loaded by {@literal Quarkus Base Runtime ClassLoader}
+     * instead of {@literal Quarkus Runtime ClassLoader}
+     *
+     * @param className the name of the class to load
+     * @return the class object representing the desired class
+     * @throws ClassNotFoundException if the class cannot be located by the specified class loader
+     */
+    public static Class<?> class_forName(String className) throws ClassNotFoundException {
+        try {
+            return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
+        } catch (ClassNotFoundException e) {
+            return Class.forName(className);
+        }
+    }
 }
