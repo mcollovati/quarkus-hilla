@@ -15,6 +15,7 @@
  */
 package com.example.application.endpoints.helloworld;
 
+import jakarta.annotation.security.DenyAll;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
@@ -90,5 +91,16 @@ public class HelloWorldEndpoint {
             flux = flux.take(limit, true);
         }
         return flux.map(msg -> "PUBLIC: " + msg);
+    }
+
+    @AnonymousAllowed
+    @RolesAllowed("Admin")
+    public String sayHelloRoles() {
+        return "Hello Admin";
+    }
+
+    @DenyAll
+    public String sayHelloDenied(@Nonnull String param1, int param2) {
+        throw new IllegalStateException("This method should not be callable.");
     }
 }
