@@ -9,6 +9,7 @@ metadata:
     - "web"
     - "reactive"
   status: "stable"
+  guide: "https://github.com/mcollovati/quarkus-hilla"
   icon-url: "https://raw.githubusercontent.com/mcollovati/quarkus-hilla/main/etc/quarkus-hilla-logo.svg"
   codestart:
     name: "quarkus-hilla-maven-codestart"
