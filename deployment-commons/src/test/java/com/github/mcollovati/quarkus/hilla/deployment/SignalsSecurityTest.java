@@ -192,6 +192,7 @@ class SignalsSecurityTest {
                 SecureNumberSignalService.class.getSimpleName(),
                 methodName,
                 clientSignalId,
+                null,
                 null);
         ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
                 .configurator(new BasicAuthConfigurator(user))
