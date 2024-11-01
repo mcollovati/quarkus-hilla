@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <revision>24.5-SNAPSHOT</revision>
+        <revision>24.6-SNAPSHOT</revision>
 
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -47,11 +47,13 @@
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>24.5-SNAPSHOT</hilla.version>
+        <hilla.version>24.6-SNAPSHOT</hilla.version>
         <vaadin.version>${hilla.version}</vaadin.version>
         <vaadin.quarkus.version>2.1-SNAPSHOT</vaadin.quarkus.version>
 
-        <jackson.version>2.17.2</jackson.version>
+        <!--
+        <jackson.version>2.18.1</jackson.version>
+        -->
         <assertj.version>3.26.3</assertj.version>
 
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
@@ -77,7 +79,6 @@
             <!--
             Pin jackson BOM to prevent clashes with version imported by Hilla BOM
             through spring-boot-dependencies BOM
-            -->
             <dependency>
                 <groupId>com.fasterxml.jackson</groupId>
                 <artifactId>jackson-bom</artifactId>
@@ -85,6 +86,7 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            -->
             <dependency>
                 <groupId>com.vaadin</groupId>
                 <artifactId>vaadin-bom</artifactId>
