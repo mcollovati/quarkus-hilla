@@ -124,7 +124,7 @@ or download the [starter project](https://github.com/mcollovati/quarkus-hilla-st
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>24.4.x</version>
+    <version>24.5.x</version>
 </dependency>
 ```
 
@@ -135,7 +135,7 @@ or
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-react</artifactId>
-    <version>24.4.x</version>
+    <version>24.5.x</version>
 </dependency>
 ```
 
@@ -143,6 +143,7 @@ or
 
 |                                                                                                         Quarkus-Hilla / Hilla                                                                                                          |                                                                                 Quarkus                                                                                  |                                                                              Vaadin                                                                               |
 |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|        <picture><img alt="Maven Central 24.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.5" style="visibility: visible;"></picture>        |   <picture><img alt="Quarkus 3.12+" src="https://img.shields.io/badge/QUARKUS-v3.12%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    | <picture><img alt="Vaadin 24.5" src="https://img.shields.io/badge/VAADIN-v24.5-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 |        <picture><img alt="Maven Central 24.4" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.4" style="visibility: visible;"></picture>        | <picture><img alt="Quarkus 3.12+" src="https://img.shields.io/badge/QUARKUS-v3.12%2B-limegreen?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Vaadin 24.4" src="https://img.shields.io/badge/VAADIN-v24.4-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 |         <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5" style="visibility: visible;"></picture>         |    <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>     |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
 |         <picture><img alt="Maven Central 2.4" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.4" style="visibility: visible;"></picture>         |    <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>     |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>    |
@@ -155,9 +156,9 @@ or
 
 ## Development
 
-<picture><img alt="Development 24.5-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-24.5--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
-<picture><img alt="Quarkus 3.12+" src="https://img.shields.io/badge/QUARKUS-v3.12%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
-<picture><img alt="Vaadin 24.5" src="https://img.shields.io/badge/VAADIN-v24.5-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
+<picture><img alt="Development 24.6-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-24.6--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
+<picture><img alt="Quarkus 3.15+" src="https://img.shields.io/badge/QUARKUS-v3.12%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
+<picture><img alt="Vaadin 24.6" src="https://img.shields.io/badge/VAADIN-v24.6-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
 
 ## Build and test
 
