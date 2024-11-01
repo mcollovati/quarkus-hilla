@@ -9,7 +9,8 @@ export const config: ViewConfig = {
 };
 
 export default function AutoGridView() {
-    return <AutoGrid service={UserService} model={UserPOJOModel} />;
+    return <AutoGrid service={UserService} model={UserPOJOModel}
+                     visibleColumns={['id', 'name', 'surname']} />;
 }
 
 
