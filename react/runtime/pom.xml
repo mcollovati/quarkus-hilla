@@ -7,12 +7,13 @@
         <groupId>com.github.mcollovati</groupId>
         <artifactId>quarkus-hilla-parent</artifactId>
         <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>quarkus-hilla</artifactId>
-    <name>Quarkus - Hilla - Runtime</name>
+    <artifactId>quarkus-hilla-react</artifactId>
+    <name>Quarkus - Hilla - React - Runtime</name>
     <description>
-        <![CDATA[A Quarkus extension to run Hilla applications on Quarkus.]]></description>
+        <![CDATA[A Quarkus extension to run Hilla React applications on Quarkus.]]></description>
     <dependencies>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
@@ -21,9 +22,10 @@
         </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
-            <artifactId>hilla-jandex</artifactId>
+            <artifactId>hilla-react-jandex</artifactId>
             <version>${project.version}</version>
         </dependency>
+
     </dependencies>
     <build>
         <plugins>
@@ -34,7 +36,7 @@
                 <configuration>
                     <removedResources>
                         <artifact>
-                            <key>com.github.mcollovati:hilla-jandex</key>
+                            <key>com.github.mcollovati:hilla-react-jandex</key>
                             <!--
                             There should be no newlines in the classes list, otherwise the filter silently
                             fails at runtime
@@ -187,7 +189,7 @@ void deleteDirectory(File directoryToBeDeleted) {
 codeStartFolder = project.getBasedir().toPath().resolve(
     Path.of("src", new String[] { "main", "codestarts", "quarkus", "quakus-hilla-maven-codestart", "base" })
 );
-HillaAppInitUtility.scaffold(codeStartFolder, List.of("hilla"));
+HillaAppInitUtility.scaffold(codeStartFolder, List.of("hilla-react"));
 javaSrcFolder = codeStartFolder.resolve("../java/src/main/java");
 deleteDirectory(javaSrcFolder.toFile());
 Files.createDirectories(javaSrcFolder, new FileAttribute[0]);

@@ -7,11 +7,12 @@
         <groupId>com.github.mcollovati</groupId>
         <artifactId>quarkus-hilla-parent</artifactId>
         <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>hilla-jandex</artifactId>
-    <name>Hilla - Jandex</name>
-    <description>Jandex index for Hilla packages</description>
+    <artifactId>hilla-react-jandex</artifactId>
+    <name>Hilla - React - Jandex</name>
+    <description>Jandex index for Hilla-React packages</description>
 
     <dependencies>
         <dependency>

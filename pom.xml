@@ -462,15 +462,15 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>hilla-shaded-deps</module>
-                <module>hilla-jandex</module>
-                <module>hilla-react-jandex</module>
-                <module>runtime-commons</module>
-                <module>runtime</module>
-                <module>runtime-react</module>
-                <module>deployment-commons</module>
-                <module>deployment</module>
-                <module>deployment-react</module>
+                <module>commons/hilla-shaded-deps</module>
+                <module>lit/hilla-jandex</module>
+                <module>react/hilla-react-jandex</module>
+                <module>commons/runtime</module>
+                <module>lit/runtime</module>
+                <module>react/runtime</module>
+                <module>commons/deployment</module>
+                <module>lit/deployment</module>
+                <module>react/deployment</module>
             </modules>
         </profile>
         <profile>
@@ -583,15 +583,15 @@
         <profile>
             <id>all-modules</id>
             <modules>
-                <module>hilla-shaded-deps</module>
-                <module>hilla-jandex</module>
-                <module>hilla-react-jandex</module>
-                <module>runtime-commons</module>
-                <module>runtime</module>
-                <module>runtime-react</module>
-                <module>deployment-commons</module>
-                <module>deployment</module>
-                <module>deployment-react</module>
+                <module>commons/hilla-shaded-deps</module>
+                <module>lit/hilla-jandex</module>
+                <module>react/hilla-react-jandex</module>
+                <module>commons/runtime</module>
+                <module>lit/runtime</module>
+                <module>react/runtime</module>
+                <module>commons/deployment</module>
+                <module>lit/deployment</module>
+                <module>react/deployment</module>
                 <module>integration-tests</module>
             </modules>
         </profile>
