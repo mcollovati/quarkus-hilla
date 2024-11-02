@@ -35,4 +35,4 @@ drivers/
 error-screenshots/
 webpack.generated.js
 integration-tests/smoke-tests/build/
-deployment-commons/src/main/frontend/
+commons/deployment/src/main/frontend/
