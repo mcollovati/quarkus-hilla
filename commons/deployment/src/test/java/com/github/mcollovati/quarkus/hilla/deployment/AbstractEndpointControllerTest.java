@@ -34,7 +34,7 @@ abstract class AbstractEndpointControllerTest {
     @Test
     void invokeEndpoint_singleSimpleParameter() {
         String msg = "A text message";
-        givenEndpointRequest(getEndpointName(), "echo", TestUtils.Parameters.param("message", msg))
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "echo", TestUtils.Parameters.param("message", msg))
                 .then()
                 .assertThat()
                 .statusCode(200)
@@ -46,7 +46,7 @@ abstract class AbstractEndpointControllerTest {
     void invokeEndpoint_singleComplexParameter() {
         String msg = "A text message";
         Pojo pojo = new Pojo(10, msg);
-        givenEndpointRequest(getEndpointName(), "pojo", TestUtils.Parameters.param("pojo", pojo))
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "pojo", TestUtils.Parameters.param("pojo", pojo))
                 .then()
                 .assertThat()
                 .statusCode(200)
@@ -59,6 +59,7 @@ abstract class AbstractEndpointControllerTest {
     @Test
     void invokeEndpoint_multipleParameters() {
         givenEndpointRequest(
+                        getEndpointPrefix(),
                         getEndpointName(),
                         "calculate",
                         TestUtils.Parameters.param("operator", "+").add("a", 10).add("b", 20))
@@ -72,6 +73,7 @@ abstract class AbstractEndpointControllerTest {
     @Test
     void invokeEndpoint_wrongParametersOrder_badRequest() {
         givenEndpointRequest(
+                        getEndpointPrefix(),
                         getEndpointName(),
                         "calculate",
                         TestUtils.Parameters.param("a", 10).add("operator", "+").add("b", 20))
@@ -92,7 +94,11 @@ abstract class AbstractEndpointControllerTest {
 
     @Test
     void invokeEndpoint_wrongNumberOfParameters_badRequest() {
-        givenEndpointRequest(getEndpointName(), "calculate", TestUtils.Parameters.param("operator", "+"))
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "calculate",
+                        TestUtils.Parameters.param("operator", "+"))
                 .then()
                 .assertThat()
                 .statusCode(400)
@@ -108,7 +114,11 @@ abstract class AbstractEndpointControllerTest {
 
     @Test
     void invokeEndpoint_wrongEndpointName_notFound() {
-        givenEndpointRequest("NotExistingTestEndpoint", "calculate", TestUtils.Parameters.param("operator", "+"))
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        "NotExistingTestEndpoint",
+                        "calculate",
+                        TestUtils.Parameters.param("operator", "+"))
                 .then()
                 .assertThat()
                 .statusCode(404);
@@ -116,7 +126,11 @@ abstract class AbstractEndpointControllerTest {
 
     @Test
     void invokeEndpoint_wrongMethodName_notFound() {
-        givenEndpointRequest(getEndpointName(), "notExistingMethod", TestUtils.Parameters.param("operator", "+"))
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "notExistingMethod",
+                        TestUtils.Parameters.param("operator", "+"))
                 .then()
                 .assertThat()
                 .statusCode(404);
@@ -124,7 +138,7 @@ abstract class AbstractEndpointControllerTest {
 
     @Test
     void invokeEndpoint_emptyMethodName_notFound() {
-        givenEndpointRequest(getEndpointName(), "", TestUtils.Parameters.param("operator", "+"))
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "", TestUtils.Parameters.param("operator", "+"))
                 .then()
                 .assertThat()
                 .statusCode(404);
@@ -136,11 +150,15 @@ abstract class AbstractEndpointControllerTest {
                 .contentType(ContentType.JSON)
                 .cookie("csrfToken", "CSRF_TOKEN")
                 .header("X-CSRF-Token", "CSRF_TOKEN")
-                .basePath("/connect")
+                .basePath(getEndpointPrefix())
                 .when()
                 .post(getEndpointName())
                 .then()
                 .assertThat()
                 .statusCode(404);
+    }
+
+    protected String getEndpointPrefix() {
+        return TestUtils.DEFAULT_PREFIX;
     }
 }

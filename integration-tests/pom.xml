@@ -272,6 +272,7 @@
         <module>test-commons</module>
         <module>smoke-tests</module>
         <module>react-smoke-test</module>
+        <module>custom-prefix-test</module>
         <module>spring-extension-support-test</module>
         <module>panache-extension-support-test</module>
         <module>hybrid-smoke-tests</module>
