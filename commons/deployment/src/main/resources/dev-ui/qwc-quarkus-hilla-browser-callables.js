@@ -10,7 +10,7 @@ import '@vaadin/icon';
 /**
  * This component shows the Rest Easy Reactive Parameter Converter Providers
  */
-export class QwcQuarkusHillaEndpoints extends LitElement {
+export class QwcQuarkusHillaBrowserCallables extends LitElement {
 
     static styles = css`
         .datatable {
@@ -197,4 +197,4 @@ export class QwcQuarkusHillaEndpoints extends LitElement {
 
 }
 
-customElements.define('qwc-quarkus-hilla-endpoints', QwcQuarkusHillaEndpoints);
+customElements.define('qwc-quarkus-hilla-browser-callables', QwcQuarkusHillaBrowserCallables);
