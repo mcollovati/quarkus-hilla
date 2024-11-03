@@ -52,9 +52,9 @@ public class QuarkusHillaDevUIProcessor {
         CardPageBuildItem cardPageBuildItem = new CardPageBuildItem();
         cardPageBuildItem.addBuildTimeData("hillaEndpoints", endpointBuildItems.getEndpoints());
         cardPageBuildItem.addPage(Page.webComponentPageBuilder()
-                .title("Endpoints")
+                .title("Browser callables")
                 .icon("font-awesome-solid:table-list")
-                .componentLink("qwc-quarkus-hilla-endpoints.js")
+                .componentLink("qwc-quarkus-hilla-browser-callables.js")
                 .staticLabel(String.valueOf(endpointBuildItems.getEndpoints().stream()
                         .mapToInt(a -> a.children().size())
                         .sum())));
