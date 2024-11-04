@@ -176,7 +176,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
             return true;
         } catch (IOException ex) {
             LOGGER.debug("Cannot read template file connect-client.default.template.ts.", ex);
+            return false;
         }
-        return false;
     }
 }
