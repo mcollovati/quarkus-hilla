@@ -56,7 +56,7 @@ will benefit from enhanced compatibility with future Vaadin features.
 A custom endpoint prefix can be configured setting the `vaadin.endpoint.prefix` entry in `application.properties`.
 The extension will create a custom `connect-client.ts` file in the `frontend` folder, constructing the `ConnectClient`
 object with the configured prefix.
-The `connect-client.ts` already exists and does not match the Hilla default template, it will not be overwritten.
+If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
 
 
 ## Limitations
