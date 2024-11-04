@@ -11,7 +11,8 @@
 A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
 applications on Quarkus.
 
-Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com),
+Hilla is an open source framework, provided
+by [Vaadin Ltd.](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
 This extension replaces the Spring Boot backend with Quarkus Context &
@@ -29,7 +30,8 @@ directly related **nor** supported by Vaadin Ltd.
 
 ### Lit and React extensions
 
-Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
+Starting with `2.4.1`, the extension is subdivided into two main artifacts based
+on the desired front-end framework:
 
 * `quarkus-hilla` for `Lit` based applications
 * `quarkus-hilla-react` for `React` based applications
@@ -37,25 +39,40 @@ Starting with `2.4.1`, the extension is subdivided into two main artifacts based
 ### Vaadin Unified platform
 
 Since Vaadin `24.4`, Flow and Hilla are unified in a single platform.
-As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven
+As a consequence, there have been a considerable amount of changes in Hilla, for
+example the `groupId` of Maven
 artifacts
 and Java package names moved from `dev.hilla` to `com.vaadin.hilla`.
-Quarkus-Hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
+Quarkus-Hilla will follow the Vaadin platform releases, so the extension version
+will bump from `2.5` series to `24.4`.
 In addition, the minimum supported Quarkus version will be `3.7`.
 
 ### Integration with Vaadin Quarkus extension
 
-To provide better support for Hilla on the Quarkus platform and simplify maintenance, the `quarkus-hilla` extension will
-depend on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), starting with `24.5`. This
-integration eliminates the need for code duplication and ensures tighter alignment with Vaadin's ecosystem, offering
-more streamlined updates and improved stability. By leveraging the Vaadin Quarkus extension, users of `quarkus-hilla`
+To provide better support for Hilla on the Quarkus platform and simplify
+maintenance, the `quarkus-hilla` extension will
+depend on the
+existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/),
+starting with `24.5`. This
+integration eliminates the need for code duplication and ensures tighter
+alignment with Vaadin's ecosystem, offering
+more streamlined updates and improved stability. By leveraging the Vaadin
+Quarkus extension, users of `quarkus-hilla`
 will benefit from enhanced compatibility with future Vaadin features.
+
+### Custom Endpoint Prefix
+
+A custom endpoint prefix can be configured setting the `vaadin.endpoint.prefix`
+entry in `application.properties`.
+The extension will create a custom `connect-client.ts` file in the `frontend`
+folder, constructing the `ConnectClient` object with the configured prefix.
+The `connect-client.ts` already exists and does not match the Hilla default
+template, it will not be overwritten.
 
 ## Limitations
 
 The current Hilla support has some known limitations:
 
-* The endpoint prefix is not configurable
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
 * Native image compilation does not work
@@ -64,31 +81,45 @@ The current Hilla support has some known limitations:
 
 Support
 for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid[)
-and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
-However, both extensions provides custom implementations of `CrudRepositoryService` and `ListRepositoryService`,
+and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available
+in `quarkus-hilla-react`.
+However, both extensions provides custom implementations of
+`CrudRepositoryService` and `ListRepositoryService`,
 based on `quarkus-spring-data-jpa` or `quarkus-hibernate-orm-panache` extension.
-See the [documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for additional
+See
+the [documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service)
+for additional
 details.
 
 ## Endpoints live reload
 
-In dev mode, Quarkus uses a ClassLoader hierarchy that enables the live reload of user code without requiring a rebuild
-and restart of the application. However, the reload is usually triggered by a HTTP request, for example a browser page
+In dev mode, Quarkus uses a ClassLoader hierarchy that enables the live reload
+of user code without requiring a rebuild
+and restart of the application. However, the reload is usually triggered by a
+HTTP request, for example a browser page
 reload.
-To simplify development, `quarkus-hilla` extends Quarkus Live Reload feature to re-generated client side code upon
-changes on Hilla endpoint related classes. To trigger live reload, the extension scans for file changes either in source
-code or compiled classes folders (e.g. `src/main/java` or `target/classes` in a Maven project).
+To simplify development, `quarkus-hilla` extends Quarkus Live Reload feature to
+re-generated client side code upon
+changes on Hilla endpoint related classes. To trigger live reload, the extension
+scans for file changes either in source
+code or compiled classes folders (e.g. `src/main/java` or `target/classes` in a
+Maven project).
 The default strategy is to watch for class files, but it can be changed with the
 `vaadin.hilla.live-reload.watch-strategy`
 property.
-Endpoints live reload is disabled by default, but can be activated setting the `vaadin.hilla.live-reload.enable`
+Endpoints live reload is disabled by default, but can be activated setting the
+`vaadin.hilla.live-reload.enable`
 property to `true` in the `application.properties` file.
-To prevent excessive reloads, the watched folders can be restricted by providing a list of relative paths with the
+To prevent excessive reloads, the watched folders can be restricted by providing
+a list of relative paths with the
 `vaadin.hilla.live-reload.watched-paths` property.
-The Endpoints live reload feature works better if `quarkus.live-reload.instrumentation` is set to true, since this
-setting allows Quarkus to potentially redefine classes at runtime without triggering a server restart.
+The Endpoints live reload feature works better if
+`quarkus.live-reload.instrumentation` is set to true, since this
+setting allows Quarkus to potentially redefine classes at runtime without
+triggering a server restart.
 
-Below, there's an example configuration, for an application that stored Hilla related classes in
+Below, there's an example configuration, for an application that stored Hilla
+related classes in
 `src/main/java/com/example/ui` folder.
 
 ```
@@ -98,8 +129,10 @@ vaadin.hilla.live-reload.watch-strategy=source
 vaadin.hilla.live-reload.watched-paths=com/example/ui
 ```
 
-**NOTE**: currently source file watch strategy supports only Java file, not Kotlin. This is because the watcher inspects
-the source code to detect all declared type, but the parser currently works only for Java source files.
+**NOTE**: currently source file watch strategy supports only Java file, not
+Kotlin. This is because the watcher inspects
+the source code to detect all declared type, but the parser currently works only
+for Java source files.
 
 ## Usage statistics
 
@@ -107,7 +140,8 @@ As discussed in this Hilla [ticket](https://github.com/vaadin/hilla/issues/211),
 the extension report itself to the Vaadin usage statistics mechanism in order to
 get a better understanding of how widely the extension is used compared to Hilla
 usage in general.
-The hope is that, based on this data, Vaadin may consider in the future to provide
+The hope is that, based on this data, Vaadin may consider in the future to
+provide
 an official extension.
 Statistic are collected only in development mode and no sensitive data is
 gathered.
@@ -116,8 +150,10 @@ the [client-side collector repository](https://github.com/vaadin/vaadin-usage-st
 
 ## Getting started
 
-Get started with `quarkus-hilla` by following the [Quick Start Guide](../../wiki/QuickStart)
-or download the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
+Get started with `quarkus-hilla` by following
+the [Quick Start Guide](../../wiki/QuickStart)
+or download
+the [starter project](https://github.com/mcollovati/quarkus-hilla-starter).
 
 ```xml
 
@@ -152,7 +188,8 @@ or
 | <picture><img alt="Maven Central 2.1" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?color=limegreen&style=for-the-badge&logo=apache-maven&versionPrefix=2.1" style="visibility: visible;"></picture> |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-limegreen?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  | <picture><img alt="Vaadin 24.1" src="https://img.shields.io/badge/VAADIN-v24.1-limegreen?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 |          <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>          |   <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>    | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>  |
 
-**NOTE**: The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
+**NOTE**: The major and minor version of Quarkus-Hilla always matches the
+Vaadin/Hilla version.
 
 ## Development
 
@@ -162,9 +199,11 @@ or
 
 ## Build and test
 
-To build the extension locally you need to install JDK 17 or later and Maven 3.8 or later.
+To build the extension locally you need to install JDK 17 or later and Maven 3.8
+or later.
 
-The extension and its required dependencies can be built by typing the following command:
+The extension and its required dependencies can be built by typing the following
+command:
 
 ```terminal
 mvn -DskipTests install
@@ -179,21 +218,25 @@ mvn -DtrimStackTrace=false verify
 End-to-end test modules can be found in the `integration-tests` folder.
 Integration tests use [Selenide](https://selenide.org/) for browser interaction,
 the browser used by default is Chrome, except for MacOS, where Safari is used.
-Execution of end-to-end integration tests requires the activation of the maven `it-tests` profile.
+Execution of end-to-end integration tests requires the activation of the maven
+`it-tests` profile.
 
 ```terminal
 mvn -DtrimStackTrace=false -Pit-tests verify
 ```
 
-The same tests can also be executed in production mode, by activating the `production` profile in addition
+The same tests can also be executed in production mode, by activating the
+`production` profile in addition
 to `it-tests`.
 
 ```terminal
 mvn -DtrimStackTrace=false -Pit-tests,production verify
 ```
 
-Tests run by default in headless mode, meaning that the browser window will not be visible during the execution,
-unless a debugger is attached to the JVM, either by running the tests in debug mode from the IDE, or by providing the
+Tests run by default in headless mode, meaning that the browser window will not
+be visible during the execution,
+unless a debugger is attached to the JVM, either by running the tests in debug
+mode from the IDE, or by providing the
 `-Dmaven.surefire.debug` system property to the maven command line.
 
 ```terminal
@@ -202,9 +245,11 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 
 ## Update codestarts
 
-The source code of the extension codestarts are built, using the Hilla application scaffold
+The source code of the extension codestarts are built, using the Hilla
+application scaffold
 utility (`HillaAppInitUtility`).
-To update the source code, run the following command in the `runtime` and `runtime-react` folders,
+To update the source code, run the following command in the `runtime` and
+`runtime-react` folders,
 and commit the changes.
 
 ```terminal
@@ -213,7 +258,8 @@ mvn -Pupdate-hilla-codestart
 
 ## Release
 
-The release process is based on the awesome [JReleaser](https://jreleaser.org/) tool.
+The release process is based on the awesome [JReleaser](https://jreleaser.org/)
+tool.
 
 To perform a manual release type the following commands.
 Version must be in format N.N.N, for example `1.0.0`.
