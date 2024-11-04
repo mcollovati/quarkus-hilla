@@ -172,7 +172,6 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
                 return false;
             }
             String out = scanner.next().replace("{{PREFIX}}", prefix);
-
             Files.writeString(customClient, out, StandardCharsets.UTF_8);
             return true;
         } catch (IOException ex) {
