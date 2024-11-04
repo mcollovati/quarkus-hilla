@@ -161,22 +161,21 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
 
     static boolean writeConnectClient(String prefix, Path customClient) {
         InputStream template = Endpoint.class.getResourceAsStream("/connect-client.default.template.ts");
-        if (template != null) {
-            try (InputStream is = template;
-                    Scanner scanner = new Scanner(is).useDelimiter("\\A")) {
-                if (scanner.hasNext()) {
-                    String out = scanner.next().replace("{{PREFIX}}", prefix);
-
-                    Files.writeString(customClient, out, StandardCharsets.UTF_8);
-                    return true;
-                } else {
-                    LOGGER.debug("Template file connect-client.default.template.ts is empty.");
-                }
-            } catch (IOException ex) {
-                LOGGER.debug("Cannot read template file connect-client.default.template.ts.", ex);
-            }
-        } else {
+        if (template == null) {
             LOGGER.debug("Cannot find template file connect-client.default.template.ts.");
+            return false;
+        }
+        try (InputStream is = template;
+                Scanner scanner = new Scanner(is).useDelimiter("\\A")) {
+            if (!scanner.hasNext()) {
+                LOGGER.debug("Template file connect-client.default.template.ts is empty.");
+            }
+            String out = scanner.next().replace("{{PREFIX}}", prefix);
+
+            Files.writeString(customClient, out, StandardCharsets.UTF_8);
+            return true;
+        } catch (IOException ex) {
+            LOGGER.debug("Cannot read template file connect-client.default.template.ts.", ex);
         }
         return false;
     }
