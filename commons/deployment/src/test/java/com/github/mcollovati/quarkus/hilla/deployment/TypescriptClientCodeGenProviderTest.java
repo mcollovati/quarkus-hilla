@@ -39,6 +39,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import static com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration.VAADIN_ENDPOINT_PREFIX;
+
 class TypescriptClientCodeGenProviderTest {
 
     final Properties configProperties = new Properties();
@@ -149,7 +151,7 @@ class TypescriptClientCodeGenProviderTest {
     void shouldRun_defaultPrefix_noCustomClient_dontRun() throws IOException {
         Path path = projectDir.resolve("frontend");
         Files.createDirectories(path);
-        configProperties.put("vaadin.endpoint.prefix", "/connect");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/connect");
 
         assertThat(provider.shouldRun(path, buildConfig())).isFalse();
     }
@@ -159,7 +161,7 @@ class TypescriptClientCodeGenProviderTest {
         Path path = projectDir.resolve("frontend");
         Files.createDirectories(path);
         TypescriptClientCodeGenProvider.writeConnectClient("connect", path.resolve("connect-client.ts"));
-        configProperties.put("vaadin.endpoint.prefix", "/connect");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/connect");
 
         assertThat(provider.shouldRun(path, buildConfig())).isFalse();
     }
@@ -169,7 +171,7 @@ class TypescriptClientCodeGenProviderTest {
         Path path = projectDir.resolve("frontend");
         Files.createDirectories(path);
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", path.resolve("connect-client.ts"));
-        configProperties.put("vaadin.endpoint.prefix", "/my-prefix");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
 
         assertThat(provider.shouldRun(path, buildConfig())).isFalse();
     }
@@ -178,7 +180,7 @@ class TypescriptClientCodeGenProviderTest {
     void shouldRun_customPrefix_noCustomClient_run() throws IOException {
         Path path = projectDir.resolve("frontend");
         Files.createDirectories(path);
-        configProperties.put("vaadin.endpoint.prefix", "/my-prefix");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
 
         assertThat(provider.shouldRun(path, buildConfig())).isTrue();
     }
@@ -188,7 +190,7 @@ class TypescriptClientCodeGenProviderTest {
         Path path = projectDir.resolve("frontend");
         Files.createDirectories(path);
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", path.resolve("connect-client.ts"));
-        configProperties.put("vaadin.endpoint.prefix", "/different-prefix");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/different-prefix");
 
         assertThat(provider.shouldRun(path, buildConfig())).isTrue();
     }
@@ -199,7 +201,7 @@ class TypescriptClientCodeGenProviderTest {
         Files.createDirectories(frontendFolder);
         Path outDir = projectDir.resolve("target");
         Files.createDirectories(outDir);
-        configProperties.put("vaadin.endpoint.prefix", "/my-prefix");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
 
         CodeGenContext context =
                 new CodeGenContext(appModel, outDir, projectDir, frontendFolder, true, buildConfig(), false);
@@ -216,7 +218,7 @@ class TypescriptClientCodeGenProviderTest {
         Path outDir = projectDir.resolve("target");
         Files.createDirectories(outDir);
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", frontendFolder.resolve("connect-client.ts"));
-        configProperties.put("vaadin.endpoint.prefix", "/new-prefix");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/new-prefix");
 
         CodeGenContext context =
                 new CodeGenContext(appModel, outDir, projectDir, frontendFolder, true, buildConfig(), false);
@@ -233,7 +235,7 @@ class TypescriptClientCodeGenProviderTest {
         Path outDir = projectDir.resolve("target");
         Files.createDirectories(outDir);
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", frontendFolder.resolve("connect-client.ts"));
-        configProperties.put("vaadin.endpoint.prefix", "/connect");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/connect");
 
         CodeGenContext context =
                 new CodeGenContext(appModel, outDir, projectDir, frontendFolder, true, buildConfig(), false);

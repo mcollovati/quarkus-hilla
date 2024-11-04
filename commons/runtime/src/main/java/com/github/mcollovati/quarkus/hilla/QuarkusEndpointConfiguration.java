@@ -21,12 +21,17 @@ import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 import io.smallrye.config.WithName;
 
+import static com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration.CONFIG_PREFIX;
+
 /**
  * hilla conf
  */
-@ConfigMapping(prefix = "vaadin.endpoint")
+@ConfigMapping(prefix = CONFIG_PREFIX)
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
 public interface QuarkusEndpointConfiguration {
+
+    String CONFIG_PREFIX = "vaadin.endpoint";
+    String VAADIN_ENDPOINT_PREFIX = CONFIG_PREFIX + ".prefix";
 
     /**
      * prefix

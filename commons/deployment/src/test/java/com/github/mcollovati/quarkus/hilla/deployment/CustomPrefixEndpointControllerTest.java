@@ -20,6 +20,7 @@ import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.Pojo;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
 
@@ -32,7 +33,7 @@ class CustomPrefixEndpointControllerTest extends AbstractEndpointControllerTest 
     @RegisterExtension
     static final QuarkusUnitTest config = new QuarkusUnitTest()
             .withConfigurationResource(testResource("test-application.properties"))
-            .overrideConfigKey("vaadin.endpoint.prefix", CUSTOM_PREFIX)
+            .overrideConfigKey(QuarkusEndpointConfiguration.VAADIN_ENDPOINT_PREFIX, CUSTOM_PREFIX)
             .setArchiveProducer(() ->
                     ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class, Pojo.class, TestEndpoint.class));
 

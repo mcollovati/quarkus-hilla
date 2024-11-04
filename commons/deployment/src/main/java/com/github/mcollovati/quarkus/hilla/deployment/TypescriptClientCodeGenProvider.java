@@ -32,6 +32,8 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
+
 public class TypescriptClientCodeGenProvider implements CodeGenProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TypescriptClientCodeGenProvider.class);
@@ -58,14 +60,23 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
         File moduleDir = model.getApplicationModule().getModuleDir();
         Path legacyFrontendFolder = moduleDir.toPath().resolve(FRONTEND_FOLDER_NAME);
         Path frontendDir = moduleDir.toPath().resolve(Path.of("src", "main", FRONTEND_FOLDER_NAME));
+
         if (Files.isDirectory(frontendDir)) {
             this.frontendFolder = frontendDir;
-            LOGGER.debug("Using frontend folder {}", frontendDir);
+            if (Files.isDirectory(legacyFrontendFolder)) {
+                LOGGER.warn(
+                        "Using frontend folder {}, but also found legacy frontend folder {}. "
+                                + "Consider removing the legacy folder.",
+                        frontendDir,
+                        legacyFrontendFolder);
+            } else {
+                LOGGER.debug("Using frontend folder {}", frontendDir);
+            }
         } else if (Files.isDirectory(legacyFrontendFolder)) {
             this.frontendFolder = legacyFrontendFolder;
             LOGGER.debug("Using legacy frontend folder {}", legacyFrontendFolder);
         } else {
-            LOGGER.debug("Frontend folder not detected");
+            LOGGER.debug("Frontend folder not found");
         }
     }
 
@@ -116,7 +127,8 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
             } catch (IOException e) {
                 LOGGER.debug(
                         "Cannot read content of custom connect-client.ts ({}). File will not be overwritten.",
-                        customClient);
+                        customClient,
+                        e);
             }
             if (content != null) {
                 content = content.replaceFirst(
@@ -127,7 +139,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
                             "Prefix in custom connect-client.ts ({}) replaced with new value {}", customClient, prefix);
                     return true;
                 } catch (IOException e) {
-                    LOGGER.debug("Cannot write content of custom connect-client.ts ({}).", customClient);
+                    LOGGER.warn("Cannot write content of custom connect-client.ts ({}).", customClient, e);
                 }
             }
         } else if (!defaultPrefix) {
@@ -137,7 +149,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
     }
 
     private static String computeConnectClientPrefix(Config config) {
-        String prefix = config.getValue("vaadin.endpoint.prefix", String.class);
+        String prefix = config.getValue(QuarkusEndpointConfiguration.VAADIN_ENDPOINT_PREFIX, String.class);
         if (prefix.startsWith("/")) {
             prefix = prefix.substring(1);
         }
