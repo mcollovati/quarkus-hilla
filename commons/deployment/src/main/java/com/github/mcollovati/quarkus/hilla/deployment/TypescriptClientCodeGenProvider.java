@@ -175,7 +175,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
             Files.writeString(customClient, out, StandardCharsets.UTF_8);
             return true;
         } catch (IOException ex) {
-            LOGGER.debug("Cannot read template file connect-client.default.template.ts.", ex);
+            LOGGER.warn("Cannot read template file connect-client.default.template.ts.", ex);
             return false;
         }
     }
