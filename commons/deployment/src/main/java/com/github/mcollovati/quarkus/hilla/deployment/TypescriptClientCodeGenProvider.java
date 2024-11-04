@@ -169,6 +169,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
                 Scanner scanner = new Scanner(is).useDelimiter("\\A")) {
             if (!scanner.hasNext()) {
                 LOGGER.debug("Template file connect-client.default.template.ts is empty.");
+                return false;
             }
             String out = scanner.next().replace("{{PREFIX}}", prefix);
 
