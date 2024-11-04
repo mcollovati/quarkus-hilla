@@ -70,8 +70,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void init_legacyFolder_setInputDirectory() throws IOException {
-        Path frontendFolder = projectDir.resolve("frontend");
-        Files.createDirectories(frontendFolder);
+        Path frontendFolder = createFolder("frontend");
 
         provider.init(appModel, Map.of());
 
@@ -80,8 +79,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void init_defaultFrontendFolder_setInputDirectory() throws IOException {
-        Path frontendFolder = projectDir.resolve(Path.of("src", "main", "frontend"));
-        Files.createDirectories(frontendFolder);
+        Path frontendFolder = createFolder("src", "main", "frontend");
 
         provider.init(appModel, Map.of());
 
@@ -90,10 +88,8 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void init_legacyAndDefaultFrontendFolders_setDefaultAsInputDirectory() throws IOException {
-        Path legacyFrontendFolder = projectDir.resolve("frontend");
-        Files.createDirectories(legacyFrontendFolder);
-        Path frontendFolder = projectDir.resolve(Path.of("src", "main", "frontend"));
-        Files.createDirectories(frontendFolder);
+        createFolder("frontend");
+        Path frontendFolder = createFolder("src", "main", "frontend");
 
         provider.init(appModel, Map.of());
 
@@ -106,10 +102,8 @@ class TypescriptClientCodeGenProviderTest {
         String originalValue = System.getProperty(FrontendUtils.PARAM_FRONTEND_DIR);
         String customFrontend = "custom/frontend";
 
-        Path frontendFolder = projectDir.resolve(Path.of("src", "main", "frontend"));
-        Files.createDirectories(frontendFolder);
-        Path customFrontendFolder = projectDir.resolve(Path.of("custom", "frontend"));
-        Files.createDirectories(customFrontendFolder);
+        createFolder("src", "main", "frontend");
+        Path customFrontendFolder = createFolder("custom", "frontend");
 
         System.setProperty(FrontendUtils.PARAM_FRONTEND_DIR, customFrontend);
         try {
@@ -149,8 +143,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void shouldRun_defaultPrefix_noCustomClient_dontRun() throws IOException {
-        Path path = projectDir.resolve("frontend");
-        Files.createDirectories(path);
+        Path path = createFolder("frontend");
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/connect");
 
         assertThat(provider.shouldRun(path, buildConfig())).isFalse();
@@ -158,8 +151,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void shouldRun_defaultPrefix_customClientWithDefaultPrefix_dontRun() throws IOException {
-        Path path = projectDir.resolve("frontend");
-        Files.createDirectories(path);
+        Path path = createFolder("frontend");
         TypescriptClientCodeGenProvider.writeConnectClient("connect", path.resolve("connect-client.ts"));
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/connect");
 
@@ -168,8 +160,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void shouldRun_customPrefix_customClientWithSamePrefix_dontRun() throws IOException {
-        Path path = projectDir.resolve("frontend");
-        Files.createDirectories(path);
+        Path path = createFolder("frontend");
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", path.resolve("connect-client.ts"));
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
 
@@ -178,8 +169,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void shouldRun_customPrefix_noCustomClient_run() throws IOException {
-        Path path = projectDir.resolve("frontend");
-        Files.createDirectories(path);
+        Path path = createFolder("frontend");
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
 
         assertThat(provider.shouldRun(path, buildConfig())).isTrue();
@@ -187,8 +177,7 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void shouldRun_customPrefix_customClientWithDifferentPrefix_run() throws IOException {
-        Path path = projectDir.resolve("frontend");
-        Files.createDirectories(path);
+        Path path = createFolder("frontend");
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", path.resolve("connect-client.ts"));
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/different-prefix");
 
@@ -197,26 +186,21 @@ class TypescriptClientCodeGenProviderTest {
 
     @Test
     void trigger_customPrefix_noCustomClientWithDifferentPrefix_clientGenerated() throws IOException, CodeGenException {
-        Path frontendFolder = projectDir.resolve("frontend");
-        Files.createDirectories(frontendFolder);
-        Path outDir = projectDir.resolve("target");
-        Files.createDirectories(outDir);
+        Path frontendFolder = createFolder("frontend");
+        Path outDir = createFolder("target");
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
 
         CodeGenContext context =
                 new CodeGenContext(appModel, outDir, projectDir, frontendFolder, true, buildConfig(), false);
         provider.trigger(context);
 
-        Path connectClient = frontendFolder.resolve("connect-client.ts");
-        assertThat(connectClient).isRegularFile().content().contains(connectClientSnippet("my-prefix"));
+        assertConnectClientGenerated(frontendFolder, "my-prefix");
     }
 
     @Test
     void trigger_customPrefix_customClientWithDifferentPrefix_clientGenerated() throws IOException, CodeGenException {
-        Path frontendFolder = projectDir.resolve("frontend");
-        Files.createDirectories(frontendFolder);
-        Path outDir = projectDir.resolve("target");
-        Files.createDirectories(outDir);
+        Path frontendFolder = createFolder("frontend");
+        Path outDir = createFolder("target");
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", frontendFolder.resolve("connect-client.ts"));
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/new-prefix");
 
@@ -224,16 +208,13 @@ class TypescriptClientCodeGenProviderTest {
                 new CodeGenContext(appModel, outDir, projectDir, frontendFolder, true, buildConfig(), false);
         provider.trigger(context);
 
-        Path connectClient = frontendFolder.resolve("connect-client.ts");
-        assertThat(connectClient).isRegularFile().content().contains(connectClientSnippet("new-prefix"));
+        assertConnectClientGenerated(frontendFolder, "new-prefix");
     }
 
     @Test
     void trigger_defaultPrefix_customClientWithDifferentPrefix_clientGenerated() throws IOException, CodeGenException {
-        Path frontendFolder = projectDir.resolve("frontend");
-        Files.createDirectories(frontendFolder);
-        Path outDir = projectDir.resolve("target");
-        Files.createDirectories(outDir);
+        Path frontendFolder = createFolder("frontend");
+        Path outDir = createFolder("target");
         TypescriptClientCodeGenProvider.writeConnectClient("my-prefix", frontendFolder.resolve("connect-client.ts"));
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/connect");
 
@@ -241,8 +222,18 @@ class TypescriptClientCodeGenProviderTest {
                 new CodeGenContext(appModel, outDir, projectDir, frontendFolder, true, buildConfig(), false);
         provider.trigger(context);
 
+        assertConnectClientGenerated(frontendFolder, "connect");
+    }
+
+    private static void assertConnectClientGenerated(Path frontendFolder, String expectedPrefix) {
         Path connectClient = frontendFolder.resolve("connect-client.ts");
-        assertThat(connectClient).isRegularFile().content().contains(connectClientSnippet("connect"));
+        assertThat(connectClient).isRegularFile().content().contains(connectClientSnippet(expectedPrefix));
+    }
+
+    private Path createFolder(String first, String... others) throws IOException {
+        Path frontendFolder = projectDir.resolve(Path.of(first, others));
+        Files.createDirectories(frontendFolder);
+        return frontendFolder;
     }
 
     private static String connectClientSnippet(String prefix) {
