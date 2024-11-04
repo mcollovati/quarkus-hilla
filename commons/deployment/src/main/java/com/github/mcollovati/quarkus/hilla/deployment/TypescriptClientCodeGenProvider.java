@@ -125,7 +125,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
             try {
                 content = Files.readString(customClient);
             } catch (IOException e) {
-                LOGGER.debug(
+                LOGGER.warn(
                         "Cannot read content of custom connect-client.ts ({}). File will not be overwritten.",
                         customClient,
                         e);
