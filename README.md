@@ -51,11 +51,18 @@ integration eliminates the need for code duplication and ensures tighter alignme
 more streamlined updates and improved stability. By leveraging the Vaadin Quarkus extension, users of `quarkus-hilla`
 will benefit from enhanced compatibility with future Vaadin features.
 
+### Custom Endpoint Prefix
+
+A custom endpoint prefix can be configured setting the `vaadin.endpoint.prefix` entry in `application.properties`.
+The extension will create a custom `connect-client.ts` file in the `frontend` folder, constructing the `ConnectClient`
+object with the configured prefix.
+The `connect-client.ts` already exists and does not match the Hilla default template, it will not be overwritten.
+
+
 ## Limitations
 
 The current Hilla support has some known limitations:
 
-* The endpoint prefix is not configurable
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
 * Native image compilation does not work
