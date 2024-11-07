@@ -36,3 +36,4 @@ error-screenshots/
 webpack.generated.js
 integration-tests/smoke-tests/build/
 commons/deployment/src/main/frontend/
+integration-tests/custom-prefix-test/src/main/frontend/connect-client.ts

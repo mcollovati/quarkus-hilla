@@ -25,25 +25,50 @@ import io.restassured.specification.RequestSpecification;
 
 public final class TestUtils {
 
+    static String DEFAULT_PREFIX = "/connect";
+
     static final User ANONYMOUS = new User(null, null);
     static final User ADMIN = new User("admin", "admin");
     static final User USER = new User("user", "user");
     static final User GUEST = new User("guest", "guest");
 
     static Response givenEndpointRequest(String endpointName, String methodName) {
-        return givenEndpointRequest(endpointName, methodName, new Parameters(), UnaryOperator.identity());
+        return givenEndpointRequest(
+                DEFAULT_PREFIX, endpointName, methodName, new Parameters(), UnaryOperator.identity());
     }
 
     static Response givenEndpointRequest(
             String endpointName, String methodName, UnaryOperator<RequestSpecification> customizer) {
-        return givenEndpointRequest(endpointName, methodName, new Parameters(), customizer);
+        return givenEndpointRequest(DEFAULT_PREFIX, endpointName, methodName, new Parameters(), customizer);
     }
 
     static Response givenEndpointRequest(String endpointName, String methodName, Parameters parameters) {
-        return givenEndpointRequest(endpointName, methodName, parameters, UnaryOperator.identity());
+        return givenEndpointRequest(DEFAULT_PREFIX, endpointName, methodName, parameters, UnaryOperator.identity());
+    }
+
+    static Response givenEndpointRequest(String prefix, String endpointName, String methodName) {
+        return givenEndpointRequest(prefix, endpointName, methodName, new Parameters(), UnaryOperator.identity());
     }
 
     static Response givenEndpointRequest(
+            String prefix, String endpointName, String methodName, UnaryOperator<RequestSpecification> customizer) {
+        return givenEndpointRequest(prefix, endpointName, methodName, new Parameters(), customizer);
+    }
+
+    static Response givenEndpointRequest(String prefix, String endpointName, String methodName, Parameters parameters) {
+        return givenEndpointRequest(prefix, endpointName, methodName, parameters, UnaryOperator.identity());
+    }
+
+    static Response givenEndpointRequest(
+            String endpointName,
+            String methodName,
+            Parameters parameters,
+            UnaryOperator<RequestSpecification> customizer) {
+        return givenEndpointRequest(DEFAULT_PREFIX, endpointName, methodName, parameters, customizer);
+    }
+
+    static Response givenEndpointRequest(
+            String prefix,
             String endpointName,
             String methodName,
             Parameters parameters,
@@ -53,7 +78,7 @@ public final class TestUtils {
                 .cookie("csrfToken", "CSRF_TOKEN")
                 .header("X-CSRF-Token", "CSRF_TOKEN")
                 .body(parameters.params)
-                .basePath("/connect");
+                .basePath(prefix);
         specs = customizer.apply(specs);
         return specs.when().post("{endpointName}/{methodName}", endpointName, methodName);
     }

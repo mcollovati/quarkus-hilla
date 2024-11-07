@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.github.mcollovati</groupId>
+        <artifactId>quarkus-hilla-tests</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>quarkus-hilla-custom-prefix-tests</artifactId>
+    <name>Quarkus - Hilla - Client Custom Prefix Tests</name>
+
+    <properties>
+        <vaadin-maven-plugin.phase>compile</vaadin-maven-plugin.phase>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla-react</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla-test-commons</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-clean-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>delete-custom-connect-client</id>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                        <configuration>
+                            <filesets>
+                                <fileset>
+                                    <directory>${project.basedir}/src/main/frontend</directory>
+                                    <includes>
+                                        <include>connect-client.ts</include>
+                                    </includes>
+                                </fileset>
+                            </filesets>
+                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                            <verbose>true</verbose>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.vaadin</groupId>
+                <artifactId>vaadin-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

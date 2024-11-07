@@ -284,12 +284,26 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void registerHillaPushServlet(BuildProducer<ServletBuildItem> servletProducer, NativeConfig nativeConfig) {
+    void registerHillaPushServlet(
+            BuildProducer<ServletBuildItem> servletProducer,
+            QuarkusEndpointConfiguration endpointConfiguration,
+            NativeConfig nativeConfig) {
         ServletBuildItem.Builder builder = ServletBuildItem.builder(
                 QuarkusAtmosphereServlet.class.getName(), QuarkusAtmosphereServlet.class.getName());
-        builder.addMapping("/HILLA/push")
+        String prefix = endpointConfiguration.getEndpointPrefix();
+        if (prefix.matches("^/?connect/?$")) {
+            prefix = "/";
+        } else if (!prefix.startsWith("/")) {
+            prefix = "/" + prefix;
+        }
+        if (prefix.endsWith("/")) {
+            prefix = prefix.substring(0, prefix.length() - 1);
+        }
+        String hillaPushMapping = prefix + "/HILLA/push";
+
+        builder.addMapping(hillaPushMapping)
                 .setAsyncSupported(true)
-                .addInitParam(ApplicationConfig.JSR356_MAPPING_PATH, "/HILLA/push")
+                .addInitParam(ApplicationConfig.JSR356_MAPPING_PATH, hillaPushMapping)
                 .addInitParam(ApplicationConfig.ATMOSPHERE_HANDLER, PushEndpoint.class.getName())
                 .addInitParam(ApplicationConfig.OBJECT_FACTORY, HillaAtmosphereObjectFactory.class.getName())
                 .addInitParam(ApplicationConfig.ANALYTICS, "false")
