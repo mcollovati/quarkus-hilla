@@ -48,8 +48,9 @@ class SpringReplacementsTest {
             .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .addClasses(
-                            TestIdentityProvider.class,
                             IdentityMock.class,
+                            AuthData.class,
+                            TestIdentityProvider.class,
                             TestIdentityController.class,
                             TestUtils.class));
 
