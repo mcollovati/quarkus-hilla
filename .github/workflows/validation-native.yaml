@@ -57,7 +57,8 @@ jobs:
       - name: Compute matrix
         id: set-matrix
         run: |
-          test_modules=$(find integration-tests/ -maxdepth 1 -mindepth 1 -type d -name "*-tests" | jq -R -s -c 'split("\n") | map(select(length > 0))') 
+          cd integration-tests
+          test_modules=$(find -maxdepth 1 -mindepth 1 -type d -name "*-tests" | jq -R -s -c 'split("\n") | map(select(length > 0))' | sed 's/integration-tests\///g') 
           echo "matrix={ \"module\": ${test_modules} }" >> "$GITHUB_OUTPUT"
   build-and-test-native:
     name: Native tests
@@ -91,7 +92,7 @@ jobs:
       - name: Native Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -pl ${{ matrix.module }}
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -pl integration-tests/${{ matrix.module }}
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports -o -name quarkus.log | tar -czf tests-report-native.tgz -T -
