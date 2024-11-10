@@ -126,18 +126,22 @@ public class QuarkusHillaNativeProcessor {
         producer.produce(new ExcludedTypeBuildItem(ServletDeployer.class.getName()));
     }
 
+    /*
+     * Quarkus Spring-Data extension does not currently support JpaSpecificationExecutor.
+     * Hilla classes based on that API must be removed from the native build
+     * to prevent NoClassDefFound errors
+     * https://quarkus.io/guides/spring-data-jpa#what-is-currently-unsupported
+     */
     @BuildStep(onlyIf = IsNativeBuild.class)
-    void removeUnusedSpringRelatedClasses(Capabilities capabilities, BuildProducer<RemovedResourceBuildItem> producer) {
-        if (!capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
-            producer.produce(new RemovedResourceBuildItem(
-                    ArtifactKey.of("com.vaadin", "hilla-endpoint", null, "jar"),
-                    Set.of(
-                            "com/vaadin/hilla/crud/CrudConfiguration.class",
-                            "com/vaadin/hilla/crud/CrudRepositoryService.class",
-                            "com/vaadin/hilla/crud/JpaFilterConverter.class",
-                            "com/vaadin/hilla/crud/ListRepositoryService.class",
-                            "com/vaadin/hilla/crud/PropertyStringFilterSpecification.class")));
-        }
+    void removeHillaSpringBasedClasses(Capabilities capabilities, BuildProducer<RemovedResourceBuildItem> producer) {
+        producer.produce(new RemovedResourceBuildItem(
+                ArtifactKey.of("com.vaadin", "hilla-endpoint", null, "jar"),
+                Set.of(
+                        "com/vaadin/hilla/crud/CrudConfiguration.class",
+                        "com/vaadin/hilla/crud/CrudRepositoryService.class",
+                        "com/vaadin/hilla/crud/JpaFilterConverter.class",
+                        "com/vaadin/hilla/crud/ListRepositoryService.class",
+                        "com/vaadin/hilla/crud/PropertyStringFilterSpecification.class")));
     }
 
     /*
