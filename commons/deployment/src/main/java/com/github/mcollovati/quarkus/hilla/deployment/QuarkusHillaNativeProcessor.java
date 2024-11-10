@@ -47,6 +47,7 @@ import com.vaadin.hilla.EndpointExposed;
 import com.vaadin.hilla.push.PushEndpoint;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
+import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -55,12 +56,14 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.GeneratedNativeImageClassBuildItem;
+import io.quarkus.deployment.builditem.RemovedResourceBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.NativeImageResourcePatternsBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.deployment.builditem.nativeimage.RuntimeInitializedPackageBuildItem;
 import io.quarkus.deployment.pkg.NativeConfig;
 import io.quarkus.gizmo.ClassCreator;
 import io.quarkus.gizmo.MethodCreator;
+import io.quarkus.maven.dependency.ArtifactKey;
 import io.quarkus.undertow.deployment.ServletDeploymentManagerBuildItem;
 import io.quarkus.vertx.http.deployment.DefaultRouteBuildItem;
 import org.atmosphere.cache.UUIDBroadcasterCache;
@@ -121,6 +124,20 @@ public class QuarkusHillaNativeProcessor {
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.ContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.AnnotationScanningServletContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem(ServletDeployer.class.getName()));
+    }
+
+    @BuildStep(onlyIf = IsNativeBuild.class)
+    void removeUnusedSpringRelatedClasses(Capabilities capabilities, BuildProducer<RemovedResourceBuildItem> producer) {
+        if (!capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
+            producer.produce(new RemovedResourceBuildItem(
+                    ArtifactKey.of("com.vaadin", "hilla-endpoint", null, "jar"),
+                    Set.of(
+                            "com/vaadin/hilla/crud/CrudConfiguration.class",
+                            "com/vaadin/hilla/crud/CrudRepositoryService.class",
+                            "com/vaadin/hilla/crud/JpaFilterConverter.class",
+                            "com/vaadin/hilla/crud/ListRepositoryService.class",
+                            "com/vaadin/hilla/crud/PropertyStringFilterSpecification.class")));
+        }
     }
 
     /*
@@ -188,6 +205,7 @@ public class QuarkusHillaNativeProcessor {
 
     @BuildStep
     void hillaNativeSupport(
+            Capabilities capabilities,
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<NativeImageResourcePatternsBuildItem> nativeImageResource,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
@@ -205,11 +223,15 @@ public class QuarkusHillaNativeProcessor {
         classes.add(index.getClassByName(PushEndpoint.class));
         classes.addAll(getJsonClasses(index));
 
-        classes.add(index.getClassByName("org.springframework.data.repository.Repository"));
-        classes.add(index.getClassByName("org.springframework.data.repository.CrudRepository"));
-        classes.add(index.getClassByName("org.springframework.data.domain.Pageable"));
+        if (capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
+            classes.add(index.getClassByName("org.springframework.data.repository.Repository"));
+            classes.add(index.getClassByName("org.springframework.data.repository.CrudRepository"));
+            classes.add(index.getClassByName("org.springframework.data.domain.Pageable"));
+            classes.add(index.getClassByName("org.springframework.data.domain.Specification"));
+        }
 
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(classes.stream()
+                        .filter(Objects::nonNull)
                         .map(classInfo -> classInfo.name().toString())
                         .toArray(String[]::new))
                 .constructors()

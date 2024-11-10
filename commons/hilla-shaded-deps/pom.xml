@@ -135,6 +135,8 @@
                                         <include>org/springframework/data/domain/Sort$Order.class</include>
                                         <include>org/springframework/data/domain/Sort$NullHandling.class</include>
                                         <include>org/springframework/data/domain/Unpaged.class</include>
+                                        <include>org/springframework/data/repository/CrudRepository.class</include>
+                                        <include>org/springframework/data/repository/Repository.class</include>
                                         <include>org/springframework/data/util/Streamable.class</include>
                                         <include>org/springframework/data/util/StreamUtils.class</include>
                                         <include>org/springframework/data/util/LazyStreamable.class</include>
