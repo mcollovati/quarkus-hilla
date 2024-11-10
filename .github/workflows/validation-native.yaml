@@ -57,7 +57,7 @@ jobs:
       - name: Compute matrix
         id: set-matrix
         run: |
-          test_modules=$(find -maxdepth 1 -mindepth 1 -type d -name "*-tests" | jq -R -s -c 'split("\n") | map(select(length > 0))' | sed 's/integration-tests\///g') 
+          test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests" | jq -R -s -c 'split("\n") | map(select(length > 0))' | sed 's/integration-tests\///g') 
           echo "matrix={ \"module\": ${test_modules} }" >> "$GITHUB_OUTPUT"
   build-and-test-native:
     name: Native tests
