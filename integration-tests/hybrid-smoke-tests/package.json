@@ -30,13 +30,13 @@
     "mobx": "^6.3.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router-dom": "6.26.2"
+    "react-router-dom": "6.28.0"
   },
   "devDependencies": {
     "@babel/preset-react": "7.25.9",
     "@preact/signals-react-transform": "0.4.0",
     "@rollup/plugin-replace": "6.0.1",
-    "@rollup/pluginutils": "5.1.2",
+    "@rollup/pluginutils": "5.1.3",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
     "@vaadin/hilla-generator-cli": "24.6.0-alpha4",
@@ -59,7 +59,7 @@
     "typescript": "5.6.3",
     "vite": "5.4.11",
     "vite-plugin-checker": "0.8.0",
-    "workbox-build": "7.1.1",
+    "workbox-build": "7.3.0",
     "workbox-core": "7.3.0",
     "workbox-precaching": "7.3.0"
   },
@@ -130,13 +130,13 @@
       "lit": "3.2.1",
       "react": "18.3.1",
       "react-dom": "18.3.1",
-      "react-router-dom": "6.26.2"
+      "react-router-dom": "6.28.0"
     },
     "devDependencies": {
       "@babel/preset-react": "7.25.9",
       "@preact/signals-react-transform": "0.4.0",
       "@rollup/plugin-replace": "6.0.1",
-      "@rollup/pluginutils": "5.1.2",
+      "@rollup/pluginutils": "5.1.3",
       "@types/react": "18.3.12",
       "@types/react-dom": "18.3.1",
       "@vaadin/hilla-generator-cli": "24.6.0-alpha4",
@@ -159,11 +159,11 @@
       "typescript": "5.6.3",
       "vite": "5.4.11",
       "vite-plugin-checker": "0.8.0",
-      "workbox-build": "7.1.1",
+      "workbox-build": "7.3.0",
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "d0c0eac05dc6ba6e94fb3ae9a85d8d92d282d1703d41cdf6c8e4b093c27ac76b"
+    "hash": "ce296e1ee69887723cbcd2fbbee82bf09d93881b02ba5f6fc0be330aa0d57747"
   },
   "type": "module"
 }
