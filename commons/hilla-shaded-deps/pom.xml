@@ -121,6 +121,7 @@
                                         <include>org/springframework/data/domain/AbstractPageRequest.class</include>
                                         <include>org/springframework/data/domain/Chunk.class</include>
                                         <include>org/springframework/data/domain/KeysetScrollPosition.class</include>
+                                        <include>org/springframework/data/domain/Limit**.class</include>
                                         <include>org/springframework/data/domain/OffsetScrollPosition.class</include>
                                         <include>org/springframework/data/domain/ScrollPosition.class</include>
                                         <include>org/springframework/data/domain/ScrollPosition$Direction.class
