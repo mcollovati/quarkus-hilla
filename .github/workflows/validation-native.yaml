@@ -51,14 +51,14 @@ jobs:
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      modules: ${{ steps.set-matrix.outputs.modules }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Compute matrix
-        id: compute-matrix
+        id: set-matrix
         run: |
           test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests")
           test_modules=$(while IFS= read -r mod; do grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
