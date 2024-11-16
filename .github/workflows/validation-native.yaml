@@ -108,5 +108,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output-it-native-${{ matrix.name }}
+          name: tests-output-it-native-${{ matrix.module.name }}
           path: tests-report-*.tgz

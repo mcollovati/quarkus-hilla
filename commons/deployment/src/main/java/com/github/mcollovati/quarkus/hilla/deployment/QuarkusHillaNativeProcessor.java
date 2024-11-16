@@ -48,6 +48,7 @@ import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.EndpointExposed;
 import com.vaadin.hilla.crud.filter.Filter;
+import com.vaadin.hilla.endpointransfermapper.EndpointTransferMapper;
 import com.vaadin.hilla.push.PushEndpoint;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
@@ -224,8 +225,19 @@ public class QuarkusHillaNativeProcessor {
                 .includePatterns("META-INF/microprofile-config\\.properties")
                 .build());
 
+        // explicitly register classes not present in the index
+        reflectiveClass.produce(ReflectiveClassBuildItem.builder(
+                        com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService.class,
+                        com.github.mcollovati.quarkus.hilla.crud.panache.ListRepositoryService.class,
+                        com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService.class,
+                        com.github.mcollovati.quarkus.hilla.crud.spring.ListRepositoryService.class)
+                .constructors()
+                .methods()
+                .build());
+
         IndexView index = combinedIndex.getComputingIndex();
         Set<ClassInfo> classes = new HashSet<>();
+        classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(BrowserCallable.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Endpoint.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(EndpointExposed.class)));
@@ -233,6 +245,9 @@ public class QuarkusHillaNativeProcessor {
         classes.add(index.getClassByName(Filter.class));
         classes.add(index.getClassByName(Pageable.class));
         classes.addAll(getJsonClasses(index));
+        classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
+        classes.addAll(index.getClassesInPackage("com.vaadin.hilla.mappedtypes"));
+        classes.addAll(index.getClassesInPackage("com.vaadin.hilla.runtime.transfertypes"));
 
         if (capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
             classes.add(index.getClassByName("org.springframework.data.repository.Repository"));
@@ -312,9 +327,7 @@ public class QuarkusHillaNativeProcessor {
                         .map(classInfo -> classInfo.name().toString())
                         .toArray(String[]::new))
                 .constructors()
-                .queryConstructors()
                 .methods()
-                .queryMethods()
                 .fields()
                 .build());
 
