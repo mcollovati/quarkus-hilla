@@ -15,6 +15,9 @@
  */
 package com.example.application.entities;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class UserPOJO {
 
     private String name;

@@ -1,5 +1,8 @@
 name: Quarkus Hilla Native Validation
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 1 * * *'
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
 permissions:
@@ -57,15 +60,17 @@ jobs:
       - name: Compute matrix
         id: set-matrix
         run: |
-          test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests" | jq -R -s -c 'split("\n") | map(select(length > 0))' | sed 's/integration-tests\///g') 
-          echo "matrix={ \"module\": ${test_modules} }" >> "$GITHUB_OUTPUT"
+          test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests")
+          test_modules=$(while IFS= read -r mod; do grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
+          echo "modules=${test_modules}" >> "$GITHUB_OUTPUT"
   build-and-test-native:
     name: Native tests
     needs: [compute-matrix]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     strategy:
       fail-fast: false
-      matrix: ${{fromJson(needs.compute-matrix.outputs.matrix)}}
+      matrix:
+        module: ${{fromJson(needs.compute-matrix.outputs.modules)}}
     timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
@@ -91,7 +96,12 @@ jobs:
       - name: Native Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -pl integration-tests/${{ matrix.module }}
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -pl ${{ matrix.module.path }}
+      - name: Native Security Test
+        if: ${{ matrix.module.security == 1 }}
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -Dquarkus.profile=test-security -pl ${{ matrix.module.path }}
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports -o -name quarkus.log | tar -czf tests-report-native.tgz -T -
