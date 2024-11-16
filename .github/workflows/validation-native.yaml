@@ -61,7 +61,7 @@ jobs:
         id: set-matrix
         run: |
           test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests")
-          test_modules=$(while IFS= read -r mod; do grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
+          test_modules=$(while IFS= read -r mod; do grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"name\": \"${mod/integration-tests\//}\", \"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
           echo "modules=${test_modules}" >> "$GITHUB_OUTPUT"
   build-and-test-native:
     name: Native tests
@@ -108,5 +108,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output-it-native-${{ matrix.module }}
+          name: tests-output-it-native-${{ matrix.name }}
           path: tests-report-*.tgz
