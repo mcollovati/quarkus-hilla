@@ -47,6 +47,7 @@ import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.EndpointExposed;
+import com.vaadin.hilla.crud.filter.Filter;
 import com.vaadin.hilla.push.PushEndpoint;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
@@ -101,6 +102,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.objectweb.asm.Opcodes;
+import org.springframework.data.domain.Pageable;
 
 import com.github.mcollovati.quarkus.hilla.graal.AtmosphereDeferredInitializerRecorder;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedSchedulerExecutorsFactory;
@@ -228,6 +230,8 @@ public class QuarkusHillaNativeProcessor {
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Endpoint.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(EndpointExposed.class)));
         classes.add(index.getClassByName(PushEndpoint.class));
+        classes.add(index.getClassByName(Filter.class));
+        classes.add(index.getClassByName(Pageable.class));
         classes.addAll(getJsonClasses(index));
 
         if (capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
