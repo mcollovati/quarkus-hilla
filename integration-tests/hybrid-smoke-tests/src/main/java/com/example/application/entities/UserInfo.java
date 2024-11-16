@@ -19,8 +19,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.vaadin.hilla.Nonnull;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.quarkus.security.identity.SecurityIdentity;
 
+@RegisterForReflection
 public class UserInfo {
 
     @Nonnull
