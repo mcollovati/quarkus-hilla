@@ -30,14 +30,17 @@ import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.di.LookupInitializer;
+import com.vaadin.flow.router.AccessDeniedException;
 import com.vaadin.flow.router.HasErrorParameter;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.MenuData;
+import com.vaadin.flow.router.NotFoundException;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouterLayout;
+import com.vaadin.flow.server.auth.AccessDeniedErrorRouter;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 import com.vaadin.flow.server.menu.RouteParamType;
 import com.vaadin.flow.server.startup.ServletDeployer;
@@ -283,12 +286,17 @@ public class QuarkusHillaNativeProcessor {
                         .build());
 
         Set<ClassInfo> classes = new HashSet<>();
+        classes.add(index.getClassByName(AccessDeniedException.class));
+        classes.add(index.getClassByName(NotFoundException.class));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Route.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(RouteAlias.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Layout.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Menu.class)));
+        classes.addAll(getAnnotatedClasses(index, DotName.createSimple(AccessDeniedErrorRouter.class)));
         classes.addAll(index.getAllKnownImplementors(AppShellConfigurator.class));
         classes.addAll(getCommonComponentClasses(index));
+        classes.addAll(index.getAllKnownSubclasses(AccessDeniedException.class));
+        classes.addAll(index.getAllKnownSubclasses(NotFoundException.class));
         classes.addAll(index.getAllKnownSubclasses(Component.class));
         classes.addAll(index.getAllKnownSubclasses(RouterLayout.class));
         classes.addAll(index.getAllKnownSubclasses(HasErrorParameter.class));
@@ -299,6 +307,11 @@ public class QuarkusHillaNativeProcessor {
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(classes.stream()
                         .map(classInfo -> classInfo.name().toString())
                         .toArray(String[]::new))
+                .constructors()
+                .queryConstructors()
+                .methods()
+                .queryMethods()
+                .fields()
                 .build());
 
         registerAtmosphereClasses(reflectiveClass);

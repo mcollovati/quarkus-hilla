@@ -15,16 +15,9 @@
  */
 package com.example.application;
 
-import java.util.Map;
-
 import io.quarkus.test.junit.QuarkusTestProfile;
 
 public class SecurityTestProfile implements QuarkusTestProfile {
-
-    @Override
-    public Map<String, String> getConfigOverrides() {
-        return Map.of("quarkus.http.auth.form.enabled", "true");
-    }
 
     @Override
     public String getConfigProfile() {

@@ -16,6 +16,8 @@
 package com.example.application;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 
 @QuarkusIntegrationTest
+@EnabledIfSystemProperty(named = "quarkus.profile", matches = "test-security")
 public class SecurityNativeIT extends SecurityTest {}
