@@ -225,16 +225,6 @@ public class QuarkusHillaNativeProcessor {
                 .includePatterns("META-INF/microprofile-config\\.properties")
                 .build());
 
-        // explicitly register classes not present in the index
-        reflectiveClass.produce(ReflectiveClassBuildItem.builder(
-                        com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService.class,
-                        com.github.mcollovati.quarkus.hilla.crud.panache.ListRepositoryService.class,
-                        com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService.class,
-                        com.github.mcollovati.quarkus.hilla.crud.spring.ListRepositoryService.class)
-                .constructors()
-                .methods()
-                .build());
-
         IndexView index = combinedIndex.getComputingIndex();
         Set<ClassInfo> classes = new HashSet<>();
         classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
@@ -254,6 +244,23 @@ public class QuarkusHillaNativeProcessor {
             classes.add(index.getClassByName("org.springframework.data.repository.CrudRepository"));
             classes.add(index.getClassByName("org.springframework.data.domain.Pageable"));
             classes.add(index.getClassByName("org.springframework.data.domain.Specification"));
+
+            // explicitly register classes not present in the index
+            reflectiveClass.produce(ReflectiveClassBuildItem.builder(
+                            com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService.class,
+                            com.github.mcollovati.quarkus.hilla.crud.spring.ListRepositoryService.class)
+                    .constructors()
+                    .methods()
+                    .build());
+        }
+
+        if (capabilities.isPresent(QuarkusHillaExtensionProcessor.PANACHE_SUPPORT)) {
+            reflectiveClass.produce(ReflectiveClassBuildItem.builder(
+                            com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService.class,
+                            com.github.mcollovati.quarkus.hilla.crud.panache.ListRepositoryService.class)
+                    .constructors()
+                    .methods()
+                    .build());
         }
 
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(classes.stream()
