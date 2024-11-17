@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Marco Collovati, Dario Götze
+ * Copyright 2024 Marco Collovati, Dario Götze
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,7 @@
  */
 package com.example.application;
 
-import io.quarkus.test.junit.QuarkusTestProfile;
+import io.quarkus.test.junit.QuarkusIntegrationTest;
 
-public class SecurityTestProfile implements QuarkusTestProfile {
-
-    @Override
-    public String getConfigProfile() {
-        return "test-security";
-    }
-}
+@QuarkusIntegrationTest
+public class AutoGridNativeIT extends AutoGridTest {}

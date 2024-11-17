@@ -229,6 +229,26 @@
                 <skipITs>false</skipITs>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <skip>true</skip>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/*NativeIT.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <!--
@@ -271,10 +291,10 @@
     <modules>
         <module>test-commons</module>
         <module>smoke-tests</module>
-        <module>react-smoke-test</module>
-        <module>custom-prefix-test</module>
-        <module>spring-extension-support-test</module>
-        <module>panache-extension-support-test</module>
+        <module>react-smoke-tests</module>
+        <module>custom-prefix-tests</module>
+        <module>spring-extension-support-tests</module>
+        <module>panache-extension-support-tests</module>
         <module>hybrid-smoke-tests</module>
         <module>hybrid-vaadin-router-smoke-tests</module>
     </modules>

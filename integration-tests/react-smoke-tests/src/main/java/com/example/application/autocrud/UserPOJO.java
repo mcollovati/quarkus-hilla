@@ -13,31 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.example.application.entities;
+package com.example.application.autocrud;
+
+import java.util.UUID;
 
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 public class UserPOJO {
 
+    private String id;
+
     private String name;
     private String surname;
 
     public UserPOJO(String name, String surname) {
+        this.id = UUID.randomUUID().toString();
         this.name = name;
         this.surname = surname;
     }
 
-    public String name() {
-        return name;
+    public String getId() {
+        return id;
     }
 
-    public String surname() {
-        return surname;
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getSurname() {
+        return surname;
     }
 
     public void setSurname(String surname) {
