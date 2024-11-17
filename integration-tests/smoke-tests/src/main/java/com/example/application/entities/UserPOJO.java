@@ -17,6 +17,9 @@ package com.example.application.entities;
 
 import java.util.UUID;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class UserPOJO {
 
     private String id;
