@@ -30,11 +30,13 @@ import com.vaadin.flow.component.ComponentEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.di.LookupInitializer;
+import com.vaadin.flow.router.AccessDeniedException;
 import com.vaadin.flow.router.HasErrorParameter;
 import com.vaadin.flow.router.HasUrlParameter;
 import com.vaadin.flow.router.Layout;
 import com.vaadin.flow.router.Menu;
 import com.vaadin.flow.router.MenuData;
+import com.vaadin.flow.router.NotFoundException;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
 import com.vaadin.flow.router.RouterLayout;
@@ -44,6 +46,8 @@ import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.EndpointExposed;
+import com.vaadin.hilla.crud.filter.Filter;
+import com.vaadin.hilla.endpointransfermapper.EndpointTransferMapper;
 import com.vaadin.hilla.push.PushEndpoint;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
@@ -98,6 +102,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 import org.objectweb.asm.Opcodes;
+import org.springframework.data.domain.Pageable;
 
 import com.github.mcollovati.quarkus.hilla.graal.AtmosphereDeferredInitializerRecorder;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedSchedulerExecutorsFactory;
@@ -221,17 +226,37 @@ public class QuarkusHillaNativeProcessor {
 
         IndexView index = combinedIndex.getComputingIndex();
         Set<ClassInfo> classes = new HashSet<>();
+        classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(BrowserCallable.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Endpoint.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(EndpointExposed.class)));
         classes.add(index.getClassByName(PushEndpoint.class));
+        classes.add(index.getClassByName(Filter.class));
+        classes.add(index.getClassByName(Pageable.class));
         classes.addAll(getJsonClasses(index));
+        classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
+        classes.addAll(index.getClassesInPackage("com.vaadin.hilla.mappedtypes"));
+        classes.addAll(index.getClassesInPackage("com.vaadin.hilla.runtime.transfertypes"));
 
         if (capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
             classes.add(index.getClassByName("org.springframework.data.repository.Repository"));
             classes.add(index.getClassByName("org.springframework.data.repository.CrudRepository"));
-            classes.add(index.getClassByName("org.springframework.data.domain.Pageable"));
             classes.add(index.getClassByName("org.springframework.data.domain.Specification"));
+            // explicitly register classes not present in the index
+            reflectiveClass.produce(ReflectiveClassBuildItem.builder(
+                            com.github.mcollovati.quarkus.hilla.crud.spring.CrudRepositoryService.class,
+                            com.github.mcollovati.quarkus.hilla.crud.spring.ListRepositoryService.class)
+                    .constructors()
+                    .methods()
+                    .build());
+        }
+        if (capabilities.isPresent(QuarkusHillaExtensionProcessor.PANACHE_SUPPORT)) {
+            reflectiveClass.produce(ReflectiveClassBuildItem.builder(
+                            com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService.class,
+                            com.github.mcollovati.quarkus.hilla.crud.panache.ListRepositoryService.class)
+                    .constructors()
+                    .methods()
+                    .build());
         }
 
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(classes.stream()
@@ -283,6 +308,8 @@ public class QuarkusHillaNativeProcessor {
                         .build());
 
         Set<ClassInfo> classes = new HashSet<>();
+        classes.add(index.getClassByName(AccessDeniedException.class));
+        classes.add(index.getClassByName(NotFoundException.class));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Route.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(RouteAlias.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Layout.class)));
@@ -299,6 +326,9 @@ public class QuarkusHillaNativeProcessor {
         reflectiveClass.produce(ReflectiveClassBuildItem.builder(classes.stream()
                         .map(classInfo -> classInfo.name().toString())
                         .toArray(String[]::new))
+                .constructors()
+                .methods()
+                .fields()
                 .build());
 
         registerAtmosphereClasses(reflectiveClass);

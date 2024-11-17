@@ -28,6 +28,9 @@ import com.vaadin.hilla.push.PushMessageHandler;
 import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
+import io.quarkus.gizmo.ClassTransformer;
+import io.quarkus.gizmo.MethodDescriptor;
+import org.springframework.data.domain.Sort;
 
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
@@ -95,6 +98,15 @@ public class OffendingMethodCallsReplacer {
         producer.produce(new BytecodeTransformerBuildItem(
                 ConfigList.Processor.class.getName(),
                 (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
+
+        // Remove sort method that references a type that is not in the shaded deps jar
+        producer.produce(new BytecodeTransformerBuildItem(Sort.class.getName(), (className, classVisitor) -> {
+            ClassTransformer transformer = new ClassTransformer(className);
+            MethodDescriptor sortMethod =
+                    MethodDescriptor.ofMethod(className, "sort", className + "$TypedSort", "java.lang.Class");
+            transformer.removeMethod(sortMethod);
+            return transformer.applyTo(classVisitor);
+        }));
     }
 
     @SafeVarargs
