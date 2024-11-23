@@ -110,6 +110,9 @@ public class OffendingMethodCallsReplacer {
         producer.produce(new BytecodeTransformerBuildItem(
                 "com.vaadin.hilla.parser.plugins.nonnull.NonnullPluginConfig$Processor",
                 (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
+        producer.produce(new BytecodeTransformerBuildItem(
+                "com.vaadin.hilla.parser.plugins.transfertypes.TransferTypesPlugin",
+                (s, classVisitor) -> new TransferTypesPluginClassVisitor(classVisitor)));
         // Remove sort method that references a type that is not in the shaded deps jar
         producer.produce(new BytecodeTransformerBuildItem(Sort.class.getName(), (className, classVisitor) -> {
             ClassTransformer transformer = new ClassTransformer(className);

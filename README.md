@@ -56,7 +56,7 @@ will benefit from enhanced compatibility with future Vaadin features.
 A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`. The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient` object with the configured prefix.
 If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
 
-### Experimental embedded Vaadin plugin implementation
+### Experimental Embedded Vaadin Plugin
 
 Quarkus-Hilla 24.7 introduces an experimental feature that allows to simplify application setup by removing Vaadin Maven (or Gradle) plugin.
 The extension has a built-in implementation of the plugin that can be enabled setting `vaadin.build.enabled=true` in `application.properties` or as Java system property.
@@ -64,6 +64,36 @@ The extension has a built-in implementation of the plugin that can be enabled se
 To make the feature working properly in Maven, you also need to set `quarkus.bootstrap.workspace-discovery=true` in POM `properties` section, or as Java system property.
 This is required because when running build, Quarkus Maven plugin does not provide workspace information that are required by Vaadin internals to generate the frontend production bundle.
 Hopefully, the behavior may be revisited. If you are interested you can follow the [issue](https://github.com/quarkusio/quarkus/issues/45363) on Quarkus repository.
+
+### Support for Mutiny Multi return type in @BrowserCallable services
+
+Starting with 24.7, the extension provide support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
+`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription` , when an unsubscribe callback is needed.
+The feature works in development mode, but for a production build it currently requires the activation of the Quarkus Hilla Embedded Vaadin plugin.
+
+```java
+@BrowserCallable
+@AnonymousAllowed
+public class ClockService {
+
+  public Multi<String> getClock() {
+    return Multi.createFrom()
+            .ticks()
+            .startingAfter(Duration.ofSeconds(1))
+            .every(Duration.ofSeconds(1))
+            .onOverflow().drop()
+            .map(unused -> LocalTime.now().toString())
+            .onFailure()
+            .recoverWithItem(err -> "Sorry, something failed...");
+  }
+
+  public MutinyEndpointSubscription<String> getCancellableClock() {
+    return MutinyEndpointSubscription.of(getClock(), () -> {
+        // unsubscribe callback
+    });
+  }
+}
+```
 
 ## Limitations
 
