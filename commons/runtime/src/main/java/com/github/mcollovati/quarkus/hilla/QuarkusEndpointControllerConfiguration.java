@@ -54,6 +54,7 @@ import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.context.ManagedExecutor;
 import org.springframework.context.ApplicationContext;
 
 @Unremovable
@@ -148,9 +149,15 @@ class QuarkusEndpointControllerConfiguration {
             @Named("endpointObjectMapper") ObjectMapper objectMapper,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
             ServletContext servletContext,
-            EndpointRegistry endpointRegistry) {
-        return new EndpointInvoker(
-                applicationContext, objectMapper, explicitNullableTypeChecker, servletContext, endpointRegistry);
+            EndpointRegistry endpointRegistry,
+            ManagedExecutor executor) {
+        return new QuarkusEndpointInvoker(
+                applicationContext,
+                objectMapper,
+                explicitNullableTypeChecker,
+                servletContext,
+                endpointRegistry,
+                executor);
     }
 
     @Produces
