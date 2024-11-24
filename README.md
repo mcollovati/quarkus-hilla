@@ -56,6 +56,34 @@ will benefit from enhanced compatibility with future Vaadin features.
 A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`. The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient` object with the configured prefix.
 If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
 
+### Support for Mutiny Multi return type in @BrowserCallable services
+
+Starting with 24.6, the extension provide support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
+`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription` , when an unsubscribe callback is needed.
+
+```java
+@BrowserCallable
+@AnonymousAllowed
+public class ClockService {
+
+  public Multi<String> getClock() {
+    return Multi.createFrom()
+            .ticks()
+            .startingAfter(Duration.ofSeconds(1))
+            .every(Duration.ofSeconds(1))
+            .onOverflow().drop()
+            .map(unused -> LocalTime.now().toString())
+            .onFailure()
+            .recoverWithItem(err -> "Sorry, something failed...");
+  }
+
+  public MutinyEndpointSubscription<String> getCancellableClock() {
+    return MutinyEndpointSubscription.of(getClock(), () -> {
+        // unsubscribe callback
+    });
+  }
+}
+```
 
 ## Limitations
 
