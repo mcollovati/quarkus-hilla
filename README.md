@@ -3,7 +3,7 @@
 # Quarkus - Hilla
 
 [![Maven Central 24.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
-[![Maven Central 24.4](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.4)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
+[![Maven Central 24.5](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.5)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
 [![Maven Central 2.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
 [![Maven Central 1.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
 [![Apache License 2.0](https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
