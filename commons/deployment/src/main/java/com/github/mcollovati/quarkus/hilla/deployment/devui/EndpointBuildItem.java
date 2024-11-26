@@ -30,4 +30,10 @@ public final class EndpointBuildItem extends SimpleBuildItem {
     public List<EndpointInfo> getEndpoints() {
         return endpoints;
     }
+
+    public int getEndpointMethodCount() {
+        return endpoints.stream()
+                .mapToInt(a -> a.children().size())
+                .sum();
+    }
 }
