@@ -1,0 +1,11 @@
+name: Quarkus Hilla Commons
+metadata:
+  keywords:
+    - "hilla"
+    - "web"
+    - "reactive"
+  categories:
+    - "web"
+    - "reactive"
+  status: "stable"
+  unlisted: "true"
