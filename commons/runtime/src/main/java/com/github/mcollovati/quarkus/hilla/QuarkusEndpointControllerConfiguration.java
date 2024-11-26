@@ -42,9 +42,11 @@ import com.vaadin.hilla.EndpointUtil;
 import com.vaadin.hilla.ExplicitNullableTypeChecker;
 import com.vaadin.hilla.auth.CsrfChecker;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
+import com.vaadin.hilla.endpointransfermapper.EndpointTransferMapper;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
 import com.vaadin.hilla.route.RouteUnifyingConfigurationProperties;
 import com.vaadin.hilla.route.RouteUtil;
+import com.vaadin.hilla.signals.Signal;
 import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
@@ -143,13 +145,23 @@ class QuarkusEndpointControllerConfiguration {
     @DefaultBean
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
-            @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
-                    JacksonObjectMapperFactory objectMapperFactory,
+            @Named("endpointObjectMapper") ObjectMapper objectMapper,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
             ServletContext servletContext,
             EndpointRegistry endpointRegistry) {
         return new EndpointInvoker(
-                applicationContext, objectMapperFactory, explicitNullableTypeChecker, servletContext, endpointRegistry);
+                applicationContext, objectMapper, explicitNullableTypeChecker, servletContext, endpointRegistry);
+    }
+
+    @Produces
+    @Singleton
+    @Named("endpointObjectMapper")
+    ObjectMapper endpointObjectMapper(
+            @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
+                    JacksonObjectMapperFactory endpointMapperFactory) {
+        ObjectMapper mapper = endpointMapperFactory.build();
+        mapper.registerModule(new EndpointTransferMapper().getJacksonModule());
+        return mapper;
     }
 
     @Produces
@@ -208,6 +220,11 @@ class QuarkusEndpointControllerConfiguration {
     @DefaultBean
     SecureSignalsRegistry signalsRegistry(EndpointInvoker endpointInvoker) {
         return new SecureSignalsRegistry(endpointInvoker);
+    }
+
+    void initSignalsObjectMapper(
+            @Observes StartupEvent event, @Named("endpointObjectMapper") ObjectMapper objectMapper) {
+        Signal.setMapper(objectMapper);
     }
 
     @Produces
