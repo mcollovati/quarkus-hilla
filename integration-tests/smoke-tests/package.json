@@ -106,7 +106,7 @@
     "rollup-plugin-visualizer": "5.12.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
-    "typescript": "5.6.3",
+    "typescript": "5.7.2",
     "vite": "5.4.11",
     "vite-plugin-checker": "0.8.0",
     "workbox-build": "7.3.0",
@@ -308,14 +308,14 @@
       "rollup-plugin-visualizer": "5.12.0",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
-      "typescript": "5.6.3",
+      "typescript": "5.7.2",
       "vite": "5.4.11",
       "vite-plugin-checker": "0.8.0",
       "workbox-build": "7.3.0",
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "2c40868a5192953ca9f96de6bff0b953d6f0dc2d88ea0b4baff5ae68519ff95a"
+    "hash": "77adb57ac734383f80da11b8f4f2f812177e588043e91b20ce0ab95f53b3ee61"
   },
   "type": "module"
 }
