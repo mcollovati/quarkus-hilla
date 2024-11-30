@@ -33,6 +33,7 @@ import io.quarkus.gizmo.MethodDescriptor;
 import org.springframework.data.domain.Sort;
 
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
+import com.github.mcollovati.quarkus.hilla.deployment.ViteWebsocketConnectorPatcher;
 
 public class OffendingMethodCallsReplacer {
 
@@ -106,6 +107,20 @@ public class OffendingMethodCallsReplacer {
             transformer.removeMethod(sortMethod);
             return transformer.applyTo(classVisitor);
         }));
+        // java/util/concurrent/CompletableFuture.whenComplete
+        // (Ljava/util/function/BiConsumer;)Ljava/util/concurrent/CompletableFuture;
+        /*
+        producer.produce(transform(
+                "com.vaadin.base.devserver.viteproxy.ViteWebsocketConnection",
+                "<init>",
+                Map.entry(
+                        MethodSignature.of("java/util/concurrent/CompletableFuture", "whenComplete"),
+                        MethodSignature.of(
+                                "java/util/concurrent/CompletableFuture",
+                                "whenCompleteAsync",
+                                "(Ljava/util/function/BiConsumer;)Ljava/util/concurrent/CompletableFuture;"))));
+         */
+        new ViteWebsocketConnectorPatcher().apply(producer);
     }
 
     @SafeVarargs
@@ -113,6 +128,15 @@ public class OffendingMethodCallsReplacer {
             Class<?> clazz, String method, Map.Entry<MethodSignature, MethodSignature>... replacements) {
         return new BytecodeTransformerBuildItem(
                 clazz.getName(),
+                (s, classVisitor) ->
+                        new MethodReplacementClassVisitor(classVisitor, method, Map.ofEntries(replacements)));
+    }
+
+    @SafeVarargs
+    private static BytecodeTransformerBuildItem transform(
+            String clazz, String method, Map.Entry<MethodSignature, MethodSignature>... replacements) {
+        return new BytecodeTransformerBuildItem(
+                clazz,
                 (s, classVisitor) ->
                         new MethodReplacementClassVisitor(classVisitor, method, Map.ofEntries(replacements)));
     }
