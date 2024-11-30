@@ -33,6 +33,7 @@ import io.quarkus.gizmo.MethodDescriptor;
 import org.springframework.data.domain.Sort;
 
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
+import com.github.mcollovati.quarkus.hilla.deployment.ViteWebsocketConnectorPatcher;
 
 public class OffendingMethodCallsReplacer {
 
@@ -108,6 +109,7 @@ public class OffendingMethodCallsReplacer {
         }));
         // java/util/concurrent/CompletableFuture.whenComplete
         // (Ljava/util/function/BiConsumer;)Ljava/util/concurrent/CompletableFuture;
+        /*
         producer.produce(transform(
                 "com.vaadin.base.devserver.viteproxy.ViteWebsocketConnection",
                 "<init>",
@@ -117,6 +119,8 @@ public class OffendingMethodCallsReplacer {
                                 "java/util/concurrent/CompletableFuture",
                                 "whenCompleteAsync",
                                 "(Ljava/util/function/BiConsumer;)Ljava/util/concurrent/CompletableFuture;"))));
+         */
+        new ViteWebsocketConnectorPatcher().apply(producer);
     }
 
     @SafeVarargs
