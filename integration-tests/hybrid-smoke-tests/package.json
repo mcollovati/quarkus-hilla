@@ -32,11 +32,11 @@
     "react-router-dom": "6.28.0"
   },
   "devDependencies": {
-    "@babel/preset-react": "7.25.9",
+    "@babel/preset-react": "7.26.3",
     "@preact/signals-react-transform": "0.4.0",
     "@rollup/plugin-replace": "6.0.1",
     "@rollup/pluginutils": "5.1.3",
-    "@types/react": "18.3.12",
+    "@types/react": "18.3.13",
     "@types/react-dom": "18.3.1",
     "@vaadin/hilla-generator-cli": "24.6.0-beta5",
     "@vaadin/hilla-generator-core": "24.6.0-beta5",
@@ -130,11 +130,11 @@
       "react-router-dom": "6.28.0"
     },
     "devDependencies": {
-      "@babel/preset-react": "7.25.9",
+      "@babel/preset-react": "7.26.3",
       "@preact/signals-react-transform": "0.4.0",
       "@rollup/plugin-replace": "6.0.1",
       "@rollup/pluginutils": "5.1.3",
-      "@types/react": "18.3.12",
+      "@types/react": "18.3.13",
       "@types/react-dom": "18.3.1",
       "@vaadin/hilla-generator-cli": "24.6.0-beta5",
       "@vaadin/hilla-generator-core": "24.6.0-beta5",
@@ -160,7 +160,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "97d668d20c7340166e7697b23360a47f741095cc2580b2abb51dcd5e69089762"
+    "hash": "7cfe5e2d4db2325dccb8d2a02b01e25129afc9854838e55f6a87388d92e2dffa"
   },
   "type": "module"
 }
