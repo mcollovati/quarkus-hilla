@@ -47,7 +47,7 @@
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>24.4.18</hilla.version>
+        <hilla.version>24.4.20</hilla.version>
         <vaadin.version>${hilla.version}</vaadin.version>
 
         <jackson.version>2.18.2</jackson.version>
