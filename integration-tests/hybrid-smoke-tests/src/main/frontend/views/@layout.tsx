@@ -2,7 +2,7 @@ import {AppLayout, DrawerToggle, SideNav, SideNavItem, ProgressBar, Button} from
 import {createMenuItems, useViewConfig} from "@vaadin/hilla-file-router/runtime.js";
 import { Signal, signal, effect } from '@vaadin/hilla-react-signals';
 import {Suspense, useEffect} from 'react';
-import {NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import {NavLink, Outlet, useLocation, useNavigate } from "react-router";
 import { useAuth } from 'Frontend/auth';
 
 const vaadin = window.Vaadin as {

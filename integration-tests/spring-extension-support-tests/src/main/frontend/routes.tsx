@@ -2,7 +2,7 @@ import HelloWorldView from 'Frontend/views/helloworld/HelloWorldView.js';
 import AutoGridView from 'Frontend/views/autogrid/AutoGridView.js';
 import MainLayout from 'Frontend/views/MainLayout.js';
 import { lazy } from 'react';
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
+import { createBrowserRouter, RouteObject } from 'react-router';
 import AutoCrudView from "Frontend/views/autocrud/AutoCrudView";
 import AutoFormView from "Frontend/views/autoform/AutoFormView";
 

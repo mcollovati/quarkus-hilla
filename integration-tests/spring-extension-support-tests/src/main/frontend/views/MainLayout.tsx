@@ -3,7 +3,7 @@ import {DrawerToggle} from '@vaadin/react-components/DrawerToggle.js';
 import Placeholder from 'Frontend/components/placeholder/Placeholder';
 import {useRouteMetadata} from 'Frontend/util/routing';
 import {Suspense} from 'react';
-import {NavLink, Outlet} from 'react-router-dom';
+import {NavLink, Outlet} from 'react-router';
 
 const navLinkClasses = ({isActive}: any) => {
     return `block rounded-m p-s ${isActive ? 'bg-primary-10 text-primary' : 'text-body'}`;
