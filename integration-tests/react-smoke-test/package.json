@@ -22,7 +22,7 @@
     "@vaadin/bundles": "24.3.18",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/router": "1.7.5",
-    "@vaadin/vaadin-lumo-styles": "^24.3.0",
+    "@vaadin/vaadin-lumo-styles": "24.3.22",
     "classnames": "^2.3.2",
     "construct-style-sheets-polyfill": "3.1.0",
     "lit": "3.1.2",
