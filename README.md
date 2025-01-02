@@ -61,6 +61,7 @@ If `connect-client.ts` exists and does not match the default Hilla template, it 
 
 The current Hilla support has some known limitations:
 
+* Vaadin Copilot is not supported
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
 * Native image compilation does not work
