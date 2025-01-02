@@ -45,7 +45,7 @@
         <quarkus.version>3.6.9</quarkus.version>
         <hilla.version>2.5.8</hilla.version>
 
-        <assertj.version>3.26.3</assertj.version>
+        <assertj.version>3.27.1</assertj.version>
 
         <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.2</maven-surefire-plugin.version>
