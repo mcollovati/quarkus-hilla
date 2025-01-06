@@ -48,6 +48,7 @@
             To be removed in the future
         -->
         <hilla.version>24.7-SNAPSHOT</hilla.version>
+        <flow.version>${hilla.version}</flow.version>
         <vaadin.version>${hilla.version}</vaadin.version>
         <vaadin.quarkus.version>2.1-SNAPSHOT</vaadin.quarkus.version>
 
