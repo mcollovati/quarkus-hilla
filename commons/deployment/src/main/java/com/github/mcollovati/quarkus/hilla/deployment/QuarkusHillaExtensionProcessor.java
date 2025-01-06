@@ -73,6 +73,7 @@ import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildIte
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.deployment.BodyHandlerBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
+import io.quarkus.vertx.http.deployment.SecurityInformationBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
@@ -449,20 +450,16 @@ class QuarkusHillaExtensionProcessor {
     void registerNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
             CombinedIndexBuildItem index,
+            List<SecurityInformationBuildItem> securityInformation,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
 
-        Set<DotName> securityAnnotations = Set.of(
-                DotName.createSimple(DenyAll.class.getName()),
-                DotName.createSimple(AnonymousAllowed.class.getName()),
-                DotName.createSimple(RolesAllowed.class.getName()),
-                DotName.createSimple(PermitAll.class.getName()));
-        boolean hasSecuredRoutes =
-                index.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
-                        .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
-                        .anyMatch(securityAnnotations::contains);
-        if (authFormBuildItem.isEnabled()) {
+        boolean oidcEnabled = securityInformation.stream()
+                .map(SecurityInformationBuildItem::getSecurityModel)
+                .anyMatch(model -> model == SecurityInformationBuildItem.SecurityModel.oidc);
+
+        if (authFormBuildItem.isEnabled() || oidcEnabled) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
                             QuarkusNavigationAccessControl.class,
@@ -470,16 +467,37 @@ class QuarkusHillaExtensionProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-            if (hasSecuredRoutes) {
+
+            if (hasSecuredRoutes(index)) {
                 accessCheckerProducer.produce(
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
             }
 
-            ConfigProvider.getConfig()
-                    .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                    .map(NavigationAccessControlBuildItem::new)
-                    .ifPresent(accessControlProducer::produce);
+            if (authFormBuildItem.isEnabled()) {
+                ConfigProvider.getConfig()
+                        .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
+                        .map(NavigationAccessControlBuildItem::new)
+                        .ifPresent(accessControlProducer::produce);
+            }
+
+            if (oidcEnabled) {
+                ConfigProvider.getConfig()
+                        .getOptionalValue("vaadin.oidc.login.path", String.class)
+                        .map(NavigationAccessControlBuildItem::new)
+                        .ifPresent(accessControlProducer::produce);
+            }
         }
+    }
+
+    private boolean hasSecuredRoutes(CombinedIndexBuildItem indexBuildItem) {
+        Set<DotName> securityAnnotations = Set.of(
+                DotName.createSimple(DenyAll.class.getName()),
+                DotName.createSimple(AnonymousAllowed.class.getName()),
+                DotName.createSimple(RolesAllowed.class.getName()),
+                DotName.createSimple(PermitAll.class.getName()));
+        return indexBuildItem.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
+                .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
+                .anyMatch(securityAnnotations::contains);
     }
 
     @BuildStep
