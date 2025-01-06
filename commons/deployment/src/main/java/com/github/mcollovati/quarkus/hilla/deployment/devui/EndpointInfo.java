@@ -17,16 +17,20 @@ package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
 import jakarta.annotation.Nullable;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import io.quarkus.arc.deployment.devui.Name;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
+import org.jboss.jandex.IndexView;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.jandex.Type;
 
 public record EndpointInfo(
         AnnotationTarget.Kind kind,
@@ -38,15 +42,22 @@ public record EndpointInfo(
 
     public static DotName ENDPOINT_ANNOTATION = DotName.createSimple("com.vaadin.hilla.Endpoint");
     public static DotName BROWSER_CALLABLE_ANNOTATION = DotName.createSimple("com.vaadin.hilla.BrowserCallable");
+    public static DotName ENDPOINT_EXPOSED_ANNOTATION = DotName.createSimple("com.vaadin.hilla.EndpointExposed");
     public static DotName DENY_ALL_ANNOTATION = DotName.createSimple("jakarta.annotation.security.DenyAll");
-    public static DotName PERMIT_ALL_ANNOTATION = DotName.createSimple("jakarta.annotation.security.PermitAll");
     public static DotName ROLES_ALLOWED_ANNOTATION = DotName.createSimple("jakarta.annotation.security.RolesAllowed");
     public static DotName ANONYMOUS_ALLOWED_ANNOTATION =
             DotName.createSimple("com.vaadin.flow.server.auth.AnonymousAllowed");
     private static final AccessAnnotationInfo DENY_ALL_ACCESS_ANNOTATION_INFO =
             new AccessAnnotationInfo(Name.from(DENY_ALL_ANNOTATION), Collections.emptyList());
 
-    public static EndpointInfo from(ClassInfo classInfo) {
+    /**
+     * Creates an {@link EndpointInfo} from the given {@link ClassInfo}.
+     *
+     * @param classInfo the class info to create the endpoint info from
+     * @param computingIndex the computing index, not the normal index
+     * @return the created endpoint info
+     */
+    public static EndpointInfo from(ClassInfo classInfo, IndexView computingIndex) {
         final var accessAnnotation =
                 getEffectiveAccessAnnotation(classInfo.declaredAnnotations()).orElse(DENY_ALL_ACCESS_ANNOTATION_INFO);
         return new EndpointInfo(
@@ -60,11 +71,31 @@ public record EndpointInfo(
                         .map(DotName::withoutPackagePrefix)
                         .orElse(null),
                 accessAnnotation,
-                classInfo.methods().stream()
-                        .filter(m ->
-                                Modifier.isPublic(m.flags()) && !m.isConstructor() && !Modifier.isStatic(m.flags()))
-                        .map(m -> from(m, accessAnnotation))
-                        .toList());
+                retrieveExposedMethods(computingIndex, classInfo, accessAnnotation));
+    }
+
+    private static List<EndpointInfo> retrieveExposedMethods(
+            IndexView index, ClassInfo classInfo, AccessAnnotationInfo accessAnnotation) {
+        return Stream.concat(Stream.of(classInfo), getExposedSuperClasses(classInfo, index).stream())
+                .flatMap(c -> c.methodsInDeclarationOrder().stream())
+                .filter(m -> Modifier.isPublic(m.flags()) && !m.isConstructor() && !Modifier.isStatic(m.flags()))
+                .map(m -> from(m, accessAnnotation))
+                .toList();
+    }
+
+    private static List<ClassInfo> getExposedSuperClasses(ClassInfo classInfo, IndexView index) {
+        List<ClassInfo> superClasses = new ArrayList<>();
+        Type superClassType = classInfo.superClassType();
+        do {
+            final var superClass = index.getClassByName(superClassType.name());
+            if (superClass == null) break;
+            if (superClass.hasAnnotation(ENDPOINT_EXPOSED_ANNOTATION)) {
+                superClasses.add(superClass);
+            }
+            superClassType = superClass.superClassType();
+        } while (superClassType != null);
+
+        return superClasses;
     }
 
     public static EndpointInfo from(MethodInfo methodInfo, AccessAnnotationInfo classAccessAnnotation) {
@@ -78,8 +109,9 @@ public record EndpointInfo(
     }
 
     /**
-     * Returns the effective access annotation. Based on the following rules:
-     * <a href="https://hilla.dev/docs/react/guides/security/configuring">...</a>
+     * Returns the effective access annotation.
+     * Based on the
+     * <a href="https://vaadin.com/docs/latest/hilla/guides/security/configuring#security-options">security rules</a>.
      * @param annotations the annotations
      * @return the effective access annotation, if any
      */
@@ -100,6 +132,7 @@ public record EndpointInfo(
                     } else if (a2.name().equals(ROLES_ALLOWED_ANNOTATION)) {
                         return a2;
                     } else {
+                        // PermitAll
                         return a1;
                     }
                 })

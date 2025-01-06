@@ -15,6 +15,12 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.stream.Stream;
+
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -28,15 +34,10 @@ import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Stream;
-
 public class QuarkusHillaDevUICommonsProcessor {
 
-    private static final GACT UI_JAR = new GACT("com.github.mcollovati", "quarkus-hilla-commons-deployment", null, "jar");
+    private static final GACT UI_JAR =
+            new GACT("com.github.mcollovati", "quarkus-hilla-commons-deployment", null, "jar");
     private static final String NAMESPACE = UI_JAR.getGroupId() + "." + UI_JAR.getArtifactId();
     private static final String DEV_UI = "dev-ui";
 
@@ -54,7 +55,7 @@ public class QuarkusHillaDevUICommonsProcessor {
                 .filter(target -> target.kind().equals(AnnotationTarget.Kind.CLASS))
                 .map(AnnotationTarget::asClass)
                 .filter(c -> !SIGNALS_HANDLER.equals(c.name()))
-                .map(EndpointInfo::from)
+                .map(e -> EndpointInfo.from(e, combinedIndexBuildItem.getComputingIndex()))
                 .toList();
         return new EndpointBuildItem(endpoints);
     }
