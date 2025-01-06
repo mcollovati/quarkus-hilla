@@ -244,11 +244,20 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    AuthFormBuildItem authFormEnabledBuildItem() {
-        boolean authFormEnabled = ConfigProvider.getConfig()
+    HillaSecurityBuildItem hillaSecurityBuildItem(List<SecurityInformationBuildItem> securityInformation) {
+        final boolean authFormEnabled = ConfigProvider.getConfig()
                 .getOptionalValue("quarkus.http.auth.form.enabled", Boolean.class)
                 .orElse(false);
-        return new AuthFormBuildItem(authFormEnabled);
+
+        if (authFormEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityPolicy.FORM);
+
+        final boolean oidcEnabled = securityInformation.stream()
+                .map(SecurityInformationBuildItem::getSecurityModel)
+                .anyMatch(model -> model == SecurityInformationBuildItem.SecurityModel.oidc);
+
+        if (oidcEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityPolicy.OIDC);
+
+        return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityPolicy.NONE);
     }
 
     @BuildStep
@@ -380,8 +389,9 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void registerHillaSecurityPolicy(AuthFormBuildItem authFormEnabled, BuildProducer<AdditionalBeanBuildItem> beans) {
-        if (authFormEnabled.isEnabled()) {
+    void registerHillaSecurityPolicy(
+            HillaSecurityBuildItem hillaSecurityBuildItem, BuildProducer<AdditionalBeanBuildItem> beans) {
+        if (hillaSecurityBuildItem.isAuthEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class)
                     .setDefaultScope(DotNames.APPLICATION_SCOPED)
@@ -393,10 +403,10 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void registerHillaFormAuthenticationMechanism(
-            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityBuildItem hillaSecurityBuildItem,
             HillaSecurityRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> producer) {
-        if (authFormBuildItem.isEnabled()) {
+        if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.FORM) {
             producer.produce(SyntheticBeanBuildItem.configure(HillaFormAuthenticationMechanism.class)
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
@@ -412,8 +422,10 @@ class QuarkusHillaExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     void configureHillaSecurityComponents(
-            AuthFormBuildItem authFormBuildItem, HillaSecurityRecorder recorder, BeanContainerBuildItem beanContainer) {
-        if (authFormBuildItem.isEnabled()) {
+            HillaSecurityBuildItem hillaSecurityBuildItem,
+            HillaSecurityRecorder recorder,
+            BeanContainerBuildItem beanContainer) {
+        if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.FORM) {
             recorder.configureHttpSecurityPolicy(beanContainer.getValue());
         }
     }
@@ -443,18 +455,13 @@ class QuarkusHillaExtensionProcessor {
 
     @BuildStep
     void registerNavigationAccessControl(
-            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityBuildItem hillaSecurityBuildItem,
             CombinedIndexBuildItem index,
-            List<SecurityInformationBuildItem> securityInformation,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
 
-        boolean oidcEnabled = securityInformation.stream()
-                .map(SecurityInformationBuildItem::getSecurityModel)
-                .anyMatch(model -> model == SecurityInformationBuildItem.SecurityModel.oidc);
-
-        if (authFormBuildItem.isEnabled() || oidcEnabled) {
+        if (hillaSecurityBuildItem.isAuthEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
                             QuarkusNavigationAccessControl.class,
@@ -468,14 +475,12 @@ class QuarkusHillaExtensionProcessor {
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
             }
 
-            if (authFormBuildItem.isEnabled()) {
+            if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.FORM) {
                 ConfigProvider.getConfig()
                         .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
                         .map(NavigationAccessControlBuildItem::new)
                         .ifPresent(accessControlProducer::produce);
-            }
-
-            if (oidcEnabled) {
+            } else if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.OIDC) {
                 ConfigProvider.getConfig()
                         .getOptionalValue("vaadin.oidc.login.path", String.class)
                         .map(NavigationAccessControlBuildItem::new)
