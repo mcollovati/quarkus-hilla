@@ -421,7 +421,10 @@ class QuarkusHillaExtensionProcessor {
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer) {
         if (hillaSecurityBuildItem.isFormAuthEnabled()) {
-            recorder.configureHttpSecurityPolicy(beanContainer.getValue());
+            recorder.configureFormLoginHttpSecurityPolicy(beanContainer.getValue());
+        }
+        if (hillaSecurityBuildItem.isAuthEnabled()) {
+            recorder.markSecurityPolicyUsed();
         }
     }
 
