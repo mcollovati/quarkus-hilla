@@ -43,7 +43,7 @@ public interface QuarkusEndpointConfiguration {
     String getEndpointPrefix();
 
     /**
-     * It is the same as {@link #getEndpointPrefix()} but without trailing slashes.
+     * It is the same as {@link #getEndpointPrefix()} but ensures a starting slash and removes a trailing slash.
      * @return the trimmed endpoint prefix, default is "/connect"
      */
     default String GetStandardizedEndpointPrefix() {
