@@ -301,15 +301,9 @@ class QuarkusHillaExtensionProcessor {
             NativeConfig nativeConfig) {
         ServletBuildItem.Builder builder = ServletBuildItem.builder(
                 QuarkusAtmosphereServlet.class.getName(), QuarkusAtmosphereServlet.class.getName());
-        String prefix = endpointConfiguration.getEndpointPrefix();
-        if (prefix.matches("^/?connect/?$")) {
-            prefix = "/";
-        } else if (!prefix.startsWith("/")) {
-            prefix = "/" + prefix;
-        }
-        if (prefix.endsWith("/")) {
-            prefix = prefix.substring(0, prefix.length() - 1);
-        }
+        String prefix = endpointConfiguration.isDefaultEndpointPrefix()
+                ? ""
+                : endpointConfiguration.getNormalizedEndpointPrefix();
         String hillaPushMapping = prefix + "/HILLA/push";
 
         builder.addMapping(hillaPushMapping)
