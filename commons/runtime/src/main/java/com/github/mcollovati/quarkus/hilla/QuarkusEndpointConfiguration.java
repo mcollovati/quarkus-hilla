@@ -24,7 +24,7 @@ import io.smallrye.config.WithName;
 import static com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration.CONFIG_PREFIX;
 
 /**
- * hilla conf
+ * The configuration for the Vaadin endpoint.
  */
 @ConfigMapping(prefix = CONFIG_PREFIX)
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
@@ -32,11 +32,28 @@ public interface QuarkusEndpointConfiguration {
 
     String CONFIG_PREFIX = "vaadin.endpoint";
     String VAADIN_ENDPOINT_PREFIX = CONFIG_PREFIX + ".prefix";
+    String DEFAULT_ENDPOINT_PREFIX = "/connect";
 
     /**
-     * prefix
+     * The prefix for the Vaadin endpoint.
+     * @return the connect endpoint prefix, default is "/connect"
      */
     @WithName("prefix")
-    @WithDefault("/connect")
+    @WithDefault(DEFAULT_ENDPOINT_PREFIX)
     String getEndpointPrefix();
+
+    /**
+     * It is the same as {@link #getEndpointPrefix()} but without trailing slashes.
+     * @return the trimmed endpoint prefix, default is "/connect"
+     */
+    default String GetStandardizedEndpointPrefix() {
+        String prefix = getEndpointPrefix();
+        if (!prefix.startsWith("/")) {
+            prefix = "/" + prefix;
+        }
+        if (prefix.endsWith("/")) {
+            prefix = prefix.substring(0, prefix.length() - 1);
+        }
+        return prefix;
+    }
 }
