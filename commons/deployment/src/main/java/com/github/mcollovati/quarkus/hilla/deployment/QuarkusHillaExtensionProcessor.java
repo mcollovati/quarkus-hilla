@@ -249,15 +249,15 @@ class QuarkusHillaExtensionProcessor {
                 .getOptionalValue("quarkus.http.auth.form.enabled", Boolean.class)
                 .orElse(false);
 
-        if (authFormEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityPolicy.FORM);
+        if (authFormEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.FORM);
 
         final boolean oidcEnabled = securityInformation.stream()
                 .map(SecurityInformationBuildItem::getSecurityModel)
                 .anyMatch(model -> model == SecurityInformationBuildItem.SecurityModel.oidc);
 
-        if (oidcEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityPolicy.OIDC);
+        if (oidcEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC);
 
-        return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityPolicy.NONE);
+        return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.NONE);
     }
 
     @BuildStep
@@ -300,14 +300,9 @@ class QuarkusHillaExtensionProcessor {
             NativeConfig nativeConfig) {
         ServletBuildItem.Builder builder = ServletBuildItem.builder(
                 QuarkusAtmosphereServlet.class.getName(), QuarkusAtmosphereServlet.class.getName());
-        String prefix = endpointConfiguration.getEndpointPrefix();
-        if (prefix.matches("^/?connect/?$")) {
+        String prefix = endpointConfiguration.GetStandardizedEndpointPrefix();
+        if (prefix.equals(QuarkusEndpointConfiguration.DEFAULT_ENDPOINT_PREFIX)) {
             prefix = "/";
-        } else if (!prefix.startsWith("/")) {
-            prefix = "/" + prefix;
-        }
-        if (prefix.endsWith("/")) {
-            prefix = prefix.substring(0, prefix.length() - 1);
         }
         String hillaPushMapping = prefix + "/HILLA/push";
 
@@ -406,7 +401,7 @@ class QuarkusHillaExtensionProcessor {
             HillaSecurityBuildItem hillaSecurityBuildItem,
             HillaSecurityRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> producer) {
-        if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.FORM) {
+        if (hillaSecurityBuildItem.isFormAuthEnabled()) {
             producer.produce(SyntheticBeanBuildItem.configure(HillaFormAuthenticationMechanism.class)
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
@@ -425,7 +420,7 @@ class QuarkusHillaExtensionProcessor {
             HillaSecurityBuildItem hillaSecurityBuildItem,
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer) {
-        if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.FORM) {
+        if (hillaSecurityBuildItem.isFormAuthEnabled()) {
             recorder.configureHttpSecurityPolicy(beanContainer.getValue());
         }
     }
@@ -475,12 +470,12 @@ class QuarkusHillaExtensionProcessor {
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
             }
 
-            if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.FORM) {
+            if (hillaSecurityBuildItem.isFormAuthEnabled()) {
                 ConfigProvider.getConfig()
                         .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
                         .map(NavigationAccessControlBuildItem::new)
                         .ifPresent(accessControlProducer::produce);
-            } else if (hillaSecurityBuildItem.getSecurityPolicy() == HillaSecurityBuildItem.SecurityPolicy.OIDC) {
+            } else if (hillaSecurityBuildItem.getSecurityModel() == HillaSecurityBuildItem.SecurityModel.OIDC) {
                 ConfigProvider.getConfig()
                         .getOptionalValue("vaadin.oidc.login.path", String.class)
                         .map(NavigationAccessControlBuildItem::new)
