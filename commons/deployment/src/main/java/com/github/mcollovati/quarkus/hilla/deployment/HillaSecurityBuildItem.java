@@ -19,21 +19,25 @@ import io.quarkus.builder.item.SimpleBuildItem;
 
 public final class HillaSecurityBuildItem extends SimpleBuildItem {
 
-    private final SecurityPolicy policy;
+    private final SecurityModel policy;
 
-    public HillaSecurityBuildItem(SecurityPolicy policy) {
-        this.policy = policy;
+    public HillaSecurityBuildItem(SecurityModel securityModel) {
+        this.policy = securityModel;
     }
 
-    public SecurityPolicy getSecurityPolicy() {
+    public SecurityModel getSecurityModel() {
         return policy;
     }
 
     boolean isAuthEnabled() {
-        return policy != SecurityPolicy.NONE;
+        return policy != SecurityModel.NONE;
     }
 
-    enum SecurityPolicy {
+    boolean isFormAuthEnabled() {
+        return policy == SecurityModel.FORM;
+    }
+
+    enum SecurityModel {
         NONE,
         FORM,
         OIDC

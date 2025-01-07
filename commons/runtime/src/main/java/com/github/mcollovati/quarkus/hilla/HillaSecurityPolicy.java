@@ -17,7 +17,6 @@ package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +37,7 @@ import com.vaadin.flow.server.auth.AccessCheckDecision;
 import com.vaadin.flow.server.auth.AccessCheckResult;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import com.vaadin.flow.server.auth.NavigationContext;
+import com.vaadin.hilla.parser.utils.Streams;
 import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
@@ -59,6 +59,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     @Inject
     NavigationAccessControl accessControl;
 
+    @Inject
+    QuarkusEndpointConfiguration endpointConfiguration;
+
     VaadinService vaadinService;
 
     public HillaSecurityPolicy() {
@@ -68,12 +71,14 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private void buildPathMatcher(Consumer<ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean>> customizer) {
         ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean> pathMatcherBuilder = ImmutablePathMatcher.builder();
-        Arrays.stream(HandlerHelper.getPublicResourcesRequiringSecurityContext())
-                .map(this::computePath)
-                .forEach(p -> pathMatcherBuilder.addPath(p, true));
+        String connectPath = endpointConfiguration.GetStandardizedEndpointPrefix();
+        pathMatcherBuilder.addPath(connectPath + "/*", true);
         pathMatcherBuilder.addPath("/HILLA/*", true);
-        pathMatcherBuilder.addPath("/connect/*", true);
-        Arrays.stream(HandlerHelper.getPublicResources())
+        Streams.combine(
+                        HandlerHelper.getPublicResources(),
+                        HandlerHelper.getPublicResourcesRoot(),
+                        // Contains /VAADIN/*
+                        HandlerHelper.getPublicResourcesRequiringSecurityContext())
                 .map(this::computePath)
                 .forEach(p -> pathMatcherBuilder.addPath(p, true));
         if (customizer != null) {
@@ -86,10 +91,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
         Boolean permittedPath = pathMatcher.match(request.request().path()).getValue();
-        NavigationContext navigationContext = tryCreateNavigationContext(request);
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
-                || isAnonymousRoute(navigationContext, request.normalizedPath())) {
+                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())) {
             return Uni.createFrom().item(CheckResult.PERMIT);
         }
         return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
