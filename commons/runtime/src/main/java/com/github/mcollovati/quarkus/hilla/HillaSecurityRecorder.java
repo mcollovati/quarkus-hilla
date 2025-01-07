@@ -39,11 +39,13 @@ public class HillaSecurityRecorder {
         };
     }
 
-    public void configureHttpSecurityPolicy(BeanContainer container) {
+    public void configureFormLoginHttpSecurityPolicy(BeanContainer container) {
         Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
         policy.withFormLogin(config);
-        // TODO move somewhere else, so it is also called for OIDC
+    }
+
+    public void markSecurityPolicyUsed() {
         QuarkusHillaExtension.markSecurityPolicyUsed();
     }
 
