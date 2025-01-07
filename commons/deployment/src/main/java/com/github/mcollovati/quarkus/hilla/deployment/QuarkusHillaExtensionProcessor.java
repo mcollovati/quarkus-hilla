@@ -473,13 +473,12 @@ class QuarkusHillaExtensionProcessor {
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
             }
 
-            if (hillaSecurityBuildItem.isFormAuthEnabled()) {
-                ConfigProvider.getConfig()
+            switch (hillaSecurityBuildItem.getSecurityModel()) {
+                case FORM -> ConfigProvider.getConfig()
                         .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
                         .map(NavigationAccessControlBuildItem::new)
                         .ifPresent(accessControlProducer::produce);
-            } else if (hillaSecurityBuildItem.getSecurityModel() == HillaSecurityBuildItem.SecurityModel.OIDC) {
-                ConfigProvider.getConfig()
+                case OIDC -> ConfigProvider.getConfig()
                         .getOptionalValue("vaadin.oidc.login.path", String.class)
                         .map(NavigationAccessControlBuildItem::new)
                         .ifPresent(accessControlProducer::produce);
