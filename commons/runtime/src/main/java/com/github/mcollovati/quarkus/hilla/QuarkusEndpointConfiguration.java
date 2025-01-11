@@ -56,4 +56,12 @@ public interface QuarkusEndpointConfiguration {
         }
         return prefix;
     }
+
+    /**
+     * Checks if the endpoint prefix is the default one.
+     * @return true if the endpoint prefix is the default one
+     */
+    default boolean isDefaultEndpointPrefix() {
+        return DEFAULT_ENDPOINT_PREFIX.equals(GetStandardizedEndpointPrefix());
+    }
 }
