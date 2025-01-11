@@ -257,6 +257,12 @@ class QuarkusHillaExtensionProcessor {
 
         if (oidcEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC);
 
+        final boolean oauth2Enabled = ConfigProvider.getConfig()
+                .getOptionalValue("quarkus.oauth2.enabled", Boolean.class)
+                .orElse(false);
+
+        if (oauth2Enabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OAUTH2);
+
         return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.NONE);
     }
 
