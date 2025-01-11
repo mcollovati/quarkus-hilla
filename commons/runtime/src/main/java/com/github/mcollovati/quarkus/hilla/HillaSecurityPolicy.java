@@ -16,7 +16,6 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -56,16 +55,16 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private ImmutablePathMatcher<Boolean> pathMatcher;
     private final AuthenticatedHttpSecurityPolicy authenticatedHttpSecurityPolicy;
 
-    @Inject
-    NavigationAccessControl accessControl;
-
-    @Inject
-    QuarkusEndpointConfiguration endpointConfiguration;
+    private final NavigationAccessControl accessControl;
+    private final QuarkusEndpointConfiguration endpointConfiguration;
 
     VaadinService vaadinService;
 
-    public HillaSecurityPolicy() {
-        authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
+    public HillaSecurityPolicy(
+            NavigationAccessControl accessControl, QuarkusEndpointConfiguration endpointConfiguration) {
+        this.authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
+        this.accessControl = accessControl;
+        this.endpointConfiguration = endpointConfiguration;
         buildPathMatcher(null);
     }
 
