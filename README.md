@@ -93,7 +93,7 @@ The current Hilla support has some known limitations:
                             </dependency>
                         </dependencies>
                     </plugin>
-  ``` 
+  ```
 
 ## Auto CRUD, Auto Grid and Auto Form
 

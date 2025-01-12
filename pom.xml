@@ -464,6 +464,7 @@
             </activation>
             <modules>
                 <module>commons/hilla-shaded-deps</module>
+                <module>commons/aot-browser-finder-callable-workaround</module>
                 <module>lit/hilla-jandex</module>
                 <module>react/hilla-react-jandex</module>
                 <module>commons/runtime</module>
