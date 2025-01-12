@@ -44,6 +44,9 @@ import io.quarkus.runtime.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Quarkus implementation of Vaadin build plugin adapter.
+ */
 public class QuarkusPluginAdapter implements PluginAdapterBuild {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusPluginAdapter.class);
@@ -53,10 +56,21 @@ public class QuarkusPluginAdapter implements PluginAdapterBuild {
     private final SourceDir sourcesDir;
     private final SourceDir resourcesDir;
 
+    /**
+     * Gets the {@link ApplicationModel}.
+     *
+     * @return the {@link ApplicationModel} instance.
+     */
     public ApplicationModel getApplicationModel() {
         return model;
     }
 
+    /**
+     * Creates a new instance of {@link QuarkusPluginAdapter} for the give build configuration and application.
+     *
+     * @param config           the Vaadin build configuration.
+     * @param applicationModel the application model.
+     */
     public QuarkusPluginAdapter(VaadinBuildTimeConfig config, ApplicationModel applicationModel) {
         this.config = config;
         this.model = applicationModel;
@@ -392,6 +406,12 @@ public class QuarkusPluginAdapter implements PluginAdapterBuild {
         return config.npmExcludeWebComponents();
     }
 
+    /**
+     * Collects the path of the artifacts that compose the application classpath.
+     *
+     * @param model the application model.
+     * @return the path of the artifacts that compose the application classpath.
+     */
     public static Stream<Path> buildClasspath(ApplicationModel model) {
         return Stream.concat(
                 model.getApplicationModule().getMainSources().getOutputTree().getRoots().stream(),
