@@ -5,12 +5,19 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>com.github.mcollovati</groupId>
-        <artifactId>quarkus-hilla-tests</artifactId>
+        <artifactId>quarkus-hilla-parent</artifactId>
         <version>${revision}</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>browser-finder-callable-workaround</artifactId>
-    <description>Temporary hack to replace AotBrowserCallableFinder during build-frontend execution</description>
+    <artifactId>aot-browser-finder-callable-workaround</artifactId>
+    <description><![CDATA[
+        Workaround to replace AotBrowserCallableFinder during build-frontend execution.
+        Adding this artifact as dependency to vaadin-maven-plugin configuration should override the
+        AotBrowserCallableFinder class provided by Hilla with an implementation based on a Jandex index
+        built on the classpath provide by Hilla.
+
+    ]]></description>
 
     <dependencies>
         <dependency>
