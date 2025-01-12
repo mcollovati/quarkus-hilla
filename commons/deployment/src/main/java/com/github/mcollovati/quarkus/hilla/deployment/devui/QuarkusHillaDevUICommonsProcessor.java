@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -32,6 +33,7 @@ import io.quarkus.vertx.http.deployment.webjar.WebJarBuildItem;
 import io.quarkus.vertx.http.deployment.webjar.WebJarResourcesFilter;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 
 public class QuarkusHillaDevUICommonsProcessor {
@@ -55,6 +57,7 @@ public class QuarkusHillaDevUICommonsProcessor {
                 .filter(target -> target.kind().equals(AnnotationTarget.Kind.CLASS))
                 .map(AnnotationTarget::asClass)
                 .filter(c -> !SIGNALS_HANDLER.equals(c.name()))
+                .sorted(Comparator.comparing(ClassInfo::name))
                 .map(e -> EndpointInfo.from(e, combinedIndexBuildItem.getComputingIndex()))
                 .toList();
         return new EndpointBuildItem(endpoints);
