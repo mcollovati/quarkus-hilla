@@ -69,6 +69,7 @@ Hopefully, the behavior may be revisited. If you are interested you can follow t
 
 The current Hilla support has some known limitations:
 
+* Vaadin Copilot is not supported
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
 * With the current Vaadin 24.7 snapshots, frontend build fails because the Hilla endpoint generation tasks relies on the execution of a Spring process. However, there is a good chance that Hilla will provide a pluggable API for endpoint discovery before 24.7 stable release. As a temporary workaround you can enable Quarkus-Hilla **Experimental embedded Vaadin plugin implementation**, or you can add the `aot-browser-finder-callable-workaround` dependency to `vaadin-maven-plugin` configuration. The dependency workaround is required only when building for production; in development mode the offending class is automatically replaced by the extension.
