@@ -46,7 +46,7 @@ public interface QuarkusEndpointConfiguration {
      * It is the same as {@link #getEndpointPrefix()} but ensures a starting slash and removes a trailing slash.
      * @return the trimmed endpoint prefix, default is "/connect"
      */
-    default String GetStandardizedEndpointPrefix() {
+    default String getStandardizedEndpointPrefix() {
         String prefix = getEndpointPrefix();
         if (!prefix.startsWith("/")) {
             prefix = "/" + prefix;
@@ -62,6 +62,6 @@ public interface QuarkusEndpointConfiguration {
      * @return true if the endpoint prefix is the default one
      */
     default boolean isDefaultEndpointPrefix() {
-        return DEFAULT_ENDPOINT_PREFIX.equals(GetStandardizedEndpointPrefix());
+        return DEFAULT_ENDPOINT_PREFIX.equals(getStandardizedEndpointPrefix());
     }
 }
