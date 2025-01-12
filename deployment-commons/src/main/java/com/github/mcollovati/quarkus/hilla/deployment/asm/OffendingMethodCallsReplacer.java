@@ -22,7 +22,6 @@ import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
 import com.vaadin.hilla.EndpointUtil;
 import com.vaadin.hilla.Hotswapper;
-import com.vaadin.hilla.parser.utils.ConfigList;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
 import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
@@ -96,7 +95,7 @@ public class OffendingMethodCallsReplacer {
                 SecurityContextHolder_setContext,
                 SecurityContextHolder_clearContext));
         producer.produce(new BytecodeTransformerBuildItem(
-                ConfigList.Processor.class.getName(),
+                "com.vaadin.hilla.parser.plugins.nonnull.NonnullPluginConfig$Processor",
                 (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
 
         // Remove sort method that references a type that is not in the shaded deps jar
