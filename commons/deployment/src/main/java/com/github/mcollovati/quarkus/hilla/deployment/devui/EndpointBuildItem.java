@@ -32,8 +32,6 @@ public final class EndpointBuildItem extends SimpleBuildItem {
     }
 
     public int getEndpointMethodCount() {
-        return endpoints.stream()
-                .mapToInt(a -> a.children().size())
-                .sum();
+        return endpoints.stream().mapToInt(a -> a.children().size()).sum();
     }
 }
