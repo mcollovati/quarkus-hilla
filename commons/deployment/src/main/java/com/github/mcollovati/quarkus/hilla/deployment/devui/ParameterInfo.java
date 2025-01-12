@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Marco Collovati, Dario Götze
+ * Copyright 2024 Marco Collovati, Dario Götze
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla.deployment;
+package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
-import io.quarkus.builder.item.SimpleBuildItem;
+import org.jboss.jandex.MethodParameterInfo;
 
-public final class AuthFormBuildItem extends SimpleBuildItem {
+public record ParameterInfo(TypeInfo type, String name) {
 
-    private final boolean enabled;
-
-    public AuthFormBuildItem(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
+    public static ParameterInfo from(MethodParameterInfo parameterInfo) {
+        return new ParameterInfo(TypeInfo.from(parameterInfo.type()), parameterInfo.name());
     }
 }
