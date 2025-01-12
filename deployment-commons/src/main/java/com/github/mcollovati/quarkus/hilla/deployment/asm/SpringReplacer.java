@@ -20,7 +20,6 @@ import java.util.Map;
 import com.vaadin.hilla.AuthenticationUtil;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
-import com.vaadin.hilla.parser.utils.ConfigList;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -68,7 +67,7 @@ public class SpringReplacer {
                 SecurityContextHolder_setContext,
                 SecurityContextHolder_clearContext));
         producer.produce(new BytecodeTransformerBuildItem(
-                ConfigList.Processor.class.getName(),
+                "com.vaadin.hilla.parser.plugins.nonnull.NonnullPluginConfig$Processor",
                 (s, classVisitor) -> new NonnullPluginConfigProcessorClassVisitor(classVisitor)));
     }
 
