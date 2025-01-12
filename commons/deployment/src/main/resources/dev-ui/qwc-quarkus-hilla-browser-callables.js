@@ -81,13 +81,14 @@ export class QwcQuarkusHillaBrowserCallables extends LitElement {
             return html`
                 <vaadin-grid .dataProvider="${this._dataProvider}" .expandedItems="${this._expandedItems}"
                              class="datatable" theme="row-stripes">
-                    <vaadin-grid-sort-column header="Class"
+                    <vaadin-grid-column header="Class"
                                              resizable
                                              ${columnBodyRenderer(this._beanTreeRenderer, [])}
-                                             auto-width></vaadin-grid-sort-column>
-                    <vaadin-grid-sort-column header="Access" resizable
+                                             auto-width></vaadin-grid-column>
+                    <vaadin-grid-column header="Access"
+                                             resizable
                                              ${columnBodyRenderer(this._accessAnnotationRenderer, [])}
-                                             auto-width></vaadin-grid-sort-column>
+                                             auto-width></vaadin-grid-column>
                 </vaadin-grid>`;
         }
     }
