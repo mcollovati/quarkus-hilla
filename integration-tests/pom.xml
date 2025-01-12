@@ -198,6 +198,13 @@
                                 <phase>${vaadin-maven-plugin.phase}</phase>
                             </execution>
                         </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.github.mcollovati</groupId>
+                                <artifactId>browser-finder-callable-workaround</artifactId>
+                                <version>${project.version}</version>
+                            </dependency>
+                        </dependencies>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
@@ -339,5 +346,6 @@
         <module>panache-extension-support-tests</module>
         <module>hybrid-smoke-tests</module>
         <module>hybrid-vaadin-router-smoke-tests</module>
+        <module>browser-finder-callable-workaround</module>
     </modules>
 </project>
