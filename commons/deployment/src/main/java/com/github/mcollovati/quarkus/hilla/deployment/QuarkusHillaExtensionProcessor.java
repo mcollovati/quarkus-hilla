@@ -46,10 +46,12 @@ import io.quarkus.arc.deployment.SyntheticBeansRuntimeInitBuildItem;
 import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
+import io.quarkus.builder.BuildException;
 import io.quarkus.builder.item.MultiBuildItem;
 import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.IsDevelopment;
+import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
@@ -98,6 +100,9 @@ import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
+import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.QuarkusPluginAdapter;
+import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTimeConfig;
+import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 
@@ -518,6 +523,32 @@ class QuarkusHillaExtensionProcessor {
                 .setDefaultScope(DotNames.SINGLETON)
                 .setUnremovable()
                 .build());
+    }
+
+    @BuildStep(onlyIf = IsNormal.class)
+    void buildFrontendTask(
+            CurateOutcomeBuildItem outcomeBuildItem,
+            VaadinBuildTimeConfig vaadinConfig,
+            CombinedIndexBuildItem indexBuildItem,
+            BuildProducer<GeneratedResourceBuildItem> producer)
+            throws BuildException {
+        if (vaadinConfig.enabled()) {
+            VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
+            vaadinPlugin.prepareFrontend();
+            vaadinPlugin.buildFrontend(indexBuildItem.getComputingIndex());
+        }
+    }
+
+    public static final class VaadinPluginBuildItem extends SimpleBuildItem {
+        private final QuarkusPluginAdapter plugin;
+
+        public VaadinPluginBuildItem(QuarkusPluginAdapter plugin) {
+            this.plugin = plugin;
+        }
+
+        public QuarkusPluginAdapter getPlugin() {
+            return plugin;
+        }
     }
 
     public static final class NavigationAccessControlBuildItem extends SimpleBuildItem {

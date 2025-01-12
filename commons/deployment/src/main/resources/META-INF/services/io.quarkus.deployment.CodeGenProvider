@@ -16,3 +16,4 @@
 #
 
 com.github.mcollovati.quarkus.hilla.deployment.TypescriptClientCodeGenProvider
+#com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPrepareFrontendTask
