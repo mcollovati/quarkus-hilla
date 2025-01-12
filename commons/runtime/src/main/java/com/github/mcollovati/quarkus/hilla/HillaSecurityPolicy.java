@@ -70,7 +70,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private void buildPathMatcher(Consumer<ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean>> customizer) {
         ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean> pathMatcherBuilder = ImmutablePathMatcher.builder();
-        String connectPath = endpointConfiguration.GetStandardizedEndpointPrefix();
+        String connectPath = endpointConfiguration.getStandardizedEndpointPrefix();
         pathMatcherBuilder.addPath(connectPath + "/*", true);
         pathMatcherBuilder.addPath("/HILLA/*", true);
         Streams.combine(
