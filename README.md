@@ -56,6 +56,14 @@ will benefit from enhanced compatibility with future Vaadin features.
 A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`. The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient` object with the configured prefix.
 If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
 
+### Experimental embedded Vaadin plugin implementation
+
+Quarkus-Hilla 24.7 introduces an experimental feature that allows to simplify application setup by removing Vaadin Maven (or Gradle) plugin.
+The extension has a built-in implementation of the plugin that can be enabled setting `vaadin.build.enabled=true` in `application.properties` or as Java system property.
+
+To make the feature working properly in Maven, you also need to set `quarkus.bootstrap.workspace-discovery=true` in POM `properties` section, or as Java system property.
+This is required because when running build, Quarkus Maven plugin does not provide workspace information that are required by Vaadin internals to generate the frontend production bundle.
+Hopefully, the behavior may be revisited. If you are interested you can follow the [issue](https://github.com/quarkusio/quarkus/issues/45363) on Quarkus repository.
 
 ## Limitations
 
@@ -64,7 +72,29 @@ The current Hilla support has some known limitations:
 * Vaadin Copilot is not supported
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
-* Native image compilation does not work
+* With the current Vaadin 24.7 snapshots, frontend build fails because the Hilla endpoint generation tasks relies on the execution of a Spring process. However, there is a good chance that Hilla will provide a pluggable API for endpoint discovery before 24.7 stable release. As a temporary workaround you can enable Quarkus-Hilla **Experimental embedded Vaadin plugin implementation**, or you can add the `aot-browser-finder-callable-workaround` dependency to `vaadin-maven-plugin` configuration. The dependency workaround is required only when building for production; in development mode the offending class is automatically replaced by the extension.
+  ```xml
+                    <plugin>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>vaadin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>prepare-frontend</goal>
+                                    <goal>build-frontend</goal>
+                                </goals>
+                                <phase>compile</phase>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>com.github.mcollovati</groupId>
+                                <artifactId>aot-browser-finder-callable-workaround</artifactId>
+                                <version>${quarkus-hilla.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+  ```
 
 ## Auto CRUD, Auto Grid and Auto Form
 

@@ -15,23 +15,36 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
+import com.vaadin.hilla.ApplicationContextProvider;
 import com.vaadin.hilla.AuthenticationUtil;
+import com.vaadin.hilla.EndpointCodeGenerator;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
 import com.vaadin.hilla.EndpointUtil;
 import com.vaadin.hilla.Hotswapper;
+import com.vaadin.hilla.engine.EngineConfiguration;
 import com.vaadin.hilla.parser.utils.ConfigList;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
 import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
+import io.quarkus.gizmo.BranchResult;
+import io.quarkus.gizmo.BytecodeCreator;
 import io.quarkus.gizmo.ClassTransformer;
+import io.quarkus.gizmo.FieldDescriptor;
+import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
+import io.quarkus.gizmo.ResultHandle;
+import org.objectweb.asm.Opcodes;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Sort;
 
+import com.github.mcollovati.quarkus.hilla.HillaReplacements;
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
 public class OffendingMethodCallsReplacer {
@@ -106,6 +119,8 @@ public class OffendingMethodCallsReplacer {
             transformer.removeMethod(sortMethod);
             return transformer.applyTo(classVisitor);
         }));
+        producer.produce(applicationContextProvider_runOnContext_patch());
+        producer.produce(endpointCodeGenerator_findBrowserCallables_replacement());
     }
 
     @SafeVarargs
@@ -115,5 +130,59 @@ public class OffendingMethodCallsReplacer {
                 clazz.getName(),
                 (s, classVisitor) ->
                         new MethodReplacementClassVisitor(classVisitor, method, Map.ofEntries(replacements)));
+    }
+
+    private static BytecodeTransformerBuildItem applicationContextProvider_runOnContext_patch() {
+        return new BytecodeTransformerBuildItem(
+                ApplicationContextProvider.class.getName(), (className, classVisitor) -> {
+                    ClassTransformer transformer = new ClassTransformer(className);
+                    MethodDescriptor runOnContextMethod = MethodDescriptor.ofMethod(
+                            ApplicationContextProvider.class, "runOnContext", void.class, Consumer.class);
+                    transformer.removeMethod(runOnContextMethod);
+                    try (MethodCreator creator = transformer.addMethod(runOnContextMethod)) {
+                        creator.setModifiers(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC);
+                        ResultHandle appCtxField = creator.readStaticField(FieldDescriptor.of(
+                                ApplicationContextProvider.class, "applicationContext", ApplicationContext.class));
+                        ResultHandle pendingActionsField = creator.readStaticField(
+                                FieldDescriptor.of(ApplicationContextProvider.class, "pendingActions", List.class));
+                        BranchResult ifNullAppCtx = creator.ifNull(appCtxField);
+                        try (BytecodeCreator trueBranch = ifNullAppCtx.trueBranch()) {
+                            trueBranch.invokeInterfaceMethod(
+                                    MethodDescriptor.ofMethod(List.class, "add", boolean.class, Object.class),
+                                    pendingActionsField,
+                                    creator.getMethodParam(0));
+                        }
+                        try (BytecodeCreator falseBranch = ifNullAppCtx.falseBranch()) {
+                            falseBranch.invokeInterfaceMethod(
+                                    MethodDescriptor.ofMethod(Consumer.class, "accept", void.class, Object.class),
+                                    creator.getMethodParam(0),
+                                    appCtxField);
+                        }
+                        creator.returnVoid();
+                    }
+                    return transformer.applyTo(classVisitor);
+                });
+    }
+
+    private static BytecodeTransformerBuildItem endpointCodeGenerator_findBrowserCallables_replacement() {
+        return new BytecodeTransformerBuildItem(EndpointCodeGenerator.class.getName(), (className, classVisitor) -> {
+            ClassTransformer transformer = new ClassTransformer(className);
+            MethodDescriptor findBrowserCallablesMethod = MethodDescriptor.ofMethod(
+                    className, "findBrowserCallables", List.class, EngineConfiguration.class, ApplicationContext.class);
+            transformer.removeMethod(findBrowserCallablesMethod);
+            try (MethodCreator creator = transformer.addMethod(findBrowserCallablesMethod)) {
+                creator.setModifiers(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC);
+                creator.returnValue(creator.invokeStaticMethod(
+                        MethodDescriptor.ofMethod(
+                                HillaReplacements.class,
+                                "findBrowserCallables",
+                                List.class,
+                                EngineConfiguration.class,
+                                ApplicationContext.class),
+                        creator.getMethodParam(0),
+                        creator.getMethodParam(1)));
+            }
+            return transformer.applyTo(classVisitor);
+        });
     }
 }
