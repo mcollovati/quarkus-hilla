@@ -15,7 +15,6 @@
 
     <properties>
         <vaadin-maven-plugin.phase>compile</vaadin-maven-plugin.phase>
-        <quarkus.bootstrap.workspace-discovery>false</quarkus.bootstrap.workspace-discovery>
     </properties>
 
     <dependencies>
