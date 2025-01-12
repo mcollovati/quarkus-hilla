@@ -201,7 +201,7 @@
                         <dependencies>
                             <dependency>
                                 <groupId>com.github.mcollovati</groupId>
-                                <artifactId>browser-finder-callable-workaround</artifactId>
+                                <artifactId>aot-browser-finder-callable-workaround</artifactId>
                                 <version>${project.version}</version>
                             </dependency>
                         </dependencies>
@@ -346,6 +346,5 @@
         <module>panache-extension-support-tests</module>
         <module>hybrid-smoke-tests</module>
         <module>hybrid-vaadin-router-smoke-tests</module>
-        <module>browser-finder-callable-workaround</module>
     </modules>
 </project>
