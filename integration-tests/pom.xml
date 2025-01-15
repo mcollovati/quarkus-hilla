@@ -346,5 +346,6 @@
         <module>panache-extension-support-tests</module>
         <module>hybrid-smoke-tests</module>
         <module>hybrid-vaadin-router-smoke-tests</module>
+        <module>security-form-tests</module>
     </modules>
 </project>
