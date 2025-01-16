@@ -69,7 +69,6 @@ import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
-import org.slf4j.LoggerFactory;
 
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
@@ -82,7 +81,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
-import com.github.mcollovati.quarkus.hilla.deployment.asm.TransferTypesPluginClassVisitor;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTimeConfig;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
@@ -407,13 +405,6 @@ class QuarkusHillaExtensionProcessor {
             BuildProducer<GeneratedResourceBuildItem> producer)
             throws BuildException {
         if (vaadinConfig.enabled()) {
-            try {
-                TransferTypesPluginClassVisitor.reflectionPatch(
-                        Thread.currentThread().getContextClassLoader());
-            } catch (BuildException ex) {
-                LoggerFactory.getLogger(QuarkusHillaExtensionProcessor.class.getName())
-                        .warn(ex.getMessage());
-            }
             VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
             vaadinPlugin.prepareFrontend();
             vaadinPlugin.buildFrontend(indexBuildItem.getComputingIndex());

@@ -69,7 +69,6 @@ Hopefully, the behavior may be revisited. If you are interested you can follow t
 
 Starting with 24.7, the extension provide support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
 `MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription` , when an unsubscribe callback is needed.
-The feature works in development mode, but for a production build it currently requires the activation of the Quarkus Hilla Embedded Vaadin plugin.
 
 ```java
 @BrowserCallable
