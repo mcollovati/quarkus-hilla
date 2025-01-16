@@ -67,8 +67,8 @@ Hopefully, the behavior may be revisited. If you are interested you can follow t
 
 ### Support for Mutiny Multi return type in @BrowserCallable services
 
-Starting with 24.7, the extension provide support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
-`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription` , when an unsubscribe callback is needed.
+Starting with 24.7, the extension provides support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
+`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
 
 ```java
 @BrowserCallable
