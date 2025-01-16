@@ -15,11 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.asm;
 
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-
-import io.quarkus.builder.BuildException;
 import io.quarkus.gizmo.Gizmo;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;
@@ -93,31 +88,5 @@ public class TransferTypesPluginClassVisitor extends ClassVisitor {
             };
         }
         return superVisitor;
-    }
-
-    /**
-     * Used at build time to update the type mapping in the {@code TransferTypesPlugin}
-     * class loaded in the Augmentation Classloader, that is not yet transformed.
-     *
-     * @param clazz the {@code TransferTypesPlugin} loaded by the Augmentation Classloader.
-     */
-    @SuppressWarnings("unchecked")
-    public static void reflectionPatch(ClassLoader classLoader) throws BuildException {
-        try {
-            Class<?> endpointSubscription =
-                    classLoader.loadClass("com.vaadin.hilla.runtime.transfertypes.EndpointSubscription");
-            Class<?> typeTransferTypesPluginClass =
-                    classLoader.loadClass("com.vaadin.hilla.parser.plugins.transfertypes.TransferTypesPlugin");
-            Field field = typeTransferTypesPluginClass.getDeclaredField("classMap");
-            field.setAccessible(true);
-            Map<String, Class<?>> classMap = (Map<String, Class<?>>) field.get(0);
-            classMap.put("io.smallrye.mutiny.Multi", endpointSubscription);
-            classMap.put("com.github.mcollovati.quarkus.hilla.MutinyEndpointSubscription", endpointSubscription);
-        } catch (Exception ex) {
-            throw new BuildException(
-                    "Cannot register additional type mapping in com.vaadin.hilla.parser.plugins.transfertypes.TransferTypesPlugin",
-                    ex,
-                    List.of());
-        }
     }
 }
