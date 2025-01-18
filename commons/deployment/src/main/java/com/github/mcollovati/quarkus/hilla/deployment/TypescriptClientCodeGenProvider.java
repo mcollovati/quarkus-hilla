@@ -117,6 +117,10 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
 
     @Override
     public boolean trigger(CodeGenContext context) {
+        if (context.test()) {
+            // Generation not required for test code
+            return false;
+        }
         String prefix = computeConnectClientPrefix(context.config());
         boolean defaultPrefix = "connect".equals(prefix);
         Path customClient = context.inputDir().resolve("connect-client.ts");
