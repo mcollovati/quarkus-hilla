@@ -22,6 +22,7 @@ import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
+import io.smallrye.config.SmallRyeConfig;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
@@ -31,14 +32,20 @@ import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 public class HillaSecurityRecorder {
 
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
-        String cookieName = ConfigProvider.getConfig().getValue("quarkus.http.auth.form.cookie-name", String.class);
-        String landingPage = ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
-                .orElse("/");
+        Config config = ConfigProvider.getConfig();
+        VaadinSecurityConfig securityConfig =
+                config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
+        var authConfig = new HillaFormAuthenticationMechanism.Config(
+                config.getValue("quarkus.http.auth.form.cookie-name", String.class),
+                config.getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
+                        .orElse("/"),
+                securityConfig.logoutPath(),
+                securityConfig.postLogoutRedirectUri().orElse(null),
+                securityConfig.logoutInvalidateSession());
         return () -> {
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
-            return new HillaFormAuthenticationMechanism(delegate, cookieName, landingPage, "/logout");
+            return new HillaFormAuthenticationMechanism(delegate, authConfig);
         };
     }
 
