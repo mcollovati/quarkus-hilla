@@ -31,23 +31,18 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
 public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
-    private final String landingPage;
-    private final String logoutPath;
-    private final String cookieName;
+    private final Config config;
 
     FormAuthenticationMechanism delegate;
 
-    public HillaFormAuthenticationMechanism(
-            FormAuthenticationMechanism delegate, String cookieName, String landingPage, String logoutPath) {
+    public HillaFormAuthenticationMechanism(FormAuthenticationMechanism delegate, Config config) {
         this.delegate = delegate;
-        this.landingPage = landingPage;
-        this.logoutPath = logoutPath;
-        this.cookieName = cookieName;
+        this.config = config;
     }
 
     @Override
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
-        if (context.normalizedPath().equals(logoutPath)) {
+        if (context.normalizedPath().equals(config.logoutPath())) {
             logout(context);
             return Uni.createFrom().optional(Optional.empty());
         }
@@ -63,7 +58,7 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
                     if (loginFailure) {
                         response.setStatusCode(401);
                     } else {
-                        response.putHeader("Default-url", landingPage);
+                        response.putHeader("Default-url", config.landingPage());
                         if (redirectUrl != null) {
                             response.putHeader("Saved-url", redirectUrl);
                         }
@@ -93,10 +88,23 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
         // Vert.x sends back a set-cookie with max-age and expiry but no path,
         // so we have to set it first,
         // otherwise web clients don't clear it
-        Cookie cookie = ctx.request().getCookie(cookieName);
+        Cookie cookie = ctx.request().getCookie(config.cookieName());
         if (cookie != null) {
             cookie.setPath("/");
         }
-        ctx.response().removeCookie(cookieName);
+        ctx.response().removeCookie(config.cookieName());
+        if (config.invalidateSessions() && ctx.session() != null) {
+            ctx.session().destroy();
+        }
+        if (config.postLogoutRedirect() != null) {
+            ctx.redirect(config.postLogoutRedirect());
+        }
     }
+
+    public record Config(
+            String cookieName,
+            String landingPage,
+            String logoutPath,
+            String postLogoutRedirect,
+            boolean invalidateSessions) {}
 }
