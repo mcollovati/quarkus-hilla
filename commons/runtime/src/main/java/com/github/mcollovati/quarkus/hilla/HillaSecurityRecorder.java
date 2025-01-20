@@ -39,13 +39,10 @@ public class HillaSecurityRecorder {
         };
     }
 
-    public void configureFormLoginHttpSecurityPolicy(BeanContainer container) {
+    public void configureHttpSecurityPolicy(BeanContainer container) {
         Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
         policy.withFormLogin(config);
-    }
-
-    public void markSecurityPolicyUsed() {
         QuarkusHillaExtension.markSecurityPolicyUsed();
     }
 
