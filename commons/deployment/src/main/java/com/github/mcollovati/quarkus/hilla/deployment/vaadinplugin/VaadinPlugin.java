@@ -41,6 +41,8 @@ import io.quarkus.bootstrap.workspace.WorkspaceModule;
 import io.quarkus.builder.BuildException;
 import org.jboss.jandex.IndexView;
 
+import com.github.mcollovati.quarkus.hilla.build.TransferTypesPluginPatch;
+
 /**
  * Implementation of the Vaadin plugin.
  * <p></p>
@@ -59,6 +61,7 @@ public final class VaadinPlugin {
      */
     public VaadinPlugin(VaadinBuildTimeConfig vaadinConfig, ApplicationModel applicationModel) {
         this.pluginAdapter = new QuarkusPluginAdapter(vaadinConfig, applicationModel);
+        TransferTypesPluginPatch.addMutinySupport(this.pluginAdapter.getClassFinder());
     }
 
     /**

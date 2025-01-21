@@ -100,7 +100,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
-import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.QuarkusPluginAdapter;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTimeConfig;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
@@ -536,18 +535,6 @@ class QuarkusHillaExtensionProcessor {
             VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
             vaadinPlugin.prepareFrontend();
             vaadinPlugin.buildFrontend(indexBuildItem.getComputingIndex());
-        }
-    }
-
-    public static final class VaadinPluginBuildItem extends SimpleBuildItem {
-        private final QuarkusPluginAdapter plugin;
-
-        public VaadinPluginBuildItem(QuarkusPluginAdapter plugin) {
-            this.plugin = plugin;
-        }
-
-        public QuarkusPluginAdapter getPlugin() {
-            return plugin;
         }
     }
 
