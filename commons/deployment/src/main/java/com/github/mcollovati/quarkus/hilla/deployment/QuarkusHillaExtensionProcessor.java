@@ -73,7 +73,6 @@ import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildIte
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.deployment.BodyHandlerBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
-import io.quarkus.vertx.http.deployment.SecurityInformationBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
@@ -249,20 +248,11 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    HillaSecurityBuildItem hillaSecurityBuildItem(List<SecurityInformationBuildItem> securityInformation) {
-        final boolean authFormEnabled = ConfigProvider.getConfig()
+    AuthFormBuildItem authFormEnabledBuildItem() {
+        boolean authFormEnabled = ConfigProvider.getConfig()
                 .getOptionalValue("quarkus.http.auth.form.enabled", Boolean.class)
                 .orElse(false);
-
-        if (authFormEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.FORM);
-
-        final boolean oidcEnabled = securityInformation.stream()
-                .map(SecurityInformationBuildItem::getSecurityModel)
-                .anyMatch(model -> model == SecurityInformationBuildItem.SecurityModel.oidc);
-
-        if (oidcEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC);
-
-        return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.NONE);
+        return new AuthFormBuildItem(authFormEnabled);
     }
 
     @BuildStep
@@ -305,9 +295,15 @@ class QuarkusHillaExtensionProcessor {
             NativeConfig nativeConfig) {
         ServletBuildItem.Builder builder = ServletBuildItem.builder(
                 QuarkusAtmosphereServlet.class.getName(), QuarkusAtmosphereServlet.class.getName());
-        String prefix = endpointConfiguration.isDefaultEndpointPrefix()
-                ? ""
-                : endpointConfiguration.getStandardizedEndpointPrefix();
+        String prefix = endpointConfiguration.getEndpointPrefix();
+        if (prefix.matches("^/?connect/?$")) {
+            prefix = "/";
+        } else if (!prefix.startsWith("/")) {
+            prefix = "/" + prefix;
+        }
+        if (prefix.endsWith("/")) {
+            prefix = prefix.substring(0, prefix.length() - 1);
+        }
         String hillaPushMapping = prefix + "/HILLA/push";
 
         builder.addMapping(hillaPushMapping)
@@ -388,9 +384,8 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void registerHillaSecurityPolicy(
-            HillaSecurityBuildItem hillaSecurityBuildItem, BuildProducer<AdditionalBeanBuildItem> beans) {
-        if (hillaSecurityBuildItem.isAuthEnabled()) {
+    void registerHillaSecurityPolicy(AuthFormBuildItem authFormEnabled, BuildProducer<AdditionalBeanBuildItem> beans) {
+        if (authFormEnabled.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class)
                     .setDefaultScope(DotNames.APPLICATION_SCOPED)
@@ -402,10 +397,10 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void registerHillaFormAuthenticationMechanism(
-            HillaSecurityBuildItem hillaSecurityBuildItem,
+            AuthFormBuildItem authFormBuildItem,
             HillaSecurityRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> producer) {
-        if (hillaSecurityBuildItem.isFormAuthEnabled()) {
+        if (authFormBuildItem.isEnabled()) {
             producer.produce(SyntheticBeanBuildItem.configure(HillaFormAuthenticationMechanism.class)
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
@@ -421,14 +416,9 @@ class QuarkusHillaExtensionProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     void configureHillaSecurityComponents(
-            HillaSecurityBuildItem hillaSecurityBuildItem,
-            HillaSecurityRecorder recorder,
-            BeanContainerBuildItem beanContainer) {
-        if (hillaSecurityBuildItem.isFormAuthEnabled()) {
-            recorder.configureFormLoginHttpSecurityPolicy(beanContainer.getValue());
-        }
-        if (hillaSecurityBuildItem.isAuthEnabled()) {
-            recorder.markSecurityPolicyUsed();
+            AuthFormBuildItem authFormBuildItem, HillaSecurityRecorder recorder, BeanContainerBuildItem beanContainer) {
+        if (authFormBuildItem.isEnabled()) {
+            recorder.configureHttpSecurityPolicy(beanContainer.getValue());
         }
     }
 
@@ -457,13 +447,22 @@ class QuarkusHillaExtensionProcessor {
 
     @BuildStep
     void registerNavigationAccessControl(
-            HillaSecurityBuildItem hillaSecurityBuildItem,
+            AuthFormBuildItem authFormBuildItem,
             CombinedIndexBuildItem index,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
 
-        if (hillaSecurityBuildItem.isAuthEnabled()) {
+        Set<DotName> securityAnnotations = Set.of(
+                DotName.createSimple(DenyAll.class.getName()),
+                DotName.createSimple(AnonymousAllowed.class.getName()),
+                DotName.createSimple(RolesAllowed.class.getName()),
+                DotName.createSimple(PermitAll.class.getName()));
+        boolean hasSecuredRoutes =
+                index.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
+                        .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
+                        .anyMatch(securityAnnotations::contains);
+        if (authFormBuildItem.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
                             QuarkusNavigationAccessControl.class,
@@ -471,34 +470,16 @@ class QuarkusHillaExtensionProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-
-            if (hasSecuredRoutes(index)) {
+            if (hasSecuredRoutes) {
                 accessCheckerProducer.produce(
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
             }
 
-            switch (hillaSecurityBuildItem.getSecurityModel()) {
-                case FORM -> ConfigProvider.getConfig()
-                        .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                        .map(NavigationAccessControlBuildItem::new)
-                        .ifPresent(accessControlProducer::produce);
-                case OIDC -> ConfigProvider.getConfig()
-                        .getOptionalValue("vaadin.oidc.login.path", String.class)
-                        .map(NavigationAccessControlBuildItem::new)
-                        .ifPresent(accessControlProducer::produce);
-            }
+            ConfigProvider.getConfig()
+                    .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
+                    .map(NavigationAccessControlBuildItem::new)
+                    .ifPresent(accessControlProducer::produce);
         }
-    }
-
-    private boolean hasSecuredRoutes(CombinedIndexBuildItem indexBuildItem) {
-        Set<DotName> securityAnnotations = Set.of(
-                DotName.createSimple(DenyAll.class.getName()),
-                DotName.createSimple(AnonymousAllowed.class.getName()),
-                DotName.createSimple(RolesAllowed.class.getName()),
-                DotName.createSimple(PermitAll.class.getName()));
-        return indexBuildItem.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
-                .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
-                .anyMatch(securityAnnotations::contains);
     }
 
     @BuildStep
