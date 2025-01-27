@@ -107,6 +107,8 @@ import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 
+import static io.quarkus.vertx.http.deployment.SecurityInformationBuildItem.SecurityModel.oidc;
+
 class QuarkusHillaExtensionProcessor {
 
     private static final String FEATURE = "quarkus-hilla";
@@ -256,13 +258,17 @@ class QuarkusHillaExtensionProcessor {
 
         if (authFormEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.FORM);
 
-        final boolean oidcEnabled = securityInformation.stream()
-                .map(SecurityInformationBuildItem::getSecurityModel)
-                .anyMatch(model -> model == SecurityInformationBuildItem.SecurityModel.oidc);
+        final HillaSecurityBuildItem.SecurityModel securityModel = securityInformation.stream()
+                .map(item -> switch (item.getSecurityModel()) {
+                    case basic -> HillaSecurityBuildItem.SecurityModel.BASIC;
+                    case jwt -> HillaSecurityBuildItem.SecurityModel.JWT;
+                    case oauth2 -> HillaSecurityBuildItem.SecurityModel.OAUTH2;
+                    case oidc -> HillaSecurityBuildItem.SecurityModel.OIDC;
+                })
+                .findFirst()
+                .orElse(HillaSecurityBuildItem.SecurityModel.NONE);
 
-        if (oidcEnabled) return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC);
-
-        return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.NONE);
+        return new HillaSecurityBuildItem(securityModel);
     }
 
     @BuildStep
