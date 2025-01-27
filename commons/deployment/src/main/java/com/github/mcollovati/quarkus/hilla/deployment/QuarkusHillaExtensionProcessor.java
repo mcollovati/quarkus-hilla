@@ -106,6 +106,7 @@ import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTi
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
+import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 
 class QuarkusHillaExtensionProcessor {
 
@@ -388,6 +389,11 @@ class QuarkusHillaExtensionProcessor {
         if (authFormEnabled.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class)
+                    .setDefaultScope(DotNames.APPLICATION_SCOPED)
+                    .setUnremovable()
+                    .build());
+            beans.produce(AdditionalBeanBuildItem.builder()
+                    .addBeanClasses(EndpointUtil.class)
                     .setDefaultScope(DotNames.APPLICATION_SCOPED)
                     .setUnremovable()
                     .build());
