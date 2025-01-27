@@ -49,6 +49,7 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.PathUtil;
 import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
 
@@ -60,16 +61,19 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private final NavigationAccessControl accessControl;
     private final QuarkusEndpointConfiguration endpointConfiguration;
+    private final EndpointUtil endpointUtil;
 
     VaadinService vaadinService;
     WebIconsRequestMatcher webIconsRequestMatcher;
 
     public HillaSecurityPolicy(
             NavigationAccessControl accessControl,
-            QuarkusEndpointConfiguration endpointConfiguration) {
+            QuarkusEndpointConfiguration endpointConfiguration,
+            EndpointUtil endpointUtil) {
         this.authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
         this.accessControl = accessControl;
         this.endpointConfiguration = endpointConfiguration;
+        this.endpointUtil = endpointUtil;
         buildPathMatcher(null);
     }
 
@@ -97,6 +101,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
+                || isAnonymousEndpoint(request)
                 || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
                 || isCustomWebIcon(request)) {
             return CheckResult.permit();
@@ -106,6 +111,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private boolean isCustomWebIcon(RoutingContext request) {
         return webIconsRequestMatcher.isWebIconRequest(request.request().path());
+    }
+
+    private boolean isAnonymousEndpoint(RoutingContext request) {
+        return endpointUtil.isAnonymousEndpoint(request);
     }
 
     void withFormLogin(Config config) {
