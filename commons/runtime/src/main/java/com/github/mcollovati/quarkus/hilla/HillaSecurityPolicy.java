@@ -49,19 +49,24 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mcollovati.quarkus.hilla.security.PathUtil;
+import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
+
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
-    private ImmutablePathMatcher<Boolean> pathMatcher;
+    private ImmutablePathMatcher<Boolean> permitAllMatcher;
     private final AuthenticatedHttpSecurityPolicy authenticatedHttpSecurityPolicy;
 
     private final NavigationAccessControl accessControl;
     private final QuarkusEndpointConfiguration endpointConfiguration;
 
     VaadinService vaadinService;
+    WebIconsRequestMatcher webIconsRequestMatcher;
 
     public HillaSecurityPolicy(
-            NavigationAccessControl accessControl, QuarkusEndpointConfiguration endpointConfiguration) {
+            NavigationAccessControl accessControl,
+            QuarkusEndpointConfiguration endpointConfiguration) {
         this.authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
         this.accessControl = accessControl;
         this.endpointConfiguration = endpointConfiguration;
@@ -78,24 +83,29 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                         HandlerHelper.getPublicResourcesRoot(),
                         // Contains /VAADIN/*
                         HandlerHelper.getPublicResourcesRequiringSecurityContext())
-                .map(this::normalizePath)
+                .map(PathUtil::normalizeWildcard)
                 .forEach(p -> pathMatcherBuilder.addPath(p, true));
         if (customizer != null) {
             customizer.accept(pathMatcherBuilder);
         }
-        this.pathMatcher = pathMatcherBuilder.build();
+        this.permitAllMatcher = pathMatcherBuilder.build();
     }
 
     @Override
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
-        Boolean permittedPath = pathMatcher.match(request.request().path()).getValue();
+        Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
-                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())) {
-            return Uni.createFrom().item(CheckResult.PERMIT);
+                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
+                || isCustomWebIcon(request)) {
+            return CheckResult.permit();
         }
         return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+    }
+
+    private boolean isCustomWebIcon(RoutingContext request) {
+        return webIconsRequestMatcher.isWebIconRequest(request.request().path());
     }
 
     void withFormLogin(Config config) {
@@ -109,14 +119,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .map(removeQueryString)
                 .ifPresent(paths::add);
         paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
-        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(normalizePath(p), true)));
-    }
-
-    private String normalizePath(String path) {
-        if (path.endsWith("/") || path.endsWith("/**")) {
-            path = path.replaceFirst("/(\\*\\*)?$", "/*");
-        }
-        return path;
+        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(PathUtil.normalizeWildcard(p), true)));
     }
 
     /**
@@ -134,8 +137,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
      *         otherwise
      */
     public boolean isFrameworkInternalRequest(RoutingContext request) {
-        // String vaadinMapping = configurationProperties.getUrlMapping();
-        String vaadinMapping = "/*";
+        String vaadinMapping = getUrlMapping();
         return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping, request);
     }
 
@@ -174,7 +176,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private NavigationContext tryCreateNavigationContext(RoutingContext request) {
 
-        String vaadinMapping = "/*";
+        String vaadinMapping = getUrlMapping();
         String requestedPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
         if (vaadinService == null) {
             return null;
@@ -224,11 +226,16 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
+    private String getUrlMapping() {
+        return "/*";
+    }
+
     private Logger getLogger() {
         return LoggerFactory.getLogger(getClass());
     }
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
+        webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
     }
 }
