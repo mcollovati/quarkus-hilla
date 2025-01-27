@@ -307,7 +307,7 @@ class QuarkusHillaExtensionProcessor {
                 QuarkusAtmosphereServlet.class.getName(), QuarkusAtmosphereServlet.class.getName());
         String prefix = endpointConfiguration.isDefaultEndpointPrefix()
                 ? ""
-                : endpointConfiguration.getStandardizedEndpointPrefix();
+                : endpointConfiguration.getNormalizedEndpointPrefix();
         String hillaPushMapping = prefix + "/HILLA/push";
 
         builder.addMapping(hillaPushMapping)

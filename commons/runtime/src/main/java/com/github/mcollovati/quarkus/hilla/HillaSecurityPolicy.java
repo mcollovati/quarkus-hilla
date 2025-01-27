@@ -72,7 +72,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private void buildPathMatcher(Consumer<ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean>> customizer) {
         ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean> pathMatcherBuilder = ImmutablePathMatcher.builder();
-        String connectPath = endpointConfiguration.getStandardizedEndpointPrefix();
+        String connectPath = endpointConfiguration.getNormalizedEndpointPrefix();
         pathMatcherBuilder.addPath(connectPath + "/*", true);
         pathMatcherBuilder.addPath("/HILLA/*", true);
         Streams.combine(
@@ -80,7 +80,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                         HandlerHelper.getPublicResourcesRoot(),
                         // Contains /VAADIN/*
                         HandlerHelper.getPublicResourcesRequiringSecurityContext())
-                .map(this::computePath)
+                .map(this::normalizePath)
                 .forEach(p -> pathMatcherBuilder.addPath(p, true));
         if (customizer != null) {
             customizer.accept(pathMatcherBuilder);
@@ -116,10 +116,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .map(removeQueryString)
                 .ifPresent(paths::add);
         paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
-        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(computePath(p), true)));
+        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(normalizePath(p), true)));
     }
 
-    private String computePath(String path) {
+    private String normalizePath(String path) {
         if (path.endsWith("/") || path.endsWith("/**")) {
             path = path.replaceFirst("/(\\*\\*)?$", "/*");
         }
