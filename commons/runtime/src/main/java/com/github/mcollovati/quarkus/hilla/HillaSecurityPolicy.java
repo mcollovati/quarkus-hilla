@@ -15,6 +15,7 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
 import jakarta.enterprise.event.Observes;
 import java.util.HashSet;
@@ -58,15 +59,17 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private final NavigationAccessControl accessControl;
     private final QuarkusEndpointConfiguration endpointConfiguration;
+    private final EndpointUtil endpointUtil;
 
     VaadinService vaadinService;
     WebIconsRequestMatcher webIconsRequestMatcher;
 
     public HillaSecurityPolicy(
-            NavigationAccessControl accessControl, QuarkusEndpointConfiguration endpointConfiguration) {
+            NavigationAccessControl accessControl, QuarkusEndpointConfiguration endpointConfiguration, EndpointUtil endpointUtil) {
         this.authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
         this.accessControl = accessControl;
         this.endpointConfiguration = endpointConfiguration;
+        this.endpointUtil = endpointUtil;
         buildPathMatcher(null);
     }
 
@@ -94,15 +97,20 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
+                || isAnonymousEndpoint(request)
                 || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
                 || isCustomWebIcon(request)) {
-            return Uni.createFrom().item(CheckResult.PERMIT);
+            return CheckResult.permit();
         }
         return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
     }
 
     private boolean isCustomWebIcon(RoutingContext request) {
         return webIconsRequestMatcher.match(request.request().path()).getValue();
+    }
+
+    private boolean isAnonymousEndpoint(RoutingContext request) {
+        return endpointUtil.isAnonymousEndpoint(request);
     }
 
     void withFormLogin(Config config) {
