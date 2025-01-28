@@ -483,16 +483,11 @@ class QuarkusHillaExtensionProcessor {
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
             }
 
-            switch (hillaSecurityBuildItem.getSecurityModel()) {
-                case FORM -> ConfigProvider.getConfig()
-                        .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                        .map(NavigationAccessControlBuildItem::new)
-                        .ifPresent(accessControlProducer::produce);
-                case OIDC -> ConfigProvider.getConfig()
-                        .getOptionalValue("vaadin.oidc.login.path", String.class)
-                        .map(NavigationAccessControlBuildItem::new)
-                        .ifPresent(accessControlProducer::produce);
-            }
+            final var config = ConfigProvider.getConfig();
+            config.getOptionalValue("quarkus.http.auth.form.login-page", String.class)
+                    .or(() -> config.getOptionalValue("vaadin.login-path", String.class))
+                    .map(NavigationAccessControlBuildItem::new)
+                    .ifPresent(accessControlProducer::produce);
         }
     }
 
