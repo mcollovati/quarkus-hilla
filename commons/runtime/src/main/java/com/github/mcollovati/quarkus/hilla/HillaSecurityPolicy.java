@@ -51,6 +51,7 @@ import org.slf4j.LoggerFactory;
 
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.PathUtil;
+import com.github.mcollovati.quarkus.hilla.security.RouteUtil;
 import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
 
 @Startup
@@ -63,8 +64,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private final QuarkusEndpointConfiguration endpointConfiguration;
     private final EndpointUtil endpointUtil;
 
-    VaadinService vaadinService;
-    WebIconsRequestMatcher webIconsRequestMatcher;
+    private VaadinService vaadinService;
+    private RouteUtil routeUtil;
+    private WebIconsRequestMatcher webIconsRequestMatcher;
 
     public HillaSecurityPolicy(
             NavigationAccessControl accessControl,
@@ -106,7 +108,14 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 || isCustomWebIcon(request)) {
             return CheckResult.permit();
         }
-        return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+        return identity.onItem().transformToUni(secIdentity -> {
+            if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
+            return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+        });
+    }
+
+    private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
+        return routeUtil.isRouteAllowed(request, secIdentity::hasRole);
     }
 
     private boolean isCustomWebIcon(RoutingContext request) {
@@ -245,6 +254,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
+        routeUtil = new RouteUtil(vaadinService);
         webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
     }
 }
