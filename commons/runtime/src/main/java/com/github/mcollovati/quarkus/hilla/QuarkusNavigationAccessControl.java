@@ -45,6 +45,10 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
         this.securityIdentity = securityIdentity;
     }
 
+    String getInternalLoginUrl() {
+        return getLoginUrl();
+    }
+
     @Override
     protected Principal getPrincipal(VaadinRequest request) {
         if (request == null) {

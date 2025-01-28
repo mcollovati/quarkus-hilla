@@ -15,9 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
-import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
-import com.github.mcollovati.quarkus.hilla.security.RouteUtil;
-import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
 import jakarta.enterprise.event.Observes;
 import java.util.HashSet;
 import java.util.Map;
@@ -52,9 +49,14 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
+import com.github.mcollovati.quarkus.hilla.security.RouteUtil;
+import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
+
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
+    private ImmutablePathMatcher<Boolean> loginMatcher;
     private ImmutablePathMatcher<Boolean> permitAllMatcher;
     private final AuthenticatedHttpSecurityPolicy authenticatedHttpSecurityPolicy;
 
@@ -67,12 +69,24 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private WebIconsRequestMatcher webIconsRequestMatcher;
 
     public HillaSecurityPolicy(
-            NavigationAccessControl accessControl, QuarkusEndpointConfiguration endpointConfiguration, EndpointUtil endpointUtil) {
+            NavigationAccessControl accessControl,
+            QuarkusEndpointConfiguration endpointConfiguration,
+            EndpointUtil endpointUtil) {
         this.authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
         this.accessControl = accessControl;
         this.endpointConfiguration = endpointConfiguration;
         this.endpointUtil = endpointUtil;
+        buildLoginUrlMatcher();
         buildPathMatcher(null);
+    }
+
+    private void buildLoginUrlMatcher() {
+        if (accessControl instanceof QuarkusNavigationAccessControl qAccessControl
+                && qAccessControl.getInternalLoginUrl() != null) {
+            loginMatcher = ImmutablePathMatcher.<Boolean>builder()
+                    .addPath(qAccessControl.getInternalLoginUrl(), true)
+                    .build();
+        }
     }
 
     private void buildPathMatcher(Consumer<ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean>> customizer) {
@@ -96,7 +110,12 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     @Override
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
-        Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
+        // If the user is not authenticated, the request to the login page is always denied to trigger the login process
+        if (loginMatcher != null && loginMatcher.match(request.request().path()).getValue()) {
+            return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+        }
+        final Boolean permittedPath =
+                permitAllMatcher.match(request.request().path()).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
                 || isAnonymousEndpoint(request)
@@ -118,8 +137,8 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return webIconsRequestMatcher.match(request.request().path()).getValue();
     }
 
-    private boolean isAnonymousEndpoint(RoutingContext request) {
-        return endpointUtil.isAnonymousEndpoint(request);
+    private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
+        return routeUtil.isRouteAllowed(request, secIdentity::hasRole);
     }
 
     void withFormLogin(Config config) {
