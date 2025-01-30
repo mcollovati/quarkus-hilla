@@ -49,7 +49,11 @@ public class TransferTypesPluginClassVisitor extends ClassVisitor {
                     AbstractInsnNode returnNode = AsmUtils.findNextInsnNode(
                             iterator, node -> node instanceof InsnNode n && n.getOpcode() == Opcodes.RETURN);
                     if (returnNode == null) {
-                        return;
+                        throw new IllegalStateException(
+                                "Cannot patch com.vaadin.hilla.parser.plugins.transfertypes.TransferTypesPlugin."
+                                        + "This is most likely because the Hilla class has been changed and "
+                                        + TransferTypesPluginClassVisitor.class.getName()
+                                        + " must be updated to reflect the changes.");
                     }
                     mapToEndpointSubscription("io.smallrye.mutiny.Multi", returnNode);
                     mapToEndpointSubscription(

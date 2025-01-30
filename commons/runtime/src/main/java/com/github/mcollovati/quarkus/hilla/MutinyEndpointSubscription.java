@@ -66,13 +66,13 @@ public class MutinyEndpointSubscription<TT> {
      *
      * @param <T>
      *            the type of data in the subscription
-     * @param flux
+     * @param multi
      *            the multi that produces the data
      * @param onDisconnect
      *            a callback that is invoked when the browser unsubscribes
      * @return a subscription
      */
-    public static <T> MutinyEndpointSubscription<T> of(Multi<T> flux, Runnable onDisconnect) {
-        return new MutinyEndpointSubscription<>(flux, onDisconnect);
+    public static <T> MutinyEndpointSubscription<T> of(Multi<T> multi, Runnable onDisconnect) {
+        return new MutinyEndpointSubscription<>(multi, onDisconnect);
     }
 }
