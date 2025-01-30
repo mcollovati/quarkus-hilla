@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla;
+package com.github.mcollovati.quarkus.hilla.security;
 
 import java.util.Optional;
 import java.util.Set;
