@@ -89,9 +89,6 @@ import org.jboss.jandex.IndexView;
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
 import com.github.mcollovati.quarkus.hilla.HillaConfiguration;
-import com.github.mcollovati.quarkus.hilla.HillaFormAuthenticationMechanism;
-import com.github.mcollovati.quarkus.hilla.HillaSecurityPolicy;
-import com.github.mcollovati.quarkus.hilla.HillaSecurityRecorder;
 import com.github.mcollovati.quarkus.hilla.NonNullApi;
 import com.github.mcollovati.quarkus.hilla.QuarkusAtmosphereServlet;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
@@ -107,6 +104,9 @@ import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
+import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
+import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
+import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
 
 class QuarkusHillaExtensionProcessor {
 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla;
+package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
 import java.util.HashSet;
@@ -49,10 +49,7 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
-import com.github.mcollovati.quarkus.hilla.security.PathUtil;
-import com.github.mcollovati.quarkus.hilla.security.RouteUtil;
-import com.github.mcollovati.quarkus.hilla.security.WebIconsRequestMatcher;
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
