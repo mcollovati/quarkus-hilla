@@ -388,12 +388,7 @@ class QuarkusHillaExtensionProcessor {
     void registerHillaSecurityPolicy(AuthFormBuildItem authFormEnabled, BuildProducer<AdditionalBeanBuildItem> beans) {
         if (authFormEnabled.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
-                    .addBeanClasses(HillaSecurityPolicy.class)
-                    .setDefaultScope(DotNames.APPLICATION_SCOPED)
-                    .setUnremovable()
-                    .build());
-            beans.produce(AdditionalBeanBuildItem.builder()
-                    .addBeanClasses(EndpointUtil.class)
+                    .addBeanClasses(HillaSecurityPolicy.class, EndpointUtil.class)
                     .setDefaultScope(DotNames.APPLICATION_SCOPED)
                     .setUnremovable()
                     .build());
