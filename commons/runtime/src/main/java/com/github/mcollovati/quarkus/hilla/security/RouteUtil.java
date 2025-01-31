@@ -27,6 +27,7 @@ import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 import com.vaadin.flow.server.startup.ApplicationConfiguration;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.vertx.ext.web.RoutingContext;
 
@@ -39,19 +40,11 @@ public class RouteUtil {
         this.vaadinService = vaadinService;
     }
 
-    public void setRoutes(final Map<String, AvailableViewInfo> registeredRoutes) {
-        if (registeredRoutes == null) {
-            this.registeredRoutes = null;
-        } else {
-            this.registeredRoutes = new HashMap<>(registeredRoutes);
-        }
-    }
-
-    public boolean isRouteAllowed(RoutingContext context, Predicate<? super String> roleAuthentication) {
+    public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
         if (registeredRoutes == null) {
             collectClientRoutes();
         }
-        var viewConfig = getRouteData(context, roleAuthentication);
+        var viewConfig = getRouteData(context.normalizedPath(), identity);
         return viewConfig.isPresent();
     }
 
@@ -60,26 +53,29 @@ public class RouteUtil {
         setRoutes(MenuRegistry.collectClientMenuItems(false, config, null));
     }
 
-    private Optional<AvailableViewInfo> getRouteData(
-            RoutingContext context, Predicate<? super String> roleAuthentication) {
-        String path = context.normalizedPath();
+    private void setRoutes(final Map<String, AvailableViewInfo> registeredRoutes) {
+        if (registeredRoutes == null) {
+            this.registeredRoutes = null;
+        } else {
+            this.registeredRoutes = new HashMap<>(registeredRoutes);
+        }
+    }
+
+    private Optional<AvailableViewInfo> getRouteData(String path, SecurityIdentity identity) {
         Map<String, AvailableViewInfo> availableRoutes = new HashMap<>(registeredRoutes);
-        filterClientViews(availableRoutes, context, roleAuthentication);
+        filterClientViews(availableRoutes, identity);
         return Optional.ofNullable(getRouteByPath(availableRoutes, path));
     }
 
-    private static void filterClientViews(
-            Map<String, AvailableViewInfo> configurations,
-            RoutingContext context,
-            Predicate<? super String> roleAuthentication) {
-        final boolean isUserAuthenticated = context.user() != null;
-
+    private static void filterClientViews(Map<String, AvailableViewInfo> configurations, SecurityIdentity identity) {
+        final boolean isUserAuthenticated = !identity.isAnonymous();
         Set<String> clientEntries = new HashSet<>(configurations.keySet());
-        clientEntries.stream().filter(configurations::containsKey).forEach(key -> {
-            final AvailableViewInfo viewInfo = configurations.get(key);
-            final boolean routeValid = validateViewAccessible(viewInfo, isUserAuthenticated, roleAuthentication);
+        // configurations::containsKey is used to avoid ConcurrentModificationException
+        clientEntries.stream().filter(configurations::containsKey).forEach(path -> {
+            final AvailableViewInfo viewInfo = configurations.get(path);
+            final boolean routeValid = validateViewAccessible(viewInfo, isUserAuthenticated, identity::hasRole);
             if (!routeValid) {
-                removePathRecursive(configurations, viewInfo, key);
+                removePathRecursive(configurations, viewInfo, path);
             }
         });
     }

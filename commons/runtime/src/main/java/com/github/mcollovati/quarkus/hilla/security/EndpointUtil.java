@@ -22,9 +22,9 @@ import java.util.Optional;
 import com.vaadin.hilla.EndpointRegistry;
 import com.vaadin.hilla.auth.EndpointAccessChecker;
 import io.vertx.ext.web.RoutingContext;
-import org.springframework.util.ClassUtils;
 
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
+import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
 public class EndpointUtil {
 
@@ -46,7 +46,8 @@ public class EndpointUtil {
         if (endpointData.isEmpty()) {
             return false;
         }
-        var invokedEndpointClass = ClassUtils.getUserClass(endpointData.get().endpointObject());
+        var invokedEndpointClass =
+                SpringReplacements.classUtils_getUserClass(endpointData.get().endpointObject());
         var methodDeclaringClass = endpointData.get().method().getDeclaringClass();
         if (methodDeclaringClass.equals(invokedEndpointClass)) {
             return accessChecker
