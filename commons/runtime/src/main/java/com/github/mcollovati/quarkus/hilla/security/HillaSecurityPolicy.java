@@ -105,14 +105,14 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 || isCustomWebIcon(request)) {
             return CheckResult.permit();
         }
-        return identity.onItem().transformToUni(secIdentity -> {
+        return identity.flatMap(secIdentity -> {
             if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
             return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
         });
     }
 
     private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
-        return routeUtil.isRouteAllowed(request, secIdentity::hasRole);
+        return routeUtil.isRouteAllowed(request, secIdentity);
     }
 
     private boolean isCustomWebIcon(RoutingContext request) {
