@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
@@ -41,6 +42,19 @@ public class RouteUtil {
     }
 
     public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
+        // Ensure that the VaadinService is set for the current thread, so that collectClientRoutes can access it.
+        // The current instances should always be null, but for safety, we restore them after the operation.
+        final var oldInstances = CurrentInstance.getInstances();
+        VaadinService.setCurrent(vaadinService);
+        try {
+            return isRouteAllowedSafe(context, identity);
+        } finally {
+            CurrentInstance.clearAll();
+            CurrentInstance.restoreInstances(oldInstances);
+        }
+    }
+
+    private boolean isRouteAllowedSafe(RoutingContext context, SecurityIdentity identity) {
         if (registeredRoutes == null) {
             collectClientRoutes();
         }
