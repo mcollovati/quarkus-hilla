@@ -120,6 +120,9 @@ public class OffendingMethodCallsReplacer {
         }));
         producer.produce(applicationContextProvider_runOnContext_patch());
         producer.produce(endpointCodeGenerator_findBrowserCallables_replacement());
+        producer.produce(new BytecodeTransformerBuildItem(
+                "com.vaadin.hilla.EndpointController",
+                (className, classVisitor) -> new EndpointControllerVisitor(classVisitor)));
     }
 
     @SafeVarargs

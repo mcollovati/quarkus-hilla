@@ -204,8 +204,9 @@ class QuarkusEndpointControllerConfiguration {
             ApplicationContext context,
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
-            CsrfChecker csrfChecker) {
-        return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker);
+            CsrfChecker csrfChecker,
+            @Named("endpointObjectMapper") ObjectMapper objectMapper) {
+        return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker, objectMapper);
     }
 
     @Produces

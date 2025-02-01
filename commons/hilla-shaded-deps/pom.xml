@@ -100,6 +100,7 @@
                                     <artifact>org.springframework:spring-web</artifact>
                                     <includes>
                                         <include>org/springframework/http/*.class</include>
+                                        <include>org/springframework/web/multipart/MultipartFile.class</include>
                                     </includes>
                                 </filter>
                                 <filter>

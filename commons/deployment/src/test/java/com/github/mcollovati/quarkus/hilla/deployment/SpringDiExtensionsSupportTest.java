@@ -26,6 +26,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.Pojo;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestBrowserCallable;
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.UploadEndpoint;
 
 class SpringDiExtensionsSupportTest extends AbstractEndpointControllerTest {
 
@@ -36,7 +37,7 @@ class SpringDiExtensionsSupportTest extends AbstractEndpointControllerTest {
             .withConfigurationResource(testResource("test-spring-di-application.properties"))
             .setForcedDependencies(List.of(Dependency.of("io.quarkus", "quarkus-spring-di", Version.getVersion())))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class));
+                    .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class, UploadEndpoint.class));
 
     protected String getEndpointName() {
         return ENDPOINT_NAME;
