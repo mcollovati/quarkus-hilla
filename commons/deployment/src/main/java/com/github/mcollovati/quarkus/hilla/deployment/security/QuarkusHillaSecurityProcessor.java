@@ -103,10 +103,12 @@ class QuarkusHillaSecurityProcessor {
     void configureNavigationAccessControl(
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer,
-            Optional<NavigationAccessControlBuildItem> navigationAccessControlBuildItem) {
+            Optional<NavigationAccessControlBuildItem> navigationAccessControlBuildItem,
+            SecurityConfiguration securityConfiguration) {
         navigationAccessControlBuildItem
                 .map(NavigationAccessControlBuildItem::getLoginPath)
-                .ifPresent(loginPath -> recorder.configureNavigationAccessControl(beanContainer.getValue(), loginPath));
+                .ifPresent(loginPath -> recorder.configureNavigationAccessControl(
+                        beanContainer.getValue(), loginPath, securityConfiguration.restorePathAfterLogin()));
     }
 
     @BuildStep

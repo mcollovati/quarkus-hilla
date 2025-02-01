@@ -22,6 +22,7 @@ import java.security.Principal;
 import java.util.List;
 import java.util.function.Predicate;
 
+import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
@@ -35,20 +36,29 @@ import io.quarkus.security.identity.SecurityIdentity;
 @DefaultBean
 public class QuarkusNavigationAccessControl extends NavigationAccessControl {
 
-    private final SecurityIdentity securityIdentity;
+    private final SecurityIdentity fallbackSecurityIdentity;
+    private boolean restorePathAfterLogin = true;
 
     public QuarkusNavigationAccessControl(
             @All List<NavigationAccessChecker> checkerList,
             AccessCheckDecisionResolver decisionResolver,
             SecurityIdentity securityIdentity) {
         super(checkerList, decisionResolver);
-        this.securityIdentity = securityIdentity;
+        this.fallbackSecurityIdentity = securityIdentity;
+    }
+
+    public void setRestorePathAfterLogin(boolean restorePathAfterLogin) {
+        this.restorePathAfterLogin = restorePathAfterLogin;
+    }
+
+    public boolean isRestorePathAfterLogin() {
+        return restorePathAfterLogin;
     }
 
     @Override
     protected Principal getPrincipal(VaadinRequest request) {
         if (request == null) {
-            return securityIdentity.getPrincipal();
+            return fallbackSecurityIdentity.getPrincipal();
         }
         return super.getPrincipal(request);
     }
@@ -56,9 +66,26 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
     @Override
     protected Predicate<String> getRolesChecker(VaadinRequest request) {
         if (request == null) {
-            return securityIdentity::hasRole;
+            return fallbackSecurityIdentity::hasRole;
         }
         return super.getRolesChecker(request);
+    }
+
+    @Override
+    public void beforeEnter(BeforeEnterEvent event) {
+        if (!restorePathAfterLogin) {
+            super.beforeEnter(event);
+            return;
+        }
+        final var session = VaadinRequest.getCurrent().getWrappedSession();
+        final Object origView = session.getAttribute(NavigationAccessControl.SESSION_STORED_REDIRECT);
+        if (origView != null) {
+            session.removeAttribute(NavigationAccessControl.SESSION_STORED_REDIRECT);
+            session.removeAttribute(NavigationAccessControl.SESSION_STORED_REDIRECT_ABSOLUTE);
+            event.forwardTo(origView.toString());
+        } else {
+            super.beforeEnter(event);
+        }
     }
 
     @Singleton
