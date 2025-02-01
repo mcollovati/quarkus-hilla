@@ -17,15 +17,32 @@ package com.github.mcollovati.quarkus.hilla.deployment.security;
 
 import io.quarkus.builder.item.SimpleBuildItem;
 
-public final class AuthFormBuildItem extends SimpleBuildItem {
+public final class HillaSecurityBuildItem extends SimpleBuildItem {
 
-    private final boolean enabled;
+    private final SecurityModel policy;
 
-    public AuthFormBuildItem(boolean enabled) {
-        this.enabled = enabled;
+    public HillaSecurityBuildItem(SecurityModel securityModel) {
+        this.policy = securityModel;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public SecurityModel getSecurityModel() {
+        return policy;
+    }
+
+    boolean isAuthEnabled() {
+        return policy != SecurityModel.NONE;
+    }
+
+    boolean isFormAuthEnabled() {
+        return policy == SecurityModel.FORM;
+    }
+
+    enum SecurityModel {
+        NONE,
+        FORM,
+        OIDC,
+        OAUTH2,
+        BASIC,
+        JWT
     }
 }

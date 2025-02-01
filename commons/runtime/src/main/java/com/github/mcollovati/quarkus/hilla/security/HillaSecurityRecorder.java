@@ -42,11 +42,10 @@ public class HillaSecurityRecorder {
         };
     }
 
-    public void configureHttpSecurityPolicy(BeanContainer container) {
+    public void configureFormLoginHttpSecurityPolicy(BeanContainer container) {
         Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
         policy.withFormLogin(config);
-        markSecurityPolicyUsed();
     }
 
     public void configureNavigationAccessControl(
@@ -59,7 +58,7 @@ public class HillaSecurityRecorder {
     /**
      * Marks the Hilla Security Policy as used in Vaadin usage statistics.
      */
-    private void markSecurityPolicyUsed() {
+    public void markSecurityPolicyUsed() {
         UsageStatistics.markAsUsed(
                 "mcollovati/quarkus-hilla-security-policy",
                 QuarkusHillaExtension.getVersion().orElse("-"));
