@@ -49,9 +49,11 @@ public class HillaSecurityRecorder {
         markSecurityPolicyUsed();
     }
 
-    public void configureNavigationAccessControl(BeanContainer container, String loginPath) {
+    public void configureNavigationAccessControl(
+            BeanContainer container, String loginPath, boolean restorePathAfterLogin) {
         QuarkusNavigationAccessControl accessChecker = container.beanInstance(QuarkusNavigationAccessControl.class);
         accessChecker.setLoginView(loginPath);
+        accessChecker.setRestorePathAfterLogin(restorePathAfterLogin);
     }
 
     /**
