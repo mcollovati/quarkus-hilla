@@ -26,7 +26,6 @@ import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
-import com.github.mcollovati.quarkus.hilla.QuarkusNavigationAccessControl;
 
 @Recorder
 public class HillaSecurityRecorder {
