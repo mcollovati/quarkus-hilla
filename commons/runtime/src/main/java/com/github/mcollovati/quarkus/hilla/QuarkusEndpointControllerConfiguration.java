@@ -54,6 +54,7 @@ import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 
 @Unremovable
@@ -253,9 +254,13 @@ class QuarkusEndpointControllerConfiguration {
 
     void initializeEndpointRegistry(@Observes StartupEvent event, EndpointController endpointController) {
         EndpointRegistryInitializer registryInitializer = new EndpointRegistryInitializer(endpointController);
-        this.vaadinServiceInitEvent
-                .thenAccept(registryInitializer::serviceInit)
-                .whenComplete((unused, throwable) -> this.vaadinServiceInitEvent = null);
+        this.vaadinServiceInitEvent.thenAccept(registryInitializer::serviceInit).whenComplete((unused, throwable) -> {
+            this.vaadinServiceInitEvent = null;
+            if (throwable != null) {
+                LoggerFactory.getLogger(EndpointRegistryInitializer.class)
+                        .error("Endpoint registry initialization failed", throwable);
+            }
+        });
     }
 
     private CompletableFuture<ServiceInitEvent> vaadinServiceInitEvent = new CompletableFuture<>();
