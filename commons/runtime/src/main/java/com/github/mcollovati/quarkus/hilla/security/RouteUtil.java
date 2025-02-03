@@ -116,7 +116,7 @@ public class RouteUtil {
     private AvailableViewInfo getRouteByPath(Map<String, AvailableViewInfo> availableRoutes, String path) {
         final var matcherBuilder = ImmutablePathMatcher.<AvailableViewInfo>builder();
         availableRoutes.forEach((route, info) -> {
-            matcherBuilder.addPath(PathUtil.ensureSlashBegin(path), info);
+            matcherBuilder.addPath(PathUtil.ensureSlashBegin(route), info);
         });
         return matcherBuilder.build().match(path).getValue();
     }
