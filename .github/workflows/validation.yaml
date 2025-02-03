@@ -84,7 +84,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output
+          name: tests-output-ut
           path: tests-report-*.tgz
   e2e-dev-tests:
     name: End-to-end tests (Development)
@@ -122,7 +122,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output
+          name: tests-output-it-dev
           path: tests-report-*.tgz
   e2e-prod-tests:
     name: End-to-end tests (Production)
@@ -160,7 +160,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: ${{ failure() || success() }}
         with:
-          name: tests-output
+          name: tests-output-it-prod
           path: tests-report-*.tgz
   test-results:
     permissions:
