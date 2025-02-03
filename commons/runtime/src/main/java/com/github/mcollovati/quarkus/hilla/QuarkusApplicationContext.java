@@ -76,11 +76,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     @Override
     public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType)
             throws BeansException {
-        return beanManager
-                .getBeans(Object.class, new AnyLiteral())
-                // return beanManager.getBeans(Object.class, new
-                // EndpointLiteral())
-                .stream()
+        return beanManager.getBeans(Object.class, new AnyLiteral()).stream()
                 .filter(b -> b.getBeanClass().isAnnotationPresent(annotationType))
                 .collect(Collectors.toMap(
                         QuarkusApplicationContext::computeBeanName,
@@ -216,7 +212,10 @@ class QuarkusApplicationContext implements ApplicationContext {
 
     @Override
     public <T> Map<String, T> getBeansOfType(Class<T> aClass) throws BeansException {
-        return throwUnsupported();
+        return beanManager.getBeans(aClass, new AnyLiteral()).stream()
+                .collect(Collectors.toMap(
+                        QuarkusApplicationContext::computeBeanName,
+                        bean -> aClass.cast(beanReference(beanManager, bean, bean.getBeanClass()))));
     }
 
     @Override

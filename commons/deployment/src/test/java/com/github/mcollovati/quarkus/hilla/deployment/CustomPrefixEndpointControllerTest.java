@@ -23,6 +23,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.Pojo;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.UploadEndpoint;
 
 class CustomPrefixEndpointControllerTest extends AbstractEndpointControllerTest {
 
@@ -34,8 +35,8 @@ class CustomPrefixEndpointControllerTest extends AbstractEndpointControllerTest 
     static final QuarkusUnitTest config = new QuarkusUnitTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .overrideConfigKey(QuarkusEndpointConfiguration.VAADIN_ENDPOINT_PREFIX, CUSTOM_PREFIX)
-            .setArchiveProducer(() ->
-                    ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class, Pojo.class, TestEndpoint.class));
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
+                    .addClasses(TestUtils.class, Pojo.class, TestEndpoint.class, UploadEndpoint.class));
 
     @Override
     protected String getEndpointPrefix() {

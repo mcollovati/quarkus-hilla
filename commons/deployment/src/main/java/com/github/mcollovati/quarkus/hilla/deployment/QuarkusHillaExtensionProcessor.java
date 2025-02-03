@@ -36,6 +36,7 @@ import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
+import com.vaadin.hilla.signals.handler.SignalsHandler;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -282,6 +283,11 @@ class QuarkusHillaExtensionProcessor {
     void registerEndpoints(
             final BuildProducer<AdditionalBeanBuildItem> additionalBeanProducer,
             BuildProducer<BeanDefiningAnnotationBuildItem> additionalBeanDefiningAnnotationRegistry) {
+        additionalBeanProducer.produce(AdditionalBeanBuildItem.builder()
+                .addBeanClass(SignalsHandler.class)
+                .setUnremovable()
+                .setDefaultScope(BuiltinScope.SINGLETON.getName())
+                .build());
         additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(
                 DotName.createSimple(Endpoint.class.getName()), BuiltinScope.APPLICATION.getName()));
         additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(

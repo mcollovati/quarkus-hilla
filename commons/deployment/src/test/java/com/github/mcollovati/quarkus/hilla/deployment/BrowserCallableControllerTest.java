@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.Pojo;
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestBrowserCallable;
+import com.github.mcollovati.quarkus.hilla.deployment.endpoints.UploadEndpoint;
 
 class BrowserCallableControllerTest extends AbstractEndpointControllerTest {
 
@@ -31,7 +32,7 @@ class BrowserCallableControllerTest extends AbstractEndpointControllerTest {
     static final QuarkusUnitTest config = new QuarkusUnitTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class));
+                    .addClasses(TestUtils.class, Pojo.class, TestBrowserCallable.class, UploadEndpoint.class));
 
     @Override
     protected String getEndpointName() {

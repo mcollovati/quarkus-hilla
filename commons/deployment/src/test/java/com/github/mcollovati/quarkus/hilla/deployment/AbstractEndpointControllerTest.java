@@ -15,10 +15,20 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import com.vaadin.hilla.EndpointController;
 import com.vaadin.hilla.exception.EndpointValidationException;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
+import org.assertj.core.api.Assertions;
 import org.hamcrest.CoreMatchers;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.Pojo;
@@ -71,6 +81,7 @@ abstract class AbstractEndpointControllerTest {
     }
 
     @Test
+    @Disabled("Order does not matter anymore")
     void invokeEndpoint_wrongParametersOrder_badRequest() {
         givenEndpointRequest(
                         getEndpointPrefix(),
@@ -156,6 +167,33 @@ abstract class AbstractEndpointControllerTest {
                 .then()
                 .assertThat()
                 .statusCode(404);
+    }
+
+    @Test
+    void invokeEndpoint_multipart_fileTransfer() throws IOException {
+        Path tempFile = Files.createTempFile("upload", "txt");
+        Files.writeString(tempFile, "hello world");
+        ExtractableResponse<Response> res = RestAssured.given()
+                .contentType(ContentType.MULTIPART)
+                .multiPart("/file", tempFile.toFile())
+                .multiPart(
+                        EndpointController.BODY_PART_NAME,
+                        """
+                        { "info": { "id": "UPLOAD-1", "date": "2025-02-02" } }
+                        """)
+                .cookie("csrfToken", "CSRF_TOKEN")
+                .header("X-CSRF-Token", "CSRF_TOKEN")
+                .basePath(getEndpointPrefix())
+                .when()
+                .post("UploadEndpoint/upload")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body("info.id", equalTo("UPLOAD-1"))
+                .body("info.date", equalTo("2025-02-02"))
+                .extract();
+        Path uploadedFile = Path.of(URI.create(res.body().path("uri")));
+        Assertions.assertThat(uploadedFile).hasSameTextualContentAs(tempFile);
     }
 
     protected String getEndpointPrefix() {
