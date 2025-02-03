@@ -177,7 +177,7 @@ jobs:
       - uses: actions/download-artifact@v4
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         with:
-          name: tests-output
+          name: tests-output-*
       - name: Extract downloaded files
         if: ${{ always() && needs.changes.outputs.validation-required == 'true' }}
         run: for i in *.tgz; do tar xvf $i; done
