@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla;
+package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
-import jakarta.inject.Inject;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +36,7 @@ import com.vaadin.flow.server.auth.AccessCheckDecision;
 import com.vaadin.flow.server.auth.AccessCheckResult;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import com.vaadin.flow.server.auth.NavigationContext;
+import com.vaadin.hilla.parser.utils.Streams;
 import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
@@ -50,49 +49,78 @@ import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
+
 @Startup
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
-    private ImmutablePathMatcher<Boolean> pathMatcher;
+    private ImmutablePathMatcher<Boolean> permitAllMatcher;
     private final AuthenticatedHttpSecurityPolicy authenticatedHttpSecurityPolicy;
 
-    @Inject
-    NavigationAccessControl accessControl;
+    private final NavigationAccessControl accessControl;
+    private final QuarkusEndpointConfiguration endpointConfiguration;
+    private final EndpointUtil endpointUtil;
 
-    VaadinService vaadinService;
+    private VaadinService vaadinService;
+    private RouteUtil routeUtil;
+    private WebIconsRequestMatcher webIconsRequestMatcher;
 
-    public HillaSecurityPolicy() {
-        authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
+    public HillaSecurityPolicy(
+            NavigationAccessControl accessControl,
+            QuarkusEndpointConfiguration endpointConfiguration,
+            EndpointUtil endpointUtil) {
+        this.authenticatedHttpSecurityPolicy = new AuthenticatedHttpSecurityPolicy();
+        this.accessControl = accessControl;
+        this.endpointConfiguration = endpointConfiguration;
+        this.endpointUtil = endpointUtil;
         buildPathMatcher(null);
     }
 
     private void buildPathMatcher(Consumer<ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean>> customizer) {
         ImmutablePathMatcher.ImmutablePathMatcherBuilder<Boolean> pathMatcherBuilder = ImmutablePathMatcher.builder();
-        Arrays.stream(HandlerHelper.getPublicResourcesRequiringSecurityContext())
-                .map(this::computePath)
-                .forEach(p -> pathMatcherBuilder.addPath(p, true));
+        String connectPath = endpointConfiguration.getNormalizedEndpointPrefix();
+        pathMatcherBuilder.addPath(connectPath + "/*", true);
         pathMatcherBuilder.addPath("/HILLA/*", true);
-        pathMatcherBuilder.addPath("/connect/*", true);
-        Arrays.stream(HandlerHelper.getPublicResources())
-                .map(this::computePath)
+        Streams.combine(
+                        HandlerHelper.getPublicResources(),
+                        HandlerHelper.getPublicResourcesRoot(),
+                        // Contains /VAADIN/*
+                        HandlerHelper.getPublicResourcesRequiringSecurityContext())
+                .map(PathUtil::normalizeWildcard)
                 .forEach(p -> pathMatcherBuilder.addPath(p, true));
         if (customizer != null) {
             customizer.accept(pathMatcherBuilder);
         }
-        this.pathMatcher = pathMatcherBuilder.build();
+        this.permitAllMatcher = pathMatcherBuilder.build();
     }
 
     @Override
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
-        Boolean permittedPath = pathMatcher.match(request.request().path()).getValue();
-        NavigationContext navigationContext = tryCreateNavigationContext(request);
+        Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
-                || isAnonymousRoute(navigationContext, request.normalizedPath())) {
-            return Uni.createFrom().item(CheckResult.PERMIT);
+                || isAnonymousEndpoint(request)
+                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
+                || isCustomWebIcon(request)) {
+            return CheckResult.permit();
         }
-        return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+        return identity.flatMap(secIdentity -> {
+            if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
+            return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+        });
+    }
+
+    private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
+        return routeUtil.isRouteAllowed(request, secIdentity);
+    }
+
+    private boolean isCustomWebIcon(RoutingContext request) {
+        return webIconsRequestMatcher.isWebIconRequest(request.request().path());
+    }
+
+    private boolean isAnonymousEndpoint(RoutingContext request) {
+        return endpointUtil.isAnonymousEndpoint(request);
     }
 
     void withFormLogin(Config config) {
@@ -106,14 +134,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .map(removeQueryString)
                 .ifPresent(paths::add);
         paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
-        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(computePath(p), true)));
-    }
-
-    private String computePath(String path) {
-        if (path.endsWith("/") || path.endsWith("/**")) {
-            path = path.replaceFirst("/(\\*\\*)?$", "/*");
-        }
-        return path;
+        buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(PathUtil.normalizeWildcard(p), true)));
     }
 
     /**
@@ -131,8 +152,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
      *         otherwise
      */
     public boolean isFrameworkInternalRequest(RoutingContext request) {
-        // String vaadinMapping = configurationProperties.getUrlMapping();
-        String vaadinMapping = "/*";
+        String vaadinMapping = getUrlMapping();
         return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping, request);
     }
 
@@ -171,7 +191,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private NavigationContext tryCreateNavigationContext(RoutingContext request) {
 
-        String vaadinMapping = "/*";
+        String vaadinMapping = getUrlMapping();
         String requestedPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
         if (vaadinService == null) {
             return null;
@@ -221,11 +241,17 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
+    private String getUrlMapping() {
+        return "/*";
+    }
+
     private Logger getLogger() {
         return LoggerFactory.getLogger(getClass());
     }
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
+        routeUtil = new RouteUtil(vaadinService);
+        webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
     }
 }

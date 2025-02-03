@@ -23,7 +23,7 @@ import com.vaadin.flow.internal.UsageStatistics;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class QuarkusHillaExtension {
+public final class QuarkusHillaExtension {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusHillaExtension.class);
 
@@ -40,7 +40,7 @@ final class QuarkusHillaExtension {
      *
      * @return the extension version or {@link Optional#empty()} if unavailable.
      */
-    static Optional<String> getVersion() {
+    public static Optional<String> getVersion() {
         // thread-safe: in the worst case version may be computed multiple
         // times by concurrent threads. Unsafe-publish is OK since String is
         // immutable and thread-safe.
@@ -72,13 +72,5 @@ final class QuarkusHillaExtension {
     static void markUsed() {
         UsageStatistics.markAsUsed(
                 "mcollovati/quarkus-hilla", QuarkusHillaExtension.getVersion().orElse("-"));
-    }
-    /**
-     * Marks the Hilla Security Policy as used in Vaadin usage statistics.
-     */
-    static void markSecurityPolicyUsed() {
-        UsageStatistics.markAsUsed(
-                "mcollovati/quarkus-hilla-security-policy",
-                QuarkusHillaExtension.getVersion().orElse("-"));
     }
 }

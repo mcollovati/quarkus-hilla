@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla;
+package com.github.mcollovati.quarkus.hilla.security;
 
 import java.io.Serializable;
 import java.util.Optional;
@@ -64,7 +64,7 @@ public class QuarkusHandlerHelper implements Serializable {
 
         // This is only an internal request if it is for the Vaadin servlet
         Optional<String> requestedPathWithoutServletMapping = getPathIfInsideServlet(servletMappingPath, requestedPath);
-        if (!requestedPathWithoutServletMapping.isPresent()) {
+        if (requestedPathWithoutServletMapping.isEmpty()) {
             return false;
         } else if (isInternalRequestInsideServlet(requestedPathWithoutServletMapping.get(), requestTypeParameter)) {
             return true;

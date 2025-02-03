@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla;
+package com.github.mcollovati.quarkus.hilla.security;
 
 import java.util.function.Supplier;
 
+import com.vaadin.flow.internal.UsageStatistics;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+
+import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 
 @Recorder
 public class HillaSecurityRecorder {
@@ -43,11 +46,20 @@ public class HillaSecurityRecorder {
         Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
         policy.withFormLogin(config);
-        QuarkusHillaExtension.markSecurityPolicyUsed();
+        markSecurityPolicyUsed();
     }
 
     public void configureNavigationAccessControl(BeanContainer container, String loginPath) {
         QuarkusNavigationAccessControl accessChecker = container.beanInstance(QuarkusNavigationAccessControl.class);
         accessChecker.setLoginView(loginPath);
+    }
+
+    /**
+     * Marks the Hilla Security Policy as used in Vaadin usage statistics.
+     */
+    private void markSecurityPolicyUsed() {
+        UsageStatistics.markAsUsed(
+                "mcollovati/quarkus-hilla-security-policy",
+                QuarkusHillaExtension.getVersion().orElse("-"));
     }
 }
