@@ -50,6 +50,7 @@ import com.vaadin.hilla.EndpointExposed;
 import com.vaadin.hilla.crud.filter.Filter;
 import com.vaadin.hilla.endpointransfermapper.EndpointTransferMapper;
 import com.vaadin.hilla.push.PushEndpoint;
+import com.vaadin.hilla.signals.handler.SignalsHandler;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
 import io.quarkus.deployment.Capabilities;
@@ -231,6 +232,7 @@ public class QuarkusHillaNativeProcessor {
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(BrowserCallable.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Endpoint.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(EndpointExposed.class)));
+        classes.add(index.getClassByName(SignalsHandler.class));
         classes.add(index.getClassByName(PushEndpoint.class));
         classes.add(index.getClassByName(Filter.class));
         classes.add(index.getClassByName(Pageable.class));
