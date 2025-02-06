@@ -36,7 +36,6 @@ import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.BuildException;
-import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.IsNormal;
@@ -408,18 +407,6 @@ class QuarkusHillaExtensionProcessor {
             VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
             vaadinPlugin.prepareFrontend();
             vaadinPlugin.buildFrontend(indexBuildItem.getComputingIndex());
-        }
-    }
-
-    public static final class VaadinPluginBuildItem extends SimpleBuildItem {
-        private final QuarkusPluginAdapter plugin;
-
-        public VaadinPluginBuildItem(QuarkusPluginAdapter plugin) {
-            this.plugin = plugin;
-        }
-
-        public QuarkusPluginAdapter getPlugin() {
-            return plugin;
         }
     }
 }
