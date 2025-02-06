@@ -36,7 +36,6 @@ import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.BuildException;
-import io.quarkus.builder.item.SimpleBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.IsNormal;
@@ -81,7 +80,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
-import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.QuarkusPluginAdapter;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTimeConfig;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
@@ -409,18 +407,6 @@ class QuarkusHillaExtensionProcessor {
             VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
             vaadinPlugin.prepareFrontend();
             vaadinPlugin.buildFrontend(indexBuildItem.getComputingIndex());
-        }
-    }
-
-    public static final class VaadinPluginBuildItem extends SimpleBuildItem {
-        private final QuarkusPluginAdapter plugin;
-
-        public VaadinPluginBuildItem(QuarkusPluginAdapter plugin) {
-            this.plugin = plugin;
-        }
-
-        public QuarkusPluginAdapter getPlugin() {
-            return plugin;
         }
     }
 }
