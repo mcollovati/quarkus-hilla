@@ -35,6 +35,12 @@
             <version>${vaadin.version}</version>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-spring</artifactId>
+            <version>${vaadin.version}</version>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>
@@ -145,6 +151,12 @@
                                     </includes>
                                 </filter>
                                 <filter>
+                                    <artifact>com.vaadin:vaadin-spring</artifact>
+                                    <includes>
+                                        <include>com/vaadin/flow/spring/data/VaadinSpringDataHelpers.class</include>
+                                    </includes>
+                                </filter>
+                                <filter>
                                     <artifact>com.vaadin:vaadin-core-internal</artifact>
                                     <includes>
                                         <include>vaadin-core-versions.json</include>
@@ -166,6 +178,7 @@
                                     <include>org.springframework.data:spring-data-commons</include>
                                     <include>com.vaadin:vaadin-core-internal</include>
                                     <include>com.vaadin:vaadin-internal</include>
+                                    <include>com.vaadin:vaadin-spring</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
