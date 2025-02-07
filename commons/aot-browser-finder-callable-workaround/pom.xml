@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>aot-browser-finder-callable-workaround</artifactId>
+    <name>Hilla - AotBrowserCallableFinder workaround</name>
     <description><![CDATA[
         Workaround to replace AotBrowserCallableFinder during build-frontend execution.
         Adding this artifact as dependency to vaadin-maven-plugin configuration should override the
