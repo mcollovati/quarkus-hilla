@@ -32,17 +32,17 @@ import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 public class HillaSecurityRecorder {
 
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
-        Config config = ConfigProvider.getConfig();
-        VaadinSecurityConfig securityConfig =
-                config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
-        var authConfig = new HillaFormAuthenticationMechanism.Config(
-                config.getValue("quarkus.http.auth.form.cookie-name", String.class),
-                config.getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
-                        .orElse("/"),
-                securityConfig.logoutPath(),
-                securityConfig.postLogoutRedirectUri().orElse(null),
-                securityConfig.logoutInvalidateSession());
         return () -> {
+            Config config = ConfigProvider.getConfig();
+            VaadinSecurityConfig securityConfig =
+                    config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
+            var authConfig = new HillaFormAuthenticationMechanism.Config(
+                    config.getValue("quarkus.http.auth.form.cookie-name", String.class),
+                    config.getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
+                            .orElse("/"),
+                    securityConfig.logoutPath(),
+                    securityConfig.postLogoutRedirectUri().orElse(null),
+                    securityConfig.logoutInvalidateSession());
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
             return new HillaFormAuthenticationMechanism(delegate, authConfig);
