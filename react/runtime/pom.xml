@@ -154,57 +154,30 @@
         <profile>
             <id>update-hilla-codestart</id>
             <build>
-                <defaultGoal>org.codehaus.mojo:build-helper-maven-plugin:bsh-property@hilla-scaffold</defaultGoal>
+                <defaultGoal>dev.jbang:jbang-maven-plugin:run@hilla-scaffold</defaultGoal>
                 <plugins>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <groupId>dev.jbang</groupId>
+                        <artifactId>jbang-maven-plugin</artifactId>
+                        <version>0.0.8</version>
                         <executions>
                             <execution>
                                 <id>hilla-scaffold</id>
                                 <goals>
-                                    <goal>bsh-property</goal>
+                                    <goal>run</goal>
                                 </goals>
                                 <configuration>
-                                    <source><![CDATA[
-import java.nio.file.CopyOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.FileAttribute;
-import java.util.List;
-import com.vaadin.hilla.plugin.base.HillaAppInitUtility;
-
-void deleteDirectory(File directoryToBeDeleted) {
-    if (directoryToBeDeleted.exists()) {
-        File[] allContents = directoryToBeDeleted.listFiles();
-        if (allContents != null) {
-            for (File file : allContents) {
-                deleteDirectory(file);
-            }
-        }
-        directoryToBeDeleted.delete();
-    }
-}
-codeStartFolder = project.getBasedir().toPath().resolve(
-    Path.of("src", new String[] { "main", "codestarts", "quarkus", "quakus-hilla-maven-codestart", "base" })
-);
-HillaAppInitUtility.scaffold(codeStartFolder, List.of("hilla-react"));
-javaSrcFolder = codeStartFolder.resolve("../java/src/main/java");
-deleteDirectory(javaSrcFolder.toFile());
-Files.createDirectories(javaSrcFolder, new FileAttribute[0]);
-Files.move(codeStartFolder.resolve("src/main/java"), javaSrcFolder, new CopyOption[] { StandardCopyOption.REPLACE_EXISTING } );
-                            ]]></source>
+                                    <script>${maven.multiModuleProjectDirectory}/etc/CodestartUpdater.java</script>
+                                    <args>
+                                        <arg>REACT</arg>
+                                        <arg>${project.basedir}/src/main/codestarts/quarkus/quakus-hilla-maven-codestart</arg>
+                                        <arg>--maven-home=${maven.home}</arg>
+                                        <arg>--pre-releases</arg>
+                                        <arg>--verbose</arg>
+                                    </args>
                                 </configuration>
                             </execution>
                         </executions>
-                        <dependencies>
-                            <dependency>
-                                <groupId>com.vaadin</groupId>
-                                <artifactId>hilla-plugin-base</artifactId>
-                                <version>${vaadin.version}</version>
-                            </dependency>
-                        </dependencies>
                     </plugin>
                 </plugins>
             </build>

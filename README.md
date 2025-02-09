@@ -268,14 +268,20 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 
 ## Update codestarts
 
-The source code of the extension codestarts are built, using the Hilla application scaffold
-utility (`HillaAppInitUtility`).
-To update the source code, run the following command in the `runtime` and `runtime-react` folders,
-and commit the changes.
+The source code of the extension codestarts are built by downloading a project from start.vaadin.com and applying necessary updates and cleanup.
+To update the source code, run the following command in the `lit/runtime` and `react/runtime` folders.
 
 ```terminal
 mvn -Pupdate-hilla-codestart
 ```
+
+Once the codestarts are updated, run the `integration-tests/codestart-tests` test modules, using the `-Dsnap` option to update the snapshot files.
+```terminal
+mvn clean verify -Dsnap
+```
+
+The tests generate projects into the `target` folder, that can be used for manual verifications.
+Once verifications are completed, commit the changes.
 
 ## Release
 
