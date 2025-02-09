@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.github.mcollovati</groupId>
+        <artifactId>quarkus-hilla-tests</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>codestart-tests</artifactId>
+    <name>Quarkus - Hilla - Codestart Tests</name>
+
+    <properties>
+        <vaadin-maven-plugin.phase>none</vaadin-maven-plugin.phase>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla-react</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-devtools-testing</artifactId>
+            <version>${quarkus.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>
