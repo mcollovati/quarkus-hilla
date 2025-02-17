@@ -61,7 +61,7 @@ jobs:
         id: set-matrix
         run: |
           test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests")
-          test_modules=$(while IFS= read -r mod; do grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"name\": \"${mod/integration-tests\//}\", \"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
+          test_modules=$(while IFS= read -r mod; do test -f $mod/src/main/resources/application.properties && grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"name\": \"${mod/integration-tests\//}\", \"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
           echo "modules=${test_modules}" >> "$GITHUB_OUTPUT"
   build-and-test-native:
     name: Native tests
@@ -98,7 +98,7 @@ jobs:
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -pl ${{ matrix.module.path }}
       - name: Native Security Test
-        if: ${{ matrix.module.security == 1 }}
+        if: ${{ matrix.module.security == 0 }}
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -Dquarkus.profile=test-security -pl ${{ matrix.module.path }}
