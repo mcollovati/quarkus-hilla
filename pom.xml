@@ -49,7 +49,7 @@
         -->
         <hilla.version>24.5.10</hilla.version>
         <vaadin.version>${hilla.version}</vaadin.version>
-        <vaadin.quarkus.version>2.1.0</vaadin.quarkus.version>
+        <vaadin.quarkus.version>2.1.1</vaadin.quarkus.version>
 
         <jackson.version>2.18.2</jackson.version>
         <assertj.version>3.27.3</assertj.version>
