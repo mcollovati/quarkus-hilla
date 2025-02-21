@@ -24,7 +24,7 @@ export default function UploadView() {
         if (file) {
             UploadEndpoint.upload("my-test", file).then(
                 savedFile => {
-                    setUploadState("File saved to " + savedFile);
+                    setUploadState(`File saved to "${savedFile}"`);
                     setFile(null);
                 },
                 err => console.log(err)
