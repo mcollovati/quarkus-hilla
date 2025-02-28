@@ -28,11 +28,11 @@ import org.eclipse.microprofile.config.ConfigProvider;
 public class HillaSecurityRecorder {
 
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
-        String cookieName = ConfigProvider.getConfig().getValue("quarkus.http.auth.form.cookie-name", String.class);
-        String landingPage = ConfigProvider.getConfig()
-                .getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
-                .orElse("/");
         return () -> {
+            Config config = ConfigProvider.getConfig();
+            String cookieName = config.getValue("quarkus.http.auth.form.cookie-name", String.class);
+            String landingPage = config.getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
+                    .orElse("/");
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
             return new HillaFormAuthenticationMechanism(delegate, cookieName, landingPage, "/logout");
