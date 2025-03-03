@@ -51,7 +51,7 @@
         <vaadin.version>${hilla.version}</vaadin.version>
         <vaadin.quarkus.version>2.1.1</vaadin.quarkus.version>
 
-        <jackson.version>2.18.2</jackson.version>
+        <jackson.version>2.18.3</jackson.version>
         <assertj.version>3.27.3</assertj.version>
 
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
