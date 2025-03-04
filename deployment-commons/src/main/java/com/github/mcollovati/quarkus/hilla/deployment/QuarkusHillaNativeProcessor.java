@@ -109,13 +109,13 @@ import com.github.mcollovati.quarkus.hilla.graal.DelayedSchedulerExecutorsFactor
 
 public class QuarkusHillaNativeProcessor {
 
-    @BuildStep(onlyIf = IsNativeBuild.class)
+    @BuildStep(onlyIf = IsNativeBuild.class, onlyIfNot = IsVaadinNativeProcessorAvailable.class)
     void patchAtmosphere(CombinedIndexBuildItem index, BuildProducer<BytecodeTransformerBuildItem> producer) {
         AtmospherePatches patcher = new AtmospherePatches(index.getComputingIndex());
         patcher.apply(producer);
     }
 
-    @BuildStep(onlyIf = IsNativeBuild.class)
+    @BuildStep(onlyIf = IsNativeBuild.class, onlyIfNot = IsVaadinNativeProcessorAvailable.class)
     @Record(ExecutionTime.RUNTIME_INIT)
     @Produce(DefaultRouteBuildItem.class)
     void deferAtmosphereInit(
@@ -155,7 +155,7 @@ public class QuarkusHillaNativeProcessor {
      * application is build with subscription key and the license-checker is not
      * configured as explicit project dependency.
      */
-    @BuildStep(onlyIf = IsNativeBuild.class)
+    @BuildStep(onlyIf = IsNativeBuild.class, onlyIfNot = IsVaadinNativeProcessorAvailable.class)
     void generateDummyDauClassesIfLicenseCheckerIsNotPresent(
             BuildProducer<GeneratedNativeImageClassBuildItem> producer) {
         String dauIntegration = "com.vaadin.pro.licensechecker.dau.DauIntegration";
@@ -222,6 +222,7 @@ public class QuarkusHillaNativeProcessor {
         nativeImageResource.produce(NativeImageResourcePatternsBuildItem.builder()
                 .includePatterns("hilla-openapi\\.json", "hilla-engine-configuration\\.json", "file-routes\\.json")
                 .includePatterns("META-INF/microprofile-config\\.properties")
+                .includePatterns("META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom\\.properties")
                 .build());
 
         IndexView index = combinedIndex.getComputingIndex();
@@ -282,7 +283,7 @@ public class QuarkusHillaNativeProcessor {
         return classes;
     }
 
-    @BuildStep
+    @BuildStep(onlyIfNot = IsVaadinNativeProcessorAvailable.class)
     void vaadinNativeSupport(
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<RuntimeInitializedPackageBuildItem> runtimeInitializedPackage,
@@ -294,7 +295,7 @@ public class QuarkusHillaNativeProcessor {
         nativeImageResource.produce(NativeImageResourcePatternsBuildItem.builder()
                 .includeGlobs("META-INF/VAADIN/**", "com/vaadin/**", "vaadin-i18n/**")
                 .includePatterns("org/atmosphere/util/version\\.properties")
-                .includePatterns("META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom\\.properties")
+                .includePatterns("META-INF/maven/com.vaadin/vaadin-core/pom\\.properties")
                 .build());
 
         runtimeInitializedPackage.produce(new RuntimeInitializedPackageBuildItem("org.atmosphere.util.analytics"));
@@ -431,6 +432,22 @@ public class QuarkusHillaNativeProcessor {
         @Override
         public boolean getAsBoolean() {
             return nativeConfig.enabled();
+        }
+    }
+
+    public static class IsVaadinNativeProcessorAvailable implements BooleanSupplier {
+
+        @Override
+        public boolean getAsBoolean() {
+            try {
+                Class.forName(
+                        "com.vaadin.quarkus.deployment.VaadinQuarkusNativeProcessor",
+                        false,
+                        Thread.currentThread().getContextClassLoader());
+                return true;
+            } catch (ClassNotFoundException e) {
+                return false;
+            }
         }
     }
 }
