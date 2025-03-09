@@ -4,7 +4,6 @@ on:
     types:
       - closed
       - labeled
-
 jobs:
   cherry-pick:
     name: Cherry Pick
@@ -12,14 +11,15 @@ jobs:
     # Only react to merged PRs for security reasons.
     # See https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request_target.
     if: >
-      github.event.pull_request.merged
-      && (
+      github.event.pull_request.merged && (
+      
         github.event.action == 'closed'
         || (
           github.event.action == 'labeled'
           && contains(github.event.label.name, 'target/')
         )
       )
+
     steps:
       - uses: tibdex/github-app-token@v2
         id: generate-token
@@ -52,8 +52,8 @@ jobs:
             const labelsToAdd = Object.keys(picked)
               .map( targetBranch => "picked/" + targetBranch)
               .filter( label => !existingLabels.includes(label) );
-            
-            if (labelsToAdd.length > 0) {            
+
+            if (labelsToAdd.length > 0) {
               await github.rest.issues.addLabels({
                 owner,
                 repo,

@@ -5,7 +5,6 @@ on:
 permissions:
   pull-requests: write
   contents: write
-
 jobs:
   format-pr:
     if: ${{ github.event.pull_request.merged == false && github.event.label.name == 'auto-format' }}
@@ -69,4 +68,3 @@ jobs:
               issue_number: prNumber,
               name: "auto-format",
             });
-

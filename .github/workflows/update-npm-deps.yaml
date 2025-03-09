@@ -68,7 +68,7 @@ jobs:
       - name: Checkout and rebase PR
         if: ${{ steps.searchpr.outputs.prNumber != '0' }}
         run: |
-          gh pr checkout ${{ steps.searchpr.outputs.prNumber }}          
+          gh pr checkout ${{ steps.searchpr.outputs.prNumber }}
           git -c user.name="quarkus-hilla-bot[bot]" -c user.email="141157179+quarkus-hilla-bot[bot]@users.noreply.github.com" \
             rebase ${{ matrix.branch }}
         env:

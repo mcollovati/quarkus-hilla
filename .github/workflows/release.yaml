@@ -9,11 +9,11 @@ on:
         type: choice
         default: 'main'
         options:
-        - "main"
-        - "24.6"
-        - "24.5"
-        - "2.5"
-        - "1.3"
+          - "main"
+          - "24.6"
+          - "24.5"
+          - "2.5"
+          - "1.3"
       version:
         description: "Version to release (e.g. 1.1.0 or 1.2.0-alpha1)"
         required: true
@@ -33,7 +33,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions-cool/check-user-permission@main
         id: checkUser
@@ -55,13 +54,11 @@ jobs:
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: refs/heads/${{ inputs.target-branch }}
           fetch-depth: 0
-
       - name: Validate version
         run: |
           VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9]+)?$'
@@ -121,11 +118,9 @@ jobs:
         with:
           java-version: 17
           distribution: 'temurin'
-
       - name: Staging artifacts
         run: |
           mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy ${{ github.event.inputs.dry-run && '-DskipTests' || '' }} deploy
-
       - name: Run JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -137,7 +132,6 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
         run: |
           mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="${{ github.event.inputs.dry-run }}" ${{ github.event.inputs.dry-run && '-DskipTests' || '' }} jreleaser:full-release
-
       - name: JReleaser release output
         if: always()
         uses: actions/upload-artifact@v4
