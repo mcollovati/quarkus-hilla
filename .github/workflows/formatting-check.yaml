@@ -43,7 +43,7 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -Pall-modules spotless:apply
-          git diff --output=/tmp/full-diff.txt 
+          git diff --output=/tmp/full-diff.txt
           git diff --name-only --output=/tmp/unformatted.txt
           export _UNFORMATTED_COUNT=$(cat /tmp/unformatted.txt | wc -l)
           export _UNFORMATTED_FILES=$(cat /tmp/unformatted.txt)
@@ -78,7 +78,7 @@ jobs:
               repo,
               issue_number: prNumber,
             }).then(resp => resp.data.map(label => label.name));
-            
+
             if (existingLabels.includes("format:checked")) {
               await github.rest.issues.removeLabel({
                 owner,
@@ -111,7 +111,7 @@ jobs:
               repo,
               issue_number: prNumber,
             }).then(resp => resp.data.map(label => label.name));
-            
+
             if (existingLabels.includes("format:required")) {
               await github.rest.issues.removeLabel({
                 owner,
