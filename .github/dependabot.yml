@@ -4,16 +4,6 @@
 # https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
 
 version: 2
-branch-template: &branch-template
-  package-ecosystem: "maven"
-  directory: "/"
-  schedule:
-    interval: "daily"
-  ignore:
-    - dependency-name: "com.vaadin.hilla:*"
-      update-types: [ "version-update:semver-major", "version-update:semver-minor"]
-    - dependency-name: "com.vaadin:*"
-      update-types: [ "version-update:semver-major", "version-update:semver-minor"]
 updates:
   - package-ecosystem: "maven"
     directory: "/"
@@ -22,17 +12,47 @@ updates:
     ignore:
       - dependency-name: "com.vaadin.hilla:*"
       - dependency-name: "com.vaadin:*"
-  - target-branch: "24.6"
-    <<: *branch-template
-  - target-branch: "24.5"
-    <<: *branch-template
-  - target-branch: "2.5"
-    <<: *branch-template
+  - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "24.6"
+    schedule:
+      interval: "daily"
     ignore:
+      - dependency-name: "com.vaadin.hilla:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+  - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "24.5"
+    schedule:
+      interval: "daily"
+    ignore:
+      - dependency-name: "com.vaadin.hilla:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+  - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "2.5"
+    schedule:
+      interval: "daily"
+    ignore:
+      - dependency-name: "dev.hilla:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "io.quarkus*:*"
         update-types: [ "version-update:semver-major"]
-  - target-branch: "1.3"
-    <<: *branch-template
+  - package-ecosystem: "maven"
+    directory: "/"
+    target-branch: "1.3"
+    schedule:
+      interval: "daily"
     ignore:
+      - dependency-name: "dev.hilla:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
+      - dependency-name: "com.vaadin:*"
+        update-types: [ "version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "io.quarkus*:*"
         update-types: [ "version-update:semver-major"]
