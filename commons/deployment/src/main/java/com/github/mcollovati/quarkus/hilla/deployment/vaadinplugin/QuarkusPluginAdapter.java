@@ -246,6 +246,11 @@ public class QuarkusPluginAdapter implements PluginAdapterBuild {
     }
 
     @Override
+    public boolean isFrontendIgnoreVersionChecks() {
+        return config.frontendIgnoreVersionChecks();
+    }
+
+    @Override
     public void logDebug(CharSequence charSequence) {
         LOGGER.debug(charSequence.toString());
     }
