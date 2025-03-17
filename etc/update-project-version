@@ -1,0 +1,94 @@
+#!/bin/bash
+
+project_folder=${1:?Missing project folder}
+new_version=${2:?Missing new project version}
+project_folder=$(realpath "${project_folder}")
+yq_options="-i"
+
+if [ ! -d "${project_folder}" ]; then
+  echo "Invalid project folder ${project_folder}"
+  exit 1
+fi
+
+project_folder=$(realpath "${project_folder}")
+pom_file="${project_folder}/pom.xml"
+if [ ! -f "${pom_file}" ]; then
+  echo "POM file not found on project folder ${project_folder}"
+  exit 1
+fi
+
+if [[ ! $new_version =~ ^[0-9]+\.[0-9]+$ ]]; then
+  echo "Invalid new version ${new_version}. Must be in format MAJOR.MINOR"
+  exit 1
+fi
+
+current_version=$(grep -oP "<revision>\K.*(?=-SNAPSHOT</revision>)" ${pom_file})
+if [ -z "${current_version}" ]; then
+  echo "Cannot read current project version from ${pom_file}"
+  exit 2
+fi
+
+vaadin_version=$(grep -oP "<hilla\.version>\K.*(?=-SNAPSHOT</hilla\.version>)" ${pom_file})
+if [ -z "${vaadin_version}" ]; then
+  echo "Cannot read current project version from ${pom_file}"
+  exit 2
+fi
+
+echo "Project version ${current_version}, Vaadin version ${vaadin_version}"
+echo "Updating project and Vaadin to version ${new_version}?"
+echo "Press ENTER to continue or CTRL+C to cancel"
+read
+
+echo ". Updating revision property"
+mvn -N -q -ntp versions:set-property -Dproperty=revision -DnewVersion="${new_version}-SNAPSHOT"
+echo ".. OK"
+
+echo ". Updating Vaadin version"
+mvn -N -q -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="${new_version}-SNAPSHOT"
+echo ".. OK"
+
+workflows_folder="${project_folder}/.github/workflows"
+
+if [ -f "${workflows_folder}/release.yaml" ]; then
+  echo ". Updating release.yaml workflow"
+  sed -i 's/🚫/__STOP__/g' "${workflows_folder}/release.yaml"
+  yq ${yq_options} '.on.workflow_dispatch.inputs.target-branch.options |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/release.yaml"
+  sed -i 's/__STOP__/🚫/g' "${workflows_folder}/release.yaml"
+  echo ".. OK"
+fi
+
+if [ -f "${workflows_folder}/update-npm-deps.yaml" ]; then
+  echo ". Updating update-npm-deps.yaml workflow"
+  yq ${yq_options} '.on.workflow_dispatch.inputs.target-branch.options |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/update-npm-deps.yaml"
+  yq ${yq_options} '.jobs.compute-matrix.steps[0].run |= sub("\"main\"", "\"main\",\"'"${current_version}"'\"")' "${workflows_folder}/update-npm-deps.yaml"
+  echo ".. OK"
+fi
+
+if [ -f "${workflows_folder}/validation.yaml" ]; then
+  echo ". Updating validation.yaml workflow"
+  sed -i 's/🚫/__STOP__/g' "${workflows_folder}/validation.yaml"
+  yq ${yq_options} '.on.push.branches |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/validation.yaml"
+  sed -i 's/__STOP__/🚫/g' "${workflows_folder}/validation.yaml"
+  echo ".. OK"
+fi
+
+if [ -f "${workflows_folder}/validation-nightly.yaml" ]; then
+  echo ". Updating validation-nightly.yaml workflow"
+  yq ${yq_options} '.jobs.snapshot-main.strategy.matrix.branch |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/validation-nightly.yaml"
+  echo ".. OK"
+fi
+
+dependabot_file="${project_folder}/.github/dependabot.yml"
+if [ -f "${dependabot_file}" ]; then
+  branch_template="\"package-ecosystem\": \"maven\", \"directory\": \"/\", \"target-branch\": \"${current_version}\",\"schedule\":{\"interval\":\"daily\"}, \
+                        \"ignore\": [ \
+                        { \"dependency-name\": \"com.vaadin.hilla:*\", \"update-types\": [ \"version-update:semver-major\", \"version-update:semver-minor\" ] }, \
+                        { \"dependency-name\": \"com.vaadin:*\", \"update-types\": [ \"version-update:semver-major\", \"version-update:semver-minor\" ] }  \
+                        ]"
+  echo ". Updating dependabot.yml"
+  yq ${yq_options} '.updates |= .[0:1] + [ { '"${branch_template}"' } | .. style="double" ] + .[1:] ' "${dependabot_file}"
+  echo ".. OK"
+fi
+
+echo "Upgrade completed"
+echo "Remember to manully update README.md"
