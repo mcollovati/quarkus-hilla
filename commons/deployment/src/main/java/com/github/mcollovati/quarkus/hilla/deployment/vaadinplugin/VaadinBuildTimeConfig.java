@@ -226,4 +226,13 @@ public interface VaadinBuildTimeConfig {
      */
     @WithDefault("false")
     boolean npmExcludeWebComponents();
+
+    /**
+     * Set to {@code true} to ignore node/npm tool version checks.
+     * <p></p>
+     * Note that disabling frontend tools version checking could cause failing
+     * builds and other issues that are difficult to debug.
+     */
+    @WithDefault("false")
+    boolean frontendIgnoreVersionChecks();
 }

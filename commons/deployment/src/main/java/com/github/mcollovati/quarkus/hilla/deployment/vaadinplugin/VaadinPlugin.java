@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
+import com.vaadin.experimental.FeatureFlags;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
@@ -33,6 +34,8 @@ import com.vaadin.flow.server.frontend.BundleValidationUtil;
 import com.vaadin.flow.server.frontend.FrontendTools;
 import com.vaadin.flow.server.frontend.FrontendToolsSettings;
 import com.vaadin.flow.server.frontend.FrontendUtils;
+import com.vaadin.flow.server.frontend.scanner.ClassFinder;
+import com.vaadin.flow.server.frontend.scanner.FrontendDependenciesScanner;
 import com.vaadin.flow.theme.Theme;
 import com.vaadin.hilla.engine.EngineConfiguration;
 import com.vaadin.pro.licensechecker.LicenseChecker;
@@ -106,9 +109,10 @@ public final class VaadinPlugin {
     public void buildFrontend(IndexView index) throws BuildException {
         long start = System.nanoTime();
 
+        FrontendDependenciesScanner frontendDependencies = createFrontendScanner();
         try {
             configureHilla(index);
-            BuildFrontendUtil.runNodeUpdater(pluginAdapter);
+            BuildFrontendUtil.runNodeUpdater(pluginAdapter, frontendDependencies);
         } catch (ExecutionFailedException | URISyntaxException exception) {
             throw new BuildException("Could not execute build-frontend goal", exception, List.of());
         }
@@ -122,7 +126,7 @@ public final class VaadinPlugin {
             }
         }
         LicenseChecker.setStrictOffline(true);
-        boolean licenseRequired = BuildFrontendUtil.validateLicenses(pluginAdapter);
+        boolean licenseRequired = BuildFrontendUtil.validateLicenses(pluginAdapter, frontendDependencies);
 
         BuildFrontendUtil.updateBuildFile(pluginAdapter, licenseRequired);
 
@@ -159,6 +163,23 @@ public final class VaadinPlugin {
                 .productionMode(true)
                 .build();
         EngineConfiguration.setDefault(conf);
+    }
+
+    private FrontendDependenciesScanner createFrontendScanner() {
+        boolean reactEnabled = pluginAdapter.isReactEnabled()
+                && FrontendUtils.isReactRouterRequired(BuildFrontendUtil.getFrontendDirectory(pluginAdapter));
+        ClassFinder classFinder = pluginAdapter.getClassFinder();
+        FeatureFlags featureFlags = new FeatureFlags(pluginAdapter.createLookup(classFinder));
+        if (pluginAdapter.javaResourceFolder() != null) {
+            featureFlags.setPropertiesLocation(pluginAdapter.javaResourceFolder());
+        }
+        return new FrontendDependenciesScanner.FrontendDependenciesScannerFactory()
+                .createScanner(
+                        !pluginAdapter.optimizeBundle(),
+                        classFinder,
+                        pluginAdapter.generateEmbeddableWebComponents(),
+                        featureFlags,
+                        reactEnabled);
     }
 
     private static Collection<String> buildClasspath(ApplicationModel model) {
