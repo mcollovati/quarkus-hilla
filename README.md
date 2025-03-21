@@ -217,7 +217,7 @@ or
 ## Development
 
 <picture><img alt="Development 24.8-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-24.8--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
-<picture><img alt="Quarkus 3.15+" src="https://img.shields.io/badge/QUARKUS-v3.15%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
+<picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
 <picture><img alt="Vaadin 24.8" src="https://img.shields.io/badge/VAADIN-v24.8-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
 
 ## Build and test
