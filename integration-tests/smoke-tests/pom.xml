@@ -17,7 +17,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.3.0</awaitility.version>
-        <selenide.version>7.7.3</selenide.version>
+        <selenide.version>7.8.1</selenide.version>
     </properties>
     <dependencies>
         <dependency>
