@@ -5,7 +5,7 @@
     "@adobe/lit-mobx": "2.0.0",
     "@polymer/polymer": "3.5.2",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
-    "@vaadin/bundles": "24.8.0-alpha8",
+    "@vaadin/bundles": "24.8.0-alpha11",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.8.0-alpha3",
     "@vaadin/hilla-frontend": "24.8.0-alpha3",
@@ -16,8 +16,8 @@
     "@vaadin/hilla-react-i18n": "24.8.0-alpha3",
     "@vaadin/hilla-react-signals": "24.8.0-alpha3",
     "@vaadin/polymer-legacy-adapter": "24.8.0-alpha11",
-    "@vaadin/react-components": "24.8.0-alpha8",
-    "@vaadin/react-components-pro": "24.8.0-alpha8",
+    "@vaadin/react-components": "24.8.0-alpha11",
+    "@vaadin/react-components-pro": "24.8.0-alpha11",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
     "@vaadin/vaadin-lumo-styles": "24.8.0-alpha11",
     "@vaadin/vaadin-material-styles": "24.8.0-alpha11",
@@ -105,7 +105,7 @@
   "vaadin": {
     "dependencies": {
       "@polymer/polymer": "3.5.2",
-      "@vaadin/bundles": "24.8.0-alpha8",
+      "@vaadin/bundles": "24.8.0-alpha11",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "24.8.0-alpha3",
       "@vaadin/hilla-frontend": "24.8.0-alpha3",
@@ -116,8 +116,8 @@
       "@vaadin/hilla-react-i18n": "24.8.0-alpha3",
       "@vaadin/hilla-react-signals": "24.8.0-alpha3",
       "@vaadin/polymer-legacy-adapter": "24.8.0-alpha11",
-      "@vaadin/react-components": "24.8.0-alpha8",
-      "@vaadin/react-components-pro": "24.8.0-alpha8",
+      "@vaadin/react-components": "24.8.0-alpha11",
+      "@vaadin/react-components-pro": "24.8.0-alpha11",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
       "@vaadin/vaadin-lumo-styles": "24.8.0-alpha11",
       "@vaadin/vaadin-material-styles": "24.8.0-alpha11",
@@ -162,7 +162,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "93c7cfba9675fe847e0e6e65907bc7c3bceda5d297c0a39b55a3043a72f2d204"
+    "hash": "8b9bfef562a9ad953ad66f1965d9ce4d18db23dc31c5d471a91df64d78ef5ce9"
   },
   "type": "module"
 }
