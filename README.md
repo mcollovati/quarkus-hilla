@@ -26,45 +26,7 @@ directly related **nor** supported by Vaadin Ltd.
 
 ## Notable changes
 
-### Lit and React extensions
-
-Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
-
-* `quarkus-hilla` for `Lit` based applications
-* `quarkus-hilla-react` for `React` based applications
-
-### Vaadin Unified platform
-
-Since Vaadin `24.4`, Flow and Hilla are unified in a single platform.
-As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven
-artifacts
-and Java package names moved from `dev.hilla` to `com.vaadin.hilla`.
-Quarkus-Hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
-In addition, the minimum supported Quarkus version will be `3.7`.
-
-### Integration with Vaadin Quarkus extension
-
-To provide better support for Hilla on the Quarkus platform and simplify maintenance, the `quarkus-hilla` extension will
-depend on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), starting with `24.5`. This
-integration eliminates the need for code duplication and ensures tighter alignment with Vaadin's ecosystem, offering
-more streamlined updates and improved stability. By leveraging the Vaadin Quarkus extension, users of `quarkus-hilla`
-will benefit from enhanced compatibility with future Vaadin features.
-
-### Custom Endpoint Prefix
-
-A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`. The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient` object with the configured prefix.
-If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
-
-### Experimental Embedded Vaadin Plugin
-
-Quarkus-Hilla 24.7 introduces an experimental feature that allows to simplify application setup by removing Vaadin Maven (or Gradle) plugin.
-The extension has a built-in implementation of the plugin that can be enabled setting `vaadin.build.enabled=true` in `application.properties` or as Java system property.
-
-To make the feature working properly in Maven, you also need to set `quarkus.bootstrap.workspace-discovery=true` in POM `properties` section, or as Java system property.
-This is required because when running build, Quarkus Maven plugin does not provide workspace information that are required by Vaadin internals to generate the frontend production bundle.
-Hopefully, the behavior may be revisited. If you are interested you can follow the [issue](https://github.com/quarkusio/quarkus/issues/45363) on Quarkus repository.
-
-### Support for Mutiny Multi return type in @BrowserCallable services
+### Support for Mutiny Multi return type in @BrowserCallable services  ![24.7](https://img.shields.io/badge/24.7-blue?style=flat-square)
 
 Starting with 24.7, the extension provides support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
 `MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
@@ -93,6 +55,44 @@ public class ClockService {
 }
 ```
 
+### Experimental Embedded Vaadin Plugin ![24.7](https://img.shields.io/badge/24.7-blue?style=flat-square)
+
+Quarkus-Hilla 24.7 introduces an experimental feature that allows to simplify application setup by removing Vaadin Maven (or Gradle) plugin.
+The extension has a built-in implementation of the plugin that can be enabled setting `vaadin.build.enabled=true` in `application.properties` or as Java system property.
+
+To make the feature working properly in Maven, you also need to set `quarkus.bootstrap.workspace-discovery=true` in POM `properties` section, or as Java system property.
+This is required because when running build, Quarkus Maven plugin does not provide workspace information that are required by Vaadin internals to generate the frontend production bundle.
+Hopefully, the behavior may be revisited. If you are interested you can follow the [issue](https://github.com/quarkusio/quarkus/issues/45363) on Quarkus repository.
+
+### Custom Endpoint Prefix  ![24.6](https://img.shields.io/badge/24.6-blue?style=flat-square)
+
+A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`. The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient` object with the configured prefix.
+If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
+
+### Integration with Vaadin Quarkus extension  ![24.5](https://img.shields.io/badge/24.5-blue?style=flat-square)
+
+To provide better support for Hilla on the Quarkus platform and simplify maintenance, the `quarkus-hilla` extension will
+depend on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), starting with `24.5`. This
+integration eliminates the need for code duplication and ensures tighter alignment with Vaadin's ecosystem, offering
+more streamlined updates and improved stability. By leveraging the Vaadin Quarkus extension, users of `quarkus-hilla`
+will benefit from enhanced compatibility with future Vaadin features.
+
+### Vaadin Unified platform  ![24.4](https://img.shields.io/badge/24.4-blue?style=flat-square)
+
+Since Vaadin `24.4`, Flow and Hilla are unified in a single platform.
+As a consequence, there have been a considerable amount of changes in Hilla, for example the `groupId` of Maven
+artifacts
+and Java package names moved from `dev.hilla` to `com.vaadin.hilla`.
+Quarkus-Hilla will follow the Vaadin platform releases, so the extension version will bump from `2.5` series to `24.4`.
+In addition, the minimum supported Quarkus version will be `3.7`.
+
+### Lit and React extensions  ![2.4.1](https://img.shields.io/badge/2.4.1-blue?style=flat-square)
+
+Starting with `2.4.1`, the extension is subdivided into two main artifacts based on the desired front-end framework:
+
+* `quarkus-hilla` for `Lit` based applications
+* `quarkus-hilla-react` for `React` based applications
+
 ## Limitations
 
 The current Hilla support has some known limitations:
@@ -100,7 +100,7 @@ The current Hilla support has some known limitations:
 * Vaadin Copilot is not supported
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
-* With the Vaadin 24.7, frontend build fails because the Hilla endpoint generation tasks relies on the execution of a Spring process. However, there is a good chance that Hilla will provide a pluggable API for endpoint discovery before 24.7 stable release. As a temporary workaround you can enable Quarkus-Hilla **Experimental embedded Vaadin plugin implementation**, or you can add the `aot-browser-finder-callable-workaround` dependency to `vaadin-maven-plugin` configuration. The dependency workaround is required only when building for production; in development mode the offending class is automatically replaced by the extension.
+* :warning: :boom: With the Vaadin 24.7, frontend **build fails** because the Hilla endpoint generation tasks relies on the execution of a Spring process. However, there is a good chance that Hilla will provide a pluggable API for endpoint discovery before 24.7 stable release. As a temporary workaround you can enable Quarkus-Hilla **Experimental embedded Vaadin plugin implementation**, or you can add the `aot-browser-finder-callable-workaround` dependency to `vaadin-maven-plugin` configuration. The dependency workaround is required only when building for production; in development mode the offending class is automatically replaced by the extension.
   ```xml
                     <plugin>
                         <groupId>com.vaadin</groupId>
