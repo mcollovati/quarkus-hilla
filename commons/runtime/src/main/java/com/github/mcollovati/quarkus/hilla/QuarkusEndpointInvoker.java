@@ -84,10 +84,7 @@ public class QuarkusEndpointInvoker extends EndpointInvoker {
             ObjectNode body,
             Principal principal,
             Function<String, Boolean> rolesChecker)
-            throws EndpointInvocationException.EndpointNotFoundException,
-                    EndpointInvocationException.EndpointAccessDeniedException,
-                    EndpointInvocationException.EndpointBadRequestException,
-                    EndpointInvocationException.EndpointInternalException {
+            throws EndpointInvocationException.EndpointHttpException {
         Object object = super.invoke(endpointName, methodName, body, principal, rolesChecker);
         if (object instanceof Multi<?> multi) {
             object = multiToEndpointSubscription(multi, null);

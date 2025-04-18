@@ -118,9 +118,10 @@ class SignalsSecurityTest {
         AtomicInteger value = new AtomicInteger(0);
         updateSignalValue(ADMIN, "adminCounter", value.addAndGet(50))
                 .accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, value.get())));
-        Stream.of(ANONYMOUS, USER, GUEST)
-                .forEach(user -> updateSignalValueNotAllowed(user, "adminCounter", value.addAndGet(7))
-                        .accept(assertAccessDenied("adminCounter")));
+        updateSignalValueNotAuthenticated(ANONYMOUS, "adminCounter", value.addAndGet(7))
+                .accept(assertAccessDenied("adminCounter"));
+        Stream.of(USER, GUEST).forEach(user -> updateSignalValueNotAllowed(user, "adminCounter", value.addAndGet(7))
+                .accept(assertAccessDenied("adminCounter")));
     }
 
     @Test
@@ -129,7 +130,7 @@ class SignalsSecurityTest {
         AtomicInteger value = new AtomicInteger(0);
         Stream.of(ADMIN, USER, GUEST).forEach(user -> updateSignalValue(user, "userCounter", value.addAndGet(7))
                 .accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, value.get()))));
-        updateSignalValueNotAllowed(ANONYMOUS, "userCounter", 70).accept(assertAccessDenied("userCounter"));
+        updateSignalValueNotAuthenticated(ANONYMOUS, "userCounter", 70).accept(assertAccessDenied("userCounter"));
     }
 
     private Consumer<Consumer<AbstractStringAssert<?>>> subscribeSignal(TestUtils.User user, String signal) {
@@ -140,16 +141,21 @@ class SignalsSecurityTest {
 
     private Consumer<Consumer<AbstractStringAssert<?>>> updateSignalValue(
             TestUtils.User user, String signal, int newValue) {
-        return updateSignalValue(user, signal, newValue, true);
+        return updateSignalValue(user, signal, newValue, 200);
+    }
+
+    private Consumer<Consumer<AbstractStringAssert<?>>> updateSignalValueNotAuthenticated(
+            TestUtils.User user, String signal, int newValue) {
+        return updateSignalValue(user, signal, newValue, 401);
     }
 
     private Consumer<Consumer<AbstractStringAssert<?>>> updateSignalValueNotAllowed(
             TestUtils.User user, String signal, int newValue) {
-        return updateSignalValue(user, signal, newValue, false);
+        return updateSignalValue(user, signal, newValue, 403);
     }
 
     private Consumer<Consumer<AbstractStringAssert<?>>> updateSignalValue(
-            TestUtils.User user, String signal, int newValue, boolean expectAllowed) {
+            TestUtils.User user, String signal, int newValue, int expectedHttpStatusCode) {
         return asserter -> {
             // Create shared signal
             doWithClient(ADMIN, signal, (client, clientSignalId) -> {
@@ -171,8 +177,8 @@ class SignalsSecurityTest {
                                 authenticate(user))
                         .then()
                         .assertThat()
-                        .statusCode(expectAllowed ? 200 : 500);
-                if (expectAllowed) {
+                        .statusCode(expectedHttpStatusCode);
+                if (expectedHttpStatusCode == 200) {
                     client.assertMessageReceived(1, TimeUnit.SECONDS, asserter);
                 }
             });
