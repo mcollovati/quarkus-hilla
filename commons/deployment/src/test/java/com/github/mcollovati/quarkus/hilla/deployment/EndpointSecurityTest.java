@@ -94,7 +94,7 @@ class EndpointSecurityTest {
         Stream.of(USER, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "adminOnly", authenticate(user))
                 .then()
                 .assertThat()
-                .statusCode(401)
+                .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'")));
@@ -120,7 +120,7 @@ class EndpointSecurityTest {
         Stream.of(ADMIN, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userOnly", authenticate(user))
                 .then()
                 .assertThat()
-                .statusCode(401)
+                .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'")));
@@ -146,7 +146,7 @@ class EndpointSecurityTest {
         givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(GUEST))
                 .then()
                 .assertThat()
-                .statusCode(401)
+                .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'"));
@@ -165,7 +165,7 @@ class EndpointSecurityTest {
         Stream.of(ADMIN, USER, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "deny", authenticate(user))
                 .then()
                 .assertThat()
-                .statusCode(401)
+                .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
                 .body("message", containsString("reason: 'Access denied'")));
@@ -185,7 +185,7 @@ class EndpointSecurityTest {
                 .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "denyByDefault", authenticate(user))
                         .then()
                         .assertThat()
-                        .statusCode(401)
+                        .statusCode(403)
                         .and()
                         .body("message", containsString(SECURE_ENDPOINT))
                         .body("message", containsString("reason: 'Access denied'")));
