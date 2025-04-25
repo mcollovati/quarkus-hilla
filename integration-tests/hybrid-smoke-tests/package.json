@@ -29,7 +29,7 @@
     "mobx": "^6.3.5",
     "react": "18.3.1",
     "react-dom": "18.3.1",
-    "react-router": "7.5.0"
+    "react-router": "7.5.2"
   },
   "devDependencies": {
     "@babel/preset-react": "7.26.3",
@@ -49,15 +49,15 @@
     "@vaadin/hilla-generator-plugin-subtypes": "24.8.0-alpha5",
     "@vaadin/hilla-generator-plugin-transfertypes": "24.8.0-alpha5",
     "@vaadin/hilla-generator-utils": "24.8.0-alpha5",
-    "@vitejs/plugin-react": "4.4.0",
+    "@vitejs/plugin-react": "4.4.1",
     "async": "3.2.6",
-    "glob": "11.0.1",
+    "glob": "11.0.2",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "5.14.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.8.3",
-    "vite": "6.3.2",
+    "vite": "6.3.3",
     "vite-plugin-checker": "0.9.1",
     "workbox-build": "7.3.0",
     "workbox-core": "7.3.0",
@@ -128,7 +128,7 @@
       "lit": "3.3.0",
       "react": "18.3.1",
       "react-dom": "18.3.1",
-      "react-router": "7.5.0"
+      "react-router": "7.5.2"
     },
     "devDependencies": {
       "@babel/preset-react": "7.26.3",
@@ -148,21 +148,21 @@
       "@vaadin/hilla-generator-plugin-subtypes": "24.8.0-alpha5",
       "@vaadin/hilla-generator-plugin-transfertypes": "24.8.0-alpha5",
       "@vaadin/hilla-generator-utils": "24.8.0-alpha5",
-      "@vitejs/plugin-react": "4.4.0",
+      "@vitejs/plugin-react": "4.4.1",
       "async": "3.2.6",
-      "glob": "11.0.1",
+      "glob": "11.0.2",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "5.14.0",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.8.3",
-      "vite": "6.3.2",
+      "vite": "6.3.3",
       "vite-plugin-checker": "0.9.1",
       "workbox-build": "7.3.0",
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "1218dee6c603329e128fe6c95614183d99f2eaba5184d70f8493a853247e3185"
+    "hash": "818e36ed1bfe1c2f21b798f9133db3b97f7ccaaa0e6063a2de73291de14e59c9"
   },
   "type": "module"
 }
