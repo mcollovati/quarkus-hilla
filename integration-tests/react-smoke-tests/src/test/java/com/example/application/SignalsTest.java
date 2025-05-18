@@ -75,10 +75,8 @@ public class SignalsTest extends AbstractTest {
         var secondWindowDriver = Selenide.switchTo().newWindow(WindowType.WINDOW);
         try {
             var secondWindowHandle = secondWindowDriver.getWindowHandle();
-
             assertNotEquals(firstWindowHandle, secondWindowHandle);
-
-            secondWindowDriver.get(getTestUrl() + "SharedNumberSignal");
+            openTestPage();
 
             var secondWindowSharedValue = Double.parseDouble(
                     secondWindowDriver.findElement(By.id("sharedValue")).getText());
