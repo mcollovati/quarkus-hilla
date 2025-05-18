@@ -4,6 +4,8 @@ on:
     types: ["labeled"]
 permissions:
   contents: read
+env:
+  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 jobs:
   format-pr:
     permissions:
@@ -22,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ steps.generate-token.outputs.token }}
-          fetchref: ${{ github.event.pull_request.head.sha }}
+          fetchref: ${{env.HEAD_SHA}}
       - name: Set up Java
         uses: actions/setup-java@v4
         with:

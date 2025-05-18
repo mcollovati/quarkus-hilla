@@ -10,6 +10,9 @@ concurrency:
   cancel-in-progress: true
 env:
   JAVA_VERSION: 17
+  HEAD_REF: ${{ github.head_ref }}
+  REF_NAME: ${{ github.ref_name }}
+  HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 jobs:
   checkstyle:
     permissions:
@@ -18,7 +21,7 @@ jobs:
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
-      - run: echo "Concurrency Group = format-check-${{ github.head_ref || github.ref_name }}"
+      - run: echo "Concurrency Group = format-check-${HEAD_REF:-$REF_NAME}"
       - uses: tibdex/github-app-token@v2
         id: generate-token
         with:
@@ -27,7 +30,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{env.HEAD_SHA}}
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
