@@ -21,12 +21,12 @@ jobs:
       )
 
     steps:
-      - uses: tibdex/github-app-token@v2
+      - uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
         id: generate-token
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
           private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
-      - uses: tibdex/backport@v2
+      - uses: tibdex/backport@9565281eda0731b1d20c4025c43339fb0a23812e # v2.0.4
         id: backport
         with:
           github_token: ${{ steps.generate-token.outputs.token }}
@@ -35,7 +35,7 @@ jobs:
           body_template: "<%= body %>"
           label_pattern: "^target/(?<base>([^ ]+))$"
           labels_template: "[ \"cherry-pick\" ]"
-      - uses: actions/github-script@v7
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
