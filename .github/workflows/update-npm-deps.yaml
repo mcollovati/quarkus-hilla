@@ -31,7 +31,7 @@ jobs:
           if [[ -z "$CMD_TARGET_BRANCH" ]]; then
             echo 'matrix={ "branch": ["main","24.7","24.6","2.5","1.3"] }' >> "$GITHUB_OUTPUT"
           else
-            echo 'matrix={ "branch": ["$CMD_TARGET_BRANCH"] }' >> "$GITHUB_OUTPUT"
+            echo 'matrix={ "branch": ["''$CMD_TARGET_BRANCH''"] }' >> "$GITHUB_OUTPUT"
           fi
   update-npm-deps:
     permissions:
