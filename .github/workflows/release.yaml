@@ -34,7 +34,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions-cool/check-user-permission@main
+      - uses: actions-cool/check-user-permission@7b90a27f92f3961b368376107661682c441f6103 # main
         id: checkUser
         with:
           username: ${{github.triggering_actor}}
@@ -58,7 +58,7 @@ jobs:
             exit 1
           fi
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: refs/heads/${{ inputs.target-branch }}
           fetch-depth: 0
@@ -123,7 +123,7 @@ jobs:
             echo "⚠️ SNAPSHOT detected for vaadin-quarkus version. Automatically forcing version to $vaadin_quarkus_version." | tee -a $GITHUB_STEP_SUMMARY
           fi
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: 17
           distribution: 'temurin'
@@ -147,7 +147,7 @@ jobs:
           mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="$CMD_DRY_RUN" $CMD_SKIP_TESTS jreleaser:full-release
       - name: JReleaser release output
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: jreleaser-release
           path: |

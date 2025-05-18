@@ -22,17 +22,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: echo "Concurrency Group = format-check-${HEAD_REF:-$REF_NAME}"
-      - uses: tibdex/github-app-token@v2
+      - uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
         id: generate-token
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
           private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: ${{env.HEAD_SHA}}
       - name: Set up Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
@@ -62,14 +62,14 @@ jobs:
           echo "All files are correctly formatted" >> /tmp/message
       - name: Comment PR
         if: ${{ always() }}
-        uses: thollander/actions-comment-pull-request@v2
+        uses: thollander/actions-comment-pull-request@fabd468d3a1a0b97feee5f6b9e499eab0dd903f6 # v2.5.0
         with:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
           filePath: /tmp/message
           comment_tag: formatting-check
       - name: Add format required label to PR
         if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
@@ -102,7 +102,7 @@ jobs:
             }
       - name: Add format checked label to PR
         if: ${{ success() }}
-        uses: actions/github-script@v7
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
