@@ -8,8 +8,6 @@ on:
 permissions:
   contents: read
   issues: read
-  checks: write
-  pull-requests: write
 concurrency:
   group: validation-native-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
@@ -26,8 +24,11 @@ jobs:
           require: 'write'
       - name: Fail on workflow triggered by external contributor
         if: ${{ steps.checkUser.outputs.require-result != 'true' && github.actor != 'dependabot[bot]' && github.actor != 'quarkus-hilla-bot[bot]' }}
+        env:
+          CMD_ACTOR: ${{ github.actor }}
+          CMD_REPO: ${{ github.repository }}
         run: |
-          echo "🚫 **${{ github.actor }}** is an external contributor, a **${{ github.repository }}** team member has to review this changes and re-run this build" \
+          echo "🚫 **$CMD_ACTOR** is an external contributor, a **$CMD_REPO** team member has to review this changes and re-run this build" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
   changes:
     name: Compute changes
@@ -64,6 +65,9 @@ jobs:
           test_modules=$(while IFS= read -r mod; do test -f $mod/src/main/resources/application.properties && grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"name\": \"${mod/integration-tests\//}\", \"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
           echo "modules=${test_modules}" >> "$GITHUB_OUTPUT"
   build-and-test-native:
+    permissions:
+      checks: write
+      pull-requests: write
     name: Native tests
     needs: [compute-matrix]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}

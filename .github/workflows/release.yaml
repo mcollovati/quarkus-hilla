@@ -42,8 +42,11 @@ jobs:
           require: 'write'
       - name: Fail on workflow triggered by external contributor
         if: ${{ steps.checkUser.outputs.require-result != 'true' }}
+        env:
+          CMD_ACTOR: ${{ github.actor }}
+          CMD_REPO: ${{ github.repository }}
         run: |
-          echo "🚫 **${{ github.actor }}** is an external contributor, only **${{ github.repository }}** team members can perform a release" \
+          echo "🚫 **$CMD_ACTOR** is an external contributor, only **$CMD_REPO** team members can perform a release" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
       - name: Validate Workflow branch
         if: ${{ !github.event.inputs.dry-run }}
@@ -60,39 +63,45 @@ jobs:
           ref: refs/heads/${{ inputs.target-branch }}
           fetch-depth: 0
       - name: Validate version
+        env:
+          CMD_VERSION: ${{ inputs.version }}
+          CMD_TARGET_BRANCH: ${{ inputs.target-branch }}
+          CMD_DRY_RUN: ${{ github.event.inputs.dry-run }}
         run: |
           VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9]+)?$'
-          if [[ ! "${{ inputs.version }}" =~ $VERSION_REGEX ]]; then
-            echo "🚫 Invalid version specified: '${{ inputs.version }}'. Please enter a valid SemVer version, like '1.2.3' or '1.0.0-alpha1'." \
+          if [[ ! "$CMD_VERSION" =~ $VERSION_REGEX ]]; then
+            echo "🚫 Invalid version specified: '$CMD_VERSION'. Please enter a valid SemVer version, like '1.2.3' or '1.0.0-alpha1'." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          if [[ "${{ inputs.target-branch }}" != "main" && ! "${{ inputs.version }}" = "${{ inputs.target-branch }}."* ]]; then
-            echo "🚫 Invalid version specified: '${{ inputs.version }}' does not match the release branch '${{ inputs.target-branch }}'." \
+          if [[ "$CMD_TARGET_BRANCH" != "main" && ! "$CMD_VERSION" = "$CMD_TARGET_BRANCH."* ]]; then
+            echo "🚫 Invalid version specified: '$CMD_VERSION' does not match the release branch '$CMD_TARGET_BRANCH'." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          if git rev-parse -q --verify "refs/tags/${{ inputs.version }}" > /dev/null; then
-            echo "🚫 Version '${{ inputs.version }}' already exists. Please choose a different version." \
+          if git rev-parse -q --verify "refs/tags/$CMD_VERSION" > /dev/null; then
+            echo "🚫 Version '$CMD_VERSION' already exists. Please choose a different version." \
              | tee -a  $GITHUB_STEP_SUMMARY
             exit 1
           fi
-          echo "Releasing version '${{ inputs.version }}' from branch '${{ inputs.target-branch }}'." | tee -a $GITHUB_STEP_SUMMARY
-          if [[ "${{ github.event.inputs.dry-run }}" == "true" ]]; then
+          echo "Releasing version '$CMD_VERSION' from branch '${{ inputs.target-branch }}'." | tee -a $GITHUB_STEP_SUMMARY
+          if [[ "$CMD_DRY_RUN" == "true" ]]; then
             echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." | tee -a $GITHUB_STEP_SUMMARY
           fi
       - name: Pin Hilla version
+        env:
+          CMD_HILLA_VERSION: ${{ inputs.hilla-version }}
         run: |
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
           hilla_version_major_minor=$(echo "${hilla_version/-*/}" | cut -d. -f1,2)
           echo "POM file Hilla version: $hilla_version." | tee -a  $GITHUB_STEP_SUMMARY
-          if [[ -n "${{ inputs.hilla-version }}" ]]; then
-            if [[ "${{ inputs.hilla-version }}" = "${hilla_version_major_minor}."* ]]; then
-              mvn -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="${{ inputs.hilla-version }}"
-              echo "⚠️ Hilla version manually forced to ${{ inputs.hilla-version }}." | tee -a  $GITHUB_STEP_SUMMARY
-              hilla_version="${{ inputs.hilla-version }}"
+          if [[ -n "$CMD_HILLA_VERSION" ]]; then
+            if [[ "$CMD_HILLA_VERSION" = "${hilla_version_major_minor}."* ]]; then
+              mvn -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="$CMD_HILLA_VERSION"
+              echo "⚠️ Hilla version manually forced to $CMD_HILLA_VERSION." | tee -a  $GITHUB_STEP_SUMMARY
+              hilla_version="$CMD_HILLA_VERSION"
             else
-              echo "🚫 Forced Hilla version '${{ inputs.hilla-version }}' does not match Hilla version on release branch '$hilla_version_major_minor'." \
+              echo "🚫 Forced Hilla version '$CMD_HILLA_VERSION' does not match Hilla version on release branch '$hilla_version_major_minor'." \
                 | tee -a $GITHUB_STEP_SUMMARY
               exit 1
             fi
@@ -103,7 +112,7 @@ jobs:
             echo "⚠️ SNAPSHOT detected for Hilla version. Automatically forcing version to $hilla_version." | tee -a $GITHUB_STEP_SUMMARY
           fi
           if [[ "$hilla_version" =~ .*-SNAPSHOT ]]; then
-            echo "🚫 Hilla version '${{ inputs.hilla-version }}' is a SNAPSHOT. Please provide a proper release version." \
+            echo "🚫 Hilla version '$CMD_HILLA_VERSION' is a SNAPSHOT. Please provide a proper release version." \
              | tee -a $GITHUB_STEP_SUMMARY
             exit 1
           fi
@@ -119,8 +128,11 @@ jobs:
           java-version: 17
           distribution: 'temurin'
       - name: Staging artifacts
+        env:
+          CMD_REVISION: ${{ inputs.version }}
+          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests' || '' }}
         run: |
-          mvn -V -ntp -Pdistribution,default-modules -Drevision=${{ inputs.version }} -DaltDeploymentRepository=local::file:./target/staging-deploy ${{ github.event.inputs.dry-run && '-DskipTests' || '' }} deploy
+          mvn -V -ntp -Pdistribution,default-modules -Drevision=$CMD_REVISION -DaltDeploymentRepository=local::file:./target/staging-deploy $CMD_SKIP_TESTS deploy
       - name: Run JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -129,8 +141,10 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
+          CMD_DRY_RUN: ${{ github.event.inputs.dry-run }}
+          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests' || '' }}
         run: |
-          mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="${{ github.event.inputs.dry-run }}" ${{ github.event.inputs.dry-run && '-DskipTests' || '' }} jreleaser:full-release
+          mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="$CMD_DRY_RUN" $CMD_SKIP_TESTS jreleaser:full-release
       - name: JReleaser release output
         if: always()
         uses: actions/upload-artifact@v4

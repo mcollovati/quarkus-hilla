@@ -16,8 +16,7 @@ on:
   schedule:
     - cron: '0 2 * * *'
 permissions:
-  pull-requests: write
-  contents: write
+  contents: read
 jobs:
   compute-matrix:
     runs-on: ubuntu-latest
@@ -26,13 +25,18 @@ jobs:
     steps:
       - name: Compute matrix
         id: set-matrix
+        env:
+          CMD_TARGET_BRANCH: ${{ inputs.target-branch }}
         run: |
-          if [[ -z "${{ inputs.target-branch }}" ]]; then
+          if [[ -z "$CMD_TARGET_BRANCH" ]]; then
             echo 'matrix={ "branch": ["main","24.7","24.6","2.5","1.3"] }' >> "$GITHUB_OUTPUT"
           else
-            echo 'matrix={ "branch": ["${{ inputs.target-branch }}"] }' >> "$GITHUB_OUTPUT"
+            echo 'matrix={ "branch": ["'$CMD_TARGET_BRANCH'"] }' >> "$GITHUB_OUTPUT"
           fi
   update-npm-deps:
+    permissions:
+      pull-requests: write
+      contents: write
     runs-on: ubuntu-latest
     needs: [compute-matrix]
     name: Update NPM dependencies

@@ -5,8 +5,6 @@ on:
 permissions:
   contents: read
   issues: read
-  checks: write
-  pull-requests: write
 concurrency:
   group: format-check-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
@@ -14,6 +12,9 @@ env:
   JAVA_VERSION: 17
 jobs:
   checkstyle:
+    permissions:
+      checks: write
+      pull-requests: write
     timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
