@@ -42,14 +42,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.22.2</quarkus.version>
+        <quarkus.version>3.22.3</quarkus.version>
         <!--
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>24.7.3</hilla.version>
+        <hilla.version>24.7.5</hilla.version>
         <flow.version>24.7.6</flow.version>
-        <vaadin.version>24.7.3</vaadin.version>
+        <vaadin.version>24.7.4</vaadin.version>
         <vaadin.quarkus.version>2.1.3</vaadin.quarkus.version>
 
         <!--
@@ -67,7 +67,7 @@
         <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
-        <jandex-maven-plugin.version>3.3.0</jandex-maven-plugin.version>
+        <jandex-maven-plugin.version>3.3.1</jandex-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.18.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
