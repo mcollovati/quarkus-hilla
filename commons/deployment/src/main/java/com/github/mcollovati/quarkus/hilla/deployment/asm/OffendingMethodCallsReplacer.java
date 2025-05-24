@@ -26,7 +26,7 @@ import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
 import com.vaadin.hilla.EndpointUtil;
 import com.vaadin.hilla.Hotswapper;
-import com.vaadin.hilla.engine.EngineConfiguration;
+import com.vaadin.hilla.engine.EngineAutoConfiguration;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
 import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
@@ -173,7 +173,11 @@ public class OffendingMethodCallsReplacer {
         return new BytecodeTransformerBuildItem(EndpointCodeGenerator.class.getName(), (className, classVisitor) -> {
             ClassTransformer transformer = new ClassTransformer(className);
             MethodDescriptor findBrowserCallablesMethod = MethodDescriptor.ofMethod(
-                    className, "findBrowserCallables", List.class, EngineConfiguration.class, ApplicationContext.class);
+                    className,
+                    "findBrowserCallables",
+                    List.class,
+                    EngineAutoConfiguration.class,
+                    ApplicationContext.class);
             transformer.removeMethod(findBrowserCallablesMethod);
             try (MethodCreator creator = transformer.addMethod(findBrowserCallablesMethod)) {
                 creator.setModifiers(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC);
@@ -182,7 +186,7 @@ public class OffendingMethodCallsReplacer {
                                 HillaReplacements.class,
                                 "findBrowserCallables",
                                 List.class,
-                                EngineConfiguration.class,
+                                EngineAutoConfiguration.class,
                                 ApplicationContext.class),
                         creator.getMethodParam(0),
                         creator.getMethodParam(1)));

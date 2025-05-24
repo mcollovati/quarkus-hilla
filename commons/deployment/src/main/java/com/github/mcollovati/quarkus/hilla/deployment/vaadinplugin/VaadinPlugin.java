@@ -19,13 +19,11 @@ import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import com.vaadin.experimental.FeatureFlags;
 import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.dependency.JsModule;
 import com.vaadin.flow.component.dependency.NpmPackage;
-import com.vaadin.flow.di.Lookup;
 import com.vaadin.flow.plugin.base.BuildFrontendUtil;
 import com.vaadin.flow.plugin.base.PluginAdapterBase;
 import com.vaadin.flow.server.Constants;
@@ -37,7 +35,8 @@ import com.vaadin.flow.server.frontend.FrontendUtils;
 import com.vaadin.flow.server.frontend.scanner.ClassFinder;
 import com.vaadin.flow.server.frontend.scanner.FrontendDependenciesScanner;
 import com.vaadin.flow.theme.Theme;
-import com.vaadin.hilla.engine.EngineConfiguration;
+import com.vaadin.hilla.engine.BrowserCallableFinder;
+import com.vaadin.hilla.engine.EngineAutoConfiguration;
 import com.vaadin.pro.licensechecker.LicenseChecker;
 import io.quarkus.bootstrap.model.ApplicationModel;
 import io.quarkus.bootstrap.workspace.WorkspaceModule;
@@ -135,22 +134,11 @@ public final class VaadinPlugin {
     }
 
     private void configureHilla(IndexView index) throws URISyntaxException {
-        EngineConfiguration.BrowserCallableFinder browserCallableFinder;
-        Lookup lookup = pluginAdapter.createLookup(pluginAdapter.getClassFinder());
-        var finders = lookup.lookupAll(EngineConfiguration.BrowserCallableFinder.class);
-        if (finders.size() > 1) {
-            throw new IllegalStateException("Found more than one BrowserCallableFinder implementation: "
-                    + finders.stream().map(obj -> obj.getClass().getName()).collect(Collectors.joining(", ")));
-        } else if (!finders.isEmpty()) {
-            browserCallableFinder = finders.iterator().next();
-        } else {
-            browserCallableFinder = new QuarkusHillaBrowserCallableFinder(index);
-        }
-
+        BrowserCallableFinder browserCallableFinder = new QuarkusHillaBrowserCallableFinder(index);
         FrontendTools tools = new FrontendTools(getFrontendToolsSettings(pluginAdapter));
         ApplicationModel applicationModel = pluginAdapter.getApplicationModel();
         WorkspaceModule module = applicationModel.getApplicationModule();
-        var conf = new EngineConfiguration.Builder()
+        var conf = new EngineAutoConfiguration.Builder()
                 .baseDir(module.getModuleDir().toPath())
                 .buildDir(module.getBuildDir().toPath())
                 .outputDir(pluginAdapter.generatedTsFolder().toPath())
@@ -162,7 +150,7 @@ public final class VaadinPlugin {
                 .nodeCommand(tools.getNodeBinary())
                 .productionMode(true)
                 .build();
-        EngineConfiguration.setDefault(conf);
+        EngineAutoConfiguration.setDefault(conf);
     }
 
     private FrontendDependenciesScanner createFrontendScanner() {

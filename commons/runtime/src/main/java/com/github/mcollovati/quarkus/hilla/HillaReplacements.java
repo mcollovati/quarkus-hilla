@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.vaadin.hilla.engine.EngineConfiguration;
+import com.vaadin.hilla.engine.EngineAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 
 public final class HillaReplacements {
@@ -35,7 +35,7 @@ public final class HillaReplacements {
      * @return a list of classes that qualify as browser callables
      */
     public static List<Class<?>> findBrowserCallables(
-            EngineConfiguration engineConfiguration, ApplicationContext applicationContext) {
+            EngineAutoConfiguration engineConfiguration, ApplicationContext applicationContext) {
         return engineConfiguration.getEndpointAnnotations().stream()
                 .map(applicationContext::getBeansWithAnnotation)
                 .map(Map::values)

@@ -29,8 +29,9 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.vaadin.flow.server.ExecutionFailedException;
-import com.vaadin.hilla.engine.EngineConfiguration;
+import com.vaadin.hilla.engine.BrowserCallableFinder;
+import com.vaadin.hilla.engine.BrowserCallableFinderException;
+import com.vaadin.hilla.engine.EngineAutoConfiguration;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.CompositeIndex;
 import org.jboss.jandex.DotName;
@@ -41,21 +42,18 @@ import org.jboss.jandex.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class QuarkusHillaBrowserCallableFinder implements EngineConfiguration.BrowserCallableFinder {
+public class QuarkusHillaBrowserCallableFinder implements BrowserCallableFinder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(QuarkusHillaBrowserCallableFinder.class);
 
     private IndexView index;
-
-    public QuarkusHillaBrowserCallableFinder() {}
 
     public QuarkusHillaBrowserCallableFinder(IndexView index) {
         this.index = index;
     }
 
     @Override
-    public List<Class<?>> findBrowserCallables() throws ExecutionFailedException {
-        EngineConfiguration configuration = EngineConfiguration.getDefault();
+    public List<Class<?>> find(EngineAutoConfiguration configuration) throws BrowserCallableFinderException {
         IndexView compositeIndex = getOrCreateIndex(configuration);
         Set<String> browserCallables = configuration.getEndpointAnnotations().stream()
                 .map(DotName::createSimple)
@@ -80,13 +78,13 @@ public class QuarkusHillaBrowserCallableFinder implements EngineConfiguration.Br
         return browserCallableClasses;
     }
 
-    private IndexView getOrCreateIndex(EngineConfiguration configuration) throws ExecutionFailedException {
+    private IndexView getOrCreateIndex(EngineAutoConfiguration configuration) throws BrowserCallableFinderException {
         if (index == null) {
             Path tempFile;
             try {
                 tempFile = Files.createTempFile("jandex", "idx");
             } catch (IOException e) {
-                throw new ExecutionFailedException(e);
+                throw new BrowserCallableFinderException(e);
             }
             tempFile.toFile().deleteOnExit();
             List<IndexView> indexes = new ArrayList<>();
@@ -106,7 +104,7 @@ public class QuarkusHillaBrowserCallableFinder implements EngineConfiguration.Br
                     }
                 }
             } catch (IOException e) {
-                throw new ExecutionFailedException(e);
+                throw new BrowserCallableFinderException(e);
             }
             index = CompositeIndex.create(indexes);
         }
