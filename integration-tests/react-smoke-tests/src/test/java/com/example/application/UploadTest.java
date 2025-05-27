@@ -36,7 +36,7 @@ public class UploadTest extends AbstractTest {
 
     @Override
     protected String getTestUrl() {
-        return super.getBaseURL() + "/upload";
+        return super.getBaseURL() + "upload";
     }
 
     @Test
