@@ -36,7 +36,7 @@
     "@preact/signals-react-transform": "0.5.1",
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.1.4",
-    "@types/react": "18.3.22",
+    "@types/react": "18.3.23",
     "@types/react-dom": "18.3.7",
     "@vaadin/hilla-generator-cli": "24.8.0-beta2",
     "@vaadin/hilla-generator-core": "24.8.0-beta2",
@@ -136,7 +136,7 @@
       "@preact/signals-react-transform": "0.5.1",
       "@rollup/plugin-replace": "6.0.2",
       "@rollup/pluginutils": "5.1.4",
-      "@types/react": "18.3.22",
+      "@types/react": "18.3.23",
       "@types/react-dom": "18.3.7",
       "@vaadin/hilla-generator-cli": "24.8.0-beta2",
       "@vaadin/hilla-generator-core": "24.8.0-beta2",
@@ -164,7 +164,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "3adc6618942f94b4b99688e5ec0428a770f3d8809e570136668738c1e634ddeb"
+    "hash": "52d066f7b2d16147931b6c29dd4d6bd77b50df3fdf48c21f6cde12884be9bca9"
   },
   "type": "module"
 }
