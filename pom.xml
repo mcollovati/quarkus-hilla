@@ -71,7 +71,7 @@
         <flatten-maven-plugin.version>1.7.0</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
         <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
-        <build-helper-maven-plugin.version>3.6.0</build-helper-maven-plugin.version>
+        <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
 
     </properties>
     <dependencyManagement>
