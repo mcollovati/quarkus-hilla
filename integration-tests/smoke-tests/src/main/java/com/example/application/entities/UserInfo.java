@@ -18,16 +18,14 @@ package com.example.application.entities;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.vaadin.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.jspecify.annotations.NonNull;
 
 public class UserInfo {
 
-    @Nonnull
-    private final String name;
+    @NonNull private final String name;
 
-    @Nonnull
-    private final Set<String> roles;
+    @NonNull private final Set<String> roles;
 
     public UserInfo(SecurityIdentity identity) {
         this.name = identity.getPrincipal().getName();

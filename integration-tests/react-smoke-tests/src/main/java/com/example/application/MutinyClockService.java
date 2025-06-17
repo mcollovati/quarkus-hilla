@@ -24,11 +24,11 @@ import java.util.UUID;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.hilla.Nonnull;
-import com.vaadin.hilla.Nullable;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Multi;
 import org.eclipse.microprofile.context.ThreadContext;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import reactor.core.scheduler.Schedulers;
 
 import com.github.mcollovati.quarkus.hilla.MutinyEndpointSubscription;
@@ -60,7 +60,7 @@ public class MutinyClockService {
     }
 
     @PermitAll
-    public Multi<@Nonnull String> getClock() {
+    public Multi<@NonNull String> getClock() {
         String userName = getUsername();
         return Multi.createFrom()
                 .ticks()
@@ -77,13 +77,13 @@ public class MutinyClockService {
     }
 
     @RolesAllowed("ADMIN")
-    public MutinyEndpointSubscription<@Nonnull String> getClockCancellable() {
+    public MutinyEndpointSubscription<@NonNull String> getClockCancellable() {
         return MutinyEndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
                 .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
 
     @AnonymousAllowed
-    public Multi<@Nonnull String> getPublicClock(@Nullable Integer limit) {
+    public Multi<@NonNull String> getPublicClock(@Nullable Integer limit) {
         Multi<String> flux = getClock();
         if (limit != null) {
             flux = flux.capDemandsTo(limit);

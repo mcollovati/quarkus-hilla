@@ -20,8 +20,8 @@ import jakarta.annotation.security.PermitAll;
 import com.example.application.entities.UserInfo;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
-import com.vaadin.hilla.Nonnull;
 import io.quarkus.security.identity.SecurityIdentity;
+import org.jspecify.annotations.NonNull;
 
 @Endpoint
 @PermitAll
@@ -34,8 +34,7 @@ public class UserInfoEndpoint {
     }
 
     @AnonymousAllowed
-    @Nonnull
-    public UserInfo me() {
+    @NonNull public UserInfo me() {
         if (securityIdentity.isAnonymous()) {
             return null;
         }

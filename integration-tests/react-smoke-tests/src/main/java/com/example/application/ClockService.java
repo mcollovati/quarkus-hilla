@@ -25,10 +25,10 @@ import java.util.UUID;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.EndpointSubscription;
-import com.vaadin.hilla.Nonnull;
-import com.vaadin.hilla.Nullable;
 import io.quarkus.security.identity.SecurityIdentity;
 import org.eclipse.microprofile.context.ThreadContext;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Schedulers;
 
@@ -59,7 +59,7 @@ public class ClockService {
     }
 
     @PermitAll
-    public Flux<@Nonnull String> getClock() {
+    public Flux<@NonNull String> getClock() {
         String userName = getUsername();
         return Flux.interval(Duration.ofSeconds(1))
                 .onBackpressureDrop()
@@ -69,13 +69,13 @@ public class ClockService {
     }
 
     @RolesAllowed("ADMIN")
-    public EndpointSubscription<@Nonnull String> getClockCancellable() {
+    public EndpointSubscription<@NonNull String> getClockCancellable() {
         return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
                 .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
 
     @AnonymousAllowed
-    public Flux<@Nonnull String> getPublicClock(@Nullable Integer limit) {
+    public Flux<@NonNull String> getPublicClock(@Nullable Integer limit) {
         Flux<String> flux = getClock();
         if (limit != null) {
             flux = flux.take(limit, true);

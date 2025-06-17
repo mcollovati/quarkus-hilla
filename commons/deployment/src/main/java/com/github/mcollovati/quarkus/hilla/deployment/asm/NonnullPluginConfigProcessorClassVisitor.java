@@ -52,12 +52,17 @@ public class NonnullPluginConfigProcessorClassVisitor extends ClassVisitor {
                         return;
                     }
                     // Increase the array size
-                    setSize.operand += 1;
+                    setSize.operand += 2;
                     // Find first instruction after array construction
                     AbstractInsnNode instruction = AsmUtils.findNextInsnNode(iterator, this::isSetOfInstruction);
                     if (instruction != null) {
-                        final InsnList newAnnotationMatcher = constructNewAnnotationMatcherNonNullApi();
-                        final InsnList addToArray = addArrayElement(setSize.operand - 1, newAnnotationMatcher);
+                        InsnList newAnnotationMatcher = constructNewAnnotationMatcherNonNullApi(
+                                "com.github.mcollovati.quarkus.hilla.NonNullApi");
+                        InsnList addToArray = addArrayElement(setSize.operand - 2, newAnnotationMatcher);
+                        instructions.insertBefore(instruction, addToArray);
+                        newAnnotationMatcher =
+                                constructNewAnnotationMatcherNonNullApi("org.jspecify.annotations.NullMarked");
+                        addToArray = addArrayElement(setSize.operand - 1, newAnnotationMatcher);
                         instructions.insertBefore(instruction, addToArray);
                     }
                     accept(superVisitor);
@@ -81,12 +86,12 @@ public class NonnullPluginConfigProcessorClassVisitor extends ClassVisitor {
                 /**
                  * @return the instructions for {@code new AnnotationMatcher("com.github.mcollovati.quarkus.hilla.NonNullApi", false, 10)}
                  */
-                private static InsnList constructNewAnnotationMatcherNonNullApi() {
+                private static InsnList constructNewAnnotationMatcherNonNullApi(String annotationClass) {
                     final InsnList instructions = new InsnList();
                     instructions.add(
                             new TypeInsnNode(Opcodes.NEW, "com/vaadin/hilla/parser/plugins/nonnull/AnnotationMatcher"));
                     instructions.add(new InsnNode(Opcodes.DUP));
-                    instructions.add(new LdcInsnNode("com.github.mcollovati.quarkus.hilla.NonNullApi"));
+                    instructions.add(new LdcInsnNode(annotationClass));
                     instructions.add(new InsnNode(Opcodes.ICONST_0));
                     instructions.add(new IntInsnNode(Opcodes.BIPUSH, 10));
                     instructions.add(new MethodInsnNode(

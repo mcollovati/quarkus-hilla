@@ -72,7 +72,6 @@ import org.jboss.jandex.IndexView;
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
 import com.github.mcollovati.quarkus.hilla.HillaConfiguration;
-import com.github.mcollovati.quarkus.hilla.NonNullApi;
 import com.github.mcollovati.quarkus.hilla.QuarkusAtmosphereServlet;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
@@ -332,7 +331,7 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     void replacePackageNonNullApiAnnotations(BuildProducer<AnnotationsTransformerBuildItem> producer) {
         DotName sourceAnnotation = DotName.createSimple("org.springframework.lang.NonNullApi");
-        DotName targetAnnotation = DotName.createSimple(NonNullApi.class);
+        DotName targetAnnotation = DotName.createSimple("org.jspecify.annotations.NullMarked");
         Predicate<AnnotationInstance> isAnnotatedPredicate = ann -> ann.name().equals(sourceAnnotation);
         producer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
 

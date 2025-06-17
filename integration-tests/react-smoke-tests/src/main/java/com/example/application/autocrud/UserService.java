@@ -15,7 +15,6 @@
  */
 package com.example.application.autocrud;
 
-import jakarta.annotation.Nonnull;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Comparator;
 import java.util.List;
@@ -31,7 +30,6 @@ import java.util.stream.IntStream;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.hilla.Nullable;
 import com.vaadin.hilla.crud.CountService;
 import com.vaadin.hilla.crud.GetService;
 import com.vaadin.hilla.crud.ListService;
@@ -39,13 +37,14 @@ import com.vaadin.hilla.crud.filter.AndFilter;
 import com.vaadin.hilla.crud.filter.Filter;
 import com.vaadin.hilla.crud.filter.OrFilter;
 import com.vaadin.hilla.crud.filter.PropertyStringFilter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 @BrowserCallable
 @ApplicationScoped
 @AnonymousAllowed
-@Nonnull
 public class UserService implements ListService<UserPOJO>, GetService<UserPOJO, String>, CountService {
 
     private final Map<String, UserPOJO> data = new ConcurrentHashMap<>();
@@ -67,8 +66,7 @@ public class UserService implements ListService<UserPOJO>, GetService<UserPOJO, 
     }
 
     @Override
-    @Nonnull
-    public List<UserPOJO> list(Pageable pageable, @Nullable Filter filter) {
+    @NonNull public List<UserPOJO> list(Pageable pageable, @Nullable Filter filter) {
         return data.values().stream()
                 .filter(fromFilter(filter))
                 .sorted(sortBy(pageable.getSort()))

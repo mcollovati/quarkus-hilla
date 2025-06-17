@@ -24,7 +24,7 @@ import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.EndpointSubscription;
-import com.vaadin.hilla.Nonnull;
+import org.jspecify.annotations.NonNull;
 import reactor.core.publisher.Flux;
 
 @BrowserCallable
@@ -37,8 +37,7 @@ public class HelloWorldEndpoint {
         this.clockService = clockService;
     }
 
-    @Nonnull
-    public String sayHello(@Nonnull String name) {
+    @NonNull public String sayHello(@NonNull String name) {
         if (name.isEmpty()) {
             return "Hello stranger!!!";
         } else {
@@ -46,8 +45,7 @@ public class HelloWorldEndpoint {
         }
     }
 
-    @Nonnull
-    public String sayHello2(@Nonnull String name) {
+    @NonNull public String sayHello2(@NonNull String name) {
         if (name.isEmpty()) {
             return "Hello from new methods stranger!";
         } else {
@@ -55,8 +53,7 @@ public class HelloWorldEndpoint {
         }
     }
 
-    @Nonnull
-    public String sayComplexHello(@Nonnull UserPOJO user) {
+    @NonNull public String sayComplexHello(@NonNull UserPOJO user) {
         if (user.surname().isEmpty()) {
             return "Hello stranger";
         } else {
@@ -64,8 +61,7 @@ public class HelloWorldEndpoint {
         }
     }
 
-    @Nonnull
-    @PermitAll
+    @NonNull @PermitAll
     public String sayHelloProtected() {
         var principal = VaadinRequest.getCurrent().getUserPrincipal();
         if (principal == null) return "Hello anonymous!";
@@ -73,18 +69,18 @@ public class HelloWorldEndpoint {
     }
 
     @PermitAll
-    public Flux<@Nonnull String> getClock() {
+    public Flux<@NonNull String> getClock() {
         return clockService.getClock();
     }
 
     @RolesAllowed("ADMIN")
-    public EndpointSubscription<@Nonnull String> getClockCancellable() {
+    public EndpointSubscription<@NonNull String> getClockCancellable() {
         return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
                 .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
 
     @AnonymousAllowed
-    public Flux<@Nonnull String> getPublicClock(Integer limit) {
+    public Flux<@NonNull String> getPublicClock(Integer limit) {
         Flux<String> flux = clockService.getClock();
         if (limit != null) {
             flux = flux.take(limit, true);

@@ -15,19 +15,18 @@
  */
 package com.example.application;
 
-import jakarta.annotation.Nonnull;
 import jakarta.enterprise.context.ApplicationScoped;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
+import org.jspecify.annotations.NonNull;
 
 @BrowserCallable
 @AnonymousAllowed
 @ApplicationScoped
 public class HelloWorldService {
 
-    @Nonnull
-    public String sayHello(String name) {
+    @NonNull public String sayHello(String name) {
         if (name.isEmpty()) {
             return "Hello stranger";
         } else {
