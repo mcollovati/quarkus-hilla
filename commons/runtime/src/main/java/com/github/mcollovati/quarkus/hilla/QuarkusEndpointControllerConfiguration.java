@@ -256,7 +256,7 @@ class QuarkusEndpointControllerConfiguration {
         NavigationAccessControl navigationAccessControl =
                 navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
         return new RouteUnifyingServiceInitListener(
-                routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl, null);
+                routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl);
     }
 
     void initializeEndpointRegistry(@Observes StartupEvent event, EndpointController endpointController) {

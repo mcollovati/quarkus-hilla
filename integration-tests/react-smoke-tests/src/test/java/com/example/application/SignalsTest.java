@@ -15,7 +15,10 @@
  */
 package com.example.application;
 
+import java.time.Duration;
+
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Screenshots;
 import com.codeborne.selenide.Selenide;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,6 +64,8 @@ public class SignalsTest extends AbstractTest {
 
     @Test
     public void shouldUpdateValue_forOtherClients() {
+        clickButton("increaseSharedValue");
+        clickButton("increaseSharedValue");
         var currentSharedValue = Wait().until(d -> {
             var value = getSharedValue();
             if (value > 0.0) {
@@ -77,6 +82,7 @@ public class SignalsTest extends AbstractTest {
             var secondWindowHandle = secondWindowDriver.getWindowHandle();
             assertNotEquals(firstWindowHandle, secondWindowHandle);
             openTestPage();
+            $(By.id("increaseSharedValue")).shouldBe(Condition.visible, Duration.ofSeconds(10));
 
             var secondWindowSharedValue = Double.parseDouble(
                     secondWindowDriver.findElement(By.id("sharedValue")).getText());
@@ -101,8 +107,10 @@ public class SignalsTest extends AbstractTest {
             Selenide.switchTo().window(firstWindowHandle);
             assertEquals(0.5, getSharedValue(), 0.0);
             assertEquals(0, getCounterValue());
-
         } finally {
+            if (Selenide.webdriver().object() == secondWindowDriver) {
+                Screenshots.saveScreenshotAndPageSource();
+            }
             secondWindowDriver.close();
         }
     }
