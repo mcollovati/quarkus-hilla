@@ -15,6 +15,8 @@
  */
 package com.example.application;
 
+import java.time.Duration;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import io.quarkus.test.junit.QuarkusTest;
@@ -77,6 +79,7 @@ public class SignalsTest extends AbstractTest {
             var secondWindowHandle = secondWindowDriver.getWindowHandle();
             assertNotEquals(firstWindowHandle, secondWindowHandle);
             openTestPage();
+            $(By.id("increaseSharedValue")).shouldBe(Condition.visible, Duration.ofSeconds(10));
 
             var secondWindowSharedValue = Double.parseDouble(
                     secondWindowDriver.findElement(By.id("sharedValue")).getText());

@@ -10,8 +10,8 @@ on:
         default: 'main'
         options:
           - main
+          - "24.8"
           - "24.7"
-          - "24.6"
           - "2.5"
           - "1.3"
       version:
