@@ -69,7 +69,7 @@
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
         <jandex-maven-plugin.version>3.3.1</jandex-maven-plugin.version>
-        <jreleaser-maven-plugin.version>1.18.0</jreleaser-maven-plugin.version>
+        <jreleaser-maven-plugin.version>1.19.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.1</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
         <spotless-maven-plugin.version>2.44.5</spotless-maven-plugin.version>
