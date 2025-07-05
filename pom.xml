@@ -95,7 +95,7 @@
                     For backward compatibility of GH actions workflows
                     To be replace with vaadin.version in the future
                 -->
-                <version>${hilla.version}</version>
+                <version>${vaadin.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
