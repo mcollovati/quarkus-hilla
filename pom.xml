@@ -55,6 +55,7 @@
         <!--
         <jackson.version>2.18.1</jackson.version>
         -->
+        <jakarta.ee.version>11.0.0</jakarta.ee.version>
         <assertj.version>3.27.3</assertj.version>
 
         <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
@@ -77,6 +78,16 @@
     </properties>
     <dependencyManagement>
         <dependencies>
+            <!--
+            Pin Jakarta EE API until Vaadin updates to Jakarta EE 11
+            -->
+            <dependency>
+                <groupId>jakarta.platform</groupId>
+                <artifactId>jakarta.jakartaee-bom</artifactId>
+                <version>${jakarta.ee.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!--
             Pin jackson BOM to prevent clashes with version imported by Hilla BOM
             through spring-boot-dependencies BOM
