@@ -185,9 +185,16 @@ public interface VaadinBuildTimeConfig {
 
     /**
      * The folder where the frontend build tool should output index. js and other generated files.
+     * @deprecated use {@link #frontendOutputDirectory()}
+     */
+    @Deprecated(since = "24.8", forRemoval = true)
+    Optional<File> webpackOutputDirectory();
+
+    /**
+     * The folder where the frontend build tool should output index. js and other generated files.
      */
     @WithDefault(Constants.VAADIN_WEBAPP_RESOURCES)
-    File webpackOutputDirectory();
+    File frontendOutputDirectory();
 
     /**
      * Additional npm packages to run post install scripts for.
