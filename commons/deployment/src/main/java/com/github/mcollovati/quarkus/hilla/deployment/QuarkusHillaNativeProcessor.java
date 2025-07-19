@@ -53,7 +53,6 @@ import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.signals.handler.SignalsHandler;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.bootstrap.classloading.QuarkusClassLoader;
-import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -140,7 +139,7 @@ public class QuarkusHillaNativeProcessor {
      * https://quarkus.io/guides/spring-data-jpa#what-is-currently-unsupported
      */
     @BuildStep(onlyIf = IsNativeBuild.class)
-    void removeHillaSpringBasedClasses(Capabilities capabilities, BuildProducer<RemovedResourceBuildItem> producer) {
+    void removeHillaSpringBasedClasses(BuildProducer<RemovedResourceBuildItem> producer) {
         producer.produce(new RemovedResourceBuildItem(
                 ArtifactKey.of("com.vaadin", "hilla-endpoint", null, "jar"),
                 Set.of(
@@ -216,7 +215,7 @@ public class QuarkusHillaNativeProcessor {
 
     @BuildStep
     void hillaNativeSupport(
-            Capabilities capabilities,
+            DataRepositorySupportBuiltItem supportedDataProviders,
             CombinedIndexBuildItem combinedIndex,
             BuildProducer<NativeImageResourcePatternsBuildItem> nativeImageResource,
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
@@ -242,7 +241,7 @@ public class QuarkusHillaNativeProcessor {
         classes.addAll(index.getClassesInPackage("com.vaadin.hilla.mappedtypes"));
         classes.addAll(index.getClassesInPackage("com.vaadin.hilla.runtime.transfertypes"));
 
-        if (capabilities.isPresent(QuarkusHillaExtensionProcessor.SPRING_DATA_SUPPORT)) {
+        if (supportedDataProviders.isPresent(DataRepositorySupportBuiltItem.Provider.SPRING_DATA)) {
             classes.add(index.getClassByName("org.springframework.data.repository.Repository"));
             classes.add(index.getClassByName("org.springframework.data.repository.CrudRepository"));
             classes.add(index.getClassByName("org.springframework.data.domain.Pageable"));
@@ -257,7 +256,7 @@ public class QuarkusHillaNativeProcessor {
                     .build());
         }
 
-        if (capabilities.isPresent(QuarkusHillaExtensionProcessor.PANACHE_SUPPORT)) {
+        if (supportedDataProviders.isPresent(DataRepositorySupportBuiltItem.Provider.PANACHE)) {
             reflectiveClass.produce(ReflectiveClassBuildItem.builder(
                             com.github.mcollovati.quarkus.hilla.crud.panache.CrudRepositoryService.class,
                             com.github.mcollovati.quarkus.hilla.crud.panache.ListRepositoryService.class)
