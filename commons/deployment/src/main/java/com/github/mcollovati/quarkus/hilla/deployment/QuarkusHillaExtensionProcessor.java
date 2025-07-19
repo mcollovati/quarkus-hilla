@@ -36,7 +36,6 @@ import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.BuildException;
-import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildProducer;
@@ -46,7 +45,6 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
-import io.quarkus.deployment.builditem.CapabilityBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
@@ -85,11 +83,12 @@ import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 
+import static com.github.mcollovati.quarkus.hilla.deployment.DataRepositorySupportBuiltItem.Provider.PANACHE;
+import static com.github.mcollovati.quarkus.hilla.deployment.DataRepositorySupportBuiltItem.Provider.SPRING_DATA;
+
 class QuarkusHillaExtensionProcessor {
 
     private static final String FEATURE = "quarkus-hilla";
-    public static final String SPRING_DATA_SUPPORT = "com.github.mcollovati.quarkus.hilla.spring-data-jpa-support";
-    public static final String PANACHE_SUPPORT = "com.github.mcollovati.quarkus.hilla.panache-support";
     public static final DotName SPRING_FILTERABLE_REPOSITORY =
             DotName.createSimple("com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository");
     public static final DotName PANACHE_FILTERABLE_REPOSITORY =
@@ -109,33 +108,35 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
-    void publishCapabilities(
-            BuildProducer<CapabilityBuildItem> capabilityProducer, CurateOutcomeBuildItem outcomeBuildItem) {
+    void publishRepositorySupport(
+            BuildProducer<DataRepositorySupportBuiltItem> supportedProviders, CurateOutcomeBuildItem outcomeBuildItem) {
+        DataRepositorySupportBuiltItem builtItem = new DataRepositorySupportBuiltItem();
         boolean springDataJpaPresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
                 .anyMatch(dep -> "io.quarkus".equals(dep.getGroupId())
                         && dep.getArtifactId().startsWith("quarkus-spring-data-jpa"));
         if (springDataJpaPresent) {
-            capabilityProducer.produce(new CapabilityBuildItem(SPRING_DATA_SUPPORT, "quarkus-hilla"));
+            builtItem.addProvider(SPRING_DATA);
         }
         boolean panachePresent = outcomeBuildItem.getApplicationModel().getDependencies().stream()
                 .anyMatch(dep -> "io.quarkus".equals(dep.getGroupId())
                         && dep.getArtifactId().startsWith("quarkus-hibernate-orm-panache"));
         if (panachePresent) {
-            capabilityProducer.produce(new CapabilityBuildItem(PANACHE_SUPPORT, "quarkus-hilla"));
+            builtItem.addProvider(PANACHE);
         }
+        supportedProviders.produce(builtItem);
     }
 
     @BuildStep
     void setupCrudAndListServiceSupport(
-            Capabilities capabilities,
+            DataRepositorySupportBuiltItem supportedProviders,
             BuildProducer<ExcludeDependencyBuildItem> producer,
             BuildProducer<AdditionalIndexedClassesBuildItem> additionalClasses) {
-        if (capabilities.isPresent(SPRING_DATA_SUPPORT)) {
+        if (supportedProviders.isPresent(SPRING_DATA)) {
             producer.produce(new ExcludeDependencyBuildItem("com.github.mcollovati", "hilla-shaded-deps"));
             additionalClasses.produce(new AdditionalIndexedClassesBuildItem(
                     SPRING_FILTERABLE_REPOSITORY.toString(), FilterableRepositorySupport.class.getName()));
         }
-        if (capabilities.isPresent(PANACHE_SUPPORT)) {
+        if (supportedProviders.isPresent(PANACHE)) {
             additionalClasses.produce(new AdditionalIndexedClassesBuildItem(
                     PANACHE_FILTERABLE_REPOSITORY.toString(), FilterableRepositorySupport.class.getName()));
         }
@@ -143,17 +144,17 @@ class QuarkusHillaExtensionProcessor {
 
     @BuildStep
     void detectFilterableRepositoryImplementors(
-            Capabilities capabilities,
+            DataRepositorySupportBuiltItem supportedProviders,
             CombinedIndexBuildItem index,
             BuildProducer<FilterableRepositoryImplementorBuildItem> producer) {
         IndexView indexView = index.getComputingIndex();
-        if (capabilities.isPresent(SPRING_DATA_SUPPORT)) {
+        if (supportedProviders.isPresent(SPRING_DATA)) {
             indexView
                     .getKnownDirectImplementors(SPRING_FILTERABLE_REPOSITORY)
                     .forEach(ci -> producer.produce(
                             new FilterableRepositoryImplementorBuildItem(SPRING_FILTERABLE_REPOSITORY, ci.name())));
         }
-        if (capabilities.isPresent(PANACHE_SUPPORT)) {
+        if (supportedProviders.isPresent(PANACHE)) {
             indexView
                     .getKnownDirectImplementors(PANACHE_FILTERABLE_REPOSITORY)
                     .forEach(ci -> producer.produce(
