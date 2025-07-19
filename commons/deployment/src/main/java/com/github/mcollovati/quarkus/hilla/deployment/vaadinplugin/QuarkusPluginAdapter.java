@@ -351,7 +351,20 @@ public class QuarkusPluginAdapter implements PluginAdapterBuild {
 
     @Override
     public File webpackOutputDirectory() {
-        return resolveBuildDirectory(config.webpackOutputDirectory(), "webpackOutputDirectory");
+        return frontendOutputDirectory();
+    }
+
+    @Override
+    public File frontendOutputDirectory() {
+        File outputDir = resolveBuildDirectory(config.frontendOutputDirectory(), "frontendOutputDirectory");
+        config.webpackOutputDirectory()
+                .map(f -> resolveBuildDirectory(f, "webpackOutputDirectory"))
+                .filter(f -> !f.equals(outputDir))
+                .ifPresent(deprecatedOutputDir ->
+                        logWarn("Both 'frontendOutputDirectory' and 'webpackOutputDirectory' are set. "
+                                + "'webpackOutputDirectory' property will be removed in future releases and will be ignored. "
+                                + "Please use only 'frontendOutputDirectory'."));
+        return outputDir;
     }
 
     @Override
