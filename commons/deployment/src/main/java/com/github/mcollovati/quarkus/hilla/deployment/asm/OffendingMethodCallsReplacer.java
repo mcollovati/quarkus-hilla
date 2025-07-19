@@ -48,15 +48,15 @@ import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
 public class OffendingMethodCallsReplacer {
 
-    private static Map.Entry<MethodSignature, MethodSignature> ClassUtils_getUserClass = Map.entry(
+    private static final Map.Entry<MethodSignature, MethodSignature> ClassUtils_getUserClass = Map.entry(
             MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
             MethodSignature.of(SpringReplacements.class, "classUtils_getUserClass"));
-    private static Map.Entry<MethodSignature, MethodSignature> Class_forName = Map.entry(
+    private static final Map.Entry<MethodSignature, MethodSignature> Class_forName = Map.entry(
             MethodSignature.of(Class.class, "forName", "(Ljava/lang/String;)Ljava/lang/Class;"),
             MethodSignature.of(SpringReplacements.class, "class_forName"));
 
-    private static Map.Entry<MethodSignature, MethodSignature> AuthenticationUtil_getSecurityHolderAuthentication =
-            Map.entry(
+    private static final Map.Entry<MethodSignature, MethodSignature>
+            AuthenticationUtil_getSecurityHolderAuthentication = Map.entry(
                     MethodSignature.of(
                             AuthenticationUtil.class,
                             "getSecurityHolderAuthentication",
@@ -65,20 +65,21 @@ public class OffendingMethodCallsReplacer {
                             SpringReplacements.class,
                             "authenticationUtil_getSecurityHolderAuthentication",
                             "()Ljava/security/Principal;"));
-    private static Map.Entry<MethodSignature, MethodSignature> AuthenticationUtil_getSecurityHolderRoleChecker =
+    private static final Map.Entry<MethodSignature, MethodSignature> AuthenticationUtil_getSecurityHolderRoleChecker =
             Map.entry(
                     MethodSignature.of(AuthenticationUtil.class, "getSecurityHolderRoleChecker"),
                     MethodSignature.of(SpringReplacements.class, "authenticationUtil_getSecurityHolderRoleChecker"));
-    private static Map.Entry<MethodSignature, MethodSignature> SecurityContextHolder_setContext = Map.entry(
+    private static final Map.Entry<MethodSignature, MethodSignature> SecurityContextHolder_setContext = Map.entry(
             MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "setContext"),
             MethodSignature.DROP_METHOD);
-    private static Map.Entry<MethodSignature, MethodSignature> SecurityContextHolder_clearContext = Map.entry(
+    private static final Map.Entry<MethodSignature, MethodSignature> SecurityContextHolder_clearContext = Map.entry(
             MethodSignature.of("org/springframework/security/core/context/SecurityContextHolder", "clearContext"),
             MethodSignature.DROP_METHOD);
 
-    private static Map.Entry<MethodSignature, MethodSignature> EndpointInvoker_createDefaultEndpointMapper = Map.entry(
-            MethodSignature.of(EndpointInvoker.class, "createDefaultEndpointMapper"),
-            MethodSignature.of(SpringReplacements.class, "endpointInvoker_createDefaultEndpointMapper"));
+    private static final Map.Entry<MethodSignature, MethodSignature> EndpointInvoker_createDefaultEndpointMapper =
+            Map.entry(
+                    MethodSignature.of(EndpointInvoker.class, "createDefaultEndpointMapper"),
+                    MethodSignature.of(SpringReplacements.class, "endpointInvoker_createDefaultEndpointMapper"));
 
     public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
         producer.produce(transform(Hotswapper.class, "affectsEndpoints", Class_forName));

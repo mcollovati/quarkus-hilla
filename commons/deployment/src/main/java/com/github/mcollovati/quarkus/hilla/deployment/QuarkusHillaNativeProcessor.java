@@ -228,7 +228,7 @@ public class QuarkusHillaNativeProcessor {
 
         IndexView index = combinedIndex.getComputingIndex();
         Set<ClassInfo> classes = new HashSet<>();
-        classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
+        classes.addAll(index.getKnownDirectImplementations(EndpointTransferMapper.Mapper.class));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(BrowserCallable.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Endpoint.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(EndpointExposed.class)));
@@ -237,7 +237,7 @@ public class QuarkusHillaNativeProcessor {
         classes.add(index.getClassByName(Filter.class));
         classes.add(index.getClassByName(Pageable.class));
         classes.addAll(getJsonClasses(index));
-        classes.addAll(index.getAllKnownImplementors(EndpointTransferMapper.Mapper.class));
+        classes.addAll(index.getKnownDirectImplementations(EndpointTransferMapper.Mapper.class));
         classes.addAll(index.getClassesInPackage("com.vaadin.hilla.mappedtypes"));
         classes.addAll(index.getClassesInPackage("com.vaadin.hilla.runtime.transfertypes"));
 
@@ -321,7 +321,7 @@ public class QuarkusHillaNativeProcessor {
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Layout.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(Menu.class)));
         classes.addAll(getAnnotatedClasses(index, DotName.createSimple(AccessDeniedErrorRouter.class)));
-        classes.addAll(index.getAllKnownImplementors(AppShellConfigurator.class));
+        classes.addAll(index.getKnownDirectImplementations(AppShellConfigurator.class));
         classes.addAll(getCommonComponentClasses(index));
         classes.addAll(index.getAllKnownSubclasses(AccessDeniedException.class));
         classes.addAll(index.getAllKnownSubclasses(NotFoundException.class));

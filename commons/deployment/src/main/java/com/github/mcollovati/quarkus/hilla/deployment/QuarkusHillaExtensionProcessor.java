@@ -18,7 +18,9 @@ package com.github.mcollovati.quarkus.hilla.deployment;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
@@ -32,7 +34,6 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
-import io.quarkus.arc.processor.AnnotationsTransformer;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
 import io.quarkus.builder.BuildException;
@@ -62,9 +63,9 @@ import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.atmosphere.interceptor.SuspendTrackerInterceptor;
 import org.jboss.jandex.AnnotationInstance;
-import org.jboss.jandex.AnnotationTarget;
+import org.jboss.jandex.AnnotationTransformation;
+import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
-import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.IndexView;
 
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
@@ -148,17 +149,20 @@ class QuarkusHillaExtensionProcessor {
             CombinedIndexBuildItem index,
             BuildProducer<FilterableRepositoryImplementorBuildItem> producer) {
         IndexView indexView = index.getComputingIndex();
+
+        Consumer<DotName> registrar = interfaceName -> Stream.concat(
+                        indexView.getKnownDirectImplementations(interfaceName).stream(),
+                        indexView.getKnownDirectSubinterfaces(interfaceName).stream())
+                .map(ClassInfo::name)
+                .distinct()
+                .forEach(clazzName ->
+                        producer.produce(new FilterableRepositoryImplementorBuildItem(interfaceName, clazzName)));
+
         if (supportedProviders.isPresent(SPRING_DATA)) {
-            indexView
-                    .getKnownDirectImplementors(SPRING_FILTERABLE_REPOSITORY)
-                    .forEach(ci -> producer.produce(
-                            new FilterableRepositoryImplementorBuildItem(SPRING_FILTERABLE_REPOSITORY, ci.name())));
+            registrar.accept(SPRING_FILTERABLE_REPOSITORY);
         }
         if (supportedProviders.isPresent(PANACHE)) {
-            indexView
-                    .getKnownDirectImplementors(PANACHE_FILTERABLE_REPOSITORY)
-                    .forEach(ci -> producer.produce(
-                            new FilterableRepositoryImplementorBuildItem(PANACHE_FILTERABLE_REPOSITORY, ci.name())));
+            registrar.accept(PANACHE_FILTERABLE_REPOSITORY);
         }
     }
 
@@ -232,7 +236,6 @@ class QuarkusHillaExtensionProcessor {
         beans.produce(new AdditionalBeanBuildItem(QuarkusEndpointProperties.class));
         beans.produce(AdditionalBeanBuildItem.builder()
                 .addBeanClasses("com.github.mcollovati.quarkus.hilla.QuarkusEndpointControllerConfiguration")
-                // .addBeanClasses(QuarkusEndpointConfiguration.class, QuarkusEndpointController.class)
                 .setDefaultScope(BuiltinScope.APPLICATION.getName())
                 .setUnremovable()
                 .build());
@@ -309,25 +312,15 @@ class QuarkusHillaExtensionProcessor {
         Set<DotName> classesToTransform = Set.of(
                 DotName.createSimple("com.vaadin.hilla.push.PushEndpoint"),
                 DotName.createSimple("com.vaadin.hilla.push.PushMessageHandler"));
-        producer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
-
-            @Override
-            public boolean appliesTo(AnnotationTarget.Kind kind) {
-                return AnnotationTarget.Kind.FIELD == kind;
-            }
-
-            @Override
-            public void transform(TransformationContext ctx) {
-                FieldInfo fieldInfo = ctx.getTarget().asField();
-                if (classesToTransform.contains(fieldInfo.declaringClass().name())
-                        && ctx.getAnnotations().stream().anyMatch(isAutowiredAnnotation)) {
-                    ctx.transform()
-                            .remove(isAutowiredAnnotation)
-                            .add(DotNames.INJECT)
-                            .done();
-                }
-            }
-        }));
+        AnnotationTransformation transformation = AnnotationTransformation.forFields()
+                .whenField(fieldInfo ->
+                        classesToTransform.contains(fieldInfo.declaringClass().name()))
+                .when(ctx -> ctx.hasAnnotation(isAutowiredAnnotation))
+                .transform(ctx -> {
+                    ctx.remove(isAutowiredAnnotation);
+                    ctx.add(AnnotationInstance.builder(DotNames.INJECT).buildWithTarget(ctx.declaration()));
+                });
+        producer.produce(new AnnotationsTransformerBuildItem(transformation));
     }
 
     @BuildStep
@@ -335,28 +328,17 @@ class QuarkusHillaExtensionProcessor {
         DotName sourceAnnotation = DotName.createSimple("org.springframework.lang.NonNullApi");
         DotName targetAnnotation = DotName.createSimple(NonNullApi.class);
         Predicate<AnnotationInstance> isAnnotatedPredicate = ann -> ann.name().equals(sourceAnnotation);
-        producer.produce(new AnnotationsTransformerBuildItem(new AnnotationsTransformer() {
-
-            @Override
-            public boolean appliesTo(AnnotationTarget.Kind kind) {
-                return AnnotationTarget.Kind.CLASS == kind;
-            }
-
-            @Override
-            public void transform(TransformationContext ctx) {
-                if (ctx.getAnnotations().stream().anyMatch(isAnnotatedPredicate)) {
-                    ctx.transform()
-                            .remove(isAnnotatedPredicate)
-                            .add(targetAnnotation)
-                            .done();
-                }
-            }
-        }));
+        AnnotationTransformation transformation = AnnotationTransformation.forClasses()
+                .when(ctx -> ctx.hasAnnotation(isAnnotatedPredicate))
+                .transform(ctx -> {
+                    ctx.remove(isAnnotatedPredicate);
+                    ctx.add(AnnotationInstance.builder(targetAnnotation).buildWithTarget(ctx.declaration()));
+                });
+        producer.produce(new AnnotationsTransformerBuildItem(transformation));
     }
 
     @BuildStep
     void registerServiceInitEventPropagator(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
             BuildProducer<GeneratedResourceBuildItem> resourceProducer,
             BuildProducer<ServiceProviderBuildItem> serviceProviderProducer) {
         String descriptor = QuarkusVaadinServiceListenerPropagator.class.getName() + System.lineSeparator();
@@ -402,7 +384,8 @@ class QuarkusHillaExtensionProcessor {
             CurateOutcomeBuildItem outcomeBuildItem,
             VaadinBuildTimeConfig vaadinConfig,
             CombinedIndexBuildItem indexBuildItem,
-            BuildProducer<GeneratedResourceBuildItem> producer)
+            // Parameter used only to make sure the build step gets executed
+            @SuppressWarnings("unused") BuildProducer<GeneratedResourceBuildItem> producer)
             throws BuildException {
         if (vaadinConfig.enabled()) {
             VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
