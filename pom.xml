@@ -72,7 +72,7 @@
         <jreleaser-maven-plugin.version>1.19.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.1</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
-        <spotless-maven-plugin.version>2.45.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>2.46.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
 
     </properties>
