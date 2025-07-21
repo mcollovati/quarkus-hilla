@@ -18,7 +18,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.3.0</awaitility.version>
-        <selenide.version>7.9.3</selenide.version>
+        <selenide.version>7.9.4</selenide.version>
 
         <!--
             By default, skips Hilla plugin execution to prevent build errors for modules
