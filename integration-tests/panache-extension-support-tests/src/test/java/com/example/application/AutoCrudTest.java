@@ -28,8 +28,10 @@ import com.github.mcollovati.quarkus.testing.VaadinConditions;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Selectors.byXpath;
+import static com.codeborne.selenide.Selectors.shadowCss;
 import static com.codeborne.selenide.Selectors.shadowDeepCss;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.actions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
@@ -155,9 +157,15 @@ class AutoCrudTest extends AbstractTest {
                 .shouldNotBe(VaadinConditions.disabled)
                 .click();
 
-        SelenideElement confirmDialog = $("vaadin-confirm-dialog-overlay").shouldBe(Condition.visible);
-        SelenideElement confirmButton = confirmDialog.$("vaadin-button[slot=confirm-button]");
-        confirmButton.click();
+        SelenideElement confirmDialog = $(shadowCss("vaadin-confirm-dialog-overlay", "vaadin-confirm-dialog"))
+                .shouldBe(Condition.visible);
+        SelenideElement confirmButton = $("vaadin-confirm-dialog vaadin-button[slot=confirm-button]");
+        // confirmButton.click();
+        // Workaround to click button inside a popover overly.
+        // Currently calling confirmButton.click() fails because opacity of
+        // button inside the popover is computed a 1, thus the button is
+        // considered not displayed
+        actions().moveToElement(confirmButton).click().perform();
 
         confirmDialog.shouldNotBe(Condition.visible);
 
