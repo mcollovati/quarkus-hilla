@@ -42,6 +42,10 @@
             <artifactId>quarkus-websockets-deployment</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-devui-deployment-spi</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>quarkus-hilla-commons</artifactId>
             <version>${project.version}</version>
