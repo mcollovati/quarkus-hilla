@@ -216,9 +216,13 @@ or
 
 ## Development
 
-<picture><img alt="Development 24.8-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-24.8--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
+<picture><img alt="Development 24.9-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-24.9--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
 <picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
-<picture><img alt="Vaadin 24.8" src="https://img.shields.io/badge/VAADIN-v24.8-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
+<picture><img alt="Vaadin 24.9" src="https://img.shields.io/badge/VAADIN-v24.9-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
+
+<picture><img alt="Development 25.0-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-25.0--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
+<picture><img alt="Quarkus 3.25+" src="https://img.shields.io/badge/QUARKUS-v3.25%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
+<picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/VAADIN-v25.0-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
 
 ## Build and test
 
