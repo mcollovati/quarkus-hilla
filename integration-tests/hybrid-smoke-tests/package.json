@@ -18,8 +18,8 @@
     "@vaadin/react-components": "25.0.0-alpha8",
     "@vaadin/react-components-pro": "25.0.0-alpha8",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
-    "@vaadin/vaadin-lumo-styles": "25.0.0-alpha8",
-    "@vaadin/vaadin-themable-mixin": "25.0.0-alpha8",
+    "@vaadin/vaadin-lumo-styles": "25.0.0-alpha10",
+    "@vaadin/vaadin-themable-mixin": "25.0.0-alpha10",
     "@vaadin/vaadin-usage-statistics": "2.1.3",
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "4.1.0",
@@ -182,8 +182,8 @@
       "@vaadin/react-components": "25.0.0-alpha8",
       "@vaadin/react-components-pro": "25.0.0-alpha8",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
-      "@vaadin/vaadin-lumo-styles": "25.0.0-alpha8",
-      "@vaadin/vaadin-themable-mixin": "25.0.0-alpha8",
+      "@vaadin/vaadin-lumo-styles": "25.0.0-alpha10",
+      "@vaadin/vaadin-themable-mixin": "25.0.0-alpha10",
       "@vaadin/vaadin-usage-statistics": "2.1.3",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "4.1.0",
@@ -225,7 +225,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "5d66ae67421172a19c1cc2238ad9649ac713582cf3dd44b97ab2cae723e21873"
+    "hash": "63f4f0a674d272edb240229c0b509e3e7c68e2b415fba063da0c49efb3c09aab"
   },
   "type": "module"
 }
