@@ -48,19 +48,19 @@ class SecurityTest extends AbstractTest {
 
     @Test
     void anonymous_openProtectedView_loginViewDisplayed() {
-        openAndWait(getTestUrl() + "flow-protected-view", () -> $("vaadin-login-form"));
+        openAndWait(getTestUrl() + "flow-protected-view", () -> $("vaadin-login-overlay"));
     }
 
     @Test
     void authenticatedUser_protectedView_viewDisplayed() {
-        openAndWait(getTestUrl() + "flow-protected-view", () -> $("vaadin-login-form"));
+        openAndWait(getTestUrl() + "flow-protected-view", () -> $("vaadin-login-overlay"));
         login("scott", "pwd");
         $("div#protected-view").shouldBe(visible);
     }
 
     @Test
     void notAdminUser_adminView_notFoundPage() {
-        openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-form"));
+        openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-overlay"));
         login("scott", "pwd");
         $$("div")
                 .filter(Condition.text("Could not navigate to 'flow-admin-view'"))
@@ -70,16 +70,16 @@ class SecurityTest extends AbstractTest {
 
     @Test
     void adminUser_adminView_viewDisplayed() {
-        openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-form"));
+        openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-overlay"));
         login("stuart", "test");
         $("div#admin-view").shouldBe(visible);
     }
 
     @Test
     void notAdminUser_navigateToAdminView_notFoundPage() {
-        openAndWait(getTestUrl() + "login", () -> $("vaadin-login-form"));
+        openAndWait(getTestUrl() + "login", () -> $("vaadin-login-overlay"));
         login("scott", "pwd");
-        $("vaadin-login-form").shouldNot(exist);
+        $("vaadin-login-overlay").shouldNot(exist);
         $("vaadin-side-nav").shouldBe(visible);
         $$("vaadin-side-nav-item")
                 .filter(VaadinConditions.sideNavItem("/flow-public-view"))
@@ -94,9 +94,9 @@ class SecurityTest extends AbstractTest {
     }
 
     private void login(String username, String password) {
-        SelenideElement loginForm = $("vaadin-login-form").shouldBe(visible);
+        SelenideElement loginForm = $("vaadin-login-overlay").shouldBe(visible);
         loginForm.$("vaadin-text-field#vaadinLoginUsername").setValue(username);
         loginForm.$("vaadin-password-field#vaadinLoginPassword").setValue(password);
-        loginForm.$("vaadin-login-form vaadin-button").click();
+        loginForm.$("vaadin-button[slot=submit]").click();
     }
 }
