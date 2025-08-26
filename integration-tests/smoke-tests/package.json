@@ -3,7 +3,6 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@adobe/lit-mobx": "2.2.0",
-    "@polymer/polymer": "3.5.2",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
     "@vaadin/a11y-base": "25.0.0-alpha16",
     "@vaadin/accordion": "25.0.0-alpha16",
@@ -176,7 +175,6 @@
     "@vaadin/common-frontend": "$@vaadin/common-frontend",
     "construct-style-sheets-polyfill": "$construct-style-sheets-polyfill",
     "lit": "$lit",
-    "@polymer/polymer": "$@polymer/polymer",
     "@vaadin/a11y-base": "$@vaadin/a11y-base",
     "@adobe/lit-mobx": "$@adobe/lit-mobx",
     "@vaadin-component-factory/vcf-nav": "$@vaadin-component-factory/vcf-nav",
@@ -210,7 +208,6 @@
   },
   "vaadin": {
     "dependencies": {
-      "@polymer/polymer": "3.5.2",
       "@vaadin/a11y-base": "25.0.0-alpha16",
       "@vaadin/accordion": "25.0.0-alpha16",
       "@vaadin/app-layout": "25.0.0-alpha16",
@@ -320,7 +317,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "f555fa84248d49c499f0dc04f940b072b9779a87a705a2421dd4f925416135c4"
+    "hash": "5be454abe704c71cb6457c58ee4714ecda819b5017c421f82830719e6995e19c"
   },
   "type": "module"
 }
