@@ -183,7 +183,7 @@ class SecurityTest extends AbstractTest {
     }
 
     protected void openProtectedPage(String path, boolean expectRedirectToLogin) {
-        String selector = expectRedirectToLogin ? "vaadin-login-form" : "vaadin-app-layout footer vaadin-avatar";
+        String selector = expectRedirectToLogin ? "vaadin-login-overlay" : "vaadin-app-layout footer vaadin-avatar";
         openAndWait(getTestUrl() + path, () -> $(selector));
         appLayout = $("vaadin-app-layout");
     }
@@ -205,10 +205,10 @@ class SecurityTest extends AbstractTest {
     }
 
     private void login(String username, String password) {
-        SelenideElement loginForm = $("vaadin-login-form").shouldBe(visible);
+        SelenideElement loginForm = $("vaadin-login-overlay").shouldBe(visible);
         loginForm.$("vaadin-text-field#vaadinLoginUsername").setValue(username);
         loginForm.$("vaadin-password-field#vaadinLoginPassword").setValue(password);
-        loginForm.$("vaadin-login-form vaadin-button").click();
+        loginForm.$("vaadin-button[slot=submit]").click();
         $("vaadin-app-layout footer vaadin-avatar").shouldBe(visible, Duration.ofSeconds(10));
     }
 }

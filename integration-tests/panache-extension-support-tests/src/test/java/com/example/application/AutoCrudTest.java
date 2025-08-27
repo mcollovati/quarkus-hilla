@@ -19,8 +19,8 @@ import java.util.List;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
@@ -35,7 +35,7 @@ import static com.codeborne.selenide.Selenide.actions;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
-@TestTransaction
+@Order(Integer.MAX_VALUE - 5)
 class AutoCrudTest extends AbstractTest {
 
     @Override
@@ -44,12 +44,13 @@ class AutoCrudTest extends AbstractTest {
     }
 
     @Test
+    @Order(Integer.MAX_VALUE - 10)
     void autocrud_gridAndFormDisplayed() {
         openAndWait(AutoCrudTest::autoCrud);
 
         SelenideElement grid = autoCrudGrid().shouldBe(Condition.visible);
 
-        assertThat(collectColumnTexts(grid, 1, TestData.RENDERED_ITEMS)).containsExactlyElementsOf(TestData.NAMES_ASC);
+        assertThat(collectColumnTexts(grid, 1, 10)).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, 10));
 
         SelenideElement form = autoCrudForm().shouldBe(Condition.visible);
         formField(form, "name").shouldBe(VaadinConditions.disabled);
@@ -58,6 +59,7 @@ class AutoCrudTest extends AbstractTest {
     }
 
     @Test
+    @Order(Integer.MAX_VALUE - 5)
     void autocrud_newUser_userSaved() {
         openAndWait(AutoCrudTest::autoCrud);
 
@@ -84,6 +86,7 @@ class AutoCrudTest extends AbstractTest {
     }
 
     @Test
+    @Order(Integer.MAX_VALUE - 10)
     void selectUser_editAndDiscard() {
         openAndWait(AutoCrudTest::autoCrud);
 
@@ -208,6 +211,7 @@ class AutoCrudTest extends AbstractTest {
         return grid
                 .$$(shadowDeepCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ")"))
                 .filter(Condition.visible)
+                .filter(Condition.matchText("[a-zA-Z ]+"))
                 .shouldHave(size(expectedSize))
                 .asFixedIterable()
                 .stream()

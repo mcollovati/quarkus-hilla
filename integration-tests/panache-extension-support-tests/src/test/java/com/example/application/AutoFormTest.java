@@ -17,8 +17,8 @@ package com.example.application;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
-import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
@@ -28,7 +28,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
 
 @QuarkusTest
-@TestTransaction
+@Order(Integer.MAX_VALUE)
 class AutoFormTest extends AbstractTest {
 
     @Override
