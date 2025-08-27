@@ -51,7 +51,7 @@ class AutoGridTest extends AbstractTest {
                 .$$(shadowDeepCss("vaadin-text-field[placeholder=\"Filter...\"]"))
                 .shouldHave(size(2));
 
-        $$(shadowCss("tbody#items tr[part~=\"row\"]", "vaadin-grid")).shouldHave(size(15));
+        $$(shadowCss("tbody#items tr[part~=\"row\"]", "vaadin-grid")).shouldHave(size(40));
     }
 
     @Test
