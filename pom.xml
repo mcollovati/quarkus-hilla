@@ -42,7 +42,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.24.4</quarkus.version>
+        <quarkus.version>3.26.1</quarkus.version>
         <!--
             For backward compatibility of GH actions workflows
             To be removed in the future
