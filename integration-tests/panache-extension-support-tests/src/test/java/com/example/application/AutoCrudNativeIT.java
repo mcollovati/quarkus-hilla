@@ -16,6 +16,8 @@
 package com.example.application;
 
 import io.quarkus.test.junit.QuarkusIntegrationTest;
+import org.junit.jupiter.api.Order;
 
 @QuarkusIntegrationTest
+@Order(Integer.MAX_VALUE - 5)
 public class AutoCrudNativeIT extends AutoCrudTest {}

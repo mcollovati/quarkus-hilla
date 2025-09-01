@@ -20,7 +20,7 @@ import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.hilla.signals.NumberSignal;
+import com.vaadin.signals.NumberSignal;
 
 @AnonymousAllowed
 @BrowserCallable
@@ -38,10 +38,10 @@ public class NumberSignalService {
     }
 
     @NotNull public Double fetchSharedValue() {
-        return sharedValue.getValue();
+        return sharedValue.peek();
     }
 
     @NotNull public Long fetchCounterValue() {
-        return Optional.ofNullable(counter.getValue()).map(Double::longValue).orElse(null);
+        return Optional.ofNullable(counter.peek()).map(Double::longValue).orElse(null);
     }
 }

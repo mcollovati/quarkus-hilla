@@ -17,12 +17,10 @@ package com.github.mcollovati.quarkus.hilla.deployment.signals;
 
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
-import java.util.UUID;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.hilla.signals.NumberSignal;
-import com.vaadin.hilla.signals.core.event.StateEvent;
+import com.vaadin.signals.NumberSignal;
 
 @BrowserCallable
 public class SecureNumberSignalService {
@@ -42,10 +40,7 @@ public class SecureNumberSignalService {
 
     @AnonymousAllowed
     public void resetCounters() {
-        var setValueTo20 = new StateEvent<>(UUID.randomUUID().toString(), StateEvent.EventType.SET, 20d);
-        userCounter.submit(setValueTo20.toJson());
-
-        var setValueTo30 = new StateEvent<>(UUID.randomUUID().toString(), StateEvent.EventType.SET, 30d);
-        adminCounter.submit(setValueTo30.toJson());
+        userCounter.value(20d);
+        adminCounter.value(30d);
     }
 }

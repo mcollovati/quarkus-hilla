@@ -49,8 +49,7 @@ class QuarkusApplicationContext implements ApplicationContext {
 
     private static <T> T beanReference(BeanManager beanManager, Bean<?> bean, Class<T> requiredType) {
         final CreationalContext<?> ctx = beanManager.createCreationalContext(bean);
-        // noinspection unchecked
-        return (T) beanManager.getReference(bean, requiredType, ctx);
+        return requiredType.cast(beanManager.getReference(bean, requiredType, ctx));
     }
 
     @Override
@@ -214,8 +213,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     public <T> Map<String, T> getBeansOfType(Class<T> aClass) throws BeansException {
         return beanManager.getBeans(aClass, new AnyLiteral()).stream()
                 .collect(Collectors.toMap(
-                        QuarkusApplicationContext::computeBeanName,
-                        bean -> aClass.cast(beanReference(beanManager, bean, bean.getBeanClass()))));
+                        QuarkusApplicationContext::computeBeanName, bean -> beanReference(beanManager, bean, aClass)));
     }
 
     @Override

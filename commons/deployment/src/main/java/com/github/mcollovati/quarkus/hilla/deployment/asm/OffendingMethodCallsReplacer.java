@@ -29,7 +29,7 @@ import com.vaadin.hilla.Hotswapper;
 import com.vaadin.hilla.engine.EngineAutoConfiguration;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
-import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
+import com.vaadin.hilla.signals.internal.SecureSignalsRegistry;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.gizmo.BranchResult;
