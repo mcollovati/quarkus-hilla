@@ -46,8 +46,8 @@ import com.vaadin.hilla.endpointransfermapper.EndpointTransferMapper;
 import com.vaadin.hilla.parser.jackson.JacksonObjectMapperFactory;
 import com.vaadin.hilla.route.RouteUnifyingConfigurationProperties;
 import com.vaadin.hilla.route.RouteUtil;
-import com.vaadin.hilla.signals.Signal;
-import com.vaadin.hilla.signals.core.registry.SecureSignalsRegistry;
+import com.vaadin.hilla.signals.handler.SignalsHandler;
+import com.vaadin.hilla.signals.internal.SecureSignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import io.quarkus.arc.DefaultBean;
@@ -147,7 +147,7 @@ class QuarkusEndpointControllerConfiguration {
     @DefaultBean
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
-            @Named("endpointObjectMapper") ObjectMapper objectMapper,
+            @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
             ServletContext servletContext,
             EndpointRegistry endpointRegistry,
@@ -163,7 +163,7 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
-    @Named("endpointObjectMapper")
+    @Named("hillaEndpointObjectMapper")
     ObjectMapper endpointObjectMapper(
             @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
                     JacksonObjectMapperFactory endpointMapperFactory) {
@@ -213,7 +213,7 @@ class QuarkusEndpointControllerConfiguration {
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker,
-            @Named("endpointObjectMapper") ObjectMapper objectMapper) {
+            @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
         return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker, objectMapper);
     }
 
@@ -227,13 +227,9 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @ApplicationScoped
     @DefaultBean
-    SecureSignalsRegistry signalsRegistry(EndpointInvoker endpointInvoker) {
-        return new SecureSignalsRegistry(endpointInvoker);
-    }
-
-    void initSignalsObjectMapper(
-            @Observes StartupEvent event, @Named("endpointObjectMapper") ObjectMapper objectMapper) {
-        Signal.setMapper(objectMapper);
+    SecureSignalsRegistry signalsRegistry(
+            EndpointInvoker endpointInvoker, @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
+        return new SecureSignalsRegistry(endpointInvoker, objectMapper);
     }
 
     @Produces
@@ -257,6 +253,19 @@ class QuarkusEndpointControllerConfiguration {
                 navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
         return new RouteUnifyingServiceInitListener(
                 routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl);
+    }
+
+    /**
+     * Initializes the SignalsHandler endpoint when the fullstackSignals feature
+     * flag is enabled.
+     *
+     * @return SignalsHandler endpoint instance
+     */
+    @Named("hillaSignalsHandler")
+    @Produces
+    @Singleton
+    SignalsHandler signalsHandler(SecureSignalsRegistry signalsRegistry) {
+        return new SignalsHandler(signalsRegistry);
     }
 
     void initializeEndpointRegistry(@Observes StartupEvent event, EndpointController endpointController) {

@@ -17,7 +17,7 @@ package com.github.mcollovati.quarkus.hilla.deployment.signals;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.hilla.signals.NumberSignal;
+import com.vaadin.signals.NumberSignal;
 
 @AnonymousAllowed
 @BrowserCallable
@@ -26,5 +26,9 @@ public class NumberSignalService {
 
     public NumberSignal counter() {
         return counter;
+    }
+
+    public double counterValue() {
+        return counter.peek();
     }
 }

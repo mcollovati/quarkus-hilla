@@ -35,6 +35,7 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import com.vaadin.hilla.signals.handler.SignalsHandler;
+import com.vaadin.signals.Id;
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;
@@ -100,14 +101,14 @@ class SignalsSecurityTest {
     @ActivateRequestContext
     void subscribeSecuredSignal_permitAll_authenticatedUsersAllowed() {
         Stream.of(ADMIN, USER, GUEST).forEach(user -> subscribeSignal(user, "userCounter")
-                .accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, 20))));
+                .accept(msg -> msg.satisfies(json -> assertSnapshotReceived(json, 20))));
         subscribeSignal(ANONYMOUS, "userCounter").accept(assertAccessDenied("userCounter"));
     }
 
     @Test
     @ActivateRequestContext
     void subscribeSecuredSignal_adminOnly_onlyAdminAllowed() {
-        subscribeSignal(ADMIN, "adminCounter").accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, 30)));
+        subscribeSignal(ADMIN, "adminCounter").accept(msg -> msg.satisfies(json -> assertSnapshotReceived(json, 30)));
         Stream.of(ANONYMOUS, USER, GUEST)
                 .forEach(user -> subscribeSignal(user, "adminCounter").accept(assertAccessDenied("adminCounter")));
     }
@@ -167,12 +168,12 @@ class SignalsSecurityTest {
                                 "update",
                                 TestUtils.Parameters.param("clientSignalId", clientSignalId)
                                         .add(
-                                                "event",
+                                                "command",
                                                 TestUtils.Parameters.param(
-                                                                "id",
-                                                                UUID.randomUUID()
-                                                                        .toString())
-                                                        .add("type", "set")
+                                                                "commandId",
+                                                                Id.random().asBase64())
+                                                        .add("@type", "set")
+                                                        .add("targetNodeId", "")
                                                         .add("value", newValue)),
                                 authenticate(user))
                         .then()
@@ -198,7 +199,6 @@ class SignalsSecurityTest {
                 SecureNumberSignalService.class.getSimpleName(),
                 methodName,
                 clientSignalId,
-                null,
                 null);
         ClientEndpointConfig cec = ClientEndpointConfig.Builder.create()
                 .configurator(new BasicAuthConfigurator(user))
@@ -223,13 +223,31 @@ class SignalsSecurityTest {
         };
     }
 
-    private static void assertUpdateReceived(String message, int expectedValue) throws InterruptedException {
+    private static void assertSnapshotReceived(String message, int expectedValue) {
         try (var reader = Json.createReader(new StringReader(message))) {
             JsonObject json = reader.readObject();
             assertThat(json.getString("@type")).isEqualTo("update");
             JsonObject item = json.getJsonObject("item");
             assertThat(item).isNotNull();
-            assertThat(item.getString("id")).isNotEmpty();
+            assertThat(item.getString("@type")).isEqualTo("snapshot");
+            assertThat(item.getString("commandId")).isNotEmpty();
+            assertThat(item.getJsonObject("nodes")).containsKey("");
+            JsonObject node = item.getJsonObject("nodes").getJsonObject("");
+            assertThat(node).isNotNull();
+            assertThat(node.getString("@type")).isEqualTo("d");
+            assertThat(node.getInt("value")).isEqualTo(expectedValue);
+        }
+    }
+
+    private static void assertUpdateReceived(String message, int expectedValue) {
+        try (var reader = Json.createReader(new StringReader(message))) {
+            JsonObject json = reader.readObject();
+            assertThat(json.getString("@type")).isEqualTo("update");
+            JsonObject item = json.getJsonObject("item");
+            assertThat(item).isNotNull();
+            assertThat(item.getString("@type")).isEqualTo("set");
+            assertThat(item.getString("commandId")).isNotEmpty();
+            assertThat(item.getString("targetNodeId")).isEmpty();
             assertThat(item.getInt("value")).isEqualTo(expectedValue);
         }
     }

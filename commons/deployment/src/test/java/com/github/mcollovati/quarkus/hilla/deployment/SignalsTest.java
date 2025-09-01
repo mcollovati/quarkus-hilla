@@ -25,19 +25,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import com.vaadin.hilla.signals.handler.SignalsHandler;
+import com.vaadin.signals.Id;
+import com.vaadin.signals.NumberSignal;
 import io.quarkus.logging.Log;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 import org.hamcrest.CoreMatchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.signals.NumberSignalService;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.CoreMatchers.equalTo;
 
 import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndpointRequest;
 
@@ -50,7 +53,14 @@ class SignalsTest {
     static final QuarkusUnitTest config = new QuarkusUnitTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(TestUtils.class, NumberSignalService.class, HillaPushClient.class));
+                    .add(
+                            new StringAsset(
+                                    """
+                    com.vaadin.experimental.fullstackSignals=true
+                    com.vaadin.experimental.flowFullstackSignals=true
+                    """),
+                            "vaadin-featureflags.properties")
+                    .addClasses(TestUtils.class, NumberSignalService.class, NumberSignal.class, HillaPushClient.class));
 
     @Test
     @ActivateRequestContext
@@ -58,11 +68,11 @@ class SignalsTest {
         URI connectURI = HillaPushClient.createPUSHConnectURI(pushURI);
         String clientSignalId = UUID.randomUUID().toString();
         HillaPushClient client = new HillaPushClient(
-                "SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId, null, null);
+                "SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId, null);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             String serverSignalId = assertUpdateReceived(client, 3);
-            assertThatSignalHasValue(serverSignalId, 3);
+            assertThatSignalHasValue(3);
         }
         assertThatConnectionHasBeenClosed(client);
     }
@@ -73,23 +83,23 @@ class SignalsTest {
         URI connectURI = HillaPushClient.createPUSHConnectURI(pushURI);
         String clientSignalId = UUID.randomUUID().toString();
         HillaPushClient client = new HillaPushClient(
-                "SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId, null, null);
+                "SignalsHandler", "subscribe", "NumberSignalService", "counter", clientSignalId, null);
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, null, connectURI)) {
             assertThatClientIsConnected(client);
             AtomicReference<String> serverSignalId = new AtomicReference<>();
             client.assertJsonMessageReceived(3, TimeUnit.SECONDS, json -> {
-                assertThat(json.getJsonObject("item").getString("id")).isNotNull();
-                serverSignalId.set(json.getJsonObject("item").getString("id"));
+                assertThat(json.getJsonObject("item").getString("commandId")).isNotNull();
+                serverSignalId.set(json.getJsonObject("item").getString("commandId"));
             });
-            assertThatSignalHasValue(serverSignalId.get(), 3);
+            assertThatSignalHasValue(3);
 
             updateSignalValue(clientSignalId, 12);
             assertUpdateReceived(client, 12);
-            assertThatSignalHasValue(serverSignalId.get(), 12);
+            assertThatSignalHasValue(12);
 
             updateSignalValue(clientSignalId, 5);
             assertUpdateReceived(client, 5);
-            assertThatSignalHasValue(serverSignalId.get(), 5);
+            assertThatSignalHasValue(5);
         }
         assertThatConnectionHasBeenClosed(client);
     }
@@ -114,9 +124,22 @@ class SignalsTest {
             assertThat(json.getString("id")).isNotEmpty();
             JsonObject item = json.getJsonObject("item");
             assertThat(item).isNotNull();
-            assertThat(item.getString("id")).isNotEmpty();
-            assertThat(item.getInt("value")).isEqualTo(expectedValue);
-            serverSignalId.set(item.getString("id"));
+            assertThat(item.getString("commandId")).isNotEmpty();
+            String type = item.getString("@type");
+            assertThat(type).isNotNull();
+            if ("snapshot".equals(type)) {
+                assertThat(item.getJsonObject("nodes")).containsKey("");
+                JsonObject node = item.getJsonObject("nodes").getJsonObject("");
+                assertThat(node).isNotNull();
+                assertThat(node.getString("@type")).isEqualTo("d");
+                assertThat(node.getInt("value")).isEqualTo(expectedValue);
+            } else if ("set".equals(type)) {
+                assertThat(item.getString("targetNodeId")).isEmpty();
+                assertThat(item.getInt("value")).isEqualTo(expectedValue);
+            } else {
+                Assertions.fail("Unexpected item type " + type);
+            }
+            serverSignalId.set(item.getString("commandId"));
         });
         return serverSignalId.get();
     }
@@ -127,24 +150,24 @@ class SignalsTest {
                         "update",
                         TestUtils.Parameters.param("clientSignalId", clientSignalId)
                                 .add(
-                                        "event",
+                                        "command",
                                         TestUtils.Parameters.param(
-                                                        "id", UUID.randomUUID().toString())
-                                                .add("type", "set")
+                                                        "commandId", Id.random().asBase64())
+                                                .add("@type", "set")
+                                                .add("targetNodeId", "")
                                                 .add("value", newValue)))
                 .then()
                 .assertThat()
                 .statusCode(200);
     }
 
-    private void assertThatSignalHasValue(String serverSignalId, int expected) {
-        givenEndpointRequest(NumberSignalService.class.getSimpleName(), "counter")
+    private void assertThatSignalHasValue(int expected) {
+        givenEndpointRequest(NumberSignalService.class.getSimpleName(), "counterValue")
                 .then()
                 .assertThat()
                 .statusCode(200)
                 .and()
-                .body("id", equalTo(serverSignalId))
-                .body("value", CoreMatchers.equalTo((float) expected));
+                .body(CoreMatchers.equalTo(Double.toString(expected)));
     }
 
     private static String testResource(String name) {
