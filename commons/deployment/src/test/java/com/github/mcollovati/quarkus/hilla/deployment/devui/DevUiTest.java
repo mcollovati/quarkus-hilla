@@ -16,7 +16,6 @@
 package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
@@ -81,12 +80,12 @@ public class DevUiTest {
                 readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/qwc-quarkus-hilla-browser-callables.js"));
         Assertions.assertNotNull(source);
         Assertions.assertTrue(
-                source.contains("import {hillaEndpoints as endpoints} from '../quarkus-hilla-commons-data.js';"));
+                source.contains("import {hillaEndpoints as endpoints} from './quarkus-hilla-commons-data.js';"));
         Assertions.assertTrue(source.contains(
                 "customElements.define('qwc-quarkus-hilla-browser-callables', QwcQuarkusHillaBrowserCallables);"));
     }
 
-    private String readDataFromUrl(URI uri) throws MalformedURLException, IOException {
+    private String readDataFromUrl(URI uri) throws IOException {
         try (Scanner scanner = new Scanner(uri.toURL().openStream(), StandardCharsets.UTF_8.toString())) {
             scanner.useDelimiter("\\A");
             return scanner.hasNext() ? scanner.next() : null;
@@ -94,7 +93,7 @@ public class DevUiTest {
     }
 
     public JsonNode getBuildTimeData(String key) throws Exception {
-        String data = readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "-data.js"));
+        String data = readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/" + NAMESPACE + "-data.js"));
         String[] kvs = data.split(CONST);
 
         for (String kv : kvs) {
