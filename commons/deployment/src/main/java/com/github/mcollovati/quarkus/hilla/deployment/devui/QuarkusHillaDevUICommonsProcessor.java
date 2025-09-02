@@ -71,19 +71,18 @@ public class QuarkusHillaDevUICommonsProcessor {
             if (is == null) {
                 throw new IOException("Could not find template: dev-ui/qwc-quarkus-hilla-browser-callables.js");
             }
-            webComponent = new String(is.readAllBytes(), StandardCharsets.UTF_8)
-                    .replace("{", "\\{")
-                    .replaceAll("@@([^@]+)@@", "{$1}");
+            webComponent = new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("{", "\\{");
         } catch (IOException e) {
             throw new RuntimeException(
                     "Failed to generate qwc-quarkus-hilla-browser-callables shared web-component", e);
         }
         var mapper = DatabindCodec.mapper().writerWithDefaultPrettyPrinter();
-        String endpoints = null;
+        String endpoints;
         try {
             endpoints = mapper.writeValueAsString(endpointBuildItem.getEndpoints());
         } catch (JsonProcessingException e) {
             LoggerFactory.getLogger(getClass()).error("Failed to serialize endpoints for Dev UI page", e);
+            endpoints = "[]";
         }
         staticContentProducer.produce(new StaticContentBuildItem(
                 NAMESPACE,
@@ -91,10 +90,9 @@ public class QuarkusHillaDevUICommonsProcessor {
                         DevUIContent.builder()
                                 .fileName("qwc-quarkus-hilla-browser-callables.js")
                                 .template(webComponent.getBytes(StandardCharsets.UTF_8))
-                                .addData("buildTimeData", "./" + NAMESPACE + "-data.js")
                                 .build(),
                         DevUIContent.builder()
-                                .fileName(NAMESPACE + "-data.js")
+                                .fileName("quarkus-hilla-application-data.js")
                                 .addData("buildTimeData", Map.of("hillaEndpoints", endpoints))
                                 .template(
                                         """

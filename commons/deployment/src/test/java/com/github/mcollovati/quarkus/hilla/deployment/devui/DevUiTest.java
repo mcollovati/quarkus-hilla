@@ -80,7 +80,7 @@ public class DevUiTest {
                 readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/qwc-quarkus-hilla-browser-callables.js"));
         Assertions.assertNotNull(source);
         Assertions.assertTrue(
-                source.contains("import {hillaEndpoints as endpoints} from './quarkus-hilla-commons-data.js';"));
+                source.contains("import {hillaEndpoints as endpoints} from './quarkus-hilla-application-data.js';"));
         Assertions.assertTrue(source.contains(
                 "customElements.define('qwc-quarkus-hilla-browser-callables', QwcQuarkusHillaBrowserCallables);"));
     }
@@ -93,7 +93,7 @@ public class DevUiTest {
     }
 
     public JsonNode getBuildTimeData(String key) throws Exception {
-        String data = readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/" + NAMESPACE + "-data.js"));
+        String data = readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/quarkus-hilla-application-data.js"));
         String[] kvs = data.split(CONST);
 
         for (String kv : kvs) {
