@@ -102,14 +102,14 @@
     "@vitejs/plugin-react": "4.7.0",
     "async": "3.2.6",
     "glob": "11.0.3",
-    "magic-string": "0.30.17",
+    "magic-string": "0.30.18",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "5.14.0",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.9.2",
-    "vite": "7.1.0",
-    "vite-plugin-checker": "0.10.2",
+    "vite": "7.1.4",
+    "vite-plugin-checker": "0.10.3",
     "workbox-build": "7.3.0",
     "workbox-core": "7.3.0",
     "workbox-precaching": "7.3.0"
@@ -305,19 +305,19 @@
       "@vitejs/plugin-react": "4.7.0",
       "async": "3.2.6",
       "glob": "11.0.3",
-      "magic-string": "0.30.17",
+      "magic-string": "0.30.18",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "5.14.0",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.9.2",
-      "vite": "7.1.0",
-      "vite-plugin-checker": "0.10.2",
+      "vite": "7.1.4",
+      "vite-plugin-checker": "0.10.3",
       "workbox-build": "7.3.0",
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "ee2aaff06a30e4f377f17660121ce5d847475ec61ee536133a41cafa7bbfabdc"
+    "hash": "53a50a1d7e9c694adf488a4c4ea9a0e9870c967a9a5c97205d3cb438c3052ea8"
   },
   "type": "module"
 }
