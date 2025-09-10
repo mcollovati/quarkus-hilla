@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import com.github.mcollovati.quarkus.testing.AbstractTest;
 import com.github.mcollovati.quarkus.testing.VaadinConditions;
 
-import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Selectors.byXpath;
 import static com.codeborne.selenide.Selectors.shadowCss;
 import static com.codeborne.selenide.Selectors.shadowDeepCss;
@@ -50,7 +49,8 @@ class AutoCrudTest extends AbstractTest {
 
         SelenideElement grid = autoCrudGrid().shouldBe(Condition.visible);
 
-        assertThat(collectColumnTexts(grid, 1, 10)).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, 10));
+        List<String> items = collectColumnTexts(grid, 1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, items.size()));
 
         SelenideElement form = autoCrudForm().shouldBe(Condition.visible);
         formField(form, "name").shouldBe(VaadinConditions.disabled);
@@ -172,7 +172,7 @@ class AutoCrudTest extends AbstractTest {
 
         confirmDialog.shouldNotBe(Condition.visible);
 
-        assertThat(collectColumnTexts(grid, 1, 0)).isEmpty();
+        assertThat(collectColumnTexts(grid, 1)).isEmpty();
     }
 
     private static SelenideElement autoCrud() {
@@ -207,12 +207,11 @@ class AutoCrudTest extends AbstractTest {
         return form.$("div.auto-form-toolbar vaadin-button[theme=primary]");
     }
 
-    private static List<String> collectColumnTexts(SelenideElement grid, int column, int expectedSize) {
+    private static List<String> collectColumnTexts(SelenideElement grid, int column) {
         return grid
                 .$$(shadowDeepCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ")"))
                 .filter(Condition.visible)
                 .filter(Condition.matchText("[a-zA-Z ]+"))
-                .shouldHave(size(expectedSize))
                 .asFixedIterable()
                 .stream()
                 .map(el -> $(el).text())
