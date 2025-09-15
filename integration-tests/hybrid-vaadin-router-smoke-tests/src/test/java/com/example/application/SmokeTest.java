@@ -69,7 +69,7 @@ class SmokeTest extends AbstractTest {
     void home_navigateToFlowView_viewDisplayed() {
         openAndWait(() -> $("hello-world-view"));
 
-        $$(Selectors.shadowCss("vcf-nav-item", "main-layout"))
+        $$(Selectors.shadowCss("vaadin-side-nav-item", "main-layout"))
                 .filter(Condition.attribute("path", "/flow-view"))
                 .first()
                 .click();
