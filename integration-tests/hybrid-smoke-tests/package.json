@@ -15,7 +15,7 @@
     "@vaadin/hilla-react-i18n": "25.0.0-alpha7",
     "@vaadin/hilla-react-signals": "25.0.0-alpha7",
     "@vaadin/react-components": "25.0.0-alpha18",
-    "@vaadin/react-components-pro": "25.0.0-alpha18",
+    "@vaadin/react-components-pro": "25.0.0-alpha19",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
     "@vaadin/vaadin-lumo-styles": "25.0.0-alpha19",
     "@vaadin/vaadin-themable-mixin": "25.0.0-alpha19",
@@ -155,14 +155,14 @@
     "@vaadin/router": "2.0.0",
     "@vaadin/vertical-layout": "25.0.0-alpha18",
     "@vaadin/virtual-list": "25.0.0-alpha18",
-    "@vaadin/board": "25.0.0-alpha18",
-    "@vaadin/charts": "25.0.0-alpha18",
+    "@vaadin/board": "25.0.0-alpha19",
+    "@vaadin/charts": "25.0.0-alpha19",
     "@vaadin/cookie-consent": "25.0.0-alpha8",
-    "@vaadin/crud": "25.0.0-alpha18",
-    "@vaadin/dashboard": "25.0.0-alpha18",
-    "@vaadin/grid-pro": "25.0.0-alpha18",
-    "@vaadin/map": "25.0.0-alpha18",
-    "@vaadin/rich-text-editor": "25.0.0-alpha18"
+    "@vaadin/crud": "25.0.0-alpha19",
+    "@vaadin/dashboard": "25.0.0-alpha19",
+    "@vaadin/grid-pro": "25.0.0-alpha19",
+    "@vaadin/map": "25.0.0-alpha19",
+    "@vaadin/rich-text-editor": "25.0.0-alpha19"
   },
   "vaadin": {
     "dependencies": {
@@ -177,7 +177,7 @@
       "@vaadin/hilla-react-i18n": "25.0.0-alpha7",
       "@vaadin/hilla-react-signals": "25.0.0-alpha7",
       "@vaadin/react-components": "25.0.0-alpha18",
-      "@vaadin/react-components-pro": "25.0.0-alpha18",
+      "@vaadin/react-components-pro": "25.0.0-alpha19",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
       "@vaadin/vaadin-lumo-styles": "25.0.0-alpha19",
       "@vaadin/vaadin-themable-mixin": "25.0.0-alpha19",
@@ -222,7 +222,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "b11048a69dee4552778c92d56fff8db6cdc1c126a1c5f21edfc2f68ee465c39d"
+    "hash": "ec60a8a3a3b9b6f2e66dea445ac4395d5fd2040b30fc20a65d4c523e85cda372"
   },
   "type": "module"
 }
