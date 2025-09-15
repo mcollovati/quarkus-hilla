@@ -1,4 +1,3 @@
-import '@vaadin-component-factory/vcf-nav';
 import '@vaadin/app-layout';
 import {AppLayout} from '@vaadin/app-layout';
 import '@vaadin/app-layout/vaadin-drawer-toggle';
@@ -10,6 +9,7 @@ import '@vaadin/scroller';
 import '@vaadin/tabs';
 import '@vaadin/tabs/vaadin-tab';
 import '@vaadin/vaadin-lumo-styles/vaadin-iconset';
+import '@vaadin/side-nav';
 import {html, render} from 'lit';
 import {customElement, property} from 'lit/decorators.js';
 import {router} from '../index';
@@ -37,31 +37,29 @@ export class MainLayout extends Layout {
                     <h1 class="text-l m-0">${appStore.applicationName}</h1>
                 </header>
                 <vaadin-scroller slot="drawer" scroll-direction="vertical">
-                    <!-- vcf-nav is not yet an official component -->
-                    <!-- For documentation, visit https://github.com/vaadin/vcf-nav#readme -->
-                    <vcf-nav aria-label="${appStore.applicationName}">
+                    <vaadin-side-nav aria-label="${appStore.applicationName}">
                         ${this.getMenuRoutes().map(
                                 (viewRoute) => html`
-                                    <vcf-nav-item
+                                    <vaadin-side-nav-item
                                             path=${router.urlForPath(viewRoute.path)}>
                                         <span class="${viewRoute.icon} nav-item-icon"
                                               slot="prefix"
                                               aria-hidden="true"></span>
                                         ${viewRoute.title}
-                                    </vcf-nav-item>
+                                    </vaadin-side-nav-item>
                                 `
                         )}
-                        <vcf-nav-item path=${router.urlForPath('flow-view')}>
+                        <vaadin-side-nav-item path=${router.urlForPath('flow-view')}>
                             <span class="la la-globe nav-item-icon"
                                   slot="prefix" aria-hidden="true"></span>
                             Flow View
-                        </vcf-nav-item>
-                        <vcf-nav-item path=${router.urlForPath('flow-public-view')}>
+                        </vaadin-side-nav-item>
+                        <vaadin-side-nav-item path=${router.urlForPath('flow-public-view')}>
                             <span class="la la-globe nav-item-icon"
                                   slot="prefix" aria-hidden="true"></span>
                             Flow Public View
-                        </vcf-nav-item>
-                    </vcf-nav>
+                        </vaadin-side-nav-item>
+                    </vaadin-side-nav>
                 </vaadin-scroller>
 
                 <footer slot="drawer">

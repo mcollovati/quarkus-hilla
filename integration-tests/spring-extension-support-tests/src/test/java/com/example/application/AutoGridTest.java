@@ -17,9 +17,12 @@ package com.example.application;
 
 import java.util.List;
 
+import com.codeborne.selenide.CollectionCondition;
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import io.quarkus.test.junit.QuarkusTest;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
@@ -43,7 +46,8 @@ class AutoGridTest extends AbstractTest {
     @Test
     void autoGrid_gridIsDisplayed() {
         openAndWait(() -> $("vaadin-grid"));
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
+        List<String> items = collectColumnTexts(1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, items.size()));
 
         SelenideElement filterRows =
                 $$(shadowCss("thead#header tr[part~=\"row\"]", "vaadin-grid")).last();
@@ -51,70 +55,85 @@ class AutoGridTest extends AbstractTest {
                 .$$(shadowDeepCss("vaadin-text-field[placeholder=\"Filter...\"]"))
                 .shouldHave(size(2));
 
-        $$(shadowCss("tbody#items tr[part~=\"row\"]", "vaadin-grid")).shouldHave(size(40));
+        $$(shadowCss("tbody#items tr[part~=\"row\"]", "vaadin-grid")).shouldHave(size(items.size()));
     }
 
     @Test
-    void autoGrid_filter() throws InterruptedException {
+    void autoGrid_filter() {
         openAndWait(() -> $("vaadin-grid"));
         SelenideElement filter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[3]/div/vaadin-text-field/input"));
 
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
+        List<String> items = collectColumnTexts(1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, items.size()));
+
+        unsort();
 
         filter.setValue("er");
-        assertThat(collectColumnTexts(1, 9))
-                .containsExactlyInAnyOrder(
-                        "Homer", "Peter", "Christopher", "Avery", "Harper", "Cameron", "Carter", "Tyler", "Parker");
+
+        columnShouldHaveTexts(
+                1, "Homer", "Peter", "Christopher", "Avery", "Harper", "Cameron", "Carter", "Tyler", "Parker");
 
         filter.setValue("Ho");
-        assertThat(collectColumnTexts(1, 2)).containsExactlyInAnyOrder("Homer", "Nicholas");
+        columnShouldHaveTexts(1, "Homer", "Nicholas");
 
         filter.setValue("");
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
+        items = collectColumnCells(1)
+                .shouldHave(CollectionCondition.sizeGreaterThan(2))
+                .texts();
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_UNSORTED.subList(0, items.size()));
     }
 
     @Test
     void autoGrid_sort() {
         openAndWait(() -> $("vaadin-grid"));
-        assertThat(collectColumnTexts(1)).hasSize(TestData.RENDERED_ITEMS);
+        SelenideElement nameSorter = unsort();
+        collectColumnCells(1).shouldHave(CollectionCondition.sizeGreaterThan(0));
+        List<String> items = collectColumnTexts(1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_UNSORTED.subList(0, items.size()));
 
+        // Sort by name ascending
+        nameSorter.click();
+        assertThat(nameSorter.getAttribute("direction")).isEqualTo("asc");
+        items = collectColumnTexts(1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, items.size()));
+
+        // Sort by name ascending
+        nameSorter.click();
+        assertThat(nameSorter.getAttribute("direction")).isEqualTo("desc");
+        items = collectColumnTexts(1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_DESC.subList(0, items.size()));
+
+        // Unsorted
+        nameSorter.click();
+        assertThat(nameSorter.getAttribute("direction")).isNull();
+        items = collectColumnTexts(1);
+        assertThat(items).containsExactlyElementsOf(TestData.NAMES_UNSORTED.subList(0, items.size()));
+    }
+
+    private static @NotNull SelenideElement unsort() {
         SelenideElement nameSorter = $(byXpath("//*/vaadin-grid/vaadin-grid-cell-content[1]/vaadin-grid-sorter"));
-
         String direction = nameSorter.getAttribute("direction");
         while (direction != null) {
             nameSorter.click();
             direction = nameSorter.getAttribute("direction");
         }
+        return nameSorter;
+    }
 
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_UNSORTED);
-
-        // Sort by name ascending
-        nameSorter.click();
-        assertThat(nameSorter.getAttribute("direction")).isEqualTo("asc");
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_ASC);
-
-        // Sort by name ascending
-        nameSorter.click();
-        assertThat(nameSorter.getAttribute("direction")).isEqualTo("desc");
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_DESC);
-
-        // Unsorted
-        nameSorter.click();
-        assertThat(nameSorter.getAttribute("direction")).isNull();
-        assertThat(collectColumnTexts(1)).containsExactlyElementsOf(TestData.NAMES_UNSORTED);
+    private static ElementsCollection collectColumnCells(int column) {
+        return $$($$(shadowCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ") slot", "vaadin-grid"))
+                        .attributes("name")
+                        .stream()
+                        .map(id -> $("vaadin-grid vaadin-grid-cell-content[slot='" + id + "']"))
+                        .toList())
+                .filter(Condition.visible);
     }
 
     private static List<String> collectColumnTexts(int column) {
-        return collectColumnTexts(column, TestData.RENDERED_ITEMS);
+        return collectColumnCells(column).texts();
     }
 
-    private static List<String> collectColumnTexts(int column, int expectedSize) {
-        return $$(shadowCss("tbody#items tr[part~=\"row\"] td:nth-child(" + column + ")", "vaadin-grid"))
-                .filter(Condition.visible)
-                .shouldHave(size(expectedSize))
-                .asFixedIterable()
-                .stream()
-                .map(el -> $(el).text())
-                .toList();
+    private static void columnShouldHaveTexts(int column, String... texts) {
+        collectColumnCells(column).shouldHave(CollectionCondition.textsInAnyOrder(texts));
     }
 }

@@ -78,7 +78,7 @@ class SecurityTest extends AbstractTest {
     void notAdminUser_navigateToAdminView_notFoundPage() {
         openAndWait(getTestUrl() + "login", () -> $("vaadin-login-form"));
         login("scott", "pwd");
-        $$(Selectors.shadowCss("vcf-nav-item", "main-layout"))
+        $$(Selectors.shadowCss("vaadin-side-nav-item", "main-layout"))
                 .filter(Condition.attribute("path", "/flow-public-view"))
                 .first()
                 .click();
