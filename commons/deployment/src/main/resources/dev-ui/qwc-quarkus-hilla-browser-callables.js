@@ -1,6 +1,5 @@
 import {css, html, LitElement} from 'lit';
 import {columnBodyRenderer} from '@vaadin/grid/lit.js';
-import {hillaEndpoints as endpoints} from './quarkus-hilla-application-data.js';
 import '@vaadin/grid';
 import '@vaadin/grid/vaadin-grid-sort-column.js';
 import '@vaadin/grid/vaadin-grid-tree-column.js';
@@ -59,17 +58,23 @@ export class QwcQuarkusHillaBrowserCallables extends LitElement {
     `;
 
     static properties = {
-        _endpoints: {state: true}, _expandedItems: {state: true}
+        endpoints: {state: false},
+        _expandedItems: {state: true}
     };
 
     constructor() {
         super();
-        this._endpoints = endpoints;
-        this._expandedItems = endpoints;
+        this.endpoints = [];
+        this._expandedItems = [];
+    }
+
+    firstUpdated() {
+        // Expand all root items
+        this._expandedItems = [...this.endpoints];
     }
 
     render() {
-        if (this._endpoints) {
+        if (this.endpoints) {
             return this._renderEndpointGrid()
         } else {
             return html`No beans found`;
@@ -77,9 +82,9 @@ export class QwcQuarkusHillaBrowserCallables extends LitElement {
     }
 
     _renderEndpointGrid() {
-        if (this._endpoints) {
+        if (this.endpoints) {
             return html`
-                <vaadin-grid .dataProvider="${this._dataProvider}" .expandedItems="${this._expandedItems}"
+                <vaadin-grid .dataProvider=${this._dataProvider} .expandedItems=${this._expandedItems}
                              class="datatable" theme="row-stripes">
                     <vaadin-grid-column header="Class"
                                              resizable
@@ -93,17 +98,17 @@ export class QwcQuarkusHillaBrowserCallables extends LitElement {
         }
     }
 
-    _dataProvider(params, callback) {
+    // called by vaadin-grid that's why arrow function
+    _dataProvider = (params, callback) => {
         if (params.parentItem) {
             const children = params.parentItem.children || [];
             callback(children, children.length);
         } else {
-            callback(endpoints, endpoints.length);
+            callback(this.endpoints, this.endpoints.length);
         }
     }
 
-    _beanTreeRenderer(bean, model) {
-        return html`
+    _beanTreeRenderer = (bean, model) => html`
             <vaadin-grid-tree-toggle
                     .leaf="${!bean.children}"
                     .level="${model.level ?? 0}"
@@ -117,8 +122,7 @@ export class QwcQuarkusHillaBrowserCallables extends LitElement {
                     }}">
                 ${this._beanRenderer(bean)}
             </vaadin-grid-tree-toggle>
-        `
-    }
+        `;
 
     _beanRenderer(bean) {
         return bean.endpointAnnotation ? html`

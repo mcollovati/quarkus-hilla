@@ -20,22 +20,18 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.devui.spi.DevUIContent;
 import io.quarkus.devui.spi.buildtime.StaticContentBuildItem;
-import io.vertx.core.json.jackson.DatabindCodec;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
-import org.slf4j.LoggerFactory;
 
 public class QuarkusHillaDevUICommonsProcessor {
 
@@ -43,6 +39,8 @@ public class QuarkusHillaDevUICommonsProcessor {
 
     private static final DotName SIGNALS_HANDLER =
             DotName.createSimple("com.vaadin.hilla.signals.handler.SignalsHandler");
+
+    private static final String FILE_PATH = "dev-ui/qwc-quarkus-hilla-browser-callables.js";
 
     @BuildStep(onlyIf = IsDevelopment.class)
     public EndpointBuildItem collectEndpoints(CombinedIndexBuildItem combinedIndexBuildItem) {
@@ -62,45 +60,27 @@ public class QuarkusHillaDevUICommonsProcessor {
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)
-    void createSharedWebComponent(
-            BuildProducer<StaticContentBuildItem> staticContentProducer, EndpointBuildItem endpointBuildItem) {
+    void createSharedWebComponent(BuildProducer<StaticContentBuildItem> staticContentProducer) {
 
-        String webComponent;
-        try (InputStream is =
-                getClass().getClassLoader().getResourceAsStream("dev-ui/qwc-quarkus-hilla-browser-callables.js")) {
+        String webComponent = getWebComponentFromResource();
+
+        staticContentProducer.produce(new StaticContentBuildItem(
+                NAMESPACE,
+                List.of(DevUIContent.builder()
+                        .fileName("qwc-quarkus-hilla-browser-callables.js")
+                        .template(webComponent.getBytes(StandardCharsets.UTF_8))
+                        .build())));
+    }
+
+    private String getWebComponentFromResource() {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(FILE_PATH)) {
             if (is == null) {
-                throw new IOException("Could not find template: dev-ui/qwc-quarkus-hilla-browser-callables.js");
+                throw new IOException("Could not find template: " + FILE_PATH);
             }
-            webComponent = new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("{", "\\{");
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("{", "\\{");
         } catch (IOException e) {
             throw new RuntimeException(
                     "Failed to generate qwc-quarkus-hilla-browser-callables shared web-component", e);
         }
-        var mapper = DatabindCodec.mapper().writerWithDefaultPrettyPrinter();
-        String endpoints;
-        try {
-            endpoints = mapper.writeValueAsString(endpointBuildItem.getEndpoints());
-        } catch (JsonProcessingException e) {
-            LoggerFactory.getLogger(getClass()).error("Failed to serialize endpoints for Dev UI page", e);
-            endpoints = "[]";
-        }
-        staticContentProducer.produce(new StaticContentBuildItem(
-                NAMESPACE,
-                List.of(
-                        DevUIContent.builder()
-                                .fileName("qwc-quarkus-hilla-browser-callables.js")
-                                .template(webComponent.getBytes(StandardCharsets.UTF_8))
-                                .build(),
-                        DevUIContent.builder()
-                                .fileName("quarkus-hilla-application-data.js")
-                                .addData("buildTimeData", Map.of("hillaEndpoints", endpoints))
-                                .template(
-                                        """
-                            {#for d in buildTimeData}\s
-                            export const {d.key} = {d.value};
-                            {/for}
-                            """
-                                                .getBytes(StandardCharsets.UTF_8))
-                                .build())));
     }
 }
