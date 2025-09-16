@@ -39,9 +39,10 @@ import static io.quarkus.runtime.LaunchMode.DEVELOPMENT;
 public class DevUiTest {
 
     @RegisterExtension
-    static final QuarkusDevModeTest config =
-            new QuarkusDevModeTest().withApplicationRoot(jar -> jar.addClass(TestEndpoint.class));
-    // .withEmptyApplication();
+    static final QuarkusDevModeTest config = new QuarkusDevModeTest()
+            .withApplicationRoot(jar -> jar.addClass(TestEndpoint.class)
+                    .addClass(DevUITestProcessor.class)
+                    .addClass(QuarkusHillaDevUICommonsProcessor.class));
 
     private static final String CONST = "export const ";
     private static final String SPACE = " ";
@@ -65,7 +66,7 @@ public class DevUiTest {
 
     @Test
     public void shouldGenerateHillaEndpoints() throws Exception {
-        JsonNode hillaEndpoints = getBuildTimeData("hillaEndpoints");
+        JsonNode hillaEndpoints = getBuildTimeData("testEndpoints");
         Assertions.assertNotNull(hillaEndpoints);
         Assertions.assertEquals(1, hillaEndpoints.size());
         JsonNode endpoint = hillaEndpoints.get(0);
@@ -79,8 +80,6 @@ public class DevUiTest {
         String source =
                 readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/qwc-quarkus-hilla-browser-callables.js"));
         Assertions.assertNotNull(source);
-        Assertions.assertTrue(
-                source.contains("import {hillaEndpoints as endpoints} from './quarkus-hilla-application-data.js';"));
         Assertions.assertTrue(source.contains(
                 "customElements.define('qwc-quarkus-hilla-browser-callables', QwcQuarkusHillaBrowserCallables);"));
     }
@@ -93,7 +92,8 @@ public class DevUiTest {
     }
 
     public JsonNode getBuildTimeData(String key) throws Exception {
-        String data = readDataFromUrl(new URI(devUI.toString() + NAMESPACE + "/quarkus-hilla-application-data.js"));
+        String NS2 = "com.github.mcollovati.";
+        String data = readDataFromUrl(new URI(devUI.toString() + NS2 + NAMESPACE + "-data.js"));
         String[] kvs = data.split(CONST);
 
         for (String kv : kvs) {
