@@ -15,7 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
-import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.IsTest;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
