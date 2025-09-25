@@ -100,7 +100,6 @@
     "@vaadin/hilla-generator-plugin-transfertypes": "25.0.0-alpha7",
     "@vaadin/hilla-generator-utils": "25.0.0-alpha7",
     "@vitejs/plugin-react": "5.0.3",
-    "async": "3.2.6",
     "glob": "11.0.3",
     "magic-string": "0.30.19",
     "rollup-plugin-brotli": "3.1.0",
@@ -304,7 +303,6 @@
       "@vaadin/hilla-generator-plugin-transfertypes": "25.0.0-alpha7",
       "@vaadin/hilla-generator-utils": "25.0.0-alpha7",
       "@vitejs/plugin-react": "5.0.3",
-      "async": "3.2.6",
       "glob": "11.0.3",
       "magic-string": "0.30.19",
       "rollup-plugin-brotli": "3.1.0",
@@ -318,7 +316,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "7e644250cdd91258f5c95d9b5b339d149646e1e534eb6f0cdfe90dcc2fa6c363"
+    "hash": "fbcb611061988f83c457aaf277f16b0b16885df7c9f7068e1c033d7afb7614fc"
   },
   "type": "module"
 }
