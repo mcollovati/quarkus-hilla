@@ -34,6 +34,7 @@ public class QuarkusHillaDevUIProcessor {
                 .componentLink("qwc-quarkus-hilla-react.js")
                 .staticLabel(String.valueOf(endpointBuildItem.getEndpointMethodCount()));
         cardPageBuildItem.addPage(page);
+        cardPageBuildItem.addBuildTimeData("endpoints", endpointBuildItem.getEndpoints());
         cardPageProducer.produce(cardPageBuildItem);
     }
 }
