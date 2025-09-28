@@ -1,6 +1,6 @@
 import {css, html, LitElement} from 'lit';
 import {columnBodyRenderer} from '@vaadin/grid/lit.js';
-import {hillaEndpoints as endpoints} from 'build-time-data';
+import {hillaEndpoints as endpoints} from './quarkus-hilla-application-data.js';
 import '@vaadin/grid';
 import '@vaadin/grid/vaadin-grid-sort-column.js';
 import '@vaadin/grid/vaadin-grid-tree-column.js';

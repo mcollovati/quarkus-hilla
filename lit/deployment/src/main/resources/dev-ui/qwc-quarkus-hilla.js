@@ -1,5 +1,5 @@
 import { LitElement, html} from 'lit';
-import './../com.github.mcollovati.quarkus-hilla-commons/qwc-quarkus-hilla-browser-callables.js';
+import './../quarkus-hilla-commons/qwc-quarkus-hilla-browser-callables.js';
 
 export class QwcQuarkusHilla extends LitElement {
 
