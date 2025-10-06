@@ -15,22 +15,19 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.devui;
 
-import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 import java.util.stream.Stream;
 
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
-import io.quarkus.devui.deployment.BuildTimeConstBuildItem;
-import io.quarkus.devui.deployment.DevUIWebJarBuildItem;
-import io.quarkus.maven.dependency.GACT;
-import io.quarkus.vertx.http.deployment.webjar.WebJarBuildItem;
-import io.quarkus.vertx.http.deployment.webjar.WebJarResourcesFilter;
+import io.quarkus.devui.spi.DevUIContent;
+import io.quarkus.devui.spi.buildtime.StaticContentBuildItem;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
@@ -38,13 +35,12 @@ import org.jboss.jandex.DotName;
 
 public class QuarkusHillaDevUICommonsProcessor {
 
-    private static final GACT UI_JAR =
-            new GACT("com.github.mcollovati", "quarkus-hilla-commons-deployment", null, "jar");
-    private static final String NAMESPACE = UI_JAR.getGroupId() + "." + UI_JAR.getArtifactId();
-    private static final String DEV_UI = "dev-ui";
+    private static final String NAMESPACE = "quarkus-hilla-commons";
 
     private static final DotName SIGNALS_HANDLER =
             DotName.createSimple("com.vaadin.hilla.signals.handler.SignalsHandler");
+
+    private static final String FILE_PATH = "dev-ui/qwc-quarkus-hilla-browser-callables.js";
 
     @BuildStep(onlyIf = IsDevelopment.class)
     public EndpointBuildItem collectEndpoints(CombinedIndexBuildItem combinedIndexBuildItem) {
@@ -64,31 +60,27 @@ public class QuarkusHillaDevUICommonsProcessor {
     }
 
     @BuildStep(onlyIf = IsDevelopment.class)
-    void createShared(
-            BuildProducer<WebJarBuildItem> webJarBuildProducer,
-            BuildProducer<DevUIWebJarBuildItem> devUIWebJarProducer,
-            BuildProducer<BuildTimeConstBuildItem> buildTimeConstProducer,
-            EndpointBuildItem endpointBuildItem) {
+    void createSharedWebComponent(BuildProducer<StaticContentBuildItem> staticContentProducer) {
 
-        final Map<String, Object> buildTimeData = new HashMap<>();
-        buildTimeData.put("hillaEndpoints", endpointBuildItem.getEndpoints());
-        buildTimeConstProducer.produce(new BuildTimeConstBuildItem(NAMESPACE, buildTimeData));
+        String webComponent = getWebComponentFromResource();
 
-        String buildTimeDataImport = NAMESPACE + "-data";
+        staticContentProducer.produce(new StaticContentBuildItem(
+                NAMESPACE,
+                List.of(DevUIContent.builder()
+                        .fileName("qwc-quarkus-hilla-browser-callables.js")
+                        .template(webComponent.getBytes(StandardCharsets.UTF_8))
+                        .build())));
+    }
 
-        webJarBuildProducer.produce(WebJarBuildItem.builder()
-                .artifactKey(UI_JAR)
-                .root(DEV_UI + "/")
-                .filter((fileName, file) -> {
-                    if (fileName.endsWith(".js")) {
-                        String content = new String(file.readAllBytes(), StandardCharsets.UTF_8);
-                        content = content.replaceAll("build-time-data", buildTimeDataImport);
-                        return new WebJarResourcesFilter.FilterResult(
-                                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)), true);
-                    }
-                    return new WebJarResourcesFilter.FilterResult(file, false);
-                })
-                .build());
-        devUIWebJarProducer.produce(new DevUIWebJarBuildItem(UI_JAR, DEV_UI));
+    private String getWebComponentFromResource() {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(FILE_PATH)) {
+            if (is == null) {
+                throw new IOException("Could not find template: " + FILE_PATH);
+            }
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("{", "\\{");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to generate qwc-quarkus-hilla-browser-callables shared web-component", e);
+        }
     }
 }
