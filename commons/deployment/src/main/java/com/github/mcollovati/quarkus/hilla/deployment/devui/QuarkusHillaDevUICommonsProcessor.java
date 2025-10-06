@@ -44,6 +44,8 @@ public class QuarkusHillaDevUICommonsProcessor {
     private static final DotName SIGNALS_HANDLER =
             DotName.createSimple("com.vaadin.hilla.signals.handler.SignalsHandler");
 
+    private static final String FILE_PATH = "dev-ui/qwc-quarkus-hilla-browser-callables.js";
+
     @BuildStep(onlyIf = IsDevelopment.class)
     public EndpointBuildItem collectEndpoints(CombinedIndexBuildItem combinedIndexBuildItem) {
         final var endpointAnnotated =
@@ -65,25 +67,9 @@ public class QuarkusHillaDevUICommonsProcessor {
     void createSharedWebComponent(
             BuildProducer<StaticContentBuildItem> staticContentProducer, EndpointBuildItem endpointBuildItem) {
 
-        String webComponent;
-        try (InputStream is =
-                getClass().getClassLoader().getResourceAsStream("dev-ui/qwc-quarkus-hilla-browser-callables.js")) {
-            if (is == null) {
-                throw new IOException("Could not find template: dev-ui/qwc-quarkus-hilla-browser-callables.js");
-            }
-            webComponent = new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("{", "\\{");
-        } catch (IOException e) {
-            throw new RuntimeException(
-                    "Failed to generate qwc-quarkus-hilla-browser-callables shared web-component", e);
-        }
-        var mapper = DatabindCodec.mapper().writerWithDefaultPrettyPrinter();
-        String endpoints;
-        try {
-            endpoints = mapper.writeValueAsString(endpointBuildItem.getEndpoints());
-        } catch (JsonProcessingException e) {
-            LoggerFactory.getLogger(getClass()).error("Failed to serialize endpoints for Dev UI page", e);
-            endpoints = "[]";
-        }
+        String webComponent = getWebComponentFromResource();
+        String endpoints = toJsonArrayString(endpointBuildItem.getEndpoints());
+
         staticContentProducer.produce(new StaticContentBuildItem(
                 NAMESPACE,
                 List.of(
@@ -96,11 +82,33 @@ public class QuarkusHillaDevUICommonsProcessor {
                                 .addData("buildTimeData", Map.of("hillaEndpoints", endpoints))
                                 .template(
                                         """
-                            {#for d in buildTimeData}\s
-                            export const {d.key} = {d.value};
-                            {/for}
-                            """
+                                                {#for d in buildTimeData}\s
+                                                export const {d.key} = {d.value};
+                                                {/for}
+                                                """
                                                 .getBytes(StandardCharsets.UTF_8))
                                 .build())));
+    }
+
+    private String getWebComponentFromResource() {
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(FILE_PATH)) {
+            if (is == null) {
+                throw new IOException("Could not find template: " + FILE_PATH);
+            }
+            return new String(is.readAllBytes(), StandardCharsets.UTF_8).replace("{", "\\{");
+        } catch (IOException e) {
+            throw new RuntimeException(
+                    "Failed to generate qwc-quarkus-hilla-browser-callables shared web-component", e);
+        }
+    }
+
+    private String toJsonArrayString(List<EndpointInfo> endpointInfos) {
+        var mapper = DatabindCodec.mapper().writerWithDefaultPrettyPrinter();
+        try {
+            return mapper.writeValueAsString(endpointInfos);
+        } catch (JsonProcessingException e) {
+            LoggerFactory.getLogger(getClass()).error("Failed to serialize endpoints for Dev UI page", e);
+            return "[]";
+        }
     }
 }
