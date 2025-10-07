@@ -37,13 +37,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.AbstractStringAssert;
 import org.assertj.core.api.ObjectAssert;
 import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import tools.jackson.databind.ObjectMapper;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -170,22 +169,14 @@ public class HillaPushClient extends Endpoint implements MessageHandler.Whole<St
         params.put("endpointName", endpointName);
         params.put("methodName", methodName);
         params.put("params", this.parameters);
-        try {
-            return objectMapper.writeValueAsString(params);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return objectMapper.writeValueAsString(params);
     }
 
     private String createUnsubscribeMessage() {
         LinkedHashMap<String, Object> params = new LinkedHashMap<>();
         params.put("@type", "unsubscribe");
         params.put("id", id);
-        try {
-            return objectMapper.writeValueAsString(params);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return objectMapper.writeValueAsString(params);
     }
 
     static URI createPUSHConnectURI(URI baseURI) {

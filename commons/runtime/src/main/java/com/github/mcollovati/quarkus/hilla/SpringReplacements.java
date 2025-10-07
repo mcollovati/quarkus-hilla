@@ -18,10 +18,10 @@ package com.github.mcollovati.quarkus.hilla;
 import java.security.Principal;
 import java.util.function.Function;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import org.springframework.context.ApplicationContext;
+import tools.jackson.databind.ObjectMapper;
 
 public class SpringReplacements {
 
