@@ -11,7 +11,6 @@ on:
           - main
           - "24.9"
           - "24.8"
-          - "24.7"
           - "2.5"
           - "1.3"
   schedule:
@@ -30,7 +29,7 @@ jobs:
           CMD_TARGET_BRANCH: ${{ inputs.target-branch }}
         run: |
           if [[ -z "$CMD_TARGET_BRANCH" ]]; then
-            echo 'matrix={ "branch": ["main","24.9","24.8","24.7","2.5","1.3"] }' >> "$GITHUB_OUTPUT"
+            echo 'matrix={ "branch": ["main","24.9","24.8","2.5","1.3"] }' >> "$GITHUB_OUTPUT"
           else
             echo 'matrix={ "branch": ["'$CMD_TARGET_BRANCH'"] }' >> "$GITHUB_OUTPUT"
           fi
@@ -60,7 +59,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
-          java-version: 17
+          java-version: 21
           distribution: 'temurin'
       - name: Search existing PR
         id: searchpr
