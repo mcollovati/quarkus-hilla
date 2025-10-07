@@ -33,6 +33,7 @@ import static com.codeborne.selenide.Selectors.shadowCss;
 import static com.codeborne.selenide.Selectors.shadowDeepCss;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.Wait;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
@@ -46,7 +47,13 @@ class AutoGridTest extends AbstractTest {
     @Test
     void autoGrid_gridIsDisplayed() {
         openAndWait(() -> $("vaadin-grid"));
-        List<String> items = collectColumnTexts(1);
+        List<String> items = Wait().until(d -> {
+            var list = collectColumnTexts(1);
+            if (list.isEmpty()) {
+                return null;
+            }
+            return list;
+        });
         assertThat(items).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, items.size()));
 
         SelenideElement filterRows =
