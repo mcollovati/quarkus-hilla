@@ -10,7 +10,10 @@ jobs:
       fail-fast: false
       matrix:
         branch: [main, "24.9", "24.8", "24.7", "2.5"]
-        java: [17, 21]
+        java: [17, 21, 25]
+        exclude:
+          - branch: main
+            java: 17
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

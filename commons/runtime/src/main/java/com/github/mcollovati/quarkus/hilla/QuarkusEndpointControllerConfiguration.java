@@ -25,9 +25,6 @@ import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
@@ -57,6 +54,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
 
 @Unremovable
 class QuarkusEndpointControllerConfiguration {
@@ -167,9 +167,11 @@ class QuarkusEndpointControllerConfiguration {
     ObjectMapper endpointObjectMapper(
             @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
                     JacksonObjectMapperFactory endpointMapperFactory) {
-        ObjectMapper mapper = endpointMapperFactory.build();
-        mapper.registerModule(new EndpointTransferMapper().getJacksonModule());
-        return mapper;
+        return endpointMapperFactory
+                .build()
+                .rebuild()
+                .addModule(new EndpointTransferMapper().getJacksonModule())
+                .build();
     }
 
     @Produces
@@ -183,8 +185,10 @@ class QuarkusEndpointControllerConfiguration {
             public ObjectMapper build() {
                 // Emulate Spring default configuration
                 return super.build()
-                        .configure(MapperFeature.DEFAULT_VIEW_INCLUSION, false)
-                        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                        .rebuild()
+                        .disable(MapperFeature.DEFAULT_VIEW_INCLUSION)
+                        .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                        .build();
             }
         }
         return new Factory();
