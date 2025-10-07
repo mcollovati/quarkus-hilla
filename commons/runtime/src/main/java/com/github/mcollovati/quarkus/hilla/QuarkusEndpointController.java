@@ -16,6 +16,7 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Consumes;
@@ -28,10 +29,11 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.vaadin.hilla.EndpointController;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 import com.github.mcollovati.quarkus.hilla.multipart.MultipartRequest;
 
@@ -41,10 +43,13 @@ public class QuarkusEndpointController {
     static final String ENDPOINT_METHODS = "/{endpoint}/{method}";
 
     private final EndpointController delegate;
+    private final ObjectMapper objectMapper;
 
     @Inject
-    public QuarkusEndpointController(EndpointController delegate) {
+    public QuarkusEndpointController(
+            EndpointController delegate, @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
         this.delegate = delegate;
+        this.objectMapper = objectMapper;
         QuarkusHillaExtension.markUsed();
     }
 
@@ -77,10 +82,16 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
-            ObjectNode body) {
+            com.fasterxml.jackson.databind.node.ObjectNode body) {
 
+        ObjectNode jackson3Node;
+        if (body == null) {
+            jackson3Node = null;
+        } else {
+            jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body.toString());
+        }
         ResponseEntity<String> endpointResponse =
-                delegate.serveEndpoint(endpointName, methodName, body, request, response);
+                delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
         return buildResponse(endpointResponse);
     }
 
@@ -89,7 +100,7 @@ public class QuarkusEndpointController {
      * used when there are uploaded files.
      * <p>
      * This method works as
-     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, ObjectNode)},
+     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, com.fasterxml.jackson.databind.node.ObjectNode)},
      * but it also captures the files uploaded in the request.
      *
      * @param endpointName the name of an endpoint to address the calls to, not case
