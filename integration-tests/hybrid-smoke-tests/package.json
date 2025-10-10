@@ -25,15 +25,15 @@
     "mobx": "^6.3.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "react-router": "7.9.3"
+    "react-router": "7.9.4"
   },
   "devDependencies": {
     "@babel/preset-react": "7.27.1",
     "@preact/signals-react-transform": "0.6.0",
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.3.0",
-    "@types/react": "19.2.0",
-    "@types/react-dom": "19.2.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.1",
     "@vaadin/hilla-generator-cli": "25.0.0-alpha10",
     "@vaadin/hilla-generator-core": "25.0.0-alpha10",
     "@vaadin/hilla-generator-plugin-backbone": "25.0.0-alpha10",
@@ -181,15 +181,15 @@
       "lit": "3.3.1",
       "react": "19.2.0",
       "react-dom": "19.2.0",
-      "react-router": "7.9.3"
+      "react-router": "7.9.4"
     },
     "devDependencies": {
       "@babel/preset-react": "7.27.1",
       "@preact/signals-react-transform": "0.6.0",
       "@rollup/plugin-replace": "6.0.2",
       "@rollup/pluginutils": "5.3.0",
-      "@types/react": "19.2.0",
-      "@types/react-dom": "19.2.0",
+      "@types/react": "19.2.2",
+      "@types/react-dom": "19.2.1",
       "@vaadin/hilla-generator-cli": "25.0.0-alpha10",
       "@vaadin/hilla-generator-core": "25.0.0-alpha10",
       "@vaadin/hilla-generator-plugin-backbone": "25.0.0-alpha10",
@@ -213,7 +213,7 @@
       "vite-plugin-checker": "0.11.0",
       "workbox-build": "7.3.0"
     },
-    "hash": "f45dadbce9799718ccf13471ef7b86d123606c0c8df3ae0bdbaeef3de0be58d5"
+    "hash": "399c4a6cfa9ca48a94d1eb017a551bf058df34c07281e84485e47f6dd018c561"
   },
   "type": "module"
 }
