@@ -1,7 +1,5 @@
 ![Quarkus-Hilla Banner](etc/quarkus-hilla-banner.png)
 
-# Quarkus - Hilla
-
 [![Maven Central 24.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
 [![Maven Central 2.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
 [![Maven Central 1.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
