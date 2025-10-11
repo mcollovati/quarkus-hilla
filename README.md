@@ -329,6 +329,6 @@ This project follows
 the [all-contributors](https://github.com/all-contributors/all-contributors)
 specification. Contributions of any kind are welcome!
 
-### Credits
+## Credits
 
 The banner for this project was created using the awesome [Banner Maker](https://github.com/obarlik/banner-maker) by [@obarlik](https://github.com/obarlik).
