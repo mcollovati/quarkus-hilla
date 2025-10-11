@@ -1,4 +1,4 @@
-![quarkus-hilla-banner.svg](etc/quarkus-hilla-banner.png)
+![Quarkus-Hilla Banner](etc/quarkus-hilla-banner.png)
 
 # Quarkus - Hilla
 
