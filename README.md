@@ -110,7 +110,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 ## 🎯 What's New
 
-### Mutiny Multi Support <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.7</span>
+<h3>Mutiny Multi Support <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.7</span></h3>
 
 Support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, which is currently the only reactive type supported by Hilla.
 
@@ -138,7 +138,7 @@ public class ClockService {
 }
 ```
 
-### Experimental Embedded Vaadin Plugin <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.7</span>
+<h3>Experimental Embedded Vaadin Plugin <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.7</span></h3>
 
 Simplify application setup by removing Vaadin Maven (or Gradle) plugin. The extension has a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
 
@@ -155,7 +155,7 @@ vaadin.build.enabled=true
 
 > ⚠️ This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
 
-### Custom Endpoint Prefix <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.6</span>
+<h3>Custom Endpoint Prefix <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.6</span></h3>
 
 Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.properties`. The extension automatically creates a custom `connect-client.ts` file with the configured prefix.
 
@@ -163,14 +163,14 @@ Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.
 vaadin.endpoint.prefix=/api/custom
 ```
 
-### Vaadin Quarkus Integration <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span>
+<h3>Vaadin Quarkus Integration <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span></h3>
 
 Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring tighter alignment with Vaadin's ecosystem.
 
 <details>
 <summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
 
-### Vaadin Unified Platform <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.4</span>
+<h3>Vaadin Unified Platform <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.4</span></h3>
 
 Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
 
@@ -179,7 +179,7 @@ Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extensio
 - Java package names updated accordingly
 - Minimum Quarkus version: 3.7+
 
-### Lit and React Extensions <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 2.4.1</span>
+<h3>Lit and React Extensions <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 2.4.1</span></h3>
 
 The extension is subdivided into two artifacts:
 - `quarkus-hilla` for **Lit** based applications
@@ -191,7 +191,7 @@ The extension is subdivided into two artifacts:
 
 ## ⚙️ Features
 
-### Endpoints Live Reload <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span>
+<h3>Endpoints Live Reload <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span></h3>
 
 In dev mode, the extension automatically regenerates client-side code when endpoint classes change, without requiring a full rebuild.
 
@@ -210,7 +210,7 @@ vaadin.hilla.live-reload.watched-paths=com/example/ui
 
 > **Note:** Source file watching currently supports only Java files, not Kotlin.
 
-### Auto CRUD, Auto Grid and Auto Form <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.4.1</span>
+<h3>Auto CRUD, Auto Grid and Auto Form <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.4.1</span></h3>
 
 Support for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid), and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
 
@@ -220,7 +220,7 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 
 📖 [See documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for details.
 
-### Native Image Support <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span>
+<h3>Native Image Support <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span></h3>
 
 Full GraalVM native image generation support without any known limitations.
 
