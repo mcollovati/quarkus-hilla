@@ -34,7 +34,8 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 **Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints), [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints), and [Security](https://hilla.dev/docs/lit/guides/security).
 
-> **DISCLAIMER**: This is an **unofficial community extension**, and it is **not** directly related **nor** supported by Vaadin Ltd.
+> [!NOTE]
+> This is an **unofficial community extension**, and it is **not** directly related **nor** supported by Vaadin Ltd.
 
 ---
 
@@ -152,8 +153,8 @@ vaadin.build.enabled=true
 <!-- In pom.xml properties section -->
 <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
 ```
-
-> ⚠️ This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
+> [!WARNING]
+> This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
 
 <h3>Custom Endpoint Prefix <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.6</span></h3>
 
@@ -208,7 +209,8 @@ vaadin.hilla.live-reload.watched-paths=com/example/ui
 - `vaadin.hilla.live-reload.watch-strategy` - Watch `source` files or compiled `class` files (default: `class`)
 - `vaadin.hilla.live-reload.watched-paths` - Restrict watched folders (relative paths)
 
-> **Note:** Source file watching currently supports only Java files, not Kotlin.
+> [!NOTE]
+> Source file watching currently supports only Java files, not Kotlin.
 
 <h3>Auto CRUD, Auto Grid and Auto Form <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.4.1</span></h3>
 
@@ -218,7 +220,8 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 - `quarkus-spring-data-jpa`
 - `quarkus-hibernate-orm-panache`
 
-📖 [See documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for details.
+> [!TIP]
+> [See documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for details.
 
 <h3>Native Image Support <span style="background-color: rgba(0, 123, 255, 0.1); color: #007bff; padding: 2px 6px; border: 1px solid rgba(0, 123, 255, 0.2); border-radius: 5px; font-size: 12px;">Since 24.5</span></h3>
 
@@ -294,7 +297,8 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 |  <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5" style="visibility: visible;"></picture>  |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>   |
 |   <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>   | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 
-> **Note:** The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
+> [!NOTE]
+> The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
 
 ---
 
@@ -335,6 +339,7 @@ mvn -DtrimStackTrace=false -Pit-tests,production verify
 mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 ```
 
+> [!IMPORTANT]
 > Integration tests use [Selenide](https://selenide.org/) for browser interaction. Default browser: Chrome (Safari on macOS). Tests run in headless mode unless a debugger is attached.
 
 ### Update Codestarts
