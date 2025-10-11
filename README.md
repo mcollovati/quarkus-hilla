@@ -1,12 +1,23 @@
-![Quarkus-Hilla Banner](etc/quarkus-hilla-banner.png)
+<p align="center">
+  <img src="etc/quarkus-hilla-banner.png" alt="Quarkus-Hilla"/>
+</p>
 
-[![Maven Central 24.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
-[![Maven Central 2.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
-[![Maven Central 1.x](https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1)](https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla)
-[![Apache License 2.0](https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge&logo=apache)](https://www.apache.org/licenses/LICENSE-2.0)
+<p align="center">
+  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 24.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24." /></a>
+  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 2.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2." /></a>
+  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" /></a>
+  <a href="https://www.apache.org/licenses/LICENSE-2.0"><img alt="Apache License 2.0" src="https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge&logo=apache" /></a>
+</p>
 
-A [Quarkus](https://quarkus.io) extension to run [Hilla](https://hilla.dev)
-applications on Quarkus.
+<p align="center">
+  <a href="#getting-started">🚀 Getting Started</a> &nbsp; • &nbsp;
+  <a href="#releases">📦 Releases</a> &nbsp; • &nbsp;
+  <a href="#development">🔧 Development</a>
+</p>
+
+<h1 align="center" style="margin-top: 0;">
+A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hilla.dev">Hilla</a> applications on Quarkus.
+</h1>
 
 Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com),
 that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
@@ -26,45 +37,56 @@ directly related **nor** supported by Vaadin Ltd.
 
 ### Support for Mutiny Multi return type in @BrowserCallable services  ![24.7](https://img.shields.io/badge/24.7-blue?style=flat-square)
 
-Starting with 24.7, the extension provides support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the only reactive type supported by Hilla.
-`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
+Starting with 24.7, the extension provides support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi`
+return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, that is currently the
+only reactive type supported by Hilla.
+`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription`, when an unsubscribe callback
+is needed.
 
 ```java
+
 @BrowserCallable
 @AnonymousAllowed
 public class ClockService {
 
-  public Multi<String> getClock() {
-    return Multi.createFrom()
-            .ticks()
-            .startingAfter(Duration.ofSeconds(1))
-            .every(Duration.ofSeconds(1))
-            .onOverflow().drop()
-            .map(unused -> LocalTime.now().toString())
-            .onFailure()
-            .recoverWithItem(err -> "Sorry, something failed...");
-  }
+    public Multi<String> getClock() {
+        return Multi.createFrom()
+                .ticks()
+                .startingAfter(Duration.ofSeconds(1))
+                .every(Duration.ofSeconds(1))
+                .onOverflow().drop()
+                .map(unused -> LocalTime.now().toString())
+                .onFailure()
+                .recoverWithItem(err -> "Sorry, something failed...");
+    }
 
-  public MutinyEndpointSubscription<String> getCancellableClock() {
-    return MutinyEndpointSubscription.of(getClock(), () -> {
-        // unsubscribe callback
-    });
-  }
+    public MutinyEndpointSubscription<String> getCancellableClock() {
+        return MutinyEndpointSubscription.of(getClock(), () -> {
+            // unsubscribe callback
+        });
+    }
 }
 ```
 
 ### Experimental Embedded Vaadin Plugin ![24.7](https://img.shields.io/badge/24.7-blue?style=flat-square)
 
-Quarkus-Hilla 24.7 introduces an experimental feature that allows to simplify application setup by removing Vaadin Maven (or Gradle) plugin.
-The extension has a built-in implementation of the plugin that can be enabled setting `vaadin.build.enabled=true` in `application.properties` or as Java system property.
+Quarkus-Hilla 24.7 introduces an experimental feature that allows to simplify application setup by removing Vaadin
+Maven (or Gradle) plugin.
+The extension has a built-in implementation of the plugin that can be enabled setting `vaadin.build.enabled=true` in
+`application.properties` or as Java system property.
 
-To make the feature working properly in Maven, you also need to set `quarkus.bootstrap.workspace-discovery=true` in POM `properties` section, or as Java system property.
-This is required because when running build, Quarkus Maven plugin does not provide workspace information that are required by Vaadin internals to generate the frontend production bundle.
-Hopefully, the behavior may be revisited. If you are interested you can follow the [issue](https://github.com/quarkusio/quarkus/issues/45363) on Quarkus repository.
+To make the feature working properly in Maven, you also need to set `quarkus.bootstrap.workspace-discovery=true` in POM
+`properties` section, or as Java system property.
+This is required because when running build, Quarkus Maven plugin does not provide workspace information that are
+required by Vaadin internals to generate the frontend production bundle.
+Hopefully, the behavior may be revisited. If you are interested you can follow
+the [issue](https://github.com/quarkusio/quarkus/issues/45363) on Quarkus repository.
 
 ### Custom Endpoint Prefix  ![24.6](https://img.shields.io/badge/24.6-blue?style=flat-square)
 
-A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`. The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient` object with the configured prefix.
+A custom endpoint prefix can be configured by setting the `vaadin.endpoint.prefix` entry in `application.properties`.
+The extension will create a custom `connect-client.ts` file in the `frontend` folder and construct the `ConnectClient`
+object with the configured prefix.
 If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
 
 ### Integration with Vaadin Quarkus extension  ![24.5](https://img.shields.io/badge/24.5-blue?style=flat-square)
@@ -98,7 +120,13 @@ The current Hilla support has some known limitations:
 * Vaadin Copilot is not supported
 * [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless)
   is not supported
-* :warning: :boom: With the Vaadin 24.7, frontend **build fails** because the Hilla endpoint generation tasks relies on the execution of a Spring process. As a temporary workaround you can enable Quarkus-Hilla **Experimental embedded Vaadin plugin implementation**, or you can add the `aot-browser-finder-callable-workaround` dependency to `vaadin-maven-plugin` configuration. The dependency workaround is required only when building for production; in development mode the offending class is automatically replaced by the extension. **The workaround is not required in 24.8** because the generation has been refactored to fallback to the original lookup of endpoints based on internal class finder; in addition Hilla provided a pluggable API to configure endpoint discovery.
+* :warning: :boom: With the Vaadin 24.7, frontend **build fails** because the Hilla endpoint generation tasks relies on
+  the execution of a Spring process. As a temporary workaround you can enable Quarkus-Hilla **Experimental embedded
+  Vaadin plugin implementation**, or you can add the `aot-browser-finder-callable-workaround` dependency to
+  `vaadin-maven-plugin` configuration. The dependency workaround is required only when building for production; in
+  development mode the offending class is automatically replaced by the extension. **The workaround is not required in
+  24.8** because the generation has been refactored to fallback to the original lookup of endpoints based on internal
+  class finder; in addition Hilla provided a pluggable API to configure endpoint discovery.
   ```xml
                     <plugin>
                         <groupId>com.vaadin</groupId>
@@ -210,13 +238,15 @@ or
 |  <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5" style="visibility: visible;"></picture>  |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>  |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>   |
 |   <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" style="visibility: visible;"></picture>   | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture> | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture> |
 
+### Current Development Version
+
+<p>
+<img alt="Development 25.0-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-25.0--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;">
+<img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;">
+<img alt="Vaadin 25.0" src="https://img.shields.io/badge/VAADIN-v25.0-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;">
+</p>
+
 **NOTE**: The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
-
-## Development
-
-<picture><img alt="Development 25.0-SNAPSHOT" src="https://img.shields.io/badge/GITHUB-25.0--SNAPSHOT-blue?style=for-the-badge&logo=github" style="visibility: visible;"></picture>
-<picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus" style="visibility: visible;"></picture>
-<picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/VAADIN-v25.0-blue?style=for-the-badge&logo=Vaadin" style="visibility: visible;"></picture>
 
 ## Build and test
 
@@ -260,14 +290,17 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 
 ## Update codestarts
 
-The source code of the extension codestarts are built by downloading a project from start.vaadin.com and applying necessary updates and cleanup.
+The source code of the extension codestarts are built by downloading a project from start.vaadin.com and applying
+necessary updates and cleanup.
 To update the source code, run the following command in the `lit/runtime` and `react/runtime` folders.
 
 ```terminal
 mvn -Pupdate-hilla-codestart
 ```
 
-Once the codestarts are updated, run the `integration-tests/codestart-tests` test modules, using the `-Dsnap` option to update the snapshot files.
+Once the codestarts are updated, run the `integration-tests/codestart-tests` test modules, using the `-Dsnap` option to
+update the snapshot files.
+
 ```terminal
 mvn clean verify -Dsnap
 ```
@@ -329,4 +362,5 @@ specification. Contributions of any kind are welcome!
 
 ## Credits
 
-The banner for this project was created using the awesome [Banner Maker](https://github.com/obarlik/banner-maker) by [@obarlik](https://github.com/obarlik).
+The banner for this project was created using the awesome [Banner Maker](https://github.com/obarlik/banner-maker)
+by [@obarlik](https://github.com/obarlik).
