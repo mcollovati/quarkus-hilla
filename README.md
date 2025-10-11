@@ -2,9 +2,9 @@
   <img src="etc/quarkus-hilla-banner.png" alt="Quarkus-Hilla"/>
 </p>
 
-<h1 align="center">
+<h2 align="center">
 A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hilla.dev">Hilla</a> applications on Quarkus
-</h1>
+</h2>
 
 <p align="center">
   <strong>Build modern full-stack Java applications with reactive TypeScript frontends powered by Quarkus</strong>
@@ -15,6 +15,8 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hil
   <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 2.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2." /></a>
   <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" /></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img alt="Apache License 2.0" src="https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge&logo=apache" /></a>
+</p>
+
 <p align="center">
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
   <a href="#-key-features">✨ Features</a> &nbsp; • &nbsp;
