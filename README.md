@@ -271,8 +271,8 @@ With Vaadin 24.7, frontend build fails because Hilla endpoint generation relies 
        </dependencies>
    </plugin>
    ```
-> [!IMPORTANT]
-> **This workaround is not required in 24.8+** because the generation was refactored with a pluggable API for endpoint discovery.
+
+> ✅ **This workaround is not required in 24.8+** because the generation was refactored with a pluggable API for endpoint discovery.
 
 </details>
 
