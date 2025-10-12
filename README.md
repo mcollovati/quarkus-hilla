@@ -85,8 +85,8 @@ Choose your frontend framework:
 > [!NOTE]
 > Hilla prioritizes React, so new features are typically available first or exclusively for React.
 
-> [!WARNING]
-> **Using Vaadin 24.7?** This version requires a workaround for frontend builds. See the [24.7 Build Workaround](#️-vaadin-247-build-workaround-not-required-in-248) in the Limitations section for details.
+> [!CAUTION]
+> **Vaadin 24.7** requires a workaround for frontend builds. See the **24.7 Build Workaround** in the [Limitations](#️-current-limitations) section for details.
 
 ### Create Your First Endpoint
 
@@ -171,7 +171,7 @@ vaadin.build.enabled=true
 <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
 ```
 > [!WARNING]
-> This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
+> This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [Quarkus Issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
 
 ### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
@@ -259,10 +259,16 @@ With Vaadin 24.7, frontend build fails because Hilla endpoint generation relies 
 
 **Workaround Options:**
 
-1. **Enable experimental embedded plugin** (recommended, [see details](#experimental-embedded-vaadin-plugin--since-247)):
+1. **Enable experimental embedded plugin** (recommended, [see details](#experimental-embedded-vaadin-plugin-)):
+
+   Add the following property to `application.properties`:
    ```properties
    vaadin.build.enabled=true
    ```
+    Also, add the following property to `pom.xml`:
+    ```xml
+    <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
+    ```
 
 2. **Add workaround dependency** to `vaadin-maven-plugin`:
    ```xml
