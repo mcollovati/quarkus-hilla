@@ -364,44 +364,6 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 > [!IMPORTANT]
 > Integration tests use [Selenide](https://selenide.org/) for browser interaction. Default browser: Chrome (Safari on macOS). Tests run in headless mode unless a debugger is attached.
 
-### Update Codestarts
-
-The extension codestarts are built by downloading a project from start.vaadin.com and applying necessary updates.
-
-```bash
-# In lit/runtime and react/runtime folders
-mvn -Pupdate-hilla-codestart
-
-# Update snapshot files
-cd integration-tests/codestart-tests
-mvn clean verify -Dsnap
-```
-
-Generated projects can be found in the `target` folder for manual verification.
-
-### Release Process
-
-The release process uses [JReleaser](https://jreleaser.org/).
-
-**Required Environment Variables:**
-- `JRELEASER_GITHUB_TOKEN` - Create release on GitHub
-- `JRELEASER_GPG_PUBLIC_KEY`, `JRELEASER_GPG_SECRET_KEY`, `JRELEASER_GPG_PASSPHRASE` - Sign artifacts
-- `JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME`, `JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD` - Publish to Maven Central
-
-**Release Commands:**
-```bash
-mvn clean
-mvn -Pdistribution -Drevision=<version> -DskipTests \
-    -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
-mvn -N -Pdistribution -Drevision=<version> jreleaser:full-release
-```
-
-Use `-Djreleaser.dry.run=true` to test without publishing.
-
-**Version Format:**
-- Release: `N.N.N` (e.g., `1.0.0`)
-- Pre-release: `N.N.N-{alpha|beta|rc}N` (e.g., `1.0.0-beta2`)
-
 ---
 
 ## 💬 Community & Support
