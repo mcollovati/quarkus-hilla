@@ -133,6 +133,7 @@ The extension provides a dedicated Dev UI page to help you understand and debug 
 ### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
 Support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, which is currently the only reactive type supported by Hilla.
+`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
 
 ```java
 @BrowserCallable
@@ -177,7 +178,7 @@ vaadin.build.enabled=true
 
 ### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
-Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.properties`. The extension automatically creates a custom `connect-client.ts` file with the configured prefix.
+Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.properties`. The extension automatically creates a custom `connect-client.ts` file in the frontend folder and constructs the `ConnectClient` object with the configured prefix.
 
 ```properties
 vaadin.endpoint.prefix=/new-prefix
@@ -190,6 +191,44 @@ vaadin.endpoint.prefix=/new-prefix
 
 In dev mode, the extension automatically regenerates client-side code when endpoint classes change, without requiring a full rebuild.
 
+Quarkus-Hilla extends Quarkus Live Reload to automatically regenerate client-side code when Hilla endpoint-related classes change. The extension monitors file changes in either source code or compiled class folders and triggers the TypeScript client regeneration accordingly.
+
+<details>
+<summary><strong>🔍 Implementation Details</strong></summary>
+
+**How it works:**
+
+Quarkus uses a ClassLoader hierarchy that enables live reload of user code without requiring a rebuild and restart. However, reload is typically triggered by an HTTP request (e.g., browser page reload).
+
+Quarkus-Hilla extends this mechanism by:
+1. **Scanning for changes** in configured folders (source or compiled classes)
+2. **Detecting endpoint-related modifications** in Hilla endpoint classes
+3. **Triggering automatic regeneration** of TypeScript client code
+4. **Notifying the browser** to reload the updated code
+
+**Watch Strategies:**
+
+- **CLASS (default)**: Monitors compiled class files in `target/classes` (Maven) or `build/classes` (Gradle)
+    - ✅ Works with both Java and Kotlin
+    - ✅ More reliable with `quarkus.live-reload.instrumentation=true`
+
+- **SOURCE**: Monitors source files in `src/main/java`
+    - ⚠️ Currently only supports Java files
+    - ⚠️ Kotlin files are not detected
+
+**Restricting Watched Paths:**
+
+To prevent excessive reloads, specify only the folders containing Hilla endpoints:
+
+```properties
+# Watch only endpoint-related packages
+vaadin.hilla.live-reload.watched-paths=com/example/endpoints,com/example/services
+```
+
+Paths are relative to the source/class root directory.
+
+</details>
+
 **Configuration Example:**
 ```properties
 quarkus.live-reload.instrumentation=true
@@ -198,10 +237,13 @@ vaadin.hilla.live-reload.watch-strategy=source
 vaadin.hilla.live-reload.watched-paths=com/example/ui
 ```
 
-**Options:**
+**Configuration Options:**
 - `vaadin.hilla.live-reload.enable` - Enable/disable live reload (default: `false`)
 - `vaadin.hilla.live-reload.watch-strategy` - Watch `source` files or compiled `class` files (default: `class`)
-- `vaadin.hilla.live-reload.watched-paths` - Restrict watched folders (relative paths)
+- `vaadin.hilla.live-reload.watched-paths` - Restrict watched folders (relative paths, comma-separated)
+
+> [!TIP]
+> Setting `quarkus.live-reload.instrumentation=true` allows Quarkus to potentially redefine classes at runtime without triggering a server restart, which works better with Endpoints Live Reload.
 
 > [!NOTE]
 > Source file watching currently supports only Java files, not Kotlin.
@@ -216,14 +258,17 @@ Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus exte
 
 ### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.9)
 
-Support for [Auto CRUD](https://vaadin.com/docs/latest/components/auto-crud), [Auto Grid](https://vaadin.com/docs/latest/components/auto-grid), and [Auto Form](https://vaadin.com/docs/latest/components/auto-crud) is available in `quarkus-hilla-react`.
+The [Auto CRUD](https://vaadin.com/docs/latest/components/auto-crud), [Auto Grid](https://vaadin.com/docs/latest/components/auto-grid), and [Auto Form](https://vaadin.com/docs/latest/components/auto-crud) components are available in `quarkus-hilla-react`.
 
-The extension provides custom implementations of `CrudRepositoryService` and `ListRepositoryService` based on:
+The extension provides custom implementations of `CrudRepositoryService` and `ListRepositoryService` for both **Lit** and **React** applications, based on:
 - `quarkus-spring-data-jpa`
 - `quarkus-hibernate-orm-panache`
 
 > [!TIP]
 > Check the [documentation](../../wiki/Crud-List-repository-service) for details.
+ 
+> [!IMPORTANT]
+> The Auto CRUD, Auto Grid, and Auto Form **components** are only available for React. However, the `CrudRepositoryService` and `ListRepositoryService` can be used in Lit applications as well.
 
 <details>
 <summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
@@ -233,7 +278,7 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
 
 **Breaking Changes:**
-- Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
+- Hillas Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
 - Java package names updated accordingly
 - Minimum Quarkus version: 3.7+
 
@@ -257,7 +302,13 @@ The current Hilla support has some known limitations. We aim to solve these in f
 <details>
 <summary><strong>⚠️ Vaadin 24.7 Build Workaround (Not required in 24.8+)</strong></summary>
 
-With Vaadin 24.7, frontend build fails because Hilla endpoint generation relies on a Spring process. 
+With Vaadin 24.7, frontend build fails because the Hilla endpoint generation tasks rely on the execution of a Spring process.
+
+> **NOTE:** The dependency workaround is **only required for production builds**. In development mode, the offending class is automatically replaced by the extension.
+
+> **CAUTION:** This workaround is **not required in 24.8+** because:
+> - The generation has been refactored to fallback to the original lookup of endpoints based on internal class finder
+> - Hilla now provides a pluggable API to configure endpoint discovery
 
 **Workaround Options:**
 
@@ -295,8 +346,6 @@ With Vaadin 24.7, frontend build fails because Hilla endpoint generation relies 
        </dependencies>
    </plugin>
    ```
-
-> ✅ **This workaround is not required in 24.8+** because the generation was refactored with a pluggable API for endpoint discovery.
 
 </details>
 
