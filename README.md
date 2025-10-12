@@ -85,6 +85,9 @@ Choose your frontend framework:
 > [!NOTE]
 > Hilla prioritizes React, so new features are typically available first or exclusively for React.
 
+> [!WARNING]
+> **Using Vaadin 24.7?** This version requires a workaround for frontend builds. See the [24.7 Build Workaround](#️-vaadin-247-build-workaround-not-required-in-248) in the Limitations section for details.
+
 ### Create Your First Endpoint
 
 ```java
@@ -256,7 +259,7 @@ With Vaadin 24.7, frontend build fails because Hilla endpoint generation relies 
 
 **Workaround Options:**
 
-1. **Enable experimental embedded plugin** (recommended):
+1. **Enable experimental embedded plugin** (recommended, [see details](#experimental-embedded-vaadin-plugin--since-247)):
    ```properties
    vaadin.build.enabled=true
    ```
