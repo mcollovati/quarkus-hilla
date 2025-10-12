@@ -395,32 +395,46 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 - Maven 3.8 or later
 
 **Build the extension:**
+
+The extension and its required dependencies can be built by executing the following command:
+
 ```bash
 mvn -DskipTests install
 ```
 
 **Run tests:**
+
+To run the test suite, execute the maven `verify` goal:
+
 ```bash
 mvn -DtrimStackTrace=false verify
 ```
 
 **Run integration tests:**
+
+End-to-end test modules can be found in the `integration-tests` folder.
+Execution of end-to-end integration tests requires the activation of the maven `it-tests` profile.
+
 ```bash
 mvn -DtrimStackTrace=false -Pit-tests verify
 ```
 
 **Run integration tests in production mode:**
+
+The same tests can also be executed in production mode, by activating the `production` profile in addition to `it-tests`.
+
 ```bash
 mvn -DtrimStackTrace=false -Pit-tests,production verify
 ```
 
 **Debug tests:**
+
 ```bash
 mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 ```
 
 > [!IMPORTANT]
-> Integration tests use [Selenide](https://selenide.org/) for browser interaction. Default browser: Chrome (Safari on macOS). Tests run in headless mode unless a debugger is attached.
+> Integration tests use [Selenide](https://selenide.org/) for browser interaction (Chrome by default, Safari on macOS). Tests run in headless mode unless a debugger is attached via IDE or `-Dmaven.surefire.debug` flag.
 
 ---
 
