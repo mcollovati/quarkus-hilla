@@ -195,7 +195,7 @@ vaadin.endpoint.prefix=/new-prefix
 
 ### Endpoints Live Reload ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
-In dev mode, the extension automatically regenerates client-side code when endpoint classes change, without requiring a full rebuild.
+In dev mode, the extension automatically regenerates client-side code when endpoint classes change, eliminating the need for a full rebuild.
 
 Quarkus-Hilla extends Quarkus Live Reload to automatically regenerate client-side code when Hilla endpoint-related classes change. The extension monitors file changes in either source code or compiled class folders and triggers the TypeScript client regeneration accordingly.
 
@@ -216,7 +216,7 @@ Quarkus-Hilla extends this mechanism by:
 
 - **CLASS (default)**: Monitors compiled class files in `target/classes` (Maven) or `build/classes` (Gradle)
     - ✅ Works with both Java and Kotlin
-    - ✅ More reliable with `quarkus.live-reload.instrumentation=true`
+    - ✅ More reliable when used with `quarkus.live-reload.instrumentation=true`
 
 - **SOURCE**: Monitors source files in `src/main/java`
     - ⚠️ Currently only supports Java files
@@ -260,7 +260,7 @@ Full GraalVM native image generation support without any known limitations.
 
 ### Vaadin Quarkus Integration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
-Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring tighter alignment with Vaadin's ecosystem.
+Starting with version 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring closer alignment with Vaadin's ecosystem.
 
 ### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.9)
 
@@ -300,7 +300,7 @@ Starting with 2.4.1, the extension is subdivided into two artifacts based on the
 
 ## ⚠️ Current Limitations
 
-The current Hilla support has some known limitations. We aim to solve these in future releases.
+The current Hilla support has some known limitations that we aim to address in future releases.
 
 - ❌ Vaadin Copilot is not supported
 - ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
@@ -308,7 +308,7 @@ The current Hilla support has some known limitations. We aim to solve these in f
 <details>
 <summary><strong>⚠️ Vaadin 24.7 Build Workaround (Not required in 24.8+)</strong></summary>
 
-With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation tasks rely on the execution of a Spring process.
+With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation tasks depend on the execution of a Spring process.
 
 > **NOTE:** The dependency workaround is **only required for production builds**. In development mode, the offending class is automatically replaced by the extension.
 
@@ -318,7 +318,7 @@ With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation
 
 **Workaround Options:**
 
-1. **Enable experimental embedded plugin** (recommended, [see details](#experimental-embedded-vaadin-plugin-)):
+1. **Enable experimental embedded plugin** (recommended, see [details](#experimental-embedded-vaadin-plugin-)):
 
    Add the following property to `application.properties`:
    ```properties
@@ -362,9 +362,9 @@ With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation
 
 As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), the extension reports itself to Vaadin's usage statistics mechanism to help understand adoption and potentially encourage official support from Vaadin.
 
-- 📈 Statistics are collected **only in development mode**
-- 🔒 **No sensitive data** is gathered
-- 🚫 [Opt-out instructions](https://github.com/vaadin/vaadin-usage-statistics#opting-out)
+- 📈 Statistics are collected **only during development mode**
+- 🔒 **No sensitive data** is collected
+- 🚫 [How to opt out](https://github.com/vaadin/vaadin-usage-statistics#opting-out)
 
 ---
 
