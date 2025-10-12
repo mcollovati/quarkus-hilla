@@ -96,7 +96,7 @@ Choose your frontend framework:
 @BrowserCallable
 @AnonymousAllowed
 public class GreetingService {
-    
+
     public String greet(String name) {
         return "Hello, " + name + "!";
     }
@@ -272,7 +272,7 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 
 > [!TIP]
 > Check the [documentation](../../wiki/Crud-List-repository-service) for details.
- 
+
 > [!IMPORTANT]
 > The Auto CRUD, Auto Grid, and Auto Form **components** are only available for React. However, the `CrudRepositoryService` and `ListRepositoryService` can be used in Lit applications as well.
 
