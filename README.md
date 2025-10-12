@@ -19,7 +19,7 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hil
 
 <p align="center">
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
-  <a href="#-key-features">✨ Features</a> &nbsp; • &nbsp;
+  <a href="#-exclusive-quarkus-features">✨ Features</a> &nbsp; • &nbsp;
   <a href="#-documentation">📚 Documentation</a> &nbsp; • &nbsp;
   <a href="#releases">📦 Releases</a> &nbsp; • &nbsp;
   <a href="#development">🔧 Development</a> &nbsp; • &nbsp;
@@ -39,17 +39,18 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ---
 
-## ✨ Key Features
+## ✨ Exclusive Quarkus Features
 
 - 🎯 **Type-Safe Communication** - Automatically generated TypeScript types from Java endpoints
 - ⚡ **Reactive Streaming** - Support for Mutiny `Multi` and reactive endpoints
 - 🔒 **Security Integration** - Built-in support for authentication and authorization
 - 🔄 **Hot Reload** - Endpoints live reload in development mode
+- 🖥️ **Dev UI Integration** - Visualize endpoint security constraints and null-safety in Quarkus Dev UI (since 24.7)
 - 🏗️ **Auto CRUD** - Automatic CRUD operations with Auto Grid and Auto Form (React)
 - 🚀 **Native Image** - Full GraalVM native image support (since 24.5)
 - 🎨 **Framework Choice** - Support for both Lit and React frontends
 - 🔌 **Panache Integration** - Custom repository services for Hibernate ORM Panache
-- 📦 **Embedded Plugin** - Optional built-in Vaadin Maven plugin (experimental)
+- 📦 **Embedded Build-Plugin** - Optional built-in Vaadin Maven plugin (experimental)
 
 ---
 
@@ -111,6 +112,18 @@ That's it! The TypeScript client is automatically generated and type-safe.
 ---
 
 ## 🎯 Features & Highlights
+
+### Quarkus Dev UI Integration ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
+
+The extension provides a dedicated Dev UI page to help you understand and debug your Hilla endpoints during development.
+
+**Key Features:**
+- **Security Visualization** - See the actual security constraints applied to each server-side endpoint, including roles and authentication requirements
+- **Null-Safety Overview** - All `@NonNull` types are highlighted, showing their null-safety status at a glance
+- **Endpoint Overview** - Complete list of all browser-callable endpoints with their methods and parameters
+
+> [!TIP]
+> Access the Dev UI by running your application in dev mode (`mvn quarkus:dev`) and navigating to `http://localhost:8080/q/dev-ui`
 
 ### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
@@ -386,7 +399,6 @@ Use `-Djreleaser.dry.run=true` to test without publishing.
 
 - 💭 [GitHub Discussions](https://github.com/mcollovati/quarkus-hilla/discussions) - Ask questions and share ideas
 - 🐛 [Issue Tracker](https://github.com/mcollovati/quarkus-hilla/issues) - Report bugs or request features
-- 📧 [GitHub](https://github.com/mcollovati/quarkus-hilla) - Star the project
 
 ---
 
