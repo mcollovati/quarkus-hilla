@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 https://maven.apache.org/xsd/maven-4.1.0.xsd">
+    
     <parent>
-        <groupId>com.github.mcollovati</groupId>
         <artifactId>quarkus-hilla-parent</artifactId>
-        <version>${revision}</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -49,7 +45,7 @@
                         <vaadin.project.frontend.generated>${project.build.directory}/frontend/generated
                         </vaadin.project.frontend.generated>
                     </systemPropertyVariables>
-                    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
+                    <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory" />
                 </configuration>
             </plugin>
         </plugins>

@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         child.project.url.inherit.append.path="false">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.1.0 https://maven.apache.org/xsd/maven-4.1.0.xsd" child.project.url.inherit.append.path="false">
+    <modelVersion>4.1.0</modelVersion> 
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-parent</artifactId>
     <version>${revision}</version>
@@ -19,8 +16,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-    <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false"
-         child.scm.url.inherit.append.path="false">
+    <scm child.scm.connection.inherit.append.path="false" child.scm.developerConnection.inherit.append.path="false" child.scm.url.inherit.append.path="false">
         <connection>scm:git:https://github.com/mcollovati/quarkus-hilla.git</connection>
         <developerConnection>scm:git:https://github.com/mcollovati/quarkus-hilla.git</developerConnection>
         <url>https://github.com/mcollovati/quarkus-hilla.git</url>
@@ -70,7 +66,6 @@
         <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
         <jandex-maven-plugin.version>3.5.0</jandex-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.20.0</jreleaser-maven-plugin.version>
-        <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
         <spotless-maven-plugin.version>3.0.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
@@ -224,42 +219,12 @@
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
-                    <artifactId>flatten-maven-plugin</artifactId>
-                    <version>${flatten-maven-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.codehaus.mojo</groupId>
                     <artifactId>build-helper-maven-plugin</artifactId>
                     <version>${build-helper-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>flatten-maven-plugin</artifactId>
-                <configuration>
-                    <updatePomFile>true</updatePomFile>
-                    <flattenMode>resolveCiFriendliesOnly</flattenMode>
-                    <outputDirectory>${project.basedir}</outputDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>flatten</id>
-                        <phase>process-classes</phase>
-                        <goals>
-                            <goal>flatten</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>flatten.clean</id>
-                        <phase>clean</phase>
-                        <goals>
-                            <goal>clean</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>com.diffplug.spotless</groupId>
                 <artifactId>spotless-maven-plugin</artifactId>
@@ -274,11 +239,11 @@
                                 jakarta|java|javax,,com.github.mcollovati,\#jakarta|\#java|\#javax,\#,\#com.github.mcollovati
                             </order>
                         </importOrder>
-                        <removeUnusedImports/>
-                        <formatAnnotations/>
-                        <toggleOffOn/>
-                        <trimTrailingWhitespace/>
-                        <endWithNewline/>
+                        <removeUnusedImports />
+                        <formatAnnotations />
+                        <toggleOffOn />
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
                         <licenseHeader>
                             <file>${maven.multiModuleProjectDirectory}/etc/java-license-header</file>
                         </licenseHeader>
@@ -288,8 +253,8 @@
                             <includes>
                                 <include>*.md</include>
                             </includes>
-                            <trimTrailingWhitespace/>
-                            <endWithNewline/>
+                            <trimTrailingWhitespace />
+                            <endWithNewline />
                             <indent>
                                 <spaces>true</spaces>
                                 <spacesPerTab>2</spacesPerTab>
@@ -381,17 +346,6 @@
                         </executions>
                     </plugin>
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>flatten-maven-plugin</artifactId>
-                        <version>${flatten-maven-plugin.version}</version>
-                        <configuration>
-                            <flattenMode>oss</flattenMode>
-                            <pomElements>
-                                <repositories>remove</repositories>
-                            </pomElements>
-                        </configuration>
-                    </plugin>
-                    <plugin>
                         <groupId>org.jreleaser</groupId>
                         <artifactId>jreleaser-maven-plugin</artifactId>
                         <inherited>false</inherited>
@@ -480,23 +434,20 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
-            <modules>
-                <module>commons/hilla-shaded-deps</module>
-                <module>lit/hilla-jandex</module>
-                <module>react/hilla-react-jandex</module>
-                <module>commons/runtime</module>
-                <module>lit/runtime</module>
-                <module>react/runtime</module>
-                <module>commons/deployment</module>
-                <module>lit/deployment</module>
-                <module>react/deployment</module>
-            </modules>
+            <subprojects>
+                <subproject>commons/hilla-shaded-deps</subproject>
+                <subproject>lit/hilla-jandex</subproject>
+                <subproject>react/hilla-react-jandex</subproject>
+                <subproject>commons/runtime</subproject>
+                <subproject>lit/runtime</subproject>
+                <subproject>react/runtime</subproject>
+                <subproject>commons/deployment</subproject>
+                <subproject>lit/deployment</subproject>
+                <subproject>react/deployment</subproject>
+            </subprojects>
         </profile>
         <profile>
             <id>it-tests</id>
-            <modules>
-                <module>integration-tests</module>
-            </modules>
             <build>
                 <plugins>
                     <!--
@@ -601,18 +552,18 @@
         </profile>
         <profile>
             <id>all-modules</id>
-            <modules>
-                <module>commons/hilla-shaded-deps</module>
-                <module>lit/hilla-jandex</module>
-                <module>react/hilla-react-jandex</module>
-                <module>commons/runtime</module>
-                <module>lit/runtime</module>
-                <module>react/runtime</module>
-                <module>commons/deployment</module>
-                <module>lit/deployment</module>
-                <module>react/deployment</module>
-                <module>integration-tests</module>
-            </modules>
+            <subprojects>
+                <subproject>commons/hilla-shaded-deps</subproject>
+                <subproject>lit/hilla-jandex</subproject>
+                <subproject>react/hilla-react-jandex</subproject>
+                <subproject>commons/runtime</subproject>
+                <subproject>lit/runtime</subproject>
+                <subproject>react/runtime</subproject>
+                <subproject>commons/deployment</subproject>
+                <subproject>lit/deployment</subproject>
+                <subproject>react/deployment</subproject>
+                <subproject>integration-tests</subproject>
+            </subprojects>
         </profile>
     </profiles>
 </project>
