@@ -55,7 +55,11 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ## 🚀 Quick Start
 
-### Installation
+> [!TIP]
+> - 📘 [Quick Start Guide](../../wiki/QuickStart) - Detailed setup instructions
+> - 🎬 [Starter Project](https://github.com/mcollovati/quarkus-hilla-starter) - Download and start coding immediately
+
+### Setup
 
 Choose your frontend framework:
 
@@ -77,6 +81,9 @@ Choose your frontend framework:
 </dependency>
 ```
 
+> [!NOTE]
+> Hilla is focused on React and new features may be available only or first in React.
+
 ### Create Your First Endpoint
 
 ```java
@@ -91,12 +98,6 @@ public class GreetingService {
 ```
 
 That's it! The TypeScript client is automatically generated and type-safe.
-
-### Resources
-
-- 📘 [Quick Start Guide](../../wiki/QuickStart) - Detailed setup instructions
-- 🎬 [Starter Project](https://github.com/mcollovati/quarkus-hilla-starter) - Download and start coding immediately
-- 🔍 [Live Demo](https://ly.safepoint.cloud/hSMd4SH) - See it in action
 
 ---
 
@@ -161,36 +162,11 @@ vaadin.build.enabled=true
 Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.properties`. The extension automatically creates a custom `connect-client.ts` file with the configured prefix.
 
 ```properties
-vaadin.endpoint.prefix=/api/custom
+vaadin.endpoint.prefix=/new-prefix
 ```
 
-### Vaadin Quarkus Integration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
-
-Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring tighter alignment with Vaadin's ecosystem.
-
-<details>
-<summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
-
-### Vaadin Unified Platform ![Since 24.4](https://flat.badgen.net/static/Since/24.4/007bff?scale=0.9)
-
-Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
-
-**Breaking Changes:**
-- Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
-- Java package names updated accordingly
-- Minimum Quarkus version: 3.7+
-
-### Lit and React Extensions ![Since 2.4.1](https://flat.badgen.net/static/Since/2.4.1/007bff?scale=0.9)
-
-The extension is subdivided into two artifacts:
-- `quarkus-hilla` for **Lit** based applications
-- `quarkus-hilla-react` for **React** based applications
-
-</details>
-
----
-
-## ⚙️ Features
+> [!IMPORTANT]
+> If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
 
 ### Endpoints Live Reload ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
@@ -212,6 +188,14 @@ vaadin.hilla.live-reload.watched-paths=com/example/ui
 > [!NOTE]
 > Source file watching currently supports only Java files, not Kotlin.
 
+### Native Image Support ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
+
+Full GraalVM native image generation support without any known limitations.
+
+### Vaadin Quarkus Integration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
+
+Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring tighter alignment with Vaadin's ecosystem.
+
 ### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.9)
 
 Support for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid), and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
@@ -223,15 +207,30 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 > [!TIP]
 > [See documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for details.
 
-### Native Image Support ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
+<details>
+<summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
 
-Full GraalVM native image generation support without any known limitations.
+### Vaadin Unified Platform ![Since 24.4](https://flat.badgen.net/static/Since/24.4/007bff?scale=0.9)
+
+Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
+
+**Breaking Changes:**
+- Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
+- Java package names updated accordingly
+- Minimum Quarkus version: 3.7+
+
+### Lit and React Extensions ![Since 2.4.1](https://flat.badgen.net/static/Since/2.4.1/007bff?scale=0.9)
+
+Starting with 2.4.1, the extension is subdivided into two artifacts based on the desired front-end framework:
+- `quarkus-hilla` for **Lit** based applications
+- `quarkus-hilla-react` for **React** based applications
+
 
 ---
 
-## ⚠️ Limitations
+## ⚠️ Current Limitations
 
-The current Hilla support has some known limitations:
+The current Hilla support has some known limitations. We aim to solve these in future releases.
 
 - ❌ Vaadin Copilot is not supported
 - ❌ [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless) is not supported
