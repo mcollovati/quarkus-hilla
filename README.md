@@ -19,11 +19,11 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hil
 
 <p align="center">
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
-  <a href="#-exclusive-quarkus-features">✨ Features</a> &nbsp; • &nbsp;
+  <a href="#-exclusive-quarkus-hilla-features">✨ Features</a> &nbsp; • &nbsp;
   <a href="#-documentation">📚 Documentation</a> &nbsp; • &nbsp;
-  <a href="#releases">📦 Releases</a> &nbsp; • &nbsp;
-  <a href="#development">🔧 Development</a> &nbsp; • &nbsp;
-  <a href="#-community--support">💬 Community</a>
+  <a href="#-releases">📦 Releases</a> &nbsp; • &nbsp;
+  <a href="#-development">🔧 Development</a> &nbsp; • &nbsp;
+  <a href="#-community--support">💬 Community & Support</a>
 </p>
 
 ---
@@ -39,7 +39,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ---
 
-## ✨ Exclusive Quarkus Features
+## 🌟 Exclusive Quarkus-Hilla Features
 
 - 🎯 **Type-Safe Communication** - Automatically generated TypeScript types from Java endpoints
 - ⚡ **Reactive Streaming** - Support for Mutiny `Multi` and reactive endpoints
@@ -310,7 +310,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 ---
 
-## Releases
+## 📦 Releases
 
  |                                                                                                  Quarkus-Hilla / Hilla                                                                                                   |                                                                               Quarkus                                                                               |                                                                              Vaadin                                                                              |
 |:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:----------------------------------------------------------------------------------------------------------------------------------------------------------------:|
@@ -324,7 +324,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 ---
 
-## Development
+## 🔧 Development
 
 ![Development 25.0-SNAPSHOT](https://img.shields.io/badge/25.0--SNAPSHOT-blue?style=for-the-badge&logo=github)
 ![Quarkus 3.27+](https://img.shields.io/badge/Quarkus-3.27%2B-blue?style=for-the-badge&logo=Quarkus)
@@ -373,7 +373,7 @@ mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
 
 ---
 
-## Contributors ✨
+## 🤝 Contributors
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
 
@@ -398,6 +398,6 @@ This project follows the [all-contributors](https://github.com/all-contributors/
 
 ---
 
-## Credits
+## 🙏 Credits
 
 The banner for this project was created using the awesome [Banner Maker](https://github.com/obarlik/banner-maker) by [@obarlik](https://github.com/obarlik).
