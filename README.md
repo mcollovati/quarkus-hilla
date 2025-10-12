@@ -82,7 +82,7 @@ Choose your frontend framework:
 ```
 
 > [!NOTE]
-> Hilla is focused on React and new features may be available only or first in React.
+> Hilla prioritizes React, so new features are typically available first or exclusively for React.
 
 ### Create Your First Endpoint
 
@@ -105,12 +105,12 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 - 📖 [Wiki Documentation](https://github.com/mcollovati/quarkus-hilla/wiki)
 - 🔧 [CRUD & Repository Services](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service)
-- 🎯 [Hilla Official Docs](https://hilla.dev/docs)
+- 🎯 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🏃 [Quarkus Guides](https://quarkus.io/guides/)
 
 ---
 
-## 🎯 What's New
+## 🎯 Features & Highlights
 
 ### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
@@ -225,6 +225,7 @@ Starting with 2.4.1, the extension is subdivided into two artifacts based on the
 - `quarkus-hilla` for **Lit** based applications
 - `quarkus-hilla-react` for **React** based applications
 
+</details>
 
 ---
 
@@ -385,7 +386,6 @@ Use `-Djreleaser.dry.run=true` to test without publishing.
 
 - 💭 [GitHub Discussions](https://github.com/mcollovati/quarkus-hilla/discussions) - Ask questions and share ideas
 - 🐛 [Issue Tracker](https://github.com/mcollovati/quarkus-hilla/issues) - Report bugs or request features
-- 🗣️ [Discord](https://discord.gg/SVnZGzHFvn) - Chat with the community
 - 📧 [GitHub](https://github.com/mcollovati/quarkus-hilla) - Star the project
 
 ---
