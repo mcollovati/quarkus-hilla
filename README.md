@@ -21,6 +21,7 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
   <a href="#-exclusive-quarkus-hilla-features">✨ Features</a> &nbsp; • &nbsp;
   <a href="#-documentation">📚 Documentation</a> &nbsp; • &nbsp;
+  <a href="#-configuration-reference">⚙️ Configuration</a> &nbsp; • &nbsp;
   <a href="#-releases">📦 Releases</a> &nbsp; • &nbsp;
   <a href="#-development">🔧 Development</a> &nbsp; • &nbsp;
   <a href="#-community--support">💬 Community & Support</a>
@@ -59,6 +60,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 > [!TIP]
 > - 📘 [Quick Start Guide](../../wiki/QuickStart) - Detailed setup instructions
 > - 🎬 [Starter Project](https://github.com/mcollovati/quarkus-hilla-starter) - Download and start coding immediately
+> - ⚙️ [Configuration Reference](#-configuration-reference) - Learn about configuration options
 
 ### Setup
 
