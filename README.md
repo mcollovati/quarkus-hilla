@@ -122,6 +122,12 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 The extension provides a dedicated Dev UI page to help you understand and debug your Hilla endpoints during development.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="etc/dev-ui-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="etc/dev-ui-light.png">
+  <img src="etc/dev-ui-dark.png" alt="Quarkus Dev UI - Hilla Endpoints">
+</picture>
+
 **Key Features:**
 - **Security Visualization** - See the actual security constraints applied to each server-side endpoint, including roles and authentication requirements
 - **Null-Safety Overview** - All `@NonNull` types are highlighted, showing their null-safety status at a glance
