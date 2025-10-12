@@ -36,7 +36,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 **Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://vaadin.com/docs/latest/hilla/guides/endpoints), [Reactive Endpoints](https://vaadin.com/docs/latest/hilla/guides/reactive-endpoints), and [Security](https://vaadin.com/docs/latest/hilla/guides/security).
 
 > [!NOTE]
-> This is an **unofficial community extension**, and it is **not** directly related **nor** supported by Vaadin Ltd.
+> This is an **unofficial community extension**, and it is **neither** directly related to **nor** supported by Vaadin Ltd.
 
 ---
 
@@ -139,7 +139,7 @@ The extension provides a dedicated Dev UI page to help you understand and debug 
 ### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
 Support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, which is currently the only reactive type supported by Hilla.
-`MutinyEndpointSubscription` can be used as a replacement of Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
+`MutinyEndpointSubscription` can be used as a replacement for Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
 
 ```java
 @BrowserCallable
@@ -167,7 +167,7 @@ public class ClockService {
 
 ### Experimental Embedded Vaadin Plugin ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
-Simplify application setup by removing Vaadin Maven (or Gradle) plugin. The extension has a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
+Simplify application setup by entirely removing the Vaadin Maven (or Gradle) plugin. The extension has a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
 
 **Maven Setup:**
 ```properties
@@ -180,7 +180,7 @@ vaadin.build.enabled=true
 <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
 ```
 > [!WARNING]
-> This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [Quarkus Issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
+> This is required because the Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [Quarkus Issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
 
 ### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
@@ -284,7 +284,7 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
 
 **Breaking Changes:**
-- Hillas Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
+- Hilla's Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
 - Java package names updated accordingly
 - Minimum Quarkus version: 3.7+
 
@@ -308,12 +308,12 @@ The current Hilla support has some known limitations. We aim to solve these in f
 <details>
 <summary><strong>⚠️ Vaadin 24.7 Build Workaround (Not required in 24.8+)</strong></summary>
 
-With Vaadin 24.7, frontend build fails because the Hilla endpoint generation tasks rely on the execution of a Spring process.
+With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation tasks rely on the execution of a Spring process.
 
 > **NOTE:** The dependency workaround is **only required for production builds**. In development mode, the offending class is automatically replaced by the extension.
 
 > **CAUTION:** This workaround is **not required in 24.8+** because:
-> - The generation has been refactored to fallback to the original lookup of endpoints based on internal class finder
+> - The generation has been refactored to fall back to the original lookup of endpoints based on internal class finder
 > - Hilla now provides a pluggable API to configure endpoint discovery
 
 **Workaround Options:**
@@ -330,6 +330,7 @@ With Vaadin 24.7, frontend build fails because the Hilla endpoint generation tas
     ```
 
 2. **Add workaround dependency** to `vaadin-maven-plugin`:
+
    ```xml
    <plugin>
        <groupId>com.vaadin</groupId>
