@@ -3,7 +3,7 @@
 </p>
 
 <h2 align="center">
-A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hilla.dev">Hilla</a> applications on Quarkus
+A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaadin.com/hilla">Hilla</a> applications on Quarkus
 </h2>
 
 <p align="center">
@@ -32,7 +32,7 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://hil
 
 Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com), that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
 
-**Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://hilla.dev/docs/lit/guides/endpoints), [Reactive Endpoints](https://hilla.dev/docs/lit/guides/reactive-endpoints), and [Security](https://hilla.dev/docs/lit/guides/security).
+**Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://vaadin.com/docs/latest/hilla/guides/endpoints), [Reactive Endpoints](https://vaadin.com/docs/latest/hilla/guides/reactive-endpoints), and [Security](https://vaadin.com/docs/latest/hilla/guides/security).
 
 > [!NOTE]
 > This is an **unofficial community extension**, and it is **not** directly related **nor** supported by Vaadin Ltd.
@@ -107,10 +107,10 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 ## 📚 Documentation
 
-- 📖 [Wiki Documentation](https://github.com/mcollovati/quarkus-hilla/wiki)
-- 🔧 [CRUD & Repository Services](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service)
-- 🎯 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
-- 🏃 [Quarkus Guides](https://quarkus.io/guides/)
+- 📖 [Wiki Documentation](../../wiki)
+- 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
+- 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
+- 🚀 [Quarkus Guides](https://quarkus.io/guides/)
 
 ---
 
@@ -214,14 +214,14 @@ Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus exte
 
 ### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.9)
 
-Support for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid), and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
+Support for [Auto CRUD](https://vaadin.com/docs/latest/components/auto-crud), [Auto Grid](https://vaadin.com/docs/latest/components/auto-grid), and [Auto Form](https://vaadin.com/docs/latest/components/auto-crud) is available in `quarkus-hilla-react`.
 
 The extension provides custom implementations of `CrudRepositoryService` and `ListRepositoryService` based on:
 - `quarkus-spring-data-jpa`
 - `quarkus-hibernate-orm-panache`
 
 > [!TIP]
-> [See documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for details.
+> Check the [documentation](../../wiki/Crud-List-repository-service) for details.
 
 <details>
 <summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
@@ -250,7 +250,7 @@ Starting with 2.4.1, the extension is subdivided into two artifacts based on the
 The current Hilla support has some known limitations. We aim to solve these in future releases.
 
 - ❌ Vaadin Copilot is not supported
-- ❌ [Stateless Authentication](https://hilla.dev/docs/lit/guides/security/spring-stateless) is not supported
+- ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
 <details>
 <summary><strong>⚠️ Vaadin 24.7 Build Workaround (Not required in 24.8+)</strong></summary>
@@ -333,7 +333,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 ### Build and Test
 
 **Prerequisites:**
-- JDK 17 or later
+- JDK 21 or later (JDK 17+ for versions < 25.0)
 - Maven 3.8 or later
 
 **Build the extension:**
