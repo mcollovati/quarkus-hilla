@@ -111,7 +111,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 ## 🎯 What's New
 
-### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.8)
+### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
 Support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, which is currently the only reactive type supported by Hilla.
 
@@ -139,7 +139,7 @@ public class ClockService {
 }
 ```
 
-### Experimental Embedded Vaadin Plugin ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.8)
+### Experimental Embedded Vaadin Plugin ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
 Simplify application setup by removing Vaadin Maven (or Gradle) plugin. The extension has a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
 
@@ -156,7 +156,7 @@ vaadin.build.enabled=true
 > [!WARNING]
 > This is required because Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
 
-### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.8)
+### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
 Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.properties`. The extension automatically creates a custom `connect-client.ts` file with the configured prefix.
 
@@ -164,14 +164,14 @@ Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.
 vaadin.endpoint.prefix=/api/custom
 ```
 
-### Vaadin Quarkus Integration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.8)
+### Vaadin Quarkus Integration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
 Starting with 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring tighter alignment with Vaadin's ecosystem.
 
 <details>
 <summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
 
-### Vaadin Unified Platform ![Since 24.4](https://flat.badgen.net/static/Since/24.4/007bff?scale=0.8)
+### Vaadin Unified Platform ![Since 24.4](https://flat.badgen.net/static/Since/24.4/007bff?scale=0.9)
 
 Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
 
@@ -180,7 +180,7 @@ Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extensio
 - Java package names updated accordingly
 - Minimum Quarkus version: 3.7+
 
-### Lit and React Extensions ![Since 2.4.1](https://flat.badgen.net/static/Since/2.4.1/007bff?scale=0.8)
+### Lit and React Extensions ![Since 2.4.1](https://flat.badgen.net/static/Since/2.4.1/007bff?scale=0.9)
 
 The extension is subdivided into two artifacts:
 - `quarkus-hilla` for **Lit** based applications
@@ -192,7 +192,7 @@ The extension is subdivided into two artifacts:
 
 ## ⚙️ Features
 
-### Endpoints Live Reload ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.8)
+### Endpoints Live Reload ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
 In dev mode, the extension automatically regenerates client-side code when endpoint classes change, without requiring a full rebuild.
 
@@ -212,7 +212,7 @@ vaadin.hilla.live-reload.watched-paths=com/example/ui
 > [!NOTE]
 > Source file watching currently supports only Java files, not Kotlin.
 
-### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.8)
+### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.9)
 
 Support for [Auto CRUD](https://hilla.dev/docs/react/components/auto-crud), [Auto Grid](https://hilla.dev/docs/react/components/auto-grid), and [Auto Form](https://hilla.dev/docs/react/components/auto-crud) is available in `quarkus-hilla-react`.
 
@@ -223,7 +223,7 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 > [!TIP]
 > [See documentation](https://github.com/mcollovati/quarkus-hilla/wiki/Crud-List-repository-service) for details.
 
-### Native Image Support ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.8)
+### Native Image Support ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
 Full GraalVM native image generation support without any known limitations.
 
