@@ -22,9 +22,8 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
   <a href="#-exclusive-quarkus-hilla-features">✨ Features</a> &nbsp; • &nbsp;
   <a href="#-documentation">📚 Documentation</a> &nbsp; • &nbsp;
   <a href="#-configuration-reference">⚙️ Configuration</a> &nbsp; • &nbsp;
-  <a href="#-releases">📦 Releases</a> &nbsp; • &nbsp;
-  <a href="#-development">🔧 Development</a> &nbsp; • &nbsp;
-  <a href="#-community--support">💬 Community & Support</a>
+  <a href="#-current-releases">📦 Releases</a> &nbsp; • &nbsp;
+  <a href="#-development-version">🔧 Development</a>
 </p>
 
 ---
@@ -358,86 +357,6 @@ With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation
 
 ---
 
-## 📊 Usage Statistics
-
-As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), the extension reports itself to Vaadin's usage statistics mechanism to help understand adoption and potentially encourage official support from Vaadin.
-
-- 📈 Statistics are collected **only during development mode**
-- 🔒 **No sensitive data** is collected
-- 🚫 [How to opt out](https://github.com/vaadin/vaadin-usage-statistics#opting-out)
-
----
-
-## 📦 Releases
-
- |                                                                                        Quarkus-Hilla                                                                                        |                                                                Quarkus                                                                 |                                                           Vaadin / Hilla                                                            |
-|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Maven Central 24.9" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.9"></picture> | <picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.9" src="https://img.shields.io/badge/VAADIN-v24.9-blue?style=for-the-badge&logo=Vaadin"></picture>   |
-| <picture><img alt="Maven Central 24.8" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.8"></picture> | <picture><img alt="Quarkus 3.15+" src="https://img.shields.io/badge/QUARKUS-v3.15%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.8" src="https://img.shields.io/badge/VAADIN-v24.8-blue?style=for-the-badge&logo=Vaadin"></picture>   |
-|  <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5"></picture>  |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus"></picture>  |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin"></picture>   |
-|   <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1"></picture>   | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin"></picture> |
-
-> [!NOTE]
-> The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
-
----
-
-## 🔧 Development
-
-|                                                                  Quarkus-Hilla                                                                  |                                                                Quarkus                                                                |                                                         Vaadin / Hilla                                                         |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Development 25.0-SNAPSHOT" src="https://img.shields.io/badge/25.0--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/Quarkus-3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/Vaadin-25.0-blue?style=for-the-badge&logo=Vaadin"></picture> |
-
-### Build and Test
-
-**Prerequisites:**
-- JDK 21 or later (JDK 17+ for versions < 25.0)
-- Maven 3.8 or later
-
-**Build the extension:**
-
-The extension and its required dependencies can be built by executing the following command:
-
-```bash
-mvn -DskipTests install
-```
-
-**Run tests:**
-
-To run the test suite, execute the maven `verify` goal:
-
-```bash
-mvn -DtrimStackTrace=false verify
-```
-
-**Run integration tests:**
-
-End-to-end test modules can be found in the `integration-tests` folder.
-Execution of end-to-end integration tests requires the activation of the maven `it-tests` profile.
-
-```bash
-mvn -DtrimStackTrace=false -Pit-tests verify
-```
-
-**Run integration tests in production mode:**
-
-The same tests can also be executed in production mode, by activating the `production` profile in addition to `it-tests`.
-
-```bash
-mvn -DtrimStackTrace=false -Pit-tests,production verify
-```
-
-**Debug tests:**
-
-```bash
-mvn -DtrimStackTrace=false -Dmaven.surefire.debug -Pit-tests verify
-```
-
-> [!IMPORTANT]
-> Integration tests use [Selenide](https://selenide.org/) for browser interaction (Chrome by default, Safari on macOS). Tests run in headless mode unless a debugger is attached via IDE or `-Dmaven.surefire.debug` flag.
-
----
-
 ## ⚙️ Configuration Reference
 
 Quarkus-Hilla provides various configuration parameters to customize the behavior of the extension. All parameters can be set in your `application.properties` file.
@@ -494,6 +413,44 @@ vaadin.build.node-version=v22.0.0
 > [!TIP]
 > For a complete list of available Vaadin build properties and their descriptions, see the [Vaadin Configuration Properties documentation](https://vaadin.com/docs/latest/configuration/properties).
 
+---
+
+## 📊 Usage Statistics
+
+As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), the extension reports itself to Vaadin's usage statistics mechanism to help understand adoption and potentially encourage official support from Vaadin.
+
+- 📈 Statistics are collected **only during development mode**
+- 🔒 **No sensitive data** is collected
+- 🚫 [How to opt out](https://github.com/vaadin/vaadin-usage-statistics#opting-out)
+
+---
+
+## 📦 Current Releases
+
+ |                                                                                        Quarkus-Hilla                                                                                        |                                                                Quarkus                                                                 |                                                           Vaadin / Hilla                                                            |
+|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Maven Central 24.9" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.9"></picture> | <picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.9" src="https://img.shields.io/badge/VAADIN-v24.9-blue?style=for-the-badge&logo=Vaadin"></picture>   |
+| <picture><img alt="Maven Central 24.8" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.8"></picture> | <picture><img alt="Quarkus 3.15+" src="https://img.shields.io/badge/QUARKUS-v3.15%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.8" src="https://img.shields.io/badge/VAADIN-v24.8-blue?style=for-the-badge&logo=Vaadin"></picture>   |
+|  <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5"></picture>  |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus"></picture>  |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin"></picture>   |
+|   <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1"></picture>   | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin"></picture> |
+
+> [!NOTE]
+> The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
+
+---
+
+## 🔧 Development Version
+
+|                                                                  Quarkus-Hilla                                                                  |                                                                Quarkus                                                                |                                                         Vaadin / Hilla                                                         |
+|:-----------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Development 25.0-SNAPSHOT" src="https://img.shields.io/badge/25.0--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/Quarkus-3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/Vaadin-25.0-blue?style=for-the-badge&logo=Vaadin"></picture> |
+
+---
+
+
+
+---
+
 ## 🤝 Contributors
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -509,7 +466,6 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     </tr>
   </tbody>
 </table>
-
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
 
