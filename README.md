@@ -57,7 +57,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 ## 🚀 Quick Start
 
 > [!TIP]
-> - 📘 [Quick Start Guide](../../wiki/QuickStart)  Detailed setup instructions
+> - 📘 [Quick Start Guide](../../wiki/QuickStart) — Detailed setup instructions
 > - 🎬 [Starter Project](https://github.com/mcollovati/quarkus-hilla-starter) — Download and start coding immediately
 > - ⚙️ [Configuration Reference](#%EF%B8%8F-configuration-reference) — Learn about configuration options
 
