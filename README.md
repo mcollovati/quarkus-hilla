@@ -66,20 +66,20 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 Choose your frontend framework:
 
+**For React (recommended) applications:**
+```xml
+<dependency>
+    <groupId>com.github.mcollovati</groupId>
+    <artifactId>quarkus-hilla-react</artifactId>
+    <version>24.9.x</version>
+</dependency>
+```
+
 **For Lit applications:**
 ```xml
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>24.9.x</version>
-</dependency>
-```
-
-**For React applications:**
-```xml
-<dependency>
-    <groupId>com.github.mcollovati</groupId>
-    <artifactId>quarkus-hilla-react</artifactId>
     <version>24.9.x</version>
 </dependency>
 ```
@@ -469,46 +469,30 @@ Quarkus-Hilla provides various configuration parameters to customize the behavio
 > [!WARNING]
 > Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
 
-| Property                                      | Type         | Default                                | Since | Description                                                                                                                |
-|-----------------------------------------------|--------------|----------------------------------------|-------|----------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.build.enabled`                        | Boolean      | `false`                                | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin.                                         |
-| `vaadin.build.generate-bundle`                | Boolean      | `true`                                 | 24.7  | Whether to generate a bundle from the project frontend sources.                                                            |
-| `vaadin.build.optimize-bundle`                | Boolean      | `true`                                 | 24.7  | Whether to use byte code scanner strategy to discover frontend components.                                                 |
-| `vaadin.build.run-npm-install`                | Boolean      | `true`                                 | 24.7  | Whether to run npm install after updating dependencies.                                                                    |
-| `vaadin.build.ci-build`                       | Boolean      | `false`                                | 24.7  | Use `npm ci` instead of `npm install` (or `pnpm install --frozen-lockfile`) for reproducible builds.                       |
-| `vaadin.build.force-production-build`         | Boolean      | `false`                                | 24.7  | Force a production build even if a default production bundle exists.                                                       |
-| `vaadin.build.clean-frontend-files`           | Boolean      | `true`                                 | 24.7  | Control cleaning of generated frontend files when executing build-frontend.                                                |
-| `vaadin.build.eager-server-load`              | Boolean      | `false`                                | 24.7  | Whether to insert the initial UIDL object in the bootstrap index.html.                                                     |
-| `vaadin.build.frontend-directory`             | File         | `src/main/frontend`                    | 24.7  | Directory containing the project's frontend source files.                                                                  |
-| `vaadin.build.frontend-resources-directory`   | File         | `src/main/resources/META-INF/frontend` | 24.7  | Directory from where resources should be copied for use with the frontend build tool.                                      |
-| `vaadin.build.frontend-output-directory`      | File         | `META-INF/VAADIN/webapp`               | 24.7  | Folder where the frontend build tool outputs generated files.                                                              |
-| `vaadin.build.generated-ts-folder`            | File         | -                                      | 24.7  | Folder where Flow will put TypeScript API files for client projects.                                                       |
-| `vaadin.build.node-version`                   | String       | Check Vaadin default                   | 24.7  | Node.js version to use when node is installed automatically. The default version depends on the Vaadin version being used. |
-| `vaadin.build.node-download-root`             | String       | -                                      | 24.7  | Custom URL to download Node.js from (useful in firewalled environments).                                                   |
-| `vaadin.build.node-auto-update`               | Boolean      | `false`                                | 24.7  | Whether automatically installed node version may be updated to the default Vaadin node version.                            |
-| `vaadin.build.pnpm-enable`                    | Boolean      | `false`                                | 24.7  | Use pnpm instead of npm for installing frontend resources.                                                                 |
-| `vaadin.build.bun-enable`                     | Boolean      | `false`                                | 24.7  | Use bun instead of npm for installing frontend resources.                                                                  |
-| `vaadin.build.use-global-pnpm`                | Boolean      | `false`                                | 24.7  | Use globally installed pnpm tool instead of the default supported pnpm version.                                            |
-| `vaadin.build.require-home-node-exec`         | Boolean      | `false`                                | 24.7  | Force usage of Vaadin home node executable instead of globally installed node.                                             |
-| `vaadin.build.skip-dev-bundle-build`          | Boolean      | `false`                                | 24.7  | Whether to disable dev bundle rebuild.                                                                                     |
-| `vaadin.build.react-enabled`                  | Boolean      | -                                      | 24.7  | Whether to enable React support (auto-detected if not set).                                                                |
-| `vaadin.build.application-identifier`         | String       | `groupId:artifactId` hash              | 24.7  | Identifier for the application. Defaults to hashed value of 'groupId:artifactId'.                                          |
-| `vaadin.build.frontend-extra-file-extensions` | List<String> | -                                      | 24.7  | Additional file extensions to handle when generating bundles (comma-separated).                                            |
-| `vaadin.build.npm-exclude-web-components`     | Boolean      | `false`                                | 24.7  | Whether to exclude npm packages for web components.                                                                        |
-| `vaadin.build.frontend-ignore-version-checks` | Boolean      | `false`                                | 24.7  | Ignore node/npm tool version checks. **Not recommended** as it may cause build failures.                                   |
-| `vaadin.build.postinstall-packages`           | List<String> | -                                      | 24.7  | Additional npm packages to run post install scripts for (comma-separated).                                                 |
+| Property               | Type    | Default | Since | Description                                                                        |
+|------------------------|---------|---------|-------|------------------------------------------------------------------------------------|
+| `vaadin.build.enabled` | Boolean | `false` | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin. |
+
+**Additional Configuration:**
+
+When the embedded build plugin is enabled, you can use all standard [Vaadin build configuration properties](https://vaadin.com/docs/latest/flow/configuration/properties) with the `vaadin.build.` prefix. These properties correspond 1:1 to the Vaadin Maven Plugin parameters.
+
+**Examples:**
+
+```properties
+# Enable the embedded build plugin (Quarkus-Hilla specific)
+vaadin.build.enabled=true
+
+# Standard Vaadin build properties
+vaadin.build.pnpm-enable=true
+vaadin.build.ci-build=true
+vaadin.build.frontend-directory=src/main/frontend
+vaadin.build.optimize-bundle=true
+vaadin.build.node-version=v22.0.0
+```
 
 > [!TIP]
-> Most build configuration parameters match the Vaadin Maven Plugin parameters. See the [Vaadin documentation](https://vaadin.com/docs/latest/configuration/properties) for more details.
-
----
-
-## 💬 Community & Support
-
-- 💭 [GitHub Discussions](https://github.com/mcollovati/quarkus-hilla/discussions) - Ask questions and share ideas
-- 🐛 [Issue Tracker](https://github.com/mcollovati/quarkus-hilla/issues) - Report bugs or request features
-
----
+> For a complete list of available Vaadin build properties and their descriptions, see the [Vaadin Configuration Properties documentation](https://vaadin.com/docs/latest/configuration/properties).
 
 ## 🤝 Contributors
 
