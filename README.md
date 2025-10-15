@@ -50,7 +50,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 - 🚀 **Native Image** - Full GraalVM native image support (since 24.5)
 - 🎨 **Framework Choice** - Support for both Lit and React frontends
 - 🔌 **Panache Integration** - Custom repository services for Hibernate ORM Panache
-- 📦 **Embedded Build-Plugin** - Optional built-in Vaadin Maven plugin (experimental)
+- 📦 **Embedded Build-Plugin** - Built-in Vaadin Maven plugin (24.7-24.9, integrated into official Vaadin extension in 25.0+)
 
 ---
 
@@ -166,9 +166,28 @@ public class ClockService {
 
 ### Experimental Embedded Vaadin Plugin ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
-Simplify application setup by entirely removing the Vaadin Maven (or Gradle) plugin. The extension has a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
+Simplify application setup by entirely removing the Vaadin Maven (or Gradle) plugin. The extension provides a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
 
-**Maven Setup:**
+> [!IMPORTANT]
+> **As of Vaadin 25.0**, this experimental feature has been integrated into the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) via [PR #215](https://github.com/vaadin/quarkus/pull/215). Applications using Vaadin 25.0+ benefit from this functionality natively through the official extension, without requiring any Quarkus-Hilla specific configuration or the `quarkus.bootstrap.workspace-discovery` workaround.
+
+**Setup for Vaadin 25.0+:**
+
+Simply enable the embedded build plugin in your configuration:
+
+```properties
+# In application.properties
+vaadin.build.enabled=true
+```
+
+That's it! No additional workarounds needed.
+
+---
+
+**Setup for Vaadin 24.7-24.9:**
+
+Enable the embedded build plugin and add the required workaround:
+
 ```properties
 # In application.properties
 vaadin.build.enabled=true
@@ -178,8 +197,9 @@ vaadin.build.enabled=true
 <!-- In pom.xml properties section -->
 <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
 ```
+
 > [!WARNING]
-> This is required because the Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [Quarkus Issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
+> The `quarkus.bootstrap.workspace-discovery` property is required for versions 24.7-24.9 because the Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [Quarkus Issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
 
 ### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
@@ -388,6 +408,11 @@ Quarkus-Hilla provides various configuration parameters to customize the behavio
 > [!WARNING]
 > Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
 
+> **For versions 24.7-24.x only:** Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
+
+> [!NOTE]
+> **As of Vaadin 25.0**, this configuration is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) and is no longer part of Quarkus-Hilla. Despite the removal, the configuration properties remain the same.
+
 | Property               | Type    | Default | Since | Description                                                                        |
 |------------------------|---------|---------|-------|------------------------------------------------------------------------------------|
 | `vaadin.build.enabled` | Boolean | `false` | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin. |
@@ -399,7 +424,7 @@ When the embedded build plugin is enabled, you can use all standard [Vaadin buil
 **Examples:**
 
 ```properties
-# Enable the embedded build plugin (Quarkus-Hilla specific)
+# Enable the embedded build plugin
 vaadin.build.enabled=true
 
 # Standard Vaadin build properties
