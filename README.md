@@ -182,8 +182,6 @@ vaadin.build.enabled=true
 
 That's it! No additional workarounds needed.
 
----
-
 **Setup for Vaadin 24.7-24.9:**
 
 Enable the embedded build plugin and add the required workaround:
