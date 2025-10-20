@@ -183,7 +183,7 @@ vaadin.build.enabled=false
 > [!TIP]
 > With the embedded build plugin, the `vaadin-maven-plugin` is no longer needed and can be removed from your `pom.xml`.
 
-> [!NOTE]
+> [!TIP]
 > While not required in Vaadin 25.0+, setting `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml` is still recommended for best results.
 
 ---
