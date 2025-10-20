@@ -169,18 +169,24 @@ public class ClockService {
 Simplify application setup by entirely removing the Vaadin Maven (or Gradle) plugin. The extension provides a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
 
 > [!IMPORTANT]
-> **As of Vaadin 25.0**, this experimental feature has been integrated into the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) via [PR #215](https://github.com/vaadin/quarkus/pull/215). Applications using Vaadin 25.0+ benefit from this functionality natively through the official extension, without requiring any Quarkus-Hilla specific configuration or the `quarkus.bootstrap.workspace-discovery` workaround.
+> **As of Vaadin 25.0**, this experimental feature has been integrated into the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) via [PR #215](https://github.com/vaadin/quarkus/pull/215). Applications using Vaadin 25.0+ benefit from this functionality natively through the official extension, where it is **enabled by default**. No Quarkus-Hilla specific configuration or the `quarkus.bootstrap.workspace-discovery` workaround is required.
 
 **Setup for Vaadin 25.0+:**
 
-Simply enable the embedded build plugin in your configuration:
+No configuration needed, the plugin is enabled by default. You can opt out by disabling it:
 
 ```properties
-# In application.properties
-vaadin.build.enabled=true
+# In application.properties (optional - disable the embedded build plugin)
+vaadin.build.enabled=false
 ```
 
-That's it! No additional workarounds needed.
+> [!TIP]
+> With the embedded build plugin, the `vaadin-maven-plugin` is no longer needed and can be removed from your `pom.xml`.
+
+> [!NOTE]
+> While not required in Vaadin 25.0+, setting `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml` is still recommended for best results.
+
+---
 
 **Setup for Vaadin 24.7-24.9:**
 
@@ -404,16 +410,17 @@ Quarkus-Hilla provides various configuration parameters to customize the behavio
 ### Build Configuration (Experimental)
 
 > [!WARNING]
-> Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
+> **For versions 24.7–24.9 only:** Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
 
-> **For versions 24.7-24.x only:** Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
-
-> [!NOTE]
+> [!CAUTION]
 > **As of Vaadin 25.0**, this configuration is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) and is no longer part of Quarkus-Hilla. Despite the removal, the configuration properties remain the same.
 
 | Property               | Type    | Default | Since | Description                                                                        |
 |------------------------|---------|---------|-------|------------------------------------------------------------------------------------|
-| `vaadin.build.enabled` | Boolean | `false` | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin. |
+| `vaadin.build.enabled` | Boolean | `true`  | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin. |
+
+> [!WARNING]
+> In versions 24.x, the default value for `vaadin.build.enabled` was `false`. Starting with Vaadin 25.0, the default is `true`.
 
 **Additional Configuration:**
 
@@ -422,7 +429,7 @@ When the embedded build plugin is enabled, you can use all standard [Vaadin buil
 **Examples:**
 
 ```properties
-# Enable the embedded build plugin
+# Enable the embedded build plugin (this is the default since version 25.0)
 vaadin.build.enabled=true
 
 # Standard Vaadin build properties
