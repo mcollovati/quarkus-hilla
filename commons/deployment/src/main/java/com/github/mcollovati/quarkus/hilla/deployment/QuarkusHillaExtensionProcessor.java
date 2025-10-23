@@ -36,9 +36,7 @@ import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
-import io.quarkus.builder.BuildException;
 import io.quarkus.deployment.IsDevelopment;
-import io.quarkus.deployment.IsNormal;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.ExecutionTime;
@@ -79,8 +77,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
 import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
-import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTimeConfig;
-import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinPlugin;
 import com.github.mcollovati.quarkus.hilla.graal.DelayedInitBroadcaster;
 import com.github.mcollovati.quarkus.hilla.reload.HillaLiveReloadRecorder;
 
@@ -377,20 +373,5 @@ class QuarkusHillaExtensionProcessor {
                 .setDefaultScope(DotNames.SINGLETON)
                 .setUnremovable()
                 .build());
-    }
-
-    @BuildStep(onlyIf = IsNormal.class)
-    void buildFrontendTask(
-            CurateOutcomeBuildItem outcomeBuildItem,
-            VaadinBuildTimeConfig vaadinConfig,
-            CombinedIndexBuildItem indexBuildItem,
-            // Parameter used only to make sure the build step gets executed
-            @SuppressWarnings("unused") BuildProducer<GeneratedResourceBuildItem> producer)
-            throws BuildException {
-        if (vaadinConfig.enabled()) {
-            VaadinPlugin vaadinPlugin = new VaadinPlugin(vaadinConfig, outcomeBuildItem.getApplicationModel());
-            vaadinPlugin.prepareFrontend();
-            vaadinPlugin.buildFrontend(indexBuildItem.getComputingIndex());
-        }
     }
 }
