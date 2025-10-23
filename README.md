@@ -477,10 +477,6 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 ---
 
-
-
----
-
 ## 🤝 Contributors
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
