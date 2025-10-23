@@ -100,11 +100,11 @@
     "@vitejs/plugin-react": "5.0.4",
     "magic-string": "0.30.19",
     "rollup-plugin-brotli": "3.1.0",
-    "rollup-plugin-visualizer": "6.0.4",
+    "rollup-plugin-visualizer": "6.0.5",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.9.3",
-    "vite": "7.1.9",
+    "vite": "7.1.11",
     "vite-plugin-checker": "0.11.0",
     "workbox-build": "7.3.0"
   },
@@ -296,15 +296,15 @@
       "@vitejs/plugin-react": "5.0.4",
       "magic-string": "0.30.19",
       "rollup-plugin-brotli": "3.1.0",
-      "rollup-plugin-visualizer": "6.0.4",
+      "rollup-plugin-visualizer": "6.0.5",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.9.3",
-      "vite": "7.1.9",
+      "vite": "7.1.11",
       "vite-plugin-checker": "0.11.0",
       "workbox-build": "7.3.0"
     },
-    "hash": "35fe67e52bdd4e5803aaae113c4afb1a4c434d57aa2c7fd6ea92c7d1b67a8203"
+    "hash": "ea2c19e44a9d4c081c831b0a141998e585ec9b2b5a3644d97c1b11fcba4438b5"
   },
   "type": "module"
 }
