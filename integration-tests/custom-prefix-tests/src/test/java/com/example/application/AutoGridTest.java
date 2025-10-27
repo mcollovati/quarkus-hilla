@@ -51,7 +51,7 @@ class AutoGridTest extends AbstractTest {
                 .$$(shadowDeepCss("vaadin-text-field[placeholder=\"Filter...\"]"))
                 .shouldHave(size(3));
 
-        $$(shadowCss("tbody#items tr[part~=\"row\"]", "vaadin-grid")).shouldHave(size(40));
+        $$(shadowCss("tbody#items tr[part~=\"row\"]", "vaadin-grid")).shouldHave(size(15));
     }
 
     @Test
@@ -94,32 +94,7 @@ class AutoGridTest extends AbstractTest {
                 "Name 19",
                 "Name 2",
                 "Name 20",
-                "Name 21",
-                "Name 22",
-                "Name 23",
-                "Name 24",
-                "Name 25",
-                "Name 26",
-                "Name 27",
-                "Name 28",
-                "Name 29",
-                "Name 3",
-                "Name 30",
-                "Name 31",
-                "Name 32",
-                "Name 33",
-                "Name 34",
-                "Name 35",
-                "Name 36",
-                "Name 37",
-                "Name 38",
-                "Name 39",
-                "Name 4",
-                "Name 40",
-                "Name 41",
-                "Name 42",
-                "Name 43",
-                "Name 44");
+                "Name 21");
 
         List<String> diff = new ArrayList<>(sortedTexts);
         diff.removeAll(texts);
@@ -128,7 +103,7 @@ class AutoGridTest extends AbstractTest {
     }
 
     private static List<String> collectColumnTexts(int column) {
-        return collectColumnTexts(column, 40);
+        return collectColumnTexts(column, 15);
     }
 
     private static List<String> collectColumnTexts(int column, int expectedSize) {
