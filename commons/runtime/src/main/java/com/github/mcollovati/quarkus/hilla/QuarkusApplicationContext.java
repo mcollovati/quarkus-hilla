@@ -271,6 +271,11 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
+    public <T> ObjectProvider<T> getBeanProvider(org.springframework.core.ParameterizedTypeReference<T> requiredType) {
+        return throwUnsupported();
+    }
+
+    @Override
     public boolean containsBean(String s) {
         return throwUnsupported();
     }
