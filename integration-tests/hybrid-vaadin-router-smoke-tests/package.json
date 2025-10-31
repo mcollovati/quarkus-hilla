@@ -82,9 +82,9 @@
     "mobx": "^6.3.5"
   },
   "devDependencies": {
-    "@babel/preset-react": "7.27.1",
+    "@babel/preset-react": "7.28.5",
     "@preact/signals-react-transform": "0.6.0",
-    "@rollup/plugin-replace": "6.0.2",
+    "@rollup/plugin-replace": "6.0.3",
     "@rollup/pluginutils": "5.3.0",
     "@vaadin/hilla-generator-cli": "25.0.0-beta2",
     "@vaadin/hilla-generator-core": "25.0.0-beta2",
@@ -97,8 +97,8 @@
     "@vaadin/hilla-generator-plugin-subtypes": "25.0.0-beta2",
     "@vaadin/hilla-generator-plugin-transfertypes": "25.0.0-beta2",
     "@vaadin/hilla-generator-utils": "25.0.0-beta2",
-    "@vitejs/plugin-react": "5.0.4",
-    "magic-string": "0.30.19",
+    "@vitejs/plugin-react": "5.1.0",
+    "magic-string": "0.30.21",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "6.0.5",
     "strip-css-comments": "5.0.0",
@@ -278,9 +278,9 @@
       "lit": "3.3.1"
     },
     "devDependencies": {
-      "@babel/preset-react": "7.27.1",
+      "@babel/preset-react": "7.28.5",
       "@preact/signals-react-transform": "0.6.0",
-      "@rollup/plugin-replace": "6.0.2",
+      "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.3.0",
       "@vaadin/hilla-generator-cli": "25.0.0-beta2",
       "@vaadin/hilla-generator-core": "25.0.0-beta2",
@@ -293,8 +293,8 @@
       "@vaadin/hilla-generator-plugin-subtypes": "25.0.0-beta2",
       "@vaadin/hilla-generator-plugin-transfertypes": "25.0.0-beta2",
       "@vaadin/hilla-generator-utils": "25.0.0-beta2",
-      "@vitejs/plugin-react": "5.0.4",
-      "magic-string": "0.30.19",
+      "@vitejs/plugin-react": "5.1.0",
+      "magic-string": "0.30.21",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "6.0.5",
       "strip-css-comments": "5.0.0",
@@ -304,7 +304,7 @@
       "vite-plugin-checker": "0.11.0",
       "workbox-build": "7.3.0"
     },
-    "hash": "52b1b3310ad195f4d2417ee137634ef390a7a0ffbf20160cc8a83d6134819728"
+    "hash": "d0165f3d1165439a5dbdc60db95a75e34d13c30f6b556a83615543d4e7b957c7"
   },
   "type": "module"
 }
