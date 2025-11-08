@@ -4,7 +4,7 @@
   "dependencies": {
     "@adobe/lit-mobx": "2.0.0",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
-    "@vaadin/aura": "25.0.0-beta3",
+    "@vaadin/aura": "25.0.0-beta4",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "25.0.0-beta3",
     "@vaadin/hilla-frontend": "25.0.0-beta3",
@@ -17,8 +17,8 @@
     "@vaadin/react-components": "25.0.0-beta3",
     "@vaadin/react-components-pro": "25.0.0-beta3",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
-    "@vaadin/vaadin-lumo-styles": "25.0.0-beta3",
-    "@vaadin/vaadin-themable-mixin": "25.0.0-beta3",
+    "@vaadin/vaadin-lumo-styles": "25.0.0-beta4",
+    "@vaadin/vaadin-themable-mixin": "25.0.0-beta4",
     "@vaadin/vaadin-usage-statistics": "2.1.3",
     "date-fns": "4.1.0",
     "lit": "3.3.1",
@@ -32,6 +32,7 @@
     "@preact/signals-react-transform": "0.6.0",
     "@rollup/plugin-replace": "6.0.3",
     "@rollup/pluginutils": "5.3.0",
+    "@types/node": "24.10.0",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.2",
     "@vaadin/hilla-generator-cli": "25.0.0-beta3",
@@ -52,7 +53,7 @@
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "5.9.3",
-    "vite": "7.2.1",
+    "vite": "7.2.2",
     "vite-plugin-checker": "0.11.0",
     "workbox-build": "7.3.0"
   },
@@ -160,7 +161,7 @@
   },
   "vaadin": {
     "dependencies": {
-      "@vaadin/aura": "25.0.0-beta3",
+      "@vaadin/aura": "25.0.0-beta4",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "25.0.0-beta3",
       "@vaadin/hilla-frontend": "25.0.0-beta3",
@@ -173,8 +174,8 @@
       "@vaadin/react-components": "25.0.0-beta3",
       "@vaadin/react-components-pro": "25.0.0-beta3",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
-      "@vaadin/vaadin-lumo-styles": "25.0.0-beta3",
-      "@vaadin/vaadin-themable-mixin": "25.0.0-beta3",
+      "@vaadin/vaadin-lumo-styles": "25.0.0-beta4",
+      "@vaadin/vaadin-themable-mixin": "25.0.0-beta4",
       "@vaadin/vaadin-usage-statistics": "2.1.3",
       "date-fns": "4.1.0",
       "lit": "3.3.1",
@@ -187,6 +188,7 @@
       "@preact/signals-react-transform": "0.6.0",
       "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.3.0",
+      "@types/node": "24.10.0",
       "@types/react": "19.2.2",
       "@types/react-dom": "19.2.2",
       "@vaadin/hilla-generator-cli": "25.0.0-beta3",
@@ -207,11 +209,11 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "5.9.3",
-      "vite": "7.2.1",
+      "vite": "7.2.2",
       "vite-plugin-checker": "0.11.0",
       "workbox-build": "7.3.0"
     },
-    "hash": "1cdf393711890bd321d5ad636d6006c8f2e797a0d06ffb72ee2b78d76295d3da"
+    "hash": "661dcab66c91ea5db29a2fdeab54354bdeb82e82a9d9f520b147e6d9ba2026a2"
   },
   "type": "module"
 }
