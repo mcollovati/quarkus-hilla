@@ -54,6 +54,7 @@ public abstract class AbstractTest {
             System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
         }
         Configuration.fastSetValue = true;
+        Configuration.screenshots = false;
 
         // Disable Copilot because currently it slows down the page load
         // because of license checking
