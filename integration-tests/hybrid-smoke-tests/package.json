@@ -90,7 +90,6 @@
     "@vaadin/hilla-react-form": "$@vaadin/hilla-react-form",
     "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals",
     "react-router": "$react-router",
-    "@vaadin/router": "2.0.0",
     "@vaadin/cookie-consent": "25.0.0-alpha8",
     "@vaadin/aura": "$@vaadin/aura",
     "@vaadin/a11y-base": "25.0.0-beta4",
@@ -157,7 +156,8 @@
     "@vaadin/dashboard": "25.0.0-beta4",
     "@vaadin/grid-pro": "25.0.0-beta4",
     "@vaadin/map": "25.0.0-beta4",
-    "@vaadin/rich-text-editor": "25.0.0-beta4"
+    "@vaadin/rich-text-editor": "25.0.0-beta4",
+    "@vaadin/router": "2.0.1"
   },
   "vaadin": {
     "dependencies": {

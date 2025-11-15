@@ -59,7 +59,7 @@
     "@vaadin/progress-bar": "25.0.0-beta4",
     "@vaadin/radio-group": "25.0.0-beta4",
     "@vaadin/rich-text-editor": "25.0.0-beta4",
-    "@vaadin/router": "2.0.0",
+    "@vaadin/router": "2.0.1",
     "@vaadin/scroller": "25.0.0-beta4",
     "@vaadin/select": "25.0.0-beta4",
     "@vaadin/side-nav": "25.0.0-beta4",
@@ -257,7 +257,7 @@
       "@vaadin/progress-bar": "25.0.0-beta4",
       "@vaadin/radio-group": "25.0.0-beta4",
       "@vaadin/rich-text-editor": "25.0.0-beta4",
-      "@vaadin/router": "2.0.0",
+      "@vaadin/router": "2.0.1",
       "@vaadin/scroller": "25.0.0-beta4",
       "@vaadin/select": "25.0.0-beta4",
       "@vaadin/side-nav": "25.0.0-beta4",
@@ -306,7 +306,7 @@
       "vite-plugin-checker": "0.11.0",
       "workbox-build": "7.3.0"
     },
-    "hash": "49779e1fbcf1ea360b7fb891de004038d778402cf9d95fb1c5e55de2fd8c9eca"
+    "hash": "c9efcdc1cb0901898abeb1e729561de20df5c9b9d0f21bf307c685b838b03b64"
   },
   "type": "module"
 }
