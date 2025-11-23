@@ -18,7 +18,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.3.0</awaitility.version>
-        <selenide.version>7.11.1</selenide.version>
+        <selenide.version>7.12.0</selenide.version>
 
         <!--
             By default, skips Hilla plugin execution to prevent build errors for modules
@@ -58,6 +58,12 @@
             <groupId>org.awaitility</groupId>
             <artifactId>awaitility</artifactId>
             <version>${awaitility.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.stephenc.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>1.0-1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
