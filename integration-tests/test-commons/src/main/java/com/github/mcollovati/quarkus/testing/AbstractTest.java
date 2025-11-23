@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.testing;
 
 import java.lang.management.ManagementFactory;
 import java.time.Duration;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -29,6 +30,7 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.junit5.BrowserPerTestStrategyExtension;
 import io.quarkus.test.common.http.TestHTTPResource;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.codeborne.selenide.Selenide.$;
@@ -45,19 +47,33 @@ public abstract class AbstractTest {
     private String baseURL;
 
     @BeforeEach
-    void setup() {
+    void setup(TestInfo info) {
+
+        System.setProperty(
+                "webdriver.chrome.logfile",
+                "/tmp/mylogs/chromedriver-"
+                        + info.getDisplayName().replace(" ", "_").replaceAll("[()]", "")
+                        + ".log");
+        System.setProperty("webdriver.chrome.verboseLogging", "true");
+
         if (isMacOS) {
             Configuration.headless = false;
             Configuration.browser = "safari";
         } else {
             Configuration.headless = runHeadless();
-            System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
+            System.setProperty("chromeoptions.args", "--remote-allow-origins=*,--no-sandbox,--disable-gpu");
         }
         Configuration.fastSetValue = true;
+
         // Workaround for chromedriver timeouts in selenium 4.37
-        // https://github.com/selenide/selenide/issues/3164
-        // https://github.com/selenide/selenide/issues/3138
-        Configuration.browserCapabilities.setCapability("se:cdpEnabled", false);
+        Configuration.screenshots = false;
+        Configuration.savePageSource = false;
+        Configuration.remoteReadTimeout = 10_000;
+        Configuration.pageLoadStrategy = "eager";
+        Configuration.browserCapabilities.setCapability(
+                "goog:loggingPrefs", Map.of("browser", "ALL", "driver", "ALL", "performance", "ALL"));
+        Configuration.browserCapabilities.setCapability("webSocketUrl", true);
+        // Configuration.browserCapabilities.setCapability("se:cdpEnabled", false);
 
         // Disable Copilot because currently it slows down the page load
         // because of license checking

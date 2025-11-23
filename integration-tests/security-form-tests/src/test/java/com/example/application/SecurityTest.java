@@ -22,10 +22,11 @@ import java.util.List;
 import java.util.Objects;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
@@ -36,6 +37,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.Wait;
 import static com.example.application.SecurityTest.MenuItem.FLOW_ADMIN;
 import static com.example.application.SecurityTest.MenuItem.FLOW_AUTHENTICATED;
 import static com.example.application.SecurityTest.MenuItem.FLOW_PUBLIC;
@@ -71,10 +73,11 @@ class SecurityTest extends AbstractTest {
 
     SelenideElement appLayout;
 
+    @BeforeEach
     @AfterEach
     void clearBrowser() {
         // clear cookies
-        WebDriverRunner.clearBrowserCache();
+        Selenide.clearBrowserCookies();
     }
 
     @Test
@@ -209,6 +212,17 @@ class SecurityTest extends AbstractTest {
         loginForm.$("vaadin-text-field#vaadinLoginUsername").setValue(username);
         loginForm.$("vaadin-password-field#vaadinLoginPassword").setValue(password);
         loginForm.$("vaadin-button[slot=submit]").click();
-        $("vaadin-app-layout footer vaadin-avatar").shouldBe(visible, Duration.ofSeconds(10));
+        String beforeURL = Selenide.webdriver().driver().url();
+        String caller = StackWalker.getInstance().walk(s -> s.skip(1)
+                .findFirst()
+                .map(StackWalker.StackFrame::getMethodName)
+                .orElse("N/A"));
+        Wait().withTimeout(Duration.ofSeconds(10)).until(d -> {
+            String currentUrl = d.getCurrentUrl();
+            System.out.println("================= (" + caller + ") ===> " + "Wait to switch from " + beforeURL
+                    + ": now is " + currentUrl);
+            return !beforeURL.equals(currentUrl);
+        });
+        $("vaadin-app-layout footer vaadin-avatar").shouldBe(visible);
     }
 }
