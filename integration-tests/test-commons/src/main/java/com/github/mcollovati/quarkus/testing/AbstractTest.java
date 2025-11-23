@@ -48,13 +48,15 @@ public abstract class AbstractTest {
 
     @BeforeEach
     void setup(TestInfo info) {
-
-        System.setProperty(
-                "webdriver.chrome.logfile",
-                "/tmp/mylogs/chromedriver-"
-                        + info.getDisplayName().replace(" ", "_").replaceAll("[()]", "")
-                        + ".log");
-        System.setProperty("webdriver.chrome.verboseLogging", "true");
+        boolean verbose = Boolean.getBoolean("verbose");
+        if (verbose) {
+            System.setProperty(
+                    "webdriver.chrome.logfile",
+                    "/tmp/mylogs/chromedriver-"
+                            + info.getDisplayName().replace(" ", "_").replaceAll("[()]", "")
+                            + ".log");
+            System.setProperty("webdriver.chrome.verboseLogging", "true");
+        }
 
         if (isMacOS) {
             Configuration.headless = false;
@@ -65,15 +67,17 @@ public abstract class AbstractTest {
         }
         Configuration.fastSetValue = true;
 
-        // Workaround for chromedriver timeouts in selenium 4.37
-        Configuration.screenshots = false;
-        Configuration.savePageSource = false;
-        Configuration.remoteReadTimeout = 10_000;
-        Configuration.pageLoadStrategy = "eager";
-        Configuration.browserCapabilities.setCapability(
-                "goog:loggingPrefs", Map.of("browser", "ALL", "driver", "ALL", "performance", "ALL"));
-        Configuration.browserCapabilities.setCapability("webSocketUrl", true);
-        // Configuration.browserCapabilities.setCapability("se:cdpEnabled", false);
+        if (true) {
+            // Workaround for chromedriver timeouts in selenium 4.37
+            Configuration.screenshots = false;
+            Configuration.savePageSource = false;
+            Configuration.remoteReadTimeout = 10_000;
+            Configuration.pageLoadStrategy = "eager";
+            Configuration.browserCapabilities.setCapability(
+                    "goog:loggingPrefs", Map.of("browser", "ALL", "driver", "ALL", "performance", "ALL"));
+            Configuration.browserCapabilities.setCapability("webSocketUrl", true);
+            // Configuration.browserCapabilities.setCapability("se:cdpEnabled", false);
+        }
 
         // Disable Copilot because currently it slows down the page load
         // because of license checking
