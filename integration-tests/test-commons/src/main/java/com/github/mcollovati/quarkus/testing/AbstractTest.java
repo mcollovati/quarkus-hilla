@@ -85,11 +85,11 @@ public abstract class AbstractTest {
     }
 
     protected final String getBaseURL() {
-        return baseURL;
+        return System.getProperty("selenide.baseUrl", this.baseURL);
     }
 
     protected String getTestUrl() {
-        return baseURL;
+        return getBaseURL();
     }
 
     protected void open() {
