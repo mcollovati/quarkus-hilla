@@ -48,7 +48,7 @@ public abstract class AbstractTest {
     @BeforeEach
     void setup(TestInfo info) {
         boolean verbose = Boolean.getBoolean("verbose");
-        if (false) {
+        if (true) {
             Path logFile = Path.of("target")
                     .resolve("chromedriver-"
                             + info.getDisplayName().replace(" ", "_").replaceAll("[()]", "")
@@ -67,7 +67,7 @@ public abstract class AbstractTest {
         }
         Configuration.fastSetValue = true;
 
-        if (false) {
+        if (true) {
             // Workaround for chromedriver timeouts in selenium 4.37
             Configuration.screenshots = false;
             Configuration.savePageSource = false;
