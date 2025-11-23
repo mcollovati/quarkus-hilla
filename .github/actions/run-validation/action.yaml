@@ -66,7 +66,7 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}  -Dquarkus-hilla.test-mode=development
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Dquarkus-hilla.test-mode=development
     - name: End-to-end Tests (Production mode)
       shell: bash
       run: |
