@@ -102,15 +102,18 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+      - name: Get runner IP
+        id: runner-ip
+        run: echo "ip=$(hostname -I | awk '{print $1}')" >> $GITHUB_OUTPUT
       - name: Native Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Pit-tests,production -Dnative -pl ${{ matrix.module.path }}
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Dselenide.baseUrl=http://${{ steps.runner-ip.outputs.ip }}:8081 -Pit-tests,production -Dnative -pl ${{ matrix.module.path }}
       - name: Native Security Test
         if: ${{ matrix.module.security == 0 }}
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Pit-tests,production -Dnative -Dquarkus.profile=test-security -pl ${{ matrix.module.path }}
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Dselenide.baseUrl=http://${{ steps.runner-ip.outputs.ip }}:8081 -Pit-tests,production -Dnative -Dquarkus.profile=test-security -pl ${{ matrix.module.path }}
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports -o -name quarkus.log | tar -czf tests-report-native.tgz -T -
