@@ -16,6 +16,7 @@
 package com.github.mcollovati.quarkus.testing;
 
 import java.lang.management.ManagementFactory;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -27,17 +28,15 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.junit5.BrowserPerTestStrategyExtension;
 import io.quarkus.test.common.http.TestHTTPResource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.Wait;
 
-@ExtendWith({BrowserPerTestStrategyExtension.class})
+// @ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
 
     private static final boolean isMacOS =
@@ -49,12 +48,13 @@ public abstract class AbstractTest {
     @BeforeEach
     void setup(TestInfo info) {
         boolean verbose = Boolean.getBoolean("verbose");
-        if (verbose) {
-            System.setProperty(
-                    "webdriver.chrome.logfile",
-                    "/tmp/mylogs/chromedriver-"
+        if (false) {
+            Path logFile = Path.of("target")
+                    .resolve("chromedriver-"
                             + info.getDisplayName().replace(" ", "_").replaceAll("[()]", "")
                             + ".log");
+            System.setProperty(
+                    "webdriver.chrome.logfile", logFile.toAbsolutePath().toString());
             System.setProperty("webdriver.chrome.verboseLogging", "true");
         }
 
@@ -67,7 +67,7 @@ public abstract class AbstractTest {
         }
         Configuration.fastSetValue = true;
 
-        if (true) {
+        if (false) {
             // Workaround for chromedriver timeouts in selenium 4.37
             Configuration.screenshots = false;
             Configuration.savePageSource = false;
