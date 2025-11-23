@@ -58,6 +58,12 @@ jobs:
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chrome:142.0
+        options: --shm-size=2gb
+        ports:
+          - 4444:4444
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -69,19 +75,17 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # latest
-        id: setup-chrome
-        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
-        with:
-          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+      - name: Get runner IP
+        id: runner-ip
+        run: echo "ip=$(hostname -I | awk '{print $1}')" >> $GITHUB_OUTPUT
       - name: Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Dselenide.baseUrl=http://${{ steps.runner-ip.outputs.ip }}:8081
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main.tgz -T -
@@ -96,6 +100,12 @@ jobs:
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chrome:142.0
+        options: --shm-size=2gb
+        ports:
+          - 4444:4444
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -107,19 +117,17 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # latest
-        id: setup-chrome
-        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
-        with:
-          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install -Dquarkus-hilla.test-mode=development
+      - name: Get runner IP
+        id: runner-ip
+        run: echo "ip=$(hostname -I | awk '{print $1}')" >> $GITHUB_OUTPUT
       - name: End-to-end Test (Development mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Dselenide.baseUrl=http://${{ steps.runner-ip.outputs.ip }}:8081 -Pit-tests  -Dquarkus-hilla.test-mode=development
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-dev.tgz -T -
@@ -134,6 +142,12 @@ jobs:
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chrome:142.0
+        options: --shm-size=2gb
+        ports:
+          - 4444:4444
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -145,19 +159,17 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # latest
-        id: setup-chrome
-        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
-        with:
-          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install -Dquarkus-hilla.test-mode=production
+      - name: Get runner IP
+        id: runner-ip
+        run: echo "ip=$(hostname -I | awk '{print $1}')" >> $GITHUB_OUTPUT
       - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Dselenide.baseUrl=http://${{ steps.runner-ip.outputs.ip }}:8081 -Pit-tests,production -Dquarkus-hilla.test-mode=production
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-prod.tgz -T -
@@ -172,6 +184,12 @@ jobs:
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chrome:142.0
+        options: --shm-size=2gb
+        ports:
+          - 4444:4444
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -183,19 +201,17 @@ jobs:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
           cache: maven
-      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # latest
-        id: setup-chrome
-        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
-        with:
-          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
           mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+      - name: Get runner IP
+        id: runner-ip
+        run: echo "ip=$(hostname -I | awk '{print $1}')" >> $GITHUB_OUTPUT
       - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production,embedded-plugin -Dvaadin.build.enabled=true
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Dselenide.baseUrl=http://${{ steps.runner-ip.outputs.ip }}:8081 -Pit-tests,production,embedded-plugin -Dvaadin.build.enabled=true
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-e2e-embedded-plugin.tgz -T -

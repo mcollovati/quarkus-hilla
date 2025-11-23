@@ -16,7 +16,9 @@
 package com.github.mcollovati.quarkus.testing;
 
 import java.lang.management.ManagementFactory;
+import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -26,16 +28,15 @@ import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selectors;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.junit5.BrowserPerTestStrategyExtension;
 import io.quarkus.test.common.http.TestHTTPResource;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.TestInfo;
 
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.Wait;
 
-@ExtendWith({BrowserPerTestStrategyExtension.class})
+// @ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
 
     private static final boolean isMacOS =
@@ -45,15 +46,38 @@ public abstract class AbstractTest {
     private String baseURL;
 
     @BeforeEach
-    void setup() {
+    void setup(TestInfo info) {
+        boolean verbose = Boolean.getBoolean("verbose");
+        if (false) {
+            Path logFile = Path.of("target")
+                    .resolve("chromedriver-"
+                            + info.getDisplayName().replace(" ", "_").replaceAll("[()]", "")
+                            + ".log");
+            System.setProperty(
+                    "webdriver.chrome.logfile", logFile.toAbsolutePath().toString());
+            System.setProperty("webdriver.chrome.verboseLogging", "true");
+        }
+
         if (isMacOS) {
             Configuration.headless = false;
             Configuration.browser = "safari";
         } else {
             Configuration.headless = runHeadless();
-            System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
+            System.setProperty("chromeoptions.args", "--remote-allow-origins=*,--no-sandbox,--disable-gpu");
         }
         Configuration.fastSetValue = true;
+
+        if (false) {
+            // Workaround for chromedriver timeouts in selenium 4.37
+            Configuration.screenshots = false;
+            Configuration.savePageSource = false;
+            Configuration.remoteReadTimeout = 10_000;
+            Configuration.pageLoadStrategy = "eager";
+            Configuration.browserCapabilities.setCapability(
+                    "goog:loggingPrefs", Map.of("browser", "ALL", "driver", "ALL", "performance", "ALL"));
+            Configuration.browserCapabilities.setCapability("webSocketUrl", true);
+            // Configuration.browserCapabilities.setCapability("se:cdpEnabled", false);
+        }
 
         // Disable Copilot because currently it slows down the page load
         // because of license checking
@@ -61,11 +85,11 @@ public abstract class AbstractTest {
     }
 
     protected final String getBaseURL() {
-        return baseURL;
+        return System.getProperty("selenide.baseUrl", this.baseURL);
     }
 
     protected String getTestUrl() {
-        return baseURL;
+        return getBaseURL();
     }
 
     protected void open() {
