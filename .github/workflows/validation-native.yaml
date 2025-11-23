@@ -81,6 +81,12 @@ jobs:
         module: ${{fromJson(needs.compute-matrix.outputs.modules)}}
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    services:
+      selenium:
+        image: selenium/standalone-chrome:142.0
+        options: --shm-size=2gb
+        ports:
+          - 4444:4444
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -92,11 +98,6 @@ jobs:
           java-version: 23
           distribution: 'graalvm'
           cache: maven
-      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # latest
-        id: setup-chrome
-        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
-        with:
-          chrome-version: stable
       - name: Build
         run: |
           set -x -e -o pipefail
@@ -104,12 +105,12 @@ jobs:
       - name: Native Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -pl ${{ matrix.module.path }}
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Pit-tests,production -Dnative -pl ${{ matrix.module.path }}
       - name: Native Security Test
         if: ${{ matrix.module.security == 0 }}
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Pit-tests,production -Dnative -Dquarkus.profile=test-security -pl ${{ matrix.module.path }}
+          mvn -V -e -B -ntp verify -am -DtrimStackTrace=false -Dselenide.remote=http://localhost:4444/wd/hub -Pit-tests,production -Dnative -Dquarkus.profile=test-security -pl ${{ matrix.module.path }}
       - name: Package test output files
         if: ${{ failure() || success() }}
         run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports -o -name quarkus.log | tar -czf tests-report-native.tgz -T -
