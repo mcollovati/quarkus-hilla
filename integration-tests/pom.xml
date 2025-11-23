@@ -179,7 +179,7 @@
             <activation>
                 <property>
                     <name>quarkus-hilla.test-mode</name>
-                    <value>development</value>
+                    <value>production</value>
                 </property>
             </activation>
             <build>
