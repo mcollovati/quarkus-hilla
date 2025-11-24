@@ -357,7 +357,6 @@ class QuarkusHillaExtensionProcessor {
 
     @BuildStep
     void registerServiceInitEventPropagator(
-            QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
             BuildProducer<GeneratedResourceBuildItem> resourceProducer,
             BuildProducer<ServiceProviderBuildItem> serviceProviderProducer) {
         ServiceProviderBuildItem item =
