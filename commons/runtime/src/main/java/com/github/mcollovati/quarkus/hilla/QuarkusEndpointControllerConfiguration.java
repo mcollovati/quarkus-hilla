@@ -20,12 +20,13 @@ import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
-import java.util.concurrent.CompletableFuture;
 
 import com.vaadin.flow.server.ServiceInitEvent;
+import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
@@ -47,12 +48,11 @@ import com.vaadin.hilla.signals.handler.SignalsHandler;
 import com.vaadin.hilla.signals.internal.SecureSignalsRegistry;
 import com.vaadin.hilla.startup.EndpointRegistryInitializer;
 import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
+import com.vaadin.quarkus.annotation.VaadinServiceEnabled;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
-import io.quarkus.runtime.StartupEvent;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
@@ -245,6 +245,7 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
+    @VaadinServiceEnabled
     RouteUnifyingServiceInitListener routeUnifyingServiceInitListener(
             @ConfigProperty(name = "exposeServerRoutesToClient", defaultValue = "true")
                     boolean exposeServerRoutesToClient,
@@ -272,20 +273,14 @@ class QuarkusEndpointControllerConfiguration {
         return new SignalsHandler(signalsRegistry);
     }
 
-    void initializeEndpointRegistry(@Observes StartupEvent event, EndpointController endpointController) {
-        EndpointRegistryInitializer registryInitializer = new EndpointRegistryInitializer(endpointController);
-        this.vaadinServiceInitEvent.thenAccept(registryInitializer::serviceInit).whenComplete((unused, throwable) -> {
-            this.vaadinServiceInitEvent = null;
-            if (throwable != null) {
-                LoggerFactory.getLogger(EndpointRegistryInitializer.class)
-                        .error("Endpoint registry initialization failed", throwable);
-            }
-        });
-    }
+    void serviceInitListenerBeanInitializer(@Observes ServiceInitEvent event, EndpointController endpointController) {
+        // TODO: make it a bean
+        new EndpointRegistryInitializer(endpointController).serviceInit(event);
 
-    private CompletableFuture<ServiceInitEvent> vaadinServiceInitEvent = new CompletableFuture<>();
-
-    void onVaadinServiceInit(ServiceInitEvent event) {
-        this.vaadinServiceInitEvent.complete(event);
+        // Should be done by QuarkusInstantiator
+        // see https://github.com/vaadin/quarkus/issues/234
+        CDI.current()
+                .select(VaadinServiceInitListener.class, VaadinServiceEnabled.Literal.INSTANCE)
+                .forEach(l -> l.serviceInit(event));
     }
 }

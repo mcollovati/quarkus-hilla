@@ -79,7 +79,7 @@ class EndpointSecurityTest {
                 .statusCode(401)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
     }
 
     @Test
@@ -97,7 +97,7 @@ class EndpointSecurityTest {
                 .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'")));
+                .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "adminOnly")
                 .then()
@@ -105,7 +105,7 @@ class EndpointSecurityTest {
                 .statusCode(401)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
     }
 
     @Test
@@ -123,7 +123,7 @@ class EndpointSecurityTest {
                 .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'")));
+                .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "userOnly")
                 .then()
@@ -131,7 +131,7 @@ class EndpointSecurityTest {
                 .statusCode(401)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
     }
 
     @Test
@@ -149,7 +149,7 @@ class EndpointSecurityTest {
                 .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
 
         givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin")
                 .then()
@@ -157,7 +157,7 @@ class EndpointSecurityTest {
                 .statusCode(401)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
     }
 
     @Test
@@ -168,7 +168,7 @@ class EndpointSecurityTest {
                 .statusCode(403)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'")));
+                .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "deny")
                 .then()
@@ -176,7 +176,7 @@ class EndpointSecurityTest {
                 .statusCode(401)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
     }
 
     @Test
@@ -188,7 +188,7 @@ class EndpointSecurityTest {
                         .statusCode(403)
                         .and()
                         .body("message", containsString(SECURE_ENDPOINT))
-                        .body("message", containsString("reason: 'Access denied'")));
+                        .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "denyByDefault")
                 .then()
@@ -196,7 +196,7 @@ class EndpointSecurityTest {
                 .statusCode(401)
                 .and()
                 .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied'"));
+                .body("message", containsString("reason: 'Access denied"));
     }
 
     private static UnaryOperator<RequestSpecification> authenticate(User user) {
