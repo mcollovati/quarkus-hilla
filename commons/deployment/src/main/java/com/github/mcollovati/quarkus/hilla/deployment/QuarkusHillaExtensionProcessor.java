@@ -16,9 +16,11 @@
 package com.github.mcollovati.quarkus.hilla.deployment;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
@@ -358,10 +360,15 @@ class QuarkusHillaExtensionProcessor {
             QuarkusHillaEnvironmentBuildItem quarkusHillaEnv,
             BuildProducer<GeneratedResourceBuildItem> resourceProducer,
             BuildProducer<ServiceProviderBuildItem> serviceProviderProducer) {
-        String descriptor = QuarkusVaadinServiceListenerPropagator.class.getName() + System.lineSeparator();
+        ServiceProviderBuildItem item =
+                ServiceProviderBuildItem.allProvidersFromClassPath(VaadinServiceInitListener.class.getName());
+        List<String> providers = new ArrayList<>(item.providers());
+        providers.add(QuarkusVaadinServiceListenerPropagator.class.getName());
+        String descriptors =
+                providers.stream().collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator()));
         resourceProducer.produce(new GeneratedResourceBuildItem(
                 "META-INF/services/" + VaadinServiceInitListener.class.getName(),
-                descriptor.getBytes(StandardCharsets.UTF_8)));
+                descriptors.getBytes(StandardCharsets.UTF_8)));
         serviceProviderProducer.produce(new ServiceProviderBuildItem(
                 VaadinServiceInitListener.class.getName(), QuarkusVaadinServiceListenerPropagator.class.getName()));
     }
