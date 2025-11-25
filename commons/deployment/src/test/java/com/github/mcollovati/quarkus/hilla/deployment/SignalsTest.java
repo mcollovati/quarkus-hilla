@@ -53,13 +53,10 @@ class SignalsTest {
     static final QuarkusUnitTest config = new QuarkusUnitTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .add(
-                            new StringAsset(
-                                    """
+                    .add(new StringAsset("""
                     com.vaadin.experimental.fullstackSignals=true
                     com.vaadin.experimental.flowFullstackSignals=true
-                    """),
-                            "vaadin-featureflags.properties")
+                    """), "vaadin-featureflags.properties")
                     .addClasses(TestUtils.class, NumberSignalService.class, NumberSignal.class, HillaPushClient.class));
 
     @Test

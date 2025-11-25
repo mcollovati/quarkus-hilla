@@ -80,13 +80,11 @@ public class QuarkusHillaDevUICommonsProcessor {
                         DevUIContent.builder()
                                 .fileName("quarkus-hilla-application-data.js")
                                 .addData("buildTimeData", Map.of("hillaEndpoints", endpoints))
-                                .template(
-                                        """
+                                .template("""
                                                 {#for d in buildTimeData}\s
                                                 export const {d.key} = {d.value};
                                                 {/for}
-                                                """
-                                                .getBytes(StandardCharsets.UTF_8))
+                                                """.getBytes(StandardCharsets.UTF_8))
                                 .build())));
     }
 

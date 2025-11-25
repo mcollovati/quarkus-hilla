@@ -40,7 +40,8 @@ public class UploadEndpoint {
         }
     }
 
-    public record Info(String id, @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date) {}
+    public record Info(
+            String id, @JsonFormat(pattern = "yyyy-MM-dd") LocalDate date) {}
 
     public record Result(Info info, String uri) {}
 }

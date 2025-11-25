@@ -21,7 +21,8 @@ import java.util.List;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.Type;
 
-public record TypeInfo(List<String> annotations, String type, @Nullable List<TypeInfo> generics) {
+public record TypeInfo(
+        List<String> annotations, String type, @Nullable List<TypeInfo> generics) {
 
     public static TypeInfo from(Type type) {
         if (type.kind() == Type.Kind.PARAMETERIZED_TYPE) {
