@@ -66,12 +66,17 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Dquarkus-hilla.test-mode=development
     - name: End-to-end Tests (Production mode)
       shell: bash
       run: |
         set -x -e -o pipefail
-        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }}
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Dquarkus-hilla.test-mode=production
+    - name: End-to-end Tests (Embedded mode)
+      shell: bash
+      run: |
+        set -x -e -o pipefail
+        mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false -Pit-tests,production,embedded-plugin,snapshot-validation -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} -Dvaadin.build.enabled=true
     - name: Package test output files
       if: ${{ failure()}}
       shell: bash
