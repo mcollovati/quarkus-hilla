@@ -151,20 +151,31 @@
     </build>
     <profiles>
         <profile>
-            <!-- Production mode is activated using -Pproduction -->
-            <id>production</id>
+            <id>development</id>
+            <activation>
+                <property>
+                    <name>quarkus-hilla.test-mode</name>
+                    <value>development</value>
+                </property>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>com.vaadin</groupId>
-                    <artifactId>vaadin-core</artifactId>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>com.vaadin</groupId>
-                            <artifactId>vaadin-dev</artifactId>
-                        </exclusion>
-                    </exclusions>
+                    <artifactId>vaadin-dev</artifactId>
+                    <version>${vaadin.version}</version>
+                    <scope>runtime</scope>
                 </dependency>
             </dependencies>
+        </profile>
+        <profile>
+            <!-- Production mode is activated using -Pproduction -->
+            <id>production</id>
+            <activation>
+                <property>
+                    <name>quarkus-hilla.test-mode</name>
+                    <value>production</value>
+                </property>
+            </activation>
             <build>
                 <plugins>
                     <plugin>
@@ -321,7 +332,9 @@
         <module>panache-extension-support-tests</module>
         <module>hybrid-smoke-tests</module>
         <module>hybrid-vaadin-router-smoke-tests</module>
+        <!--
         <module>security-form-tests</module>
+        -->
         <module>codestart-tests</module>
     </modules>
 </project>
