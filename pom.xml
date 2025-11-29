@@ -50,7 +50,7 @@
         <hilla.version>24.8.11</hilla.version>
         <flow.version>24.8.12</flow.version>
         <vaadin.version>24.8.12</vaadin.version>
-        <vaadin.quarkus.version>2.1.3</vaadin.quarkus.version>
+        <vaadin.quarkus.version>2.2.3</vaadin.quarkus.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
@@ -67,7 +67,7 @@
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
         <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
-        <jandex-maven-plugin.version>3.5.1</jandex-maven-plugin.version>
+        <jandex-maven-plugin.version>3.3.2</jandex-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.21.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
