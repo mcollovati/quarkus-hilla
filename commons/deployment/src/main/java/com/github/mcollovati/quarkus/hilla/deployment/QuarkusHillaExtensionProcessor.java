@@ -21,7 +21,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
 import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
@@ -343,18 +342,5 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.ContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.AnnotationScanningServletContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem(ServletDeployer.class.getName()));
-    }
-
-    /*
-     * Temporary step to register missing beans
-     * See https://github.com/vaadin/quarkus/issues/175
-     */
-    @BuildStep
-    void registerVaadinQuarkusServices(BuildProducer<AdditionalBeanBuildItem> producer) {
-        producer.produce(AdditionalBeanBuildItem.builder()
-                .addBeanClass(DefaultMenuAccessControl.class)
-                .setDefaultScope(DotNames.SINGLETON)
-                .setUnremovable()
-                .build());
     }
 }

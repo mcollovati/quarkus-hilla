@@ -16,17 +16,13 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
-import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 
-import com.vaadin.flow.server.ServiceInitEvent;
-import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
@@ -222,6 +218,14 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     @Produces
+    @Singleton
+    @DefaultBean
+    @VaadinServiceEnabled
+    EndpointRegistryInitializer endpointRegistryInitializer(EndpointController endpointController) {
+        return new EndpointRegistryInitializer(endpointController);
+    }
+
+    @Produces
     @ApplicationScoped
     @DefaultBean
     EndpointCodeGenerator endpointCodeGenerator(ServletContext servletContext, EndpointController endpointController) {
@@ -271,16 +275,5 @@ class QuarkusEndpointControllerConfiguration {
     @Singleton
     SignalsHandler signalsHandler(SecureSignalsRegistry signalsRegistry) {
         return new SignalsHandler(signalsRegistry);
-    }
-
-    void serviceInitListenerBeanInitializer(@Observes ServiceInitEvent event, EndpointController endpointController) {
-        // TODO: make it a bean
-        new EndpointRegistryInitializer(endpointController).serviceInit(event);
-
-        // Should be done by QuarkusInstantiator
-        // see https://github.com/vaadin/quarkus/issues/234
-        CDI.current()
-                .select(VaadinServiceInitListener.class, VaadinServiceEnabled.Literal.INSTANCE)
-                .forEach(l -> l.serviceInit(event));
     }
 }
