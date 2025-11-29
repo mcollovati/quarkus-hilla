@@ -15,14 +15,10 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
-import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
 import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
@@ -54,7 +50,6 @@ import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
 import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ServiceProviderBuildItem;
 import io.quarkus.deployment.pkg.NativeConfig;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
@@ -79,7 +74,6 @@ import com.github.mcollovati.quarkus.hilla.QuarkusAtmosphereServlet;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointController;
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointProperties;
-import com.github.mcollovati.quarkus.hilla.QuarkusVaadinServiceListenerPropagator;
 import com.github.mcollovati.quarkus.hilla.crud.FilterableRepositorySupport;
 import com.github.mcollovati.quarkus.hilla.deployment.asm.OffendingMethodCallsReplacer;
 import com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin.VaadinBuildTimeConfig;
@@ -353,23 +347,6 @@ class QuarkusHillaExtensionProcessor {
                 }
             }
         }));
-    }
-
-    @BuildStep
-    void registerServiceInitEventPropagator(
-            BuildProducer<GeneratedResourceBuildItem> resourceProducer,
-            BuildProducer<ServiceProviderBuildItem> serviceProviderProducer) {
-        ServiceProviderBuildItem item =
-                ServiceProviderBuildItem.allProvidersFromClassPath(VaadinServiceInitListener.class.getName());
-        List<String> providers = new ArrayList<>(item.providers());
-        providers.add(QuarkusVaadinServiceListenerPropagator.class.getName());
-        String descriptors =
-                providers.stream().collect(Collectors.joining(System.lineSeparator(), "", System.lineSeparator()));
-        resourceProducer.produce(new GeneratedResourceBuildItem(
-                "META-INF/services/" + VaadinServiceInitListener.class.getName(),
-                descriptors.getBytes(StandardCharsets.UTF_8)));
-        serviceProviderProducer.produce(new ServiceProviderBuildItem(
-                VaadinServiceInitListener.class.getName(), QuarkusVaadinServiceListenerPropagator.class.getName()));
     }
 
     @BuildStep
