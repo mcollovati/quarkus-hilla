@@ -4,7 +4,7 @@
   "dependencies": {
     "@adobe/lit-mobx": "2.0.0",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
-    "@vaadin/aura": "25.0.0-beta6",
+    "@vaadin/aura": "25.0.0-beta7",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "25.0.0-beta7",
     "@vaadin/hilla-frontend": "25.0.0-beta7",
@@ -17,8 +17,8 @@
     "@vaadin/react-components": "25.0.0-beta6",
     "@vaadin/react-components-pro": "25.0.0-beta6",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
-    "@vaadin/vaadin-lumo-styles": "25.0.0-beta6",
-    "@vaadin/vaadin-themable-mixin": "25.0.0-beta6",
+    "@vaadin/vaadin-lumo-styles": "25.0.0-beta7",
+    "@vaadin/vaadin-themable-mixin": "25.0.0-beta7",
     "@vaadin/vaadin-usage-statistics": "2.1.3",
     "date-fns": "4.1.0",
     "lit": "3.3.1",
@@ -161,7 +161,7 @@
   },
   "vaadin": {
     "dependencies": {
-      "@vaadin/aura": "25.0.0-beta6",
+      "@vaadin/aura": "25.0.0-beta7",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "25.0.0-beta7",
       "@vaadin/hilla-frontend": "25.0.0-beta7",
@@ -174,8 +174,8 @@
       "@vaadin/react-components": "25.0.0-beta6",
       "@vaadin/react-components-pro": "25.0.0-beta6",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
-      "@vaadin/vaadin-lumo-styles": "25.0.0-beta6",
-      "@vaadin/vaadin-themable-mixin": "25.0.0-beta6",
+      "@vaadin/vaadin-lumo-styles": "25.0.0-beta7",
+      "@vaadin/vaadin-themable-mixin": "25.0.0-beta7",
       "@vaadin/vaadin-usage-statistics": "2.1.3",
       "date-fns": "4.1.0",
       "lit": "3.3.1",
@@ -213,7 +213,7 @@
       "vite-plugin-checker": "0.11.0",
       "workbox-build": "7.3.0"
     },
-    "hash": "0ff8edc278c96a6c609cc5442072a5e4b51d4e55317fad7fd7e5f752cd9b64a8"
+    "hash": "97b275ad5c5ec1d228c07d934fdba2745a169630659eff5012c4a98cf8152c67"
   },
   "type": "module"
 }
