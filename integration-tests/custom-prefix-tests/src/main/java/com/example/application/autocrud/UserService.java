@@ -94,7 +94,8 @@ public class UserService implements ListService<UserPOJO>, GetService<UserPOJO, 
                         comparator = switch (o.getNullHandling()) {
                             case NULLS_FIRST -> Comparator.nullsFirst(comparator);
                             case NULLS_LAST -> Comparator.nullsLast(comparator);
-                            default -> comparator;};
+                            default -> comparator;
+                        };
                     }
                     return comparator;
                 })
@@ -133,10 +134,11 @@ public class UserService implements ListService<UserPOJO>, GetService<UserPOJO, 
                     Optional.ofNullable(filter.getFilterValue()).map(v -> v.toLowerCase(Locale.ROOT));
             return switch (filter.getMatcher()) {
                 case EQUALS -> Objects.equals(value, filterValue);
-                case CONTAINS -> value.filter(v -> v.contains(filterValue.orElse("")))
-                        .isPresent();
-                default -> throw new UnsupportedOperationException(
-                        filter.getMatcher() + " is not supported for property " + propertyId);
+                case CONTAINS ->
+                    value.filter(v -> v.contains(filterValue.orElse(""))).isPresent();
+                default ->
+                    throw new UnsupportedOperationException(
+                            filter.getMatcher() + " is not supported for property " + propertyId);
             };
         };
     }
