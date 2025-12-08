@@ -176,9 +176,7 @@ abstract class AbstractEndpointControllerTest {
         ExtractableResponse<Response> res = RestAssured.given()
                 .contentType(ContentType.MULTIPART)
                 .multiPart("/file", tempFile.toFile())
-                .multiPart(
-                        EndpointController.BODY_PART_NAME,
-                        """
+                .multiPart(EndpointController.BODY_PART_NAME, """
                         { "info": { "id": "UPLOAD-1", "date": "2025-02-02" } }
                         """)
                 .cookie("csrfToken", "CSRF_TOKEN")
