@@ -140,8 +140,7 @@ public class QuarkusPluginAdapter implements PluginAdapterBuild {
         if (model.getRuntimeDependencies().stream()
                 .noneMatch(dependency -> dependency.getGroupId().equals(groupId))) {
             if (missingDependencyMessageConsumer != null) {
-                missingDependencyMessageConsumer.accept(String.format(
-                        """
+                missingDependencyMessageConsumer.accept(String.format("""
                                 The dependency %1$s:%2$s has not been found in the project configuration.
                                 Please add the following dependency to your POM file:
 
@@ -150,8 +149,7 @@ public class QuarkusPluginAdapter implements PluginAdapterBuild {
                                     <artifactId>%2$s</artifactId>
                                     <scope>runtime</scope>
                                 </dependency>
-                                """,
-                        groupId, artifactId));
+                                """, groupId, artifactId));
             }
             return true;
         }

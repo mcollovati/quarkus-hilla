@@ -281,13 +281,10 @@ class ListRepositoryServiceTest {
 
     @Test
     void listService_list_multiSort() {
-        Assertions.assertThat(entityManager
-                        .createNativeQuery(
-                                """
+        Assertions.assertThat(entityManager.createNativeQuery("""
                                         insert into test_table (id, text, number)
                                         (select NEXT VALUE FOR test_table_SEQ, text, number * 10 from test_table)
-                                        """)
-                        .executeUpdate())
+                                        """).executeUpdate())
                 .isEqualTo(5);
 
         Pageable page = PageRequest.of(0, 10, Sort.by(Sort.Order.asc("text"), Sort.Order.desc("number")));
