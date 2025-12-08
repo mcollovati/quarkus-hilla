@@ -21,7 +21,6 @@ import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
-import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 
@@ -55,6 +54,7 @@ import com.vaadin.quarkus.annotation.VaadinServiceEnabled;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
 import io.quarkus.runtime.StartupEvent;
+import io.smallrye.common.annotation.Identifier;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.springframework.context.ApplicationContext;
@@ -148,7 +148,7 @@ class QuarkusEndpointControllerConfiguration {
     @DefaultBean
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
-            @Named("endpointObjectMapper") ObjectMapper objectMapper,
+            @Identifier("endpointObjectMapper") ObjectMapper objectMapper,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
             ServletContext servletContext,
             EndpointRegistry endpointRegistry,
@@ -164,10 +164,8 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
-    @Named("endpointObjectMapper")
-    ObjectMapper endpointObjectMapper(
-            @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
-                    JacksonObjectMapperFactory endpointMapperFactory) {
+    @Identifier("endpointObjectMapper") ObjectMapper endpointObjectMapper(
+            @Identifier(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER) JacksonObjectMapperFactory endpointMapperFactory) {
         ObjectMapper mapper = endpointMapperFactory.build();
         mapper.registerModule(new EndpointTransferMapper().getJacksonModule());
         return mapper;
@@ -176,8 +174,7 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @ApplicationScoped
     @DefaultBean
-    @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
-    JacksonObjectMapperFactory objectMapperFactory() {
+    @Identifier(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER) JacksonObjectMapperFactory objectMapperFactory() {
         class Factory extends JacksonObjectMapperFactory.Json {
             @Override
             @SuppressWarnings("deprecation")
@@ -214,7 +211,7 @@ class QuarkusEndpointControllerConfiguration {
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker,
-            @Named("endpointObjectMapper") ObjectMapper objectMapper) {
+            @Identifier("endpointObjectMapper") ObjectMapper objectMapper) {
         return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker, objectMapper);
     }
 
@@ -241,7 +238,7 @@ class QuarkusEndpointControllerConfiguration {
     }
 
     void initSignalsObjectMapper(
-            @Observes StartupEvent event, @Named("endpointObjectMapper") ObjectMapper objectMapper) {
+            @Observes StartupEvent event, @Identifier("endpointObjectMapper") ObjectMapper objectMapper) {
         Signal.setMapper(objectMapper);
     }
 
