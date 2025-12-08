@@ -16,7 +16,6 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.inject.Inject;
-import jakarta.inject.Named;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Consumes;
@@ -30,6 +29,7 @@ import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 
 import com.vaadin.hilla.EndpointController;
+import io.smallrye.common.annotation.Identifier;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.springframework.http.ResponseEntity;
 import tools.jackson.databind.ObjectMapper;
@@ -47,7 +47,7 @@ public class QuarkusEndpointController {
 
     @Inject
     public QuarkusEndpointController(
-            EndpointController delegate, @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
+            EndpointController delegate, @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
         this.delegate = delegate;
         this.objectMapper = objectMapper;
         QuarkusHillaExtension.markUsed();

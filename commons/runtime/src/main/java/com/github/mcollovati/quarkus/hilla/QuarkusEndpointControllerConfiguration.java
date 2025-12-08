@@ -16,10 +16,11 @@
 package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
-import jakarta.inject.Named;
+import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 
@@ -47,6 +48,7 @@ import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import com.vaadin.quarkus.annotation.VaadinServiceEnabled;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
+import io.smallrye.common.annotation.Identifier;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
 import org.springframework.context.ApplicationContext;
@@ -143,7 +145,7 @@ class QuarkusEndpointControllerConfiguration {
     @DefaultBean
     EndpointInvoker endpointInvoker(
             ApplicationContext applicationContext,
-            @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper,
+            @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper,
             ExplicitNullableTypeChecker explicitNullableTypeChecker,
             ServletContext servletContext,
             EndpointRegistry endpointRegistry,
@@ -159,10 +161,9 @@ class QuarkusEndpointControllerConfiguration {
 
     @Produces
     @Singleton
-    @Named("hillaEndpointObjectMapper")
-    ObjectMapper endpointObjectMapper(
-            @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
-                    JacksonObjectMapperFactory endpointMapperFactory) {
+    @Default
+    @Identifier("hillaEndpointObjectMapper") ObjectMapper endpointObjectMapper(
+            @Identifier(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER) JacksonObjectMapperFactory endpointMapperFactory) {
         return endpointMapperFactory
                 .build()
                 .rebuild()
@@ -173,8 +174,7 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @ApplicationScoped
     @DefaultBean
-    @Named(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER)
-    JacksonObjectMapperFactory objectMapperFactory() {
+    @Identifier(EndpointController.ENDPOINT_MAPPER_FACTORY_BEAN_QUALIFIER) JacksonObjectMapperFactory objectMapperFactory() {
         class Factory extends JacksonObjectMapperFactory.Json {
             @Override
             @SuppressWarnings("deprecation")
@@ -213,7 +213,7 @@ class QuarkusEndpointControllerConfiguration {
             EndpointRegistry endpointRegistry,
             EndpointInvoker endpointInvoker,
             CsrfChecker csrfChecker,
-            @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
+            @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
         return new EndpointController(context, endpointRegistry, endpointInvoker, csrfChecker, objectMapper);
     }
 
@@ -236,7 +236,7 @@ class QuarkusEndpointControllerConfiguration {
     @ApplicationScoped
     @DefaultBean
     SecureSignalsRegistry signalsRegistry(
-            EndpointInvoker endpointInvoker, @Named("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
+            EndpointInvoker endpointInvoker, @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
         return new SecureSignalsRegistry(endpointInvoker, objectMapper);
     }
 
@@ -270,8 +270,7 @@ class QuarkusEndpointControllerConfiguration {
      *
      * @return SignalsHandler endpoint instance
      */
-    @Named("hillaSignalsHandler")
-    @Produces
+    @Identifier("hillaSignalsHandler") @Produces
     @Singleton
     SignalsHandler signalsHandler(SecureSignalsRegistry signalsRegistry) {
         return new SignalsHandler(signalsRegistry);
