@@ -42,13 +42,13 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.30.1</quarkus.version>
+        <quarkus.version>3.30.2</quarkus.version>
         <!--
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
         <hilla.version>24.9.3</hilla.version>
-        <flow.version>24.9.5</flow.version>
+        <flow.version>24.9.6</flow.version>
         <vaadin.version>24.9.6</vaadin.version>
         <vaadin.quarkus.version>2.2.3</vaadin.quarkus.version>
 
@@ -65,7 +65,7 @@
         <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
+        <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
         <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
         <jandex-maven-plugin.version>3.3.2</jandex-maven-plugin.version>
         <jreleaser-maven-plugin.version>1.21.0</jreleaser-maven-plugin.version>
@@ -249,6 +249,9 @@
                 <configuration>
                     <java>
                         <palantirJavaFormat>
+                            <!-- Declare version so that spotless does not choose a version based on JDK version -->
+                            <!-- https://github.com/diffplug/spotless/issues/2503#issuecomment-2953146277 -->
+                            <version>2.67.0</version>
                             <style>PALANTIR</style>
                         </palantirJavaFormat>
                         <importOrder>
