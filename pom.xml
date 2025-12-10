@@ -252,6 +252,9 @@
                             <!-- Declare version so that spotless does not choose a version based on JDK version -->
                             <!-- https://github.com/diffplug/spotless/issues/2503#issuecomment-2953146277 -->
                             <version>2.67.0</version>
+
+
+
                             <style>PALANTIR</style>
                         </palantirJavaFormat>
                         <importOrder>
