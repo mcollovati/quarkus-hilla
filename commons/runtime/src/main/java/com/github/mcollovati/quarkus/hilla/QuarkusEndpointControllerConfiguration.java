@@ -20,7 +20,6 @@ import jakarta.enterprise.inject.Default;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.enterprise.inject.spi.BeanManager;
-import jakarta.enterprise.inject.spi.CDI;
 import jakarta.inject.Singleton;
 import jakarta.servlet.ServletContext;
 
