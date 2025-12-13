@@ -24,7 +24,7 @@ on:
         type: string
       hilla-version:
         description: |
-          LEGACY: Version of Hilla to pin for this release. If not provided, the value of the hilla.version property in will be used.
+          LEGACY (24.9 or less): Version of Hilla to pin for this release. If not provided, the value of the hilla.version property in will be used.
           If the Hilla version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
         required: false
         type: string
