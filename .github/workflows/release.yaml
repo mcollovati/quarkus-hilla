@@ -16,18 +16,19 @@ on:
         description: "Version to release (e.g. 1.1.0 or 1.2.0-alpha1)"
         required: true
         type: string
-      hilla-version:
-        description: |
-          Version of Hilla to pin for this release. If not provided, the value of the hilla.version property in will be used.
-          If the Hilla version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
-        required: false
-        type: string
       vaadin-version:
         description: |
           Version of Vaadin to pin for this release. If not provided, the value of the vaadin.version property in will be used.
           If the Vaadin version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
         required: false
         type: string
+      hilla-version:
+        description: |
+          LEGACY: Version of Hilla to pin for this release. If not provided, the value of the hilla.version property in will be used.
+          If the Hilla version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
+        required: false
+        type: string
+        deprecationMessage: "This input is deprecated and should be used only for version older than 25. Use 'vaadin-version' instead."
       dry-run:
         description: "Dry run (skips remote operations)"
         required: true
@@ -170,7 +171,7 @@ jobs:
           
           flow_version=$(mvn -ntp -q -f $temp_pom -Dexpression=flow.version)
           hilla_version=$(mvn -ntp -q -f $temp_pom -Dexpression=hilla.version)
-          vaadin_quarkus_version=$(mvn -ntp -q -f $temp_pom -Dexpression=vaadin_quarkus.version)
+          vaadin_quarkus_version=$(mvn -ntp -q -f $temp_pom -Dexpression=vaadin-quarkus.version)
 
           mvn -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="$vaadin_version"
           mvn -N -ntp versions:set-property -Dproperty=flow.version -DnewVersion="$flow_version"
