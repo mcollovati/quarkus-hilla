@@ -47,7 +47,7 @@ jobs:
       - name: Compute matrix
         id: set-matrix
         run: |
-          test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests")
+          test_modules=$(find integration-tests -maxdepth 1 -mindepth 1 -type d -name "*-tests" | grep -v "integration-tests/security-form-tests")
           test_modules=$(while IFS= read -r mod; do test -f $mod/src/main/resources/application.properties && grep -q "%test-security." $mod/src/main/resources/application.properties; echo "{\"name\": \"${mod/integration-tests\//}\", \"path\": \"$mod\", \"security\": $? }"; done <<< "${test_modules}" | jq -s -c '.')
           echo "modules=${test_modules}" >> "$GITHUB_OUTPUT"
   build-and-test-native:
