@@ -67,6 +67,7 @@ jobs:
           ref: refs/heads/${{ inputs.target-branch }}
           fetch-depth: 0
       - name: Validate version
+        id: validateVersion
         env:
           CMD_VERSION: ${{ inputs.version }}
           CMD_TARGET_BRANCH: ${{ inputs.target-branch }}
@@ -96,7 +97,7 @@ jobs:
           version_pin_type=$(test -f etc/pom-for-version-detection.xml && echo "NEW" || echo "LEGACY")
           echo "versionPinType=${version_pin_type}" >> "$GITHUB_OUTPUT"
       - name: Pin Hilla version
-        if: ${{ steps.searchpr.outputs.versionPinType == 'LEGACY' }}
+        if: ${{ steps.validateVersion.outputs.versionPinType == 'LEGACY' }}
         env:
           CMD_HILLA_VERSION: ${{ inputs.hilla-version }}
         run: |
@@ -131,7 +132,7 @@ jobs:
             echo "⚠️ SNAPSHOT detected for vaadin-quarkus version. Automatically forcing version to $vaadin_quarkus_version." | tee -a $GITHUB_STEP_SUMMARY
           fi
       - name: Pin Versions
-        if: ${{ steps.searchpr.outputs.versionPinType == 'NEW' }}
+        if: ${{ steps.validateVersion.outputs.versionPinType == 'NEW' }}
         env:
           CMD_VAADIN_VERSION: ${{ inputs.vaadin-version }}
         run: |
