@@ -18,7 +18,7 @@ env:
   HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 jobs:
   changes:
-    environment: ${{ github.event.pull_request.head.repo.fork && 'pr-tests' || '' }}
+    environment: ${{ github.event.pull_request.head.repo.fork && 'pr-validation' || '' }}
     name: Compute changes
     runs-on: ubuntu-latest
     outputs:
