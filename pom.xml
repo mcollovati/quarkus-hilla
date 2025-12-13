@@ -50,7 +50,6 @@
         <hilla.version>25.0-SNAPSHOT</hilla.version>
         <flow.version>${hilla.version}</flow.version>
         <vaadin.version>${hilla.version}</vaadin.version>
-        <vaadin.quarkus.version>3.0-SNAPSHOT</vaadin.quarkus.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
@@ -116,11 +115,6 @@
                 <version>${vaadin.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.vaadin</groupId>
-                <artifactId>vaadin-quarkus</artifactId>
-                <version>${vaadin.quarkus.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.quarkus</groupId>
@@ -527,11 +521,6 @@
                     <artifactId>vaadin</artifactId>
                     <scope>provided</scope>
                 </dependency>
-                <dependency>
-                    <groupId>com.vaadin</groupId>
-                    <artifactId>vaadin-quarkus</artifactId>
-                    <scope>provided</scope>
-                </dependency>
             </dependencies>
             <build>
                 <defaultGoal>initialize</defaultGoal>
@@ -567,12 +556,6 @@
                                             <regex>^.*vaadin-(\d+\.\d+).*</regex>
                                             <replacement>$1</replacement>
                                             <value>${com.vaadin:vaadin:jar}</value>
-                                        </regexPropertySetting>
-                                        <regexPropertySetting>
-                                            <name>vaadin.quarkus</name>
-                                            <regex>^.*vaadin-quarkus-(\d+\.\d+).*</regex>
-                                            <replacement>$1</replacement>
-                                            <value>${com.vaadin:vaadin-quarkus:jar}</value>
                                         </regexPropertySetting>
                                     </regexPropertySettings>
                                 </configuration>
