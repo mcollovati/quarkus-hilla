@@ -64,9 +64,9 @@ jobs:
         if: ${{ always() }}
         uses: thollander/actions-comment-pull-request@v3
         with:
-          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-          filePath: /tmp/message
-          comment_tag: formatting-check
+          github-token: ${{ steps.generate-token.outputs.token }}
+          file-path: /tmp/message
+          comment-tag: formatting-check
       - name: Add format required label to PR
         if: ${{ failure() && steps.spotlessCheck.conclusion == 'failure' }}
         uses: actions/github-script@v8
