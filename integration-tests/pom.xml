@@ -214,7 +214,7 @@
             <id>embedded-plugin</id>
             <activation>
                 <property>
-                    <name>embedded-plugin</name>
+                    <name>!quarkus-hilla.test-mode</name>
                 </property>
             </activation>
             <properties>
