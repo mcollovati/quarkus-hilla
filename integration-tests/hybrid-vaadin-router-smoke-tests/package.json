@@ -86,7 +86,7 @@
     "@preact/signals-react-transform": "0.6.0",
     "@rollup/plugin-replace": "6.0.3",
     "@rollup/pluginutils": "5.3.0",
-    "@types/node": "24.10.1",
+    "@types/node": "25.0.1",
     "@vaadin/hilla-generator-cli": "25.0.0-rc1",
     "@vaadin/hilla-generator-core": "25.0.0-rc1",
     "@vaadin/hilla-generator-plugin-backbone": "25.0.0-rc1",
@@ -283,7 +283,7 @@
       "@preact/signals-react-transform": "0.6.0",
       "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.3.0",
-      "@types/node": "24.10.1",
+      "@types/node": "25.0.1",
       "@vaadin/hilla-generator-cli": "25.0.0-rc1",
       "@vaadin/hilla-generator-core": "25.0.0-rc1",
       "@vaadin/hilla-generator-plugin-backbone": "25.0.0-rc1",
@@ -306,7 +306,7 @@
       "vite-plugin-checker": "0.12.0",
       "workbox-build": "7.4.0"
     },
-    "hash": "8da0d42368d16e760e683d6c1962e252efaf21f0a147ed44a273ef2518b74993"
+    "hash": "c87eae88325423bd727da4130f02209895519254738b9755732546dc11733d4e"
   },
   "type": "module"
 }
