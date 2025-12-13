@@ -22,6 +22,12 @@ on:
           If the Hilla version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
         required: false
         type: string
+      vaadin-version:
+        description: |
+          Version of Vaadin to pin for this release. If not provided, the value of the vaadin.version property in will be used.
+          If the Vaadin version is a SNAPSHOT, the latest available release compatible with quarkus-hilla major.minor will be used.
+        required: false
+        type: string
       dry-run:
         description: "Dry run (skips remote operations)"
         required: true
@@ -86,7 +92,11 @@ jobs:
           if [[ "$CMD_DRY_RUN" == "true" ]]; then
             echo "⚠️ dry-run execution, artifacts will not be published on Maven Central." | tee -a $GITHUB_STEP_SUMMARY
           fi
+          
+          version_pin_type=$(test -f etc/pom-for-version-detection.xml && echo "NEW" || echo "LEGACY")
+          echo "versionPinType=${version_pin_type}" >> "$GITHUB_OUTPUT"
       - name: Pin Hilla version
+        if: ${{ steps.searchpr.outputs.versionPinType == 'LEGACY' }}
         env:
           CMD_HILLA_VERSION: ${{ inputs.hilla-version }}
         run: |
@@ -120,6 +130,54 @@ jobs:
             vaadin_quarkus_version=$(mvn -ntp -N -q help:evaluate -Dexpression=vaadin.quarkus.version -DforceStdout)
             echo "⚠️ SNAPSHOT detected for vaadin-quarkus version. Automatically forcing version to $vaadin_quarkus_version." | tee -a $GITHUB_STEP_SUMMARY
           fi
+      - name: Pin Versions
+        if: ${{ steps.searchpr.outputs.versionPinType == 'NEW' }}
+        env:
+          CMD_VAADIN_VERSION: ${{ inputs.vaadin-version }}
+        run: |
+          temp_pom=/tmp/version-detection-pom.xml
+          cp etc/pom-for-version-detection.xml $temp_pom
+          
+          vaadin_version=$(mvn -ntp -N -q help:evaluate -Dexpression=vaadin.version -DforceStdout)
+          vaadin_version_major_minor=$(echo "${vaadin_version/-*/}" | cut -d. -f1,2)
+          
+          echo "POM file Vaadin version: $vaadin_version." | tee -a  $GITHUB_STEP_SUMMARY
+          if [[ -n "$CMD_VAADIN_VERSION" ]]; then
+            if [[ "$CMD_VAADIN_VERSION" = "${vaadin_version_major_minor}."* ]]; then              
+              mvn -f $temp_pom -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="$CMD_VAADIN_VERSION"
+              echo "⚠️ Vaadin version manually forced to $CMD_VAADIN_VERSION." | tee -a  $GITHUB_STEP_SUMMARY
+              vaadin_version="$CMD_VAADIN_VERSION"
+            else
+              echo "🚫 Forced Vaadin version '$CMD_VAADIN_VERSION' does not match Vaadin version on release branch '$vaadin_version_major_minor'." \
+                | tee -a $GITHUB_STEP_SUMMARY
+              exit 1
+            fi
+          fi
+          
+          
+          if [[ "$vaadin_version" =~ .*-SNAPSHOT ]]; then
+            mvn -f $temp_pom -N -ntp -Dproperty=vaadin.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
+            vaadin_version=$(mvn -f $temp_pom -ntp -N -q help:evaluate -Dexpression=vaadin.version -DforceStdout)
+            echo "⚠️ SNAPSHOT detected for Vaadin version. Automatically forcing version to $vaadin_version." | tee -a $GITHUB_STEP_SUMMARY             
+          fi
+          if [[ "$vaadin_version" =~ .*-SNAPSHOT ]]; then
+            echo "🚫 Vaadin version '$CMD_VAADIN_VERSION' is a SNAPSHOT. Please provide a proper release version." \
+             | tee -a $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          
+          flow_version=$(mvn -ntp -q -f $temp_pom -Dexpression=flow.version)
+          hilla_version=$(mvn -ntp -q -f $temp_pom -Dexpression=hilla.version)
+          vaadin_quarkus_version=$(mvn -ntp -q -f $temp_pom -Dexpression=vaadin_quarkus.version)
+
+          mvn -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="$vaadin_version"
+          mvn -N -ntp versions:set-property -Dproperty=flow.version -DnewVersion="$flow_version"
+          mvn -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="$hilla_version"
+
+          echo "POM file versions: Vaadin $vaadin_version, Flow $flow_version, Hilla $hilla_version, Vaadin-Quarkus $vaadin_quarkus_version." \
+            | tee -a  $GITHUB_STEP_SUMMARY
+          
       - name: Setup Java
         uses: actions/setup-java@v5
         with:
