@@ -26,17 +26,17 @@ runs:
   using: composite
   steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         ref: ${{ inputs.ref }}
         fetch-depth: 0
     - name: Setup Java
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: ${{ inputs.java_version }}
         distribution: 'temurin'
         cache: maven
-    - uses: browser-actions/setup-chrome@latest
+    - uses: browser-actions/setup-chrome@v2
       id: setup-chrome
       if: ${{ inputs.install_chrome == 'true' }}
       with:
