@@ -24,20 +24,20 @@ jobs:
     runs-on: ubuntu-latest
     if: github.actor == 'quarkusbot' || github.event_name == 'workflow_dispatch'
     steps:
-      - uses: tibdex/github-app-token@32691ba7c9e7063bd457bd8f2a5703138591fa58 # v1.9.0
+      - uses: tibdex/github-app-token@v2
         id: generate-token
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
           private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Install yq
-        uses: dcarbone/install-yq-action@369362504fa602b690af4e4538edf0db75b35cce # v1.0.1
+        uses: dcarbone/install-yq-action@
       - name: Set up Java
         uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: 'temurin'
       - name: Checkout repo
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v6
         with:
           path: current-repo
       - name: Checkout Ecosystem
@@ -45,7 +45,7 @@ jobs:
         with:
           repository: ${{ env.ECOSYSTEM_CI_REPO }}
           path: ecosystem-ci
-      - uses: browser-actions/setup-chrome@c785b87e244131f27c9f19c1a33e2ead956ab7ce # latest
+      - uses: browser-actions/setup-chrome@v2
         id: setup-chrome
         if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
         with:

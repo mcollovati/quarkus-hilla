@@ -15,18 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     name: Apply format
     steps:
-      - uses: tibdex/github-app-token@3beb63f4bd073e61482598c45c71c1019b59b73a # v2.1.0
+      - uses: tibdex/github-app-token@v2
         id: generate-token
         with:
           app_id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
           private_key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@v6
         with:
           token: ${{ steps.generate-token.outputs.token }}
-          fetchref: ${{env.HEAD_SHA}}
+          ref: ${{env.HEAD_SHA}}
       - name: Set up Java
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        uses: actions/setup-java@v5
         with:
           java-version: 21
           distribution: 'temurin'
@@ -34,14 +34,14 @@ jobs:
       - name: Apply changes
         run: |
           mvn -V -e -B -ntp -Pall-modules spotless:apply
-      - uses: stefanzweifel/git-auto-commit-action@b863ae1933cb653a53c021fe36dbb774e1fb9403 # v5.2.0
+      - uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-changes
         with:
           commit_message: "chore(auto-format): apply formatting"
           commit_user_name: "quarkus-hilla-bot[bot]"
           commit_user_email: "141157179+quarkus-hilla-bot[bot]@users.noreply.github.com"
       - name: Update format labels on PR
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@v8
         with:
           github-token: ${{ steps.generate-token.outputs.token }}
           script: |
