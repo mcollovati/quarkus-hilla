@@ -18,7 +18,7 @@ env:
 jobs:
   changes:
     name: Compute changes
-    environment: ${{ github.event.pull_request.head.repo.fork && 'pr-tests' || '' }}
+    environment: ${{ github.event.pull_request.head.repo.fork && 'pr-validation' || '' }}
     runs-on: ubuntu-latest
     outputs:
       validation-required: ${{ steps.filter.outputs.validate }}
