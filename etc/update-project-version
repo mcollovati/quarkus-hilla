@@ -51,9 +51,8 @@ workflows_folder="${project_folder}/.github/workflows"
 
 if [ -f "${workflows_folder}/release.yaml" ]; then
   echo ". Updating release.yaml workflow"
-  sed -i 's/🚫/__STOP__/g' "${workflows_folder}/release.yaml"
   yq ${yq_options} '.on.workflow_dispatch.inputs.target-branch.options |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/release.yaml"
-  sed -i 's/__STOP__/🚫/g' "${workflows_folder}/release.yaml"
+  java "${project_folder}/etc/YamlMultilineRestorer.java" "${workflows_folder}/release.yaml"
   echo ".. OK"
 fi
 
@@ -61,20 +60,21 @@ if [ -f "${workflows_folder}/update-npm-deps.yaml" ]; then
   echo ". Updating update-npm-deps.yaml workflow"
   yq ${yq_options} '.on.workflow_dispatch.inputs.target-branch.options |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/update-npm-deps.yaml"
   yq ${yq_options} '.jobs.compute-matrix.steps[0].run |= sub("\"main\"", "\"main\",\"'"${current_version}"'\"")' "${workflows_folder}/update-npm-deps.yaml"
+  java "${project_folder}/etc/YamlMultilineRestorer.java" "${workflows_folder}/update-npm-deps.yaml"
   echo ".. OK"
 fi
 
 if [ -f "${workflows_folder}/validation.yaml" ]; then
   echo ". Updating validation.yaml workflow"
-  sed -i 's/🚫/__STOP__/g' "${workflows_folder}/validation.yaml"
   yq ${yq_options} '.on.push.branches |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/validation.yaml"
-  sed -i 's/__STOP__/🚫/g' "${workflows_folder}/validation.yaml"
+  java "${project_folder}/etc/YamlMultilineRestorer.java" "${workflows_folder}/validation.yaml"
   echo ".. OK"
 fi
 
 if [ -f "${workflows_folder}/validation-nightly.yaml" ]; then
   echo ". Updating validation-nightly.yaml workflow"
   yq ${yq_options} '.jobs.snapshot-main.strategy.matrix.branch |= ["main", "'"${current_version}"'"] + .[1:]' "${workflows_folder}/validation-nightly.yaml"
+  java "${project_folder}/etc/YamlMultilineRestorer.java" "${workflows_folder}/validation-nightly.yaml"
   echo ".. OK"
 fi
 
@@ -87,6 +87,7 @@ if [ -f "${dependabot_file}" ]; then
                         ]"
   echo ". Updating dependabot.yml"
   yq ${yq_options} '.updates |= .[0:1] + [ { '"${branch_template}"' } | .. style="double" ] + .[1:] ' "${dependabot_file}"
+  java "${project_folder}/etc/YamlMultilineRestorer.java" "${dependabot_file}"
   echo ".. OK"
 fi
 
