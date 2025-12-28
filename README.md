@@ -70,7 +70,7 @@ Choose your frontend framework:
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-react</artifactId>
-    <version>24.9.x</version>
+    <version>25.0.x</version>
 </dependency>
 ```
 
@@ -79,7 +79,7 @@ Choose your frontend framework:
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>24.9.x</version>
+    <version>25.0.x</version>
 </dependency>
 ```
 
@@ -459,6 +459,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
  |                                                                                        Quarkus-Hilla                                                                                        |                                                                Quarkus                                                                 |                                                           Vaadin / Hilla                                                            |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Maven Central 25.0" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.0"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/VAADIN-v25.0-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 | <picture><img alt="Maven Central 24.9" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.9"></picture> | <picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.9" src="https://img.shields.io/badge/VAADIN-v24.9-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 |  <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5"></picture>  |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus"></picture>  |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 |   <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1"></picture>   | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin"></picture> |
@@ -472,7 +473,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 |                                                                  Quarkus-Hilla                                                                  |                                                                Quarkus                                                                |                                                         Vaadin / Hilla                                                         |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Development 25.0-SNAPSHOT" src="https://img.shields.io/badge/25.0--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/Quarkus-3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/Vaadin-25.0-blue?style=for-the-badge&logo=Vaadin"></picture> |
+| <picture><img alt="Development 25.1-SNAPSHOT" src="https://img.shields.io/badge/25.1--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.30+" src="https://img.shields.io/badge/Quarkus-3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.1" src="https://img.shields.io/badge/Vaadin-25.1-blue?style=for-the-badge&logo=Vaadin"></picture> |
 
 ---
 

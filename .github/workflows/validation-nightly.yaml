@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: [main, "24.9"]
+        branch: [main, "25.0", "24.9"]
         java: [17, 21, 25]
         exclude:
           - branch: main
