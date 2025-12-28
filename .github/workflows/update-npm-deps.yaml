@@ -9,6 +9,7 @@ on:
         default: 'main'
         options:
           - main
+          - "25.0"
           - "24.9"
   schedule:
     - cron: '0 2 * * *'
@@ -26,7 +27,7 @@ jobs:
           CMD_TARGET_BRANCH: ${{ inputs.target-branch }}
         run: |
           if [[ -z "$CMD_TARGET_BRANCH" ]]; then
-            echo 'matrix={ "branch": ["main","24.9"] }' >> "$GITHUB_OUTPUT"
+            echo 'matrix={ "branch": ["main","25.0","24.9"] }' >> "$GITHUB_OUTPUT"
           else
             echo 'matrix={ "branch": ["'$CMD_TARGET_BRANCH'"] }' >> "$GITHUB_OUTPUT"
           fi
