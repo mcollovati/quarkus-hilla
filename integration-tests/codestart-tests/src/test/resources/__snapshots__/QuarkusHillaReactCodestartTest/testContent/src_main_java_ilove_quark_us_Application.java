@@ -1,7 +1,7 @@
 package ilove.quark.us;
 
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
-import com.vaadin.flow.theme.Theme;
 
 /**
  * The entry point of the Spring Boot application.
@@ -10,6 +10,6 @@ import com.vaadin.flow.theme.Theme;
  * and some desktop browsers.
  *
  */
-@Theme(value = "qh-codestart")
+@StyleSheet("styles.css")
 public class Application implements AppShellConfigurator {
 }

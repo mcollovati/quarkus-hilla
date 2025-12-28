@@ -219,6 +219,7 @@
             </activation>
             <properties>
                 <skipITs>false</skipITs>
+                <skipUTs>true</skipUTs>
                 <vaadin-maven-plugin.phase>none</vaadin-maven-plugin.phase>
                 <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
                 <vaadin.build.enabled>true</vaadin.build.enabled>
@@ -238,7 +239,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <skip>true</skip>
+                            <skip>${skipUTs}</skip>
                         </configuration>
                     </plugin>
                     <plugin>
