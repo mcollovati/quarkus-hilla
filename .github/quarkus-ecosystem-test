@@ -21,10 +21,10 @@ mvn ${MVN_OPTS} verify -Pdefault-modules
 echo "::endgroup::"
 
 echo "::group::Quarkus-Hilla End-to-end Test (Development mode)"
-mvn ${MVN_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests verify
+mvn ${MVN_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests verify -Dquarkus-hilla.test-mode=development
 echo "::endgroup::"
 
 echo "::group::Quarkus-Hilla End-to-end Test (Production mode)"
-mvn ${MVN_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests,production verify
+mvn ${MVN_OPTS} -Dselenide.browserBinary=${SELENIDE_BROWSER_BINARY} -Pit-tests verify
 echo "::endgroup::"
 

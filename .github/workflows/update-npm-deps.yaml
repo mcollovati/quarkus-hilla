@@ -78,7 +78,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -ntp install -Pall-modules,production -DskipTests
+          mvn -V -e -ntp install -Pall-modules -Dflatten.skip=true -DskipTests
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-changes
