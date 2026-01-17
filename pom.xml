@@ -49,7 +49,7 @@
         -->
         <hilla.version>25.0.2</hilla.version>
         <flow.version>25.0.3</flow.version>
-        <vaadin.version>25.0.2</vaadin.version>
+        <vaadin.version>25.0.3</vaadin.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
