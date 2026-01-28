@@ -27,7 +27,7 @@ import io.smallrye.config.WithDefault;
  */
 @ConfigMapping(prefix = "vaadin.security")
 @ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
-interface VaadinSecurityConfig {
+public interface VaadinSecurityConfig {
 
     /**
      * The path of the logout HTTP POST endpoint handling logout requests.
