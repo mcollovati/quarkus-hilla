@@ -154,6 +154,8 @@ jobs:
                 | tee -a $GITHUB_STEP_SUMMARY
               exit 1
             fi
+          else
+            mvn -f $temp_pom -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="$vaadin_version"
           fi
 
 
