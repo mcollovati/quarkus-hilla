@@ -17,14 +17,14 @@ package com.github.mcollovati.quarkus.hilla.deployment.signals;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.signals.NumberSignal;
+import com.vaadin.signals.shared.SharedNumberSignal;
 
 @AnonymousAllowed
 @BrowserCallable
 public class NumberSignalService {
-    private final NumberSignal counter = new NumberSignal(3.0);
+    private final SharedNumberSignal counter = new SharedNumberSignal(3.0);
 
-    public NumberSignal counter() {
+    public SharedNumberSignal counter() {
         return counter;
     }
 
