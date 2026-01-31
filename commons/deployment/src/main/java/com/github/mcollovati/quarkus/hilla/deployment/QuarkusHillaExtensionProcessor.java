@@ -295,6 +295,11 @@ class QuarkusHillaExtensionProcessor {
         OffendingMethodCallsReplacer.addClassVisitors(producer);
     }
 
+    @BuildStep(onlyIf = IsDevelopment.class)
+    void replaceOffendingMethodCallsDevMode(BuildProducer<BytecodeTransformerBuildItem> producer) {
+        OffendingMethodCallsReplacer.addClassVisitorsDevMode(producer);
+    }
+
     @BuildStep
     void replaceFieldAutowiredAnnotations(BuildProducer<AnnotationsTransformerBuildItem> producer) {
         DotName autowiredAnnotation = DotName.createSimple("org.springframework.beans.factory.annotation.Autowired");
