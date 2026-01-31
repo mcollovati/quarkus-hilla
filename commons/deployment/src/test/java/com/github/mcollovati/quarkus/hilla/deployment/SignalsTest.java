@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import com.vaadin.hilla.signals.handler.SignalsHandler;
 import com.vaadin.signals.Id;
-import com.vaadin.signals.NumberSignal;
+import com.vaadin.signals.local.ValueSignal;
 import io.quarkus.logging.Log;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.http.TestHTTPResource;
@@ -57,7 +57,7 @@ class SignalsTest {
                     com.vaadin.experimental.fullstackSignals=true
                     com.vaadin.experimental.flowFullstackSignals=true
                     """), "vaadin-featureflags.properties")
-                    .addClasses(TestUtils.class, NumberSignalService.class, NumberSignal.class, HillaPushClient.class));
+                    .addClasses(TestUtils.class, NumberSignalService.class, ValueSignal.class, HillaPushClient.class));
 
     @Test
     @ActivateRequestContext

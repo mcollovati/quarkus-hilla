@@ -73,6 +73,149 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
+    public <T> T getBean(Class<T> requiredType, Object... args) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Object getBean(String name) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> T getBean(String name, Class<T> requiredType) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Object getBean(String name, Object... args) throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean containsBean(String name) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isSingleton(String name) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isPrototype(String name) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isTypeMatch(String name, Class<?> typeToMatch) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean isTypeMatch(String name, ResolvableType typeToMatch) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Class<?> getType(String name) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getAliases(String name) throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean containsBeanDefinition(String beanName) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public int getBeanDefinitionCount() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanDefinitionNames() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(ResolvableType type) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(Class<?> type) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String[] getBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> Map<String, T> getBeansOfType(Class<T> type) throws BeansException {
+        return beanManager.getBeans(type, new AnyLiteral()).stream()
+                .collect(Collectors.toMap(
+                        QuarkusApplicationContext::computeBeanName, bean -> beanReference(beanManager, bean, type)));
+    }
+
+    @Override
+    public <T> Map<String, T> getBeansOfType(Class<T> type, boolean includeNonSingletons, boolean allowEagerInit)
+            throws BeansException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType, boolean allowEagerInit) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType, boolean allowEagerInit) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <T> ObjectProvider<T> getBeanProvider(org.springframework.core.ParameterizedTypeReference<T> requiredType) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public BeanFactory getParentBeanFactory() {
+        return throwUnsupported();
+    }
+
+    @Override
+    public boolean containsLocalBean(String name) {
+        return throwUnsupported();
+    }
+
+    @Override
     public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType)
             throws BeansException {
         return beanManager.getBeans(Object.class, new AnyLiteral()).stream()
@@ -82,20 +225,48 @@ class QuarkusApplicationContext implements ApplicationContext {
                         bean -> beanReference(beanManager, bean, bean.getBeanClass())));
     }
 
-    private static String computeBeanName(Bean<?> bean) {
-        String name = bean.getName();
-        if (name == null) {
-            return bean.getBeanClass().getSimpleName();
-        }
-        return name;
-    }
-
-    private static <T> T throwUnsupported() {
-        throw new UnsupportedOperationException("Not implemented for Quarkus");
+    @Override
+    public String[] getBeanNamesForAnnotation(Class<? extends Annotation> annotationType) {
+        return throwUnsupported();
     }
 
     @Override
-    public <T> T getBean(Class<T> requiredType, Object... args) throws BeansException {
+    public <A extends Annotation> A findAnnotationOnBean(String beanName, Class<A> annotationType)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <A extends Annotation> A findAnnotationOnBean(
+            String beanName, Class<A> annotationType, boolean allowFactoryBeanInit)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public <A extends Annotation> Set<A> findAllAnnotationsOnBean(
+            String beanName, Class<A> annotationType, boolean allowFactoryBeanInit)
+            throws NoSuchBeanDefinitionException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public void publishEvent(Object event) {
+        throwUnsupported();
+    }
+
+    @Override
+    public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String getMessage(String code, Object[] args, Locale locale) throws NoSuchMessageException {
+        return throwUnsupported();
+    }
+
+    @Override
+    public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
         return throwUnsupported();
     }
 
@@ -130,188 +301,7 @@ class QuarkusApplicationContext implements ApplicationContext {
     }
 
     @Override
-    public void publishEvent(Object event) {
-        throwUnsupported();
-    }
-
-    @Override
-    public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String getMessage(String code, Object[] args, Locale locale) throws NoSuchMessageException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
-        return throwUnsupported();
-    }
-
-    @Override
     public Environment getEnvironment() {
-        return throwUnsupported();
-    }
-
-    @Override
-    public BeanFactory getParentBeanFactory() {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean containsLocalBean(String s) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean containsBeanDefinition(String s) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public int getBeanDefinitionCount() {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getBeanDefinitionNames() {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass, boolean b) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType, boolean b) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getBeanNamesForType(ResolvableType resolvableType) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getBeanNamesForType(ResolvableType resolvableType, boolean b, boolean b1) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getBeanNamesForType(Class<?> aClass) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getBeanNamesForType(Class<?> aClass, boolean b, boolean b1) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> Map<String, T> getBeansOfType(Class<T> aClass) throws BeansException {
-        return beanManager.getBeans(aClass, new AnyLiteral()).stream()
-                .collect(Collectors.toMap(
-                        QuarkusApplicationContext::computeBeanName, bean -> beanReference(beanManager, bean, aClass)));
-    }
-
-    @Override
-    public <T> Map<String, T> getBeansOfType(Class<T> aClass, boolean b, boolean b1) throws BeansException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getBeanNamesForAnnotation(Class<? extends Annotation> aClass) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass)
-            throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <A extends Annotation> A findAnnotationOnBean(String s, Class<A> aClass, boolean b)
-            throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <A extends Annotation> Set<A> findAllAnnotationsOnBean(
-            String beanName, Class<A> annotationType, boolean allowFactoryBeanInit)
-            throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public Object getBean(String s) throws BeansException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> T getBean(String s, Class<T> aClass) throws BeansException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public Object getBean(String s, Object... objects) throws BeansException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> ObjectProvider<T> getBeanProvider(Class<T> aClass) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> ObjectProvider<T> getBeanProvider(ResolvableType resolvableType) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public <T> ObjectProvider<T> getBeanProvider(org.springframework.core.ParameterizedTypeReference<T> requiredType) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean containsBean(String s) {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean isSingleton(String s) throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean isPrototype(String s) throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean isTypeMatch(String s, ResolvableType resolvableType) throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public boolean isTypeMatch(String s, Class<?> aClass) throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public Class<?> getType(String s) throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public Class<?> getType(String s, boolean b) throws NoSuchBeanDefinitionException {
-        return throwUnsupported();
-    }
-
-    @Override
-    public String[] getAliases(String s) {
         return throwUnsupported();
     }
 
@@ -328,5 +318,17 @@ class QuarkusApplicationContext implements ApplicationContext {
     @Override
     public ClassLoader getClassLoader() {
         return throwUnsupported();
+    }
+
+    private static String computeBeanName(Bean<?> bean) {
+        String name = bean.getName();
+        if (name == null) {
+            return bean.getBeanClass().getSimpleName();
+        }
+        return name;
+    }
+
+    private static <T> T throwUnsupported() {
+        throw new UnsupportedOperationException("Not implemented for Quarkus");
     }
 }
