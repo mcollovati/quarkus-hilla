@@ -20,20 +20,20 @@ import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.signals.NumberSignal;
+import com.vaadin.signals.shared.SharedNumberSignal;
 
 @AnonymousAllowed
 @BrowserCallable
 public class NumberSignalService {
     public static final double INITIAL_SHARED_VALUE = 0.5;
-    private final NumberSignal counter = new NumberSignal();
-    private final NumberSignal sharedValue = new NumberSignal(INITIAL_SHARED_VALUE);
+    private final SharedNumberSignal counter = new SharedNumberSignal();
+    private final SharedNumberSignal sharedValue = new SharedNumberSignal(INITIAL_SHARED_VALUE);
 
-    public NumberSignal counter() {
+    public SharedNumberSignal counter() {
         return counter;
     }
 
-    public NumberSignal sharedValue() {
+    public SharedNumberSignal sharedValue() {
         return sharedValue;
     }
 
