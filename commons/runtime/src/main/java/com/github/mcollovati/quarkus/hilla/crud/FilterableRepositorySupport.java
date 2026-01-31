@@ -36,6 +36,7 @@ import org.springframework.data.domain.Sort;
 
 import static com.github.mcollovati.quarkus.hilla.crud.PropertyStringFilterSpecification.getPath;
 
+@SuppressWarnings("unchecked")
 public final class FilterableRepositorySupport {
 
     private FilterableRepositorySupport() {}

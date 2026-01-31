@@ -15,6 +15,13 @@
  *
  */
 
+/**
+ * CRUD services for Spring Data repositories.
+ * <p>
+ * This package provides repository service implementations for Spring Data repositories
+ * with support for filtering, pagination, and CRUD operations.
+ * </p>
+ */
 @NonNullApi
 package com.github.mcollovati.quarkus.hilla.crud.spring;
 

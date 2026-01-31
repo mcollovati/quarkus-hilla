@@ -31,6 +31,8 @@ import io.smallrye.mutiny.Multi;
  * Original source: https://github.com/vaadin/hilla/blob/main/packages/java/endpoint/src/main/java/com/vaadin/hilla/EndpointSubscription.java
  * Changes made:
  * - Replaced reactor Flux type with Mutiny Multi.
+ *
+ * @param <TT> the type of items in the subscription
  */
 public class MutinyEndpointSubscription<TT> {
 
@@ -44,6 +46,8 @@ public class MutinyEndpointSubscription<TT> {
 
     /**
      * Returns the multi value provide for this subscription.
+     *
+     * @return the Multi stream for this subscription
      */
     public Multi<TT> getMulti() {
         return multi;
@@ -52,6 +56,8 @@ public class MutinyEndpointSubscription<TT> {
     /**
      * Returns the callback that is invoked when the browser unsubscribes from
      * the subscription.
+     *
+     * @return the unsubscribe callback
      */
     public Runnable getOnUnsubscribe() {
         return onUnsubscribe;

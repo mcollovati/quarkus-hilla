@@ -47,6 +47,7 @@ public final class MultipartRequest extends HttpServletRequestWrapper {
      * Constructs a request object wrapping the given request.
      *
      * @param request the {@link HttpServletRequest} to be wrapped.
+     * @param formData the {@link MultipartFormDataInput} containing form data
      * @throws IllegalArgumentException if the request is null
      */
     public MultipartRequest(HttpServletRequest request, MultipartFormDataInput formData) {

@@ -15,6 +15,13 @@
  *
  */
 
+/**
+ * CRUD services for Panache repositories.
+ * <p>
+ * This package provides repository service implementations for Panache-based data access
+ * with support for filtering, pagination, and CRUD operations.
+ * </p>
+ */
 @NonNullApi
 package com.github.mcollovati.quarkus.hilla.crud.panache;
 

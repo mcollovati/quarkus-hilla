@@ -34,7 +34,6 @@ import org.atmosphere.util.ExecutorsFactory;
  * that returns a {@link ScheduledExecutorService} that postpones initialization
  * until it is effectively used.
  * <p>
- * </p>
  * This is needed to prevent thread to be started during STATIC_INIT phase of
  * native build. The {@link ExecutorsFactory#getScheduler(AtmosphereConfig)}
  * method is renamed by bytecode transformation, and all calls to redirected to

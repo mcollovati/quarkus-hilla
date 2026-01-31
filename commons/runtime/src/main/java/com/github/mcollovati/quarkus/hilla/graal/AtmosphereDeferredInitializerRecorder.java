@@ -18,9 +18,21 @@ package com.github.mcollovati.quarkus.hilla.graal;
 import io.quarkus.runtime.annotations.Recorder;
 import io.undertow.servlet.api.DeploymentManager;
 
+/**
+ * Recorder for Atmosphere deferred initialization in native images.
+ * <p>
+ * This class provides build-time recording of Atmosphere initialization tasks
+ * that need to be deferred until runtime in native builds.
+ * </p>
+ */
 @Recorder
 public class AtmosphereDeferredInitializerRecorder {
 
+    /**
+     * Records Atmosphere initialization for deferred execution.
+     *
+     * @param deploymentManager the deployment manager
+     */
     public void initAtmosphere(DeploymentManager deploymentManager) {
         AtmosphereDeferredInitializer.completeInitialization(
                 deploymentManager.getDeployment().getServletContext());

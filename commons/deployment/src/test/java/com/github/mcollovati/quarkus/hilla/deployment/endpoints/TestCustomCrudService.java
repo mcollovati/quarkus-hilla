@@ -21,11 +21,11 @@ import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.hilla.Nullable;
 import com.vaadin.hilla.crud.CountService;
 import com.vaadin.hilla.crud.CrudService;
 import com.vaadin.hilla.crud.GetService;
 import com.vaadin.hilla.crud.filter.Filter;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 
 @BrowserCallable

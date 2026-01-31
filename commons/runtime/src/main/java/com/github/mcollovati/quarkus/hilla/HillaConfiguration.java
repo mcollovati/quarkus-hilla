@@ -40,9 +40,10 @@ public interface HillaConfiguration {
 
     /**
      * Configuration properties for endpoints hot reload.
-     * <p></p>
+     * <p>
      * The extension watches source folders for changes in Java files and triggers a live reload if affected classes
      * are Hilla endpoints or used in endpoints.
+     * </p>
      */
     interface LiveReloadConfig {
 
@@ -56,12 +57,12 @@ public interface HillaConfiguration {
 
         /**
          * The list of paths to watch for changes, relative to a root folder.
-         * <p></p>
-         * For example, given a SOURCE {@link #watchStrategy()} and Maven project with source code in the default
+         * <p>
+         * For example, given a SOURCE {@link #watchStrategy()} and Maven project with source code in default
          * {@literal src/main/java} folder and endpoints related classes in {@literal src/main/java/com/example/service}
          * and {@literal src/main/java/com/example/model}, the configuration should be
          * {@literal vaadin.hilla.live-reload.watchedSourcePaths=com/example/service,com/example/model}.
-         * <p></p>
+         * </p>
          * By default, all sub folders are watched.
          *
          * @return the list of paths to watch for changes.
@@ -70,8 +71,9 @@ public interface HillaConfiguration {
 
         /**
          * The strategy to use to watch for changes in Hilla endpoints.
-         * <p></p>
+         * <p>
          * @return the strategy to use to watch for changes in Hilla endpoints.
+         * </p>
          */
         @WithDefault("CLASS")
         WatchStrategy watchStrategy();

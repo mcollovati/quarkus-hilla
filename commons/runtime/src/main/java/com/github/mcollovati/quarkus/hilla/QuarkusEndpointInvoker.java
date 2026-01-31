@@ -36,9 +36,10 @@ import tools.jackson.databind.node.ObjectNode;
 
 /**
  * Extension of EndpointInvoker that handles transformations for Quarkus types.
- * <p></p>
+ * <p>
  * Implemented transformations:
  * - Multi -> Flux
+ * </p>
  */
 public class QuarkusEndpointInvoker extends EndpointInvoker {
 
