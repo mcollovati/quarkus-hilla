@@ -334,8 +334,8 @@
         <module>hybrid-smoke-tests</module>
         <module>hybrid-vaadin-router-smoke-tests</module>
         <!--
-        <module>security-form-tests</module>
         -->
+        <module>security-form-tests</module>
         <module>codestart-tests</module>
     </modules>
 </project>
