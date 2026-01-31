@@ -81,8 +81,11 @@ public class OffendingMethodCallsReplacer {
                     MethodSignature.of(EndpointInvoker.class, "createDefaultEndpointMapper"),
                     MethodSignature.of(SpringReplacements.class, "endpointInvoker_createDefaultEndpointMapper"));
 
-    public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
+    public static void addClassVisitorsDevMode(BuildProducer<BytecodeTransformerBuildItem> producer) {
         producer.produce(transform(Hotswapper.class, "affectsEndpoints", Class_forName));
+    }
+
+    public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
         producer.produce(transform(EndpointRegistry.class, "registerEndpoint", ClassUtils_getUserClass));
         producer.produce(transform(EndpointUtil.class, "isAnonymousEndpoint", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "checkAccess", ClassUtils_getUserClass));
