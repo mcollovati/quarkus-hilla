@@ -221,9 +221,9 @@ public class QuarkusHillaNativeProcessor {
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
 
         nativeImageResource.produce(NativeImageResourcePatternsBuildItem.builder()
-                .includePatterns("hilla-openapi\\.json", "hilla-engine-configuration\\.json", "file-routes\\.json")
-                .includePatterns("META-INF/microprofile-config\\.properties")
-                .includePatterns("META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom\\.properties")
+                .includeGlobs("hilla-openapi.json", "hilla-engine-configuration.json", "file-routes.json")
+                .includeGlobs("META-INF/microprofile-config.properties")
+                .includeGlobs("META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom.properties")
                 .build());
 
         IndexView index = combinedIndex.getComputingIndex();
@@ -299,8 +299,8 @@ public class QuarkusHillaNativeProcessor {
 
         nativeImageResource.produce(NativeImageResourcePatternsBuildItem.builder()
                 .includeGlobs("META-INF/VAADIN/**", "com/vaadin/**", "vaadin-i18n/**")
-                .includePatterns("org/atmosphere/util/version\\.properties")
-                .includePatterns("META-INF/maven/com.vaadin/vaadin-core/pom\\.properties")
+                .includeGlobs("org/atmosphere/util/version.properties")
+                .includeGlobs("META-INF/maven/com.vaadin/vaadin-core/pom.properties")
                 .build());
 
         runtimeInitializedPackage.produce(new RuntimeInitializedPackageBuildItem("org.atmosphere.util.analytics"));

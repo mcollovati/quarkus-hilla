@@ -18,8 +18,8 @@ package com.github.mcollovati.quarkus.hilla.crud.panache;
 import jakarta.transaction.Transactional;
 
 import com.vaadin.hilla.EndpointExposed;
-import com.vaadin.hilla.Nullable;
 import com.vaadin.hilla.crud.CrudService;
+import org.jspecify.annotations.Nullable;
 
 @EndpointExposed
 public class CrudRepositoryService<T, ID, R extends FilterableRepository<T, ID>> extends ListRepositoryService<T, ID, R>

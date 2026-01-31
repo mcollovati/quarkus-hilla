@@ -20,25 +20,45 @@ import java.util.List;
 import java.util.Optional;
 
 import com.vaadin.hilla.EndpointExposed;
-import com.vaadin.hilla.Nullable;
 import com.vaadin.hilla.crud.CountService;
 import com.vaadin.hilla.crud.GetService;
 import com.vaadin.hilla.crud.ListService;
 import com.vaadin.hilla.crud.filter.Filter;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.domain.Pageable;
 
+/**
+ * Base list service for Panache repositories that provides CRUD list operations.
+ *
+ * @param <T> the entity type
+ * @param <ID> the entity ID type
+ * @param <R> the repository type extending FilterableRepository
+ */
 @EndpointExposed
 public class ListRepositoryService<T, ID, R extends FilterableRepository<T, ID>>
         implements ListService<T>, GetService<T, ID>, CountService {
     @Inject
     R repository;
 
+    /**
+     * Creates a new instance with dependency injection.
+     */
     protected ListRepositoryService() {}
 
+    /**
+     * Creates a new instance with the specified repository.
+     *
+     * @param repository the repository to use
+     */
     protected ListRepositoryService(R repository) {
         this.repository = repository;
     }
 
+    /**
+     * Gets the repository instance.
+     *
+     * @return the repository instance
+     */
     protected final R getRepository() {
         return repository;
     }

@@ -108,7 +108,9 @@ public class QuarkusEndpointController {
      * @param methodName   the method name to execute on an endpoint, not case sensitive
      * @param request      the current multipart request which triggers the endpoint call
      * @param response     the current response
+     * @param formData     the multipart form data containing uploaded files
      * @return execution result as a JSON string or an error message string
+     * @throws IOException if an I/O error occurs during processing
      */
     @POST
     @Path(ENDPOINT_METHODS)

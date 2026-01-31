@@ -56,6 +56,7 @@
         -->
         <jakarta.ee.version>11.0.0</jakarta.ee.version>
         <assertj.version>3.27.7</assertj.version>
+        <jspecify.version>1.0.0</jspecify.version>
 
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.4</maven-surefire-plugin.version>
@@ -132,6 +133,11 @@
                 <version>${assertj.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.jspecify</groupId>
+                <artifactId>jspecify</artifactId>
+                <version>${jspecify.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

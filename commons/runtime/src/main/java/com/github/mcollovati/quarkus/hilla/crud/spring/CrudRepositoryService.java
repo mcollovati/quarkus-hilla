@@ -18,8 +18,8 @@ package com.github.mcollovati.quarkus.hilla.crud.spring;
 import jakarta.transaction.Transactional;
 
 import com.vaadin.hilla.EndpointExposed;
-import com.vaadin.hilla.Nullable;
 import com.vaadin.hilla.crud.CrudService;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.repository.CrudRepository;
 
 @EndpointExposed

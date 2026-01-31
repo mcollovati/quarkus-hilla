@@ -22,6 +22,7 @@ import org.objectweb.asm.tree.AbstractInsnNode;
 import org.objectweb.asm.tree.LabelNode;
 import org.objectweb.asm.tree.MethodInsnNode;
 
+@SuppressWarnings("unchecked")
 public class AsmUtils {
 
     public static boolean hasMethodInsnSignature(MethodSignature srcMethod, MethodInsnNode methodNode) {

@@ -27,7 +27,6 @@ import org.atmosphere.cpr.DefaultBroadcaster;
 /**
  * A broadcaster implementation that postpone schedulers initialization.
  * <p>
- * </p>
  * Usually initialization is performed during Atmosphere init() call, but this
  * prevents a native build to complete because starting threads at build time is
  * not supported. Postponed initialization is activated by a call to

@@ -22,6 +22,13 @@ import java.util.List;
 
 import org.atmosphere.cpr.AtmosphereFramework;
 
+/**
+ * Deferred initializer for Atmosphere framework in GraalVM native images.
+ * <p>
+ * This class handles Atmosphere initialization that needs to be deferred until runtime
+ * in native image builds to prevent issues with thread startup during build time.
+ * </p>
+ */
 public class AtmosphereDeferredInitializer {
 
     transient List<AtmosphereFramework> frameworks = new ArrayList<>();
@@ -36,9 +43,12 @@ public class AtmosphereDeferredInitializer {
         initializer.frameworks.forEach(DelayedInitBroadcaster::startExecutors);
     }
 
-    /*
+    /**
      * Takes a reference to an Atmosphere instance to defer the initialization
-     * at RUNTIME_INIT phase, performed by a @Recoder.
+     * at RUNTIME_INIT phase, performed by a Recorder.
+     *
+     * @param config the servlet configuration
+     * @param framework the Atmosphere framework to register
      */
     public static void register(ServletConfig config, AtmosphereFramework framework) {
         ServletContext context = config.getServletContext();
