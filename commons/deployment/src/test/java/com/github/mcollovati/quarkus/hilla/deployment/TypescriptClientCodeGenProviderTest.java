@@ -21,7 +21,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
 
-import com.vaadin.flow.server.frontend.FrontendUtils;
+import com.vaadin.flow.internal.FrontendUtils;
 import io.quarkus.bootstrap.model.ApplicationModelBuilder;
 import io.quarkus.bootstrap.model.DefaultApplicationModel;
 import io.quarkus.bootstrap.prebuild.CodeGenException;
