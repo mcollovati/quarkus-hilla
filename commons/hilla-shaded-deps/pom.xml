@@ -20,9 +20,9 @@
             <artifactId>hilla</artifactId>
         </dependency>
         <!--
-            vaadin-core-versions.json and vaadin-versions.json have been removed frm the Hilla artifacts in
-            unified platform. Since quarkus-hilla currently still focus on Hilla only, for the moment we repack the
-            json files in the shaded deps module.
+            vaadin-core-versions.json and vaadin-versions.json have been removed frm Hilla artifacts in
+            unified platform. Since quarkus-hilla currently still focus on Hilla only, for the moment we repack
+            json files in shaded deps module.
         -->
         <dependency>
             <groupId>com.vaadin</groupId>
@@ -73,9 +73,7 @@
                                         <include>org/springframework/core/io/ResourceLoader.class</include>
                                         <include>org/springframework/lang/Nullable.class</include>
                                         <include>org/springframework/lang/NonNullApi.class</include>
-                                        <include>
-                                            org/springframework/core/io/support/ResourcePatternResolver.class
-                                        </include>
+                                        <include>org/springframework/core/io/support/ResourcePatternResolver.class</include>
                                         <include>org/springframework/util/Assert.class</include>
                                         <include>org/springframework/util/ClassUtils.class</include>
                                         <include>org/springframework/util/CollectionUtils.class</include>
@@ -99,8 +97,9 @@
                                         <include>org/springframework/context/MessageSource.class</include>
                                         <include>org/springframework/context/MessageSourceResolvable.class</include>
                                         <include>org/springframework/context/NoSuchMessageException.class</include>
-                                        <include>org/springframework/stereotype/Component.class</include>
-                                        <include>org/springframework/stereotype/*Exception.class</include>
+                                        <include>org/springframework/context/stereotype/Component.class</include>
+                                        <include>org/springframework/context/stereotype/*Exception.class</include>
+                                        <include>org/springframework/context/HierarchicalBeanFactory.class</include>
                                     </includes>
                                 </filter>
                                 <filter>
@@ -108,6 +107,8 @@
                                     <includes>
                                         <include>org/springframework/http/*.class</include>
                                         <include>org/springframework/web/multipart/MultipartFile.class</include>
+                                        <include>org/springframework/http/MediaType.class</include>
+                                        <include>org/springframework/http/HttpHeaders.class</include>
                                     </includes>
                                 </filter>
                                 <filter>
@@ -116,11 +117,12 @@
                                         <include>org/springframework/beans/*Exception.class</include>
                                         <include>org/springframework/beans/factory/Aware.class</include>
                                         <include>org/springframework/beans/factory/*Exception.class</include>
-                                        <include>org/springframework/beans/factory/*Factory.class</include>
+                                        <include>org/springframework/beans/factory/BeanFactory.class</include>
+                                        <include>org/springframework/beans/factory/ListableBeanFactory.class</include>
                                         <include>org/springframework/beans/factory/ObjectProvider.class</include>
-                                        <include>
-                                            org/springframework/beans/factory/config/AutowireCapableBeanFactory.class
-                                        </include>
+                                        <include>org/springframework/beans/factory/*Factory.class</include>
+                                        <include>org/springframework/beans/factory/config/AutowireCapableBeanFactory.class</include>
+                                        <include>org/springframework/beans/factory/HierarchicalBeanFactory.class</include>
                                     </includes>
                                 </filter>
                                 <filter>
@@ -132,8 +134,7 @@
                                         <include>org/springframework/data/domain/Limit**.class</include>
                                         <include>org/springframework/data/domain/OffsetScrollPosition.class</include>
                                         <include>org/springframework/data/domain/ScrollPosition.class</include>
-                                        <include>org/springframework/data/domain/ScrollPosition$Direction.class
-                                        </include>
+                                        <include>org/springframework/data/domain/ScrollPosition$Direction.class</include>
                                         <include>org/springframework/data/domain/Page.class</include>
                                         <include>org/springframework/data/domain/Pageable.class</include>
                                         <include>org/springframework/data/domain/PageImpl.class</include>
