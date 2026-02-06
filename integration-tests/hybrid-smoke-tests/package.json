@@ -16,6 +16,7 @@
     "@vaadin/hilla-react-signals": "25.1.0-alpha6",
     "@vaadin/react-components": "25.1.0-alpha6",
     "@vaadin/react-components-pro": "25.1.0-alpha6",
+    "@vaadin/slider": "25.1.0-alpha6",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
     "@vaadin/vaadin-lumo-styles": "25.1.0-alpha6",
     "@vaadin/vaadin-themable-mixin": "25.1.0-alpha6",
@@ -174,6 +175,7 @@
       "@vaadin/hilla-react-signals": "25.1.0-alpha6",
       "@vaadin/react-components": "25.1.0-alpha6",
       "@vaadin/react-components-pro": "25.1.0-alpha6",
+      "@vaadin/slider": "25.1.0-alpha6",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
       "@vaadin/vaadin-lumo-styles": "25.1.0-alpha6",
       "@vaadin/vaadin-themable-mixin": "25.1.0-alpha6",
@@ -214,7 +216,7 @@
       "vite-plugin-checker": "0.12.0",
       "workbox-build": "7.4.0"
     },
-    "hash": "4b38faf86b6fb015b24c1ac66555e0f613e8cf536e9882a42443047739b4ffa8"
+    "hash": "7f0ce912d3ef585a6a7c335153e586556f449d56700daded27e7c4cf043b46af"
   },
   "type": "module"
 }
