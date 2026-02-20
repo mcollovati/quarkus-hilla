@@ -16,8 +16,8 @@
 package com.github.mcollovati.quarkus.hilla.deployment.signals;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.signals.shared.SharedNumberSignal;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.signals.shared.SharedNumberSignal;
 
 @AnonymousAllowed
 @BrowserCallable

@@ -164,6 +164,13 @@
                     <artifactId>vaadin-dev</artifactId>
                     <version>${vaadin.version}</version>
                     <scope>runtime</scope>
+                    <exclusions>
+                        <!-- Exclude copilot to prevent page elements being covered by copilot panels -->
+                        <exclusion>
+                            <groupId>com.vaadin</groupId>
+                            <artifactId>copilot</artifactId>
+                        </exclusion>
+                    </exclusions>
                 </dependency>
             </dependencies>
         </profile>

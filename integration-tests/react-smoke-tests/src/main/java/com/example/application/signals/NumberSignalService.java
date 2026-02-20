@@ -19,8 +19,8 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.signals.shared.SharedNumberSignal;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.signals.shared.SharedNumberSignal;
 
 @AnonymousAllowed
 @BrowserCallable
