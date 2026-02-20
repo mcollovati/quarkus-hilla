@@ -24,9 +24,9 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.vaadin.flow.signals.Id;
+import com.vaadin.flow.signals.local.ValueSignal;
 import com.vaadin.hilla.signals.handler.SignalsHandler;
-import com.vaadin.signals.Id;
-import com.vaadin.signals.local.ValueSignal;
 import io.quarkus.logging.Log;
 import io.quarkus.test.QuarkusUnitTest;
 import io.quarkus.test.common.http.TestHTTPResource;
