@@ -34,8 +34,8 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
+import com.vaadin.flow.signals.Id;
 import com.vaadin.hilla.signals.handler.SignalsHandler;
-import com.vaadin.signals.Id;
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
 import io.quarkus.test.QuarkusUnitTest;

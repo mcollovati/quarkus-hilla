@@ -36,6 +36,12 @@
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-dev</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>copilot</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
