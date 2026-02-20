@@ -19,8 +19,8 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
+import com.vaadin.flow.signals.shared.SharedNumberSignal;
 import com.vaadin.hilla.BrowserCallable;
-import com.vaadin.signals.shared.SharedNumberSignal;
 
 @BrowserCallable
 public class SecureNumberSignalService {
@@ -40,7 +40,7 @@ public class SecureNumberSignalService {
 
     @AnonymousAllowed
     public void resetCounters() {
-        userCounter.value(20d);
-        adminCounter.value(30d);
+        userCounter.set(20d);
+        adminCounter.set(30d);
     }
 }
