@@ -160,6 +160,7 @@ jobs:
 
 
           if [[ "$vaadin_version" =~ .*-SNAPSHOT ]]; then
+            mvn -f $temp_pom -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="${vaadin_version_major_minor}.0-alpha1"
             mvn -f $temp_pom -N -ntp -Dproperty=vaadin.version -DallowMinorUpdates=false -DgenerateBackupPoms=false -Dmaven.version.rules=file://$(pwd)/etc/release-version-rules.xml versions:update-property
             vaadin_version=$(mvn -f $temp_pom -ntp -N -q help:evaluate -Dexpression=vaadin.version -DforceStdout)
             echo "⚠️ SNAPSHOT detected for Vaadin version. Automatically forcing version to $vaadin_version." | tee -a $GITHUB_STEP_SUMMARY             
