@@ -5,7 +5,7 @@
     "@adobe/lit-mobx": "2.0.0",
     "@vaadin-component-factory/vcf-nav": "1.1.3",
     "@vaadin/aura": "25.0.4",
-    "@vaadin/common-frontend": "0.0.19",
+    "@vaadin/common-frontend": "0.0.22",
     "@vaadin/hilla-file-router": "25.0.6",
     "@vaadin/hilla-frontend": "25.0.6",
     "@vaadin/hilla-lit-form": "25.0.6",
@@ -33,7 +33,7 @@
     "@rollup/plugin-replace": "6.0.3",
     "@rollup/pluginutils": "5.3.0",
     "@types/node": "25.0.10",
-    "@types/react": "19.2.9",
+    "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "@vaadin/hilla-generator-cli": "25.0.6",
     "@vaadin/hilla-generator-core": "25.0.6",
@@ -46,7 +46,7 @@
     "@vaadin/hilla-generator-plugin-subtypes": "25.0.6",
     "@vaadin/hilla-generator-plugin-transfertypes": "25.0.6",
     "@vaadin/hilla-generator-utils": "25.0.6",
-    "@vitejs/plugin-react": "5.1.2",
+    "@vitejs/plugin-react": "5.1.3",
     "magic-string": "0.30.21",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "6.0.5",
@@ -162,7 +162,7 @@
   "vaadin": {
     "dependencies": {
       "@vaadin/aura": "25.0.4",
-      "@vaadin/common-frontend": "0.0.19",
+      "@vaadin/common-frontend": "0.0.22",
       "@vaadin/hilla-file-router": "25.0.6",
       "@vaadin/hilla-frontend": "25.0.6",
       "@vaadin/hilla-lit-form": "25.0.6",
@@ -189,7 +189,7 @@
       "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.3.0",
       "@types/node": "25.0.10",
-      "@types/react": "19.2.9",
+      "@types/react": "19.2.13",
       "@types/react-dom": "19.2.3",
       "@vaadin/hilla-generator-cli": "25.0.6",
       "@vaadin/hilla-generator-core": "25.0.6",
@@ -202,7 +202,7 @@
       "@vaadin/hilla-generator-plugin-subtypes": "25.0.6",
       "@vaadin/hilla-generator-plugin-transfertypes": "25.0.6",
       "@vaadin/hilla-generator-utils": "25.0.6",
-      "@vitejs/plugin-react": "5.1.2",
+      "@vitejs/plugin-react": "5.1.3",
       "magic-string": "0.30.21",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "6.0.5",
@@ -213,7 +213,7 @@
       "vite-plugin-checker": "0.12.0",
       "workbox-build": "7.4.0"
     },
-    "hash": "de1913d4f881e78521ec11c1b0fdd891a95e8f85f0ffd7bfd8582f49fbf96bd7"
+    "hash": "6bb7ed4dc5d7c42ae5130a7fa7ed59eff2d621f0aff2923c55a3fda2c7cb067f"
   },
   "type": "module"
 }
