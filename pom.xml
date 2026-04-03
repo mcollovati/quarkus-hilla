@@ -50,7 +50,7 @@
         <hilla.version>24.9.3</hilla.version>
         <flow.version>24.9.14</flow.version>
         <vaadin.version>24.9.13</vaadin.version>
-        <vaadin.quarkus.version>2.2.3</vaadin.quarkus.version>
+        <vaadin.quarkus.version>2.2.4</vaadin.quarkus.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
