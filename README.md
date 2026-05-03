@@ -110,6 +110,10 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 - 📖 [Wiki Documentation](../../wiki)
 - 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
+- 🛠️ [Build and Test](docs/build-and-test.md)
+- 🚢 [Release Process](docs/release-process.md)
+- 🧬 [Update Codestarts](docs/update-codestarts.md)
+- 🔢 [Bump Project Version](docs/bump-project-version.md)
 - 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🚀 [Quarkus Guides](https://quarkus.io/guides/)
 

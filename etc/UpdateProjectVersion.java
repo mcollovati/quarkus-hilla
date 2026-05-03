@@ -1,34 +1,32 @@
 ///usr/bin/env jbang "$0" "$@" ; exit $?
 //DEPS org.apache.maven.shared:maven-invoker:3.3.0
 //DEPS info.picocli:picocli:4.6.3
-//DEPS tools.jackson.core:jackson-databind:3.0.3
-//DEPS tools.jackson.dataformat:jackson-dataformat-yaml:3.0.3
 //JAVA 21
 
-import org.apache.maven.shared.invoker.*;
+import org.apache.maven.shared.invoker.DefaultInvocationRequest;
+import org.apache.maven.shared.invoker.DefaultInvoker;
+import org.apache.maven.shared.invoker.InvocationRequest;
+import org.apache.maven.shared.invoker.InvocationResult;
+import org.apache.maven.shared.invoker.Invoker;
+import org.apache.maven.shared.invoker.MavenInvocationException;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
-import tools.jackson.databind.node.ArrayNode;
-import tools.jackson.databind.node.ObjectNode;
-import tools.jackson.dataformat.yaml.YAMLFactory;
-import tools.jackson.dataformat.yaml.YAMLFactoryBuilder;
-import tools.jackson.dataformat.yaml.YAMLReadFeature;
-import tools.jackson.dataformat.yaml.YAMLWriteFeature;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
-import java.util.function.Consumer;
+import java.util.Arrays;
+import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Command(name = "UpdateProjectVersion", mixinStandardHelpOptions = true, version = "1.0",
-        description = "Updates project version across POM and workflow files")
+        description = "Updates project version across POM, GitHub workflows, dependabot config and README")
 class UpdateProjectVersion implements Runnable {
 
     @Parameters(index = "0", description = "Project folder path")
@@ -37,12 +35,23 @@ class UpdateProjectVersion implements Runnable {
     @Parameters(index = "1", description = "New version in MAJOR.MINOR format")
     private String newVersion;
 
-    @CommandLine.Option(names = {"-m", "--maven-home"}, description = "Maven HOME path")
+    @Option(names = {"-m", "--maven-home"}, description = "Maven HOME path")
     private Path mavenHome;
+
+    @Option(names = {"-y", "--yes"}, description = "Do not prompt for confirmation")
+    private boolean assumeYes;
+
+    @Option(names = {"-n", "--dry-run"}, description = "Print actions without writing files")
+    private boolean dryRun;
+
+    @Option(names = "--skip-readme",
+            description = "Do not update README.md (Development Version row and Quick Start examples)")
+    private boolean skipReadme;
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+$");
     private static final Pattern REVISION_PATTERN = Pattern.compile("<revision>(.*?)-SNAPSHOT</revision>");
     private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)-SNAPSHOT</hilla\\.version>");
+    private static final Pattern README_QUICK_START_PATTERN = Pattern.compile("<version>\\d+\\.\\d+\\.x</version>");
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new UpdateProjectVersion()).execute(args);
@@ -52,38 +61,51 @@ class UpdateProjectVersion implements Runnable {
     @Override
     public void run() {
         try {
-            // Validation
             validate();
 
-            // Read current versions
             Path pomFile = projectFolder.toPath().resolve("pom.xml");
             String currentVersion = extractVersion(pomFile, REVISION_PATTERN, "revision");
-            String vaadinVersion = extractVersion(pomFile, HILLA_VERSION_PATTERN, "hilla.version");
+            String hillaVersion = extractVersion(pomFile, HILLA_VERSION_PATTERN, "hilla.version");
 
-            System.out.println("Project version " + currentVersion + ", Vaadin version " + vaadinVersion);
-            System.out.println("Updating project and Vaadin to version " + newVersion + "?");
-            System.out.println("Press ENTER to continue or CTRL+C to cancel");
-            new BufferedReader(new InputStreamReader(System.in)).readLine();
+            if (currentVersion.equals(newVersion)) {
+                throw new IllegalArgumentException(
+                        "Project is already at version " + newVersion + "-SNAPSHOT — nothing to do");
+            }
 
-            // Update Maven properties
-            // TODO: Temporarily commented out for testing
-            // updateMavenProperty("revision", newVersion + "-SNAPSHOT");
-            // updateMavenProperty("hilla.version", newVersion + "-SNAPSHOT");
-            System.out.println("(Maven property updates commented out for testing)");
+            System.out.println("Project version " + currentVersion + ", Vaadin version " + hillaVersion);
+            System.out.println("Updating project and Vaadin to version " + newVersion + (dryRun ? " (DRY RUN)" : "") + "?");
+            if (!assumeYes) {
+                System.out.println("Press ENTER to continue or CTRL+C to cancel");
+                new BufferedReader(new InputStreamReader(System.in)).readLine();
+            }
 
-            // Update workflow files
-            Path workflowsFolder = projectFolder.toPath().resolve(".github/workflows");
-            updateWorkflowFiles(workflowsFolder, currentVersion);
+            updateMavenProperty("revision", newVersion + "-SNAPSHOT");
+            updateMavenProperty("hilla.version", newVersion + "-SNAPSHOT");
 
-            // Update dependabot file
-            Path dependabotFile = projectFolder.toPath().resolve(".github/dependabot.yml");
-            if (Files.exists(dependabotFile)) {
-                updateDependabotFile(dependabotFile, currentVersion);
+            Path workflows = projectFolder.toPath().resolve(".github/workflows");
+            patch(workflows.resolve("release.yaml"),
+                    c -> insertOptionAfterMain(c, currentVersion));
+            patch(workflows.resolve("update-npm-deps.yaml"),
+                    c -> insertInRunScript(insertOptionAfterMain(c, currentVersion), currentVersion));
+            patch(workflows.resolve("validation.yaml"),
+                    c -> insertFlowArrayItemAfterMain(c, "branches", currentVersion));
+            patch(workflows.resolve("validation-nightly.yaml"),
+                    c -> insertFlowArrayItemAfterMain(c, "branch", currentVersion));
+
+            patch(projectFolder.toPath().resolve(".github/dependabot.yml"),
+                    c -> insertDependabotEntry(c, currentVersion));
+
+            if (skipReadme) {
+                System.out.println("Remember to manually update README.md");
+            } else {
+                patch(projectFolder.toPath().resolve("README.md"),
+                        c -> updateReadmeContent(c, currentVersion, newVersion));
             }
 
             System.out.println("Upgrade completed");
-            System.out.println("Remember to manually update README.md");
-
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            System.err.println("Error: " + e.getMessage());
+            System.exit(1);
         } catch (Exception e) {
             System.err.println("Error: " + e.getMessage());
             e.printStackTrace();
@@ -114,12 +136,16 @@ class UpdateProjectVersion implements Runnable {
         String content = Files.readString(pomFile);
         Matcher matcher = pattern.matcher(content);
         if (!matcher.find()) {
-            throw new IllegalArgumentException("Cannot read " + propertyName + " from " + pomFile);
+            throw new IllegalStateException("Cannot read " + propertyName + " from " + pomFile);
         }
         return matcher.group(1);
     }
 
     private void updateMavenProperty(String property, String value) throws MavenInvocationException {
+        if (dryRun) {
+            System.out.println("[dry-run] would set Maven property " + property + "=" + value);
+            return;
+        }
         System.out.println(". Updating " + property + " property");
 
         InvocationRequest request = new DefaultInvocationRequest();
@@ -141,297 +167,127 @@ class UpdateProjectVersion implements Runnable {
         InvocationResult result = invoker.execute(request);
 
         if (result.getExitCode() != 0) {
-            throw new RuntimeException("Maven command failed with exit code " + result.getExitCode());
+            throw new IllegalStateException("Maven command failed with exit code " + result.getExitCode());
         }
 
         System.out.println(".. OK");
     }
 
-    private void updateWorkflowFiles(Path workflowsFolder, String currentVersion) throws IOException {
-        Consumer<ArrayNode> versionAppender = array -> array.insert(1, currentVersion);
-
-        updateYamlFile(workflowsFolder.resolve("release.yaml"), yaml -> {
-            System.out.println(". Updating release.yaml workflow");
-            updateArray(yaml, "/on/workflow_dispatch/inputs/target-branch/options", versionAppender);
-            System.out.println(".. OK");
-        });
-
-        updateYamlFile(workflowsFolder.resolve("update-npm-deps.yaml"), yaml -> {
-            System.out.println(". Updating update-npm-deps.yaml workflow");
-            updateArray(yaml, "/on/workflow_dispatch/inputs/target-branch/options", versionAppender);
-            updateObject(yaml, "/jobs/compute-matrix/steps/0", node -> node.put("run",
-                    node.get("run").stringValue().replace("\"main\"", "\"main\",\"" + currentVersion + "\"")));
-            System.out.println(".. OK");
-        });
-
-        updateYamlFile(workflowsFolder.resolve("validation.yaml"), yaml -> {
-            System.out.println(". Updating validation.yaml workflow");
-            updateArray(yaml, "/on/push/branches", versionAppender);
-            System.out.println(".. OK");
-        });
-
-        updateYamlFile(workflowsFolder.resolve("validation-nightly.yaml"), yaml -> {
-            System.out.println(". Updating validation-nightly.yaml workflow");
-            updateArray(yaml, "/jobs/snapshot-main/strategy/matrix/branch", versionAppender);
-            System.out.println(".. OK");
-        });
-    }
-
-    private void updateObject(JsonNode root,  String path, Consumer<ObjectNode> updater) {
-        JsonNode node = findNode(root, path);
-        if (!node.isObject()) {
-            throw  new IllegalArgumentException("Element at " + path + " is not a object");
+    private void patch(Path file, UnaryOperator<String> transform) throws IOException {
+        if (!Files.exists(file)) {
+            return;
         }
-        updater.accept((ObjectNode) node);
-    }
-
-    private void updateArray(JsonNode root, String path, Consumer<ArrayNode> updater) {
-        JsonNode node = findNode(root, path);
-        if (!node.isArray()) {
-            throw new IllegalArgumentException("Element at " + path + " is not an array");
+        Path relative = projectFolder.toPath().relativize(file);
+        System.out.print(". Updating " + relative);
+        String original = Files.readString(file);
+        String updated = transform.apply(original);
+        if (updated.equals(original)) {
+            System.out.println(" .. nothing to do");
+            return;
         }
-        updater.accept((ArrayNode) node);
-    }
-
-    private static JsonNode findNode(JsonNode root, String path) {
-        JsonNode node = root.at(path);
-        if (node.isMissingNode()) {
-            throw new IllegalArgumentException("Element at " + path + " not found");
+        if (!dryRun) {
+            Files.writeString(file, updated);
         }
-        return node;
+        System.out.println(dryRun ? " .. would update" : " .. OK");
     }
 
-    private void updateDependabotFile(Path dependabotFile, String currentVersion) throws IOException {
-        System.out.println(". Updating dependabot.yml");
-
-        updateYamlFile(dependabotFile, yaml -> {
-            ObjectNode newEntry = yaml.withArray("updates").insertObject(1);
-
-            newEntry.put("package-ecosystem", "maven");
-            newEntry.put("directory", "/");
-            newEntry.put("target-branch", currentVersion);
-            newEntry.putObject("schedule").put("interval", "daily");
-
-            ArrayNode ignore = newEntry.putArray("ignore");
-            ignore.addObject()
-                    .put("dependency-name", "com.vaadin.hilla:*")
-                    .putArray("update-types").add("version-update:semver-major").add("version-update:semver-minor");
-
-            ignore.addObject()
-                    .put("dependency-name", "com.vaadin:*")
-                    .putArray("update-types").add("version-update:semver-major").add("version-update:semver-minor");
-        });
-
-        System.out.println(".. OK");
-    }
-
-    private void updateYamlFile(Path yamlFile, YamlUpdater updater) throws IOException {
-        if (!Files.exists(yamlFile)) {
-            return; // Skip if file doesn't exist
+    /**
+     * Inserts {@code - "<version>"} immediately after {@code - main} under an {@code options:} list.
+     * Used for {@code release.yaml} and {@code update-npm-deps.yaml}.
+     */
+    static String insertOptionAfterMain(String content, String version) {
+        String marker = "          - main\n";
+        String inserted = "          - \"" + version + "\"\n";
+        if (content.contains(marker + inserted)) {
+            return content;
         }
-
-        YAMLFactory yamlFactory = new YAMLFactoryBuilder(new YAMLFactory())
-                .enable(YAMLWriteFeature.MINIMIZE_QUOTES)
-                .enable(YAMLWriteFeature.INDENT_ARRAYS_WITH_INDICATOR)
-                .build();
-        ObjectMapper objectMapper = new ObjectMapper(yamlFactory);
-        JsonNode root = objectMapper.readTree(yamlFile);
-
-        // Apply updates using text-based manipulation
-        updater.update(root);
-
-        // Write back
-        objectMapper.writer().writeValue(yamlFile, root);
+        if (!content.contains(marker)) {
+            throw new IllegalStateException("Cannot find '- main' option entry to insert version after");
+        }
+        return content.replace(marker, marker + inserted);
     }
 
-    @FunctionalInterface
-    interface YamlUpdater {
-        void update(JsonNode root) throws IOException;
+    /**
+     * Replaces the literal {@code "main"} token in the {@code compute-matrix} run script with
+     * {@code "main","<version>"}. Used for {@code update-npm-deps.yaml}.
+     */
+    static String insertInRunScript(String content, String version) {
+        String token = "\"main\"";
+        String replacement = "\"main\",\"" + version + "\"";
+        if (content.contains(replacement)) {
+            return content;
+        }
+        if (!content.contains(token)) {
+            return content;
+        }
+        return content.replace(token, replacement);
     }
 
-    private void prependToYamlArray(List<String> lines, List<String> values, String... path) {
-        int arrayLine = findYamlPath(lines, path);
-        int indent = getIndentLevel(lines.get(arrayLine));
-        int elementIndent = indent + 2;
-
-        // Find first element line (right after the key line)
-        int insertLine = arrayLine + 1;
-
-        // Skip "main" if it's already the first element
-        if (insertLine < lines.size() && lines.get(insertLine).trim().equals("- main")) {
-            insertLine++;
+    /**
+     * Inserts {@code "<version>"} immediately after {@code main} in a flow array of the form
+     * {@code <key>: [main, ...]}. Used for {@code validation.yaml} ({@code branches}) and
+     * {@code validation-nightly.yaml} ({@code branch}).
+     */
+    static String insertFlowArrayItemAfterMain(String content, String key, String version) {
+        String marker = key + ": [main, ";
+        String inserted = key + ": [main, \"" + version + "\", ";
+        if (content.contains(inserted)) {
+            return content;
         }
-
-        // Insert new values
-        for (int i = values.size() - 1; i >= 0; i--) {
-            String value = values.get(i);
-            String line = " ".repeat(elementIndent) + "- " + (value.contains(" ") || value.matches("\\d+\\.\\d+") ? "\"" + value + "\"" : value);
-            lines.add(insertLine, line);
+        if (!content.contains(marker)) {
+            throw new IllegalStateException("Cannot find flow array '" + key + ": [main, ...]' to insert version into");
         }
+        return content.replace(marker, inserted);
     }
 
-    private void replaceInYamlString(List<String> lines, String find, String replace, String... path) {
-        int startLine = findYamlPath(lines, path);
-
-        // Check if it's a multiline string (|)
-        if (lines.get(startLine).contains(": |")) {
-            int indent = getIndentLevel(lines.get(startLine));
-            // Replace in all continuation lines
-            for (int i = startLine + 1; i < lines.size(); i++) {
-                int lineIndent = getIndentLevel(lines.get(i));
-                if (lineIndent <= indent && !lines.get(i).trim().isEmpty()) {
-                    break; // End of multiline block
-                }
-                String line = lines.get(i);
-                if (line.contains(find)) {
-                    lines.set(i, line.replace(find, replace));
-                }
-            }
-        } else {
-            // Single-line string
-            String line = lines.get(startLine);
-            if (line.contains(find)) {
-                lines.set(startLine, line.replace(find, replace));
-            }
+    /**
+     * Inserts a new maintenance branch entry into {@code .github/dependabot.yml}, between the
+     * {@code main} updates entry (the first one) and the next one.
+     */
+    static String insertDependabotEntry(String content, String version) {
+        if (content.contains("target-branch: \"" + version + "\"")) {
+            return content;
         }
+        String marker = "\n  - package-ecosystem:";
+        int first = content.indexOf(marker);
+        if (first < 0) {
+            throw new IllegalStateException("Cannot find dependabot 'updates' entry");
+        }
+        int second = content.indexOf(marker, first + marker.length());
+        if (second < 0) {
+            throw new IllegalStateException("Expected at least two dependabot 'updates' entries");
+        }
+        String entry = """
+                  - package-ecosystem: "maven"
+                    directory: "/"
+                    target-branch: "%s"
+                    schedule:
+                      interval: "daily"
+                    ignore:
+                      - dependency-name: "com.vaadin.hilla:*"
+                        update-types:
+                          - "version-update:semver-major"
+                          - "version-update:semver-minor"
+                      - dependency-name: "com.vaadin:*"
+                        update-types:
+                          - "version-update:semver-major"
+                          - "version-update:semver-minor"
+                """.formatted(version);
+        return content.substring(0, second) + "\n" + entry.stripTrailing() + content.substring(second);
     }
 
-    private void insertIntoYamlArray(List<String> lines, int position, Map<String, Object> entry, String... path) {
-        int arrayLine = findYamlPath(lines, path);
-        int indent = getIndentLevel(lines.get(arrayLine));
-        int elementIndent = indent + 2;
-
-        // Find insertion point
-        int insertLine = arrayLine + 1;
-        int currentPos = 0;
-        while (currentPos < position && insertLine < lines.size()) {
-            String line = lines.get(insertLine).trim();
-            if (line.startsWith("- ")) {
-                currentPos++;
-                if (currentPos < position) {
-                    // Skip to next array element
-                    insertLine++;
-                    int entryIndent = elementIndent + 2;
-                    while (insertLine < lines.size()) {
-                        int nextIndent = getIndentLevel(lines.get(insertLine));
-                        if (nextIndent < entryIndent && !lines.get(insertLine).trim().isEmpty()) {
-                            break;
-                        }
-                        insertLine++;
-                    }
-                }
-            } else {
-                insertLine++;
-            }
-        }
-
-        // Insert new entry as YAML
-        List<String> newLines = convertMapToYamlLines(entry, elementIndent);
-        for (int i = newLines.size() - 1; i >= 0; i--) {
-            lines.add(insertLine, newLines.get(i));
-        }
+    /**
+     * Updates the Development Version table row (Quarkus-Hilla SNAPSHOT cell + Vaadin column) and
+     * the Quick Start XML examples in {@code README.md}.
+     */
+    static String updateReadmeContent(String content, String currentVersion, String newVersion) {
+        String updated = content;
+        updated = updated.replace(currentVersion + "--SNAPSHOT", newVersion + "--SNAPSHOT");
+        updated = updated.replace(currentVersion + "-SNAPSHOT", newVersion + "-SNAPSHOT");
+        updated = updated.replace("Vaadin " + currentVersion, "Vaadin " + newVersion);
+        updated = updated.replace("Vaadin-" + currentVersion, "Vaadin-" + newVersion);
+        updated = README_QUICK_START_PATTERN.matcher(updated)
+                .replaceAll("<version>" + currentVersion + ".x</version>");
+        return updated;
     }
-
-    private int findYamlPath(List<String> lines, String... pathParts) {
-        int currentLine = 0;
-        int currentIndent = -1;
-
-        for (String part : pathParts) {
-            if (part.startsWith("[") && part.endsWith("]")) {
-                // Array index - not implemented for simplicity (not needed in our use case)
-                throw new UnsupportedOperationException("Array index navigation not implemented");
-            } else {
-                // Map key - find "key:" at current or deeper indent
-                for (int i = currentLine; i < lines.size(); i++) {
-                    String line = lines.get(i);
-                    int indent = getIndentLevel(line);
-
-                    // Skip if indentation is less than expected (backtracked to parent)
-                    if (currentIndent >= 0 && indent < currentIndent) {
-                        continue;
-                    }
-
-                    String trimmed = line.trim();
-                    if (trimmed.startsWith(part + ":")) {
-                        currentLine = i;
-                        currentIndent = indent;
-                        break;
-                    }
-                }
-            }
-        }
-
-        return currentLine;
-    }
-
-    private int getIndentLevel(String line) {
-        int count = 0;
-        for (char c : line.toCharArray()) {
-            if (c == ' ') {
-                count++;
-            } else {
-                break;
-            }
-        }
-        return count;
-    }
-
-    private List<String> convertMapToYamlLines(Map<String, Object> map, int baseIndent) {
-        List<String> lines = new ArrayList<>();
-        String indent = " ".repeat(baseIndent);
-
-        // First line is the array indicator
-        boolean isFirst = true;
-        for (Map.Entry<String, Object> entry : map.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-
-            if (isFirst) {
-                lines.add(indent + "- " + key + ": " + formatValue(value, baseIndent + 2));
-                isFirst = false;
-            } else {
-                if (value instanceof Map || value instanceof List) {
-                    lines.add(indent + "  " + key + ":");
-                    lines.addAll(formatComplexValue(value, baseIndent + 4));
-                } else {
-                    lines.add(indent + "  " + key + ": " + formatValue(value, baseIndent + 4));
-                }
-            }
-        }
-
-        return lines;
-    }
-
-    private String formatValue(Object value, int indent) {
-        if (value instanceof String) {
-            String str = (String) value;
-            if (str.contains(" ") || str.contains(":")) {
-                return "\"" + str + "\"";
-            }
-            return str;
-        }
-        return String.valueOf(value);
-    }
-
-    private List<String> formatComplexValue(Object value, int indent) {
-        List<String> lines = new ArrayList<>();
-        String indentStr = " ".repeat(indent);
-
-        if (value instanceof List) {
-            for (Object item : (List<?>) value) {
-                if (item instanceof String) {
-                    lines.add(indentStr + "- " + formatValue(item, indent));
-                } else {
-                    lines.add(indentStr + "- " + item);
-                }
-            }
-        } else if (value instanceof Map) {
-            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
-                lines.add(indentStr + entry.getKey() + ": " + formatValue(entry.getValue(), indent + 2));
-            }
-        }
-
-        return lines;
-    }
-
 }
