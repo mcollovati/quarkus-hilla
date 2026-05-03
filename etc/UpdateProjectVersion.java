@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.function.UnaryOperator;
 import java.util.regex.Matcher;
@@ -79,8 +80,9 @@ class UpdateProjectVersion implements Runnable {
                 new BufferedReader(new InputStreamReader(System.in)).readLine();
             }
 
-            updateMavenProperty("revision", newVersion + "-SNAPSHOT");
-            updateMavenProperty("hilla.version", newVersion + "-SNAPSHOT");
+            Path resolvedMavenHome = dryRun ? mavenHome : resolveMavenHome();
+            updateMavenProperty(resolvedMavenHome, "revision", newVersion + "-SNAPSHOT");
+            updateMavenProperty(resolvedMavenHome, "hilla.version", newVersion + "-SNAPSHOT");
 
             Path workflows = projectFolder.toPath().resolve(".github/workflows");
             patch(workflows.resolve("release.yaml"),
@@ -132,6 +134,52 @@ class UpdateProjectVersion implements Runnable {
         }
     }
 
+    private Path resolveMavenHome() {
+        if (mavenHome != null) {
+            return mavenHome;
+        }
+        for (String envName : new String[] {"MAVEN_HOME", "M2_HOME"}) {
+            String value = System.getenv(envName);
+            if (value != null) {
+                Path candidate = Paths.get(value);
+                if (Files.isDirectory(candidate)) {
+                    return candidate;
+                }
+            }
+        }
+        String pathEnv = System.getenv("PATH");
+        if (pathEnv != null) {
+            boolean windows = System.getProperty("os.name", "").toLowerCase().contains("windows");
+            String[] execs = windows ? new String[] {"mvn.cmd", "mvn.bat"} : new String[] {"mvn"};
+            for (String dir : pathEnv.split(File.pathSeparator)) {
+                if (dir.isEmpty()) {
+                    continue;
+                }
+                for (String exe : execs) {
+                    Path candidate = Paths.get(dir, exe);
+                    if (!Files.isExecutable(candidate)) {
+                        continue;
+                    }
+                    try {
+                        Path bin = candidate.toRealPath().getParent();
+                        if (bin == null) {
+                            continue;
+                        }
+                        Path home = bin.getParent();
+                        if (home != null && Files.isDirectory(home)) {
+                            return home;
+                        }
+                    } catch (IOException ignored) {
+                        // try next candidate
+                    }
+                }
+            }
+        }
+        throw new IllegalArgumentException(
+                "Cannot detect a Maven installation. "
+                        + "Specify --maven-home <path> or set the MAVEN_HOME environment variable.");
+    }
+
     private String extractVersion(Path pomFile, Pattern pattern, String propertyName) throws IOException {
         String content = Files.readString(pomFile);
         Matcher matcher = pattern.matcher(content);
@@ -141,7 +189,7 @@ class UpdateProjectVersion implements Runnable {
         return matcher.group(1);
     }
 
-    private void updateMavenProperty(String property, String value) throws MavenInvocationException {
+    private void updateMavenProperty(Path resolvedMavenHome, String property, String value) throws MavenInvocationException {
         if (dryRun) {
             System.out.println("[dry-run] would set Maven property " + property + "=" + value);
             return;
@@ -149,9 +197,7 @@ class UpdateProjectVersion implements Runnable {
         System.out.println(". Updating " + property + " property");
 
         InvocationRequest request = new DefaultInvocationRequest();
-        if (mavenHome != null) {
-            request.setMavenHome(mavenHome.toFile());
-        }
+        request.setMavenHome(resolvedMavenHome.toFile());
         request.setBatchMode(true);
         request.setNoTransferProgress(true);
         request.setQuiet(true);
