@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.restassured.specification.RequestSpecification;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -42,7 +42,7 @@ import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.givenEndp
 class EndpointSecurityTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
             .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")
