@@ -38,7 +38,7 @@ import com.vaadin.flow.signals.Id;
 import com.vaadin.hilla.signals.handler.SignalsHandler;
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.http.HttpHeaders;
@@ -72,7 +72,7 @@ class SignalsSecurityTest {
     SecureNumberSignalService secureNumberSignalService;
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
             .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")

@@ -28,7 +28,7 @@ import com.vaadin.flow.signals.Id;
 import com.vaadin.flow.signals.local.ValueSignal;
 import com.vaadin.hilla.signals.handler.SignalsHandler;
 import io.quarkus.logging.Log;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 import org.hamcrest.CoreMatchers;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -50,7 +50,7 @@ class SignalsTest {
     URI pushURI;
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
                     .add(new StringAsset("""

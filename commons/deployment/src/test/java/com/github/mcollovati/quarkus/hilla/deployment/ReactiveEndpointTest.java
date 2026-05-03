@@ -15,7 +15,7 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -26,7 +26,7 @@ class ReactiveEndpointTest extends AbstractReactiveEndpointTest {
     private static final String ENDPOINT_NAME = ReactiveEndpoint.class.getSimpleName();
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .setArchiveProducer(() ->
                     ShrinkWrap.create(JavaArchive.class).addClasses(ReactiveEndpoint.class, HillaPushClient.class));

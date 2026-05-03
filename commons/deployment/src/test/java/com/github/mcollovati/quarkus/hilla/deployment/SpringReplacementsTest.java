@@ -25,7 +25,7 @@ import io.quarkus.security.test.utils.AuthData;
 import io.quarkus.security.test.utils.IdentityMock;
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,7 +42,7 @@ import static com.github.mcollovati.quarkus.hilla.deployment.TestUtils.USER;
 class SpringReplacementsTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
             .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")

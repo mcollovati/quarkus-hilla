@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 
 import io.quarkus.security.test.utils.TestIdentityController;
 import io.quarkus.security.test.utils.TestIdentityProvider;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.vertx.core.http.HttpHeaders;
 import org.assertj.core.api.AbstractStringAssert;
@@ -53,7 +53,7 @@ class ReactiveSecureEndpointTest {
     private static final String ENDPOINT_NAME = ReactiveSecureEndpoint.class.getSimpleName();
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .withConfigurationResource(testResource("test-application.properties"))
             .overrideRuntimeConfigKey("quarkus.http.auth.basic", "true")
             .overrideRuntimeConfigKey("quarkus.http.auth.proactive", "true")

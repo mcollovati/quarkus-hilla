@@ -24,7 +24,7 @@ import com.vaadin.hilla.crud.filter.OrFilter;
 import com.vaadin.hilla.crud.filter.PropertyStringFilter;
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import io.quarkus.test.TestTransaction;
 import org.assertj.core.api.Assertions;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -41,7 +41,7 @@ import static org.assertj.core.groups.Tuple.tuple;
 class ListRepositoryServiceTest {
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .setForcedDependencies(List.of(
                     Dependency.of("io.quarkus", "quarkus-hibernate-orm-panache", Version.getVersion()),
                     Dependency.of("io.quarkus", "quarkus-jdbc-h2", Version.getVersion())))

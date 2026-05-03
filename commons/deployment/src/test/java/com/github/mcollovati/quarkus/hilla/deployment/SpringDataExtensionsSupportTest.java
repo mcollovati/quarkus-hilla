@@ -19,7 +19,7 @@ import java.util.List;
 
 import io.quarkus.builder.Version;
 import io.quarkus.maven.dependency.Dependency;
-import io.quarkus.test.QuarkusUnitTest;
+import io.quarkus.test.QuarkusExtensionTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.extension.RegisterExtension;
@@ -33,7 +33,7 @@ class SpringDataExtensionsSupportTest extends AbstractEndpointControllerTest {
     private static final String ENDPOINT_NAME = TestBrowserCallable.class.getSimpleName();
 
     @RegisterExtension
-    static final QuarkusUnitTest config = new QuarkusUnitTest()
+    static final QuarkusExtensionTest config = new QuarkusExtensionTest()
             .overrideConfigKey("quarkus.class-loading.removed-artifacts", "com.vaadin:copilot")
             .setForcedDependencies(
                     List.of(Dependency.of("io.quarkus", "quarkus-spring-data-jpa", Version.getVersion())))
