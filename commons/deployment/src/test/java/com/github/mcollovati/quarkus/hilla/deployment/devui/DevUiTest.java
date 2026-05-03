@@ -25,16 +25,15 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.QuarkusDevModeTest;
-import io.quarkus.test.config.TestConfigProviderResolver;
-import org.eclipse.microprofile.config.Config;
-import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
+import io.quarkus.value.registry.ValueRegistry;
+import io.quarkus.value.registry.ValueRegistry.RuntimeKey;
+import io.smallrye.config.Config;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
-
-import static io.quarkus.runtime.LaunchMode.DEVELOPMENT;
 
 public class DevUiTest {
 
@@ -43,6 +42,7 @@ public class DevUiTest {
             new QuarkusDevModeTest().withApplicationRoot(jar -> jar.addClass(TestEndpoint.class));
     // .withEmptyApplication();
 
+    private static final RuntimeKey<URI> LOCAL_BASE_URI = RuntimeKey.key("quarkus.http.local-base-uri");
     private static final String CONST = "export const ";
     private static final String SPACE = " ";
     private static final String EQUALS = "=";
@@ -50,17 +50,20 @@ public class DevUiTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final JsonFactory factory = mapper.getFactory();
-    private final URI devUI;
+    private URI devUI;
 
-    public DevUiTest() {
-        Config config = ((TestConfigProviderResolver) ConfigProviderResolver.instance()).getConfig(DEVELOPMENT);
-        String testUrl = config.getValue("test.url", String.class);
-        String nonApplicationRoot = config.getOptionalValue("quarkus.http.non-application-root-path", String.class)
-                .orElse("q");
-        if (!nonApplicationRoot.startsWith("/")) {
-            nonApplicationRoot = "/" + nonApplicationRoot;
+    @BeforeEach
+    public void beforeEach(ValueRegistry valueRegistry) {
+        if (valueRegistry.containsKey(LOCAL_BASE_URI)) {
+            URI localBaseUri = valueRegistry.get(LOCAL_BASE_URI);
+            String nonApplicationRoot = Config.get()
+                    .getOptionalValue("quarkus.http.non-application-root-path", String.class)
+                    .orElse("q");
+            if (!nonApplicationRoot.startsWith("/")) {
+                nonApplicationRoot = "/" + nonApplicationRoot;
+            }
+            this.devUI = URI.create(localBaseUri.toString() + nonApplicationRoot + "/dev-ui/");
         }
-        this.devUI = URI.create(testUrl + nonApplicationRoot + "/dev-ui/");
     }
 
     @Test
