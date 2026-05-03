@@ -1,5 +1,4 @@
 import { MobxLitElement } from '@adobe/lit-mobx';
-import { applyTheme } from 'Frontend/generated/theme.js';
 import { autorun, IAutorunOptions, IReactionDisposer, IReactionOptions, IReactionPublic, reaction } from 'mobx';
 
 export class MobxElement extends MobxLitElement {
@@ -58,14 +57,7 @@ export class View extends MobxElement {
  * A layout is a container that organizes UI elements in a certain way, and uses shadow root to render its children.
  * <slot> elements can be used to determine where the child elements are rendered.
  *
- * The application theme is applied to the shadow root by adopting the theme style sheets defined in the global scope.
- * Styles defined outside of the theme are not applied.
- *
  * The layout class also bring the MobX dependency for state management.
  */
 export class Layout extends MobxElement {
-  connectedCallback(): void {
-    super.connectedCallback();
-    applyTheme(this.shadowRoot as ShadowRoot);
-  }
 }
