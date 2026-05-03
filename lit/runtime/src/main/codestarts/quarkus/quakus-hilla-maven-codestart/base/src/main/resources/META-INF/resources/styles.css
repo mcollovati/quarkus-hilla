@@ -1,3 +1,6 @@
+@import "lumo/lumo.css";
+@import "lumo/utility.css";
+
 vaadin-scroller[slot='drawer'] {
   flex: auto;
   padding: var(--lumo-space-s);

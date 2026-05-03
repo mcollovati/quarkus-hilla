@@ -18,22 +18,23 @@ package com.example.application;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.component.page.Push;
 import com.vaadin.flow.server.auth.DefaultMenuAccessControl;
 import com.vaadin.flow.server.auth.MenuAccessControl;
-import com.vaadin.flow.theme.Theme;
+import com.vaadin.flow.theme.lumo.Lumo;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.runtime.Startup;
 
 /**
- * The entry point of the Spring Boot application.
- *
  * Use the @PWA annotation make the application installable on phones, tablets
  * and some desktop browsers.
  *
  */
-@Theme(value = "my-hilla-app")
+@StyleSheet("styles.css")
+@StyleSheet(Lumo.STYLESHEET)
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
 @Push
 public class Application implements AppShellConfigurator {
 

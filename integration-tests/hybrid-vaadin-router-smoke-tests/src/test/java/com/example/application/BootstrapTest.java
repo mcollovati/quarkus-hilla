@@ -44,7 +44,6 @@ class BootstrapTest {
         Awaitility.await().atMost(5, TimeUnit.MINUTES).untilAsserted(() -> assertThat(frontendGeneratedFolder)
                 .isDirectoryContaining(fileWithName("endpoints.ts"))
                 .isDirectoryContaining(fileWithName("vaadin.ts"))
-                .isDirectoryContaining(fileWithName("theme.js"))
                 .isDirectoryContaining(fileWithName("UserInfoEndpoint.ts"))
                 .isDirectoryContaining(fileWithName("HelloWorldEndpoint.ts"))
                 .isDirectoryRecursivelyContaining("glob:**/entities/User*.ts"));
