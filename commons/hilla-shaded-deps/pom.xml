@@ -128,6 +128,7 @@
                                 <filter>
                                     <artifact>org.springframework.data:spring-data-commons</artifact>
                                     <includes>
+                                        <include>org/springframework/data/core/TypedPropertyPath.class</include>
                                         <include>org/springframework/data/domain/AbstractPageRequest.class</include>
                                         <include>org/springframework/data/domain/Chunk.class</include>
                                         <include>org/springframework/data/domain/KeysetScrollPosition.class</include>
