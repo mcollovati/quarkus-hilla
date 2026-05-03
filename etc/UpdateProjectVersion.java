@@ -53,6 +53,8 @@ class UpdateProjectVersion implements Runnable {
     private static final Pattern REVISION_PATTERN = Pattern.compile("<revision>(.*?)-SNAPSHOT</revision>");
     private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)-SNAPSHOT</hilla\\.version>");
     private static final Pattern README_QUICK_START_PATTERN = Pattern.compile("<version>\\d+\\.\\d+\\.x</version>");
+    private static final Pattern README_RELEASES_TOP_ROW_PATTERN = Pattern.compile(
+            "(?m)^\\| <picture><img alt=\"Maven Central (\\d+\\.\\d+)\".*$");
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new UpdateProjectVersion()).execute(args);
@@ -323,8 +325,8 @@ class UpdateProjectVersion implements Runnable {
     }
 
     /**
-     * Updates the Development Version table row (Quarkus-Hilla SNAPSHOT cell + Vaadin column) and
-     * the Quick Start XML examples in {@code README.md}.
+     * Updates the Development Version table row, the Quick Start XML examples and the Current
+     * Releases table in {@code README.md}.
      */
     static String updateReadmeContent(String content, String currentVersion, String newVersion) {
         String updated = content;
@@ -334,6 +336,31 @@ class UpdateProjectVersion implements Runnable {
         updated = updated.replace("Vaadin-" + currentVersion, "Vaadin-" + newVersion);
         updated = README_QUICK_START_PATTERN.matcher(updated)
                 .replaceAll("<version>" + currentVersion + ".x</version>");
+        updated = insertCurrentReleasesEntry(updated, currentVersion);
         return updated;
+    }
+
+    /**
+     * Inserts a new entry at the top of the Current Releases table, cloning the existing top row
+     * and swapping its version strings. The Quarkus column is preserved as-is, since the Quarkus
+     * minimum version typically does not change on a minor bump.
+     */
+    static String insertCurrentReleasesEntry(String content, String version) {
+        if (content.contains("| <picture><img alt=\"Maven Central " + version + "\"")) {
+            return content;
+        }
+        Matcher m = README_RELEASES_TOP_ROW_PATTERN.matcher(content);
+        if (!m.find()) {
+            throw new IllegalStateException("Cannot find Current Releases table top row");
+        }
+        String existingVersion = m.group(1);
+        String existingLine = m.group();
+        int lineStart = m.start();
+        String newLine = existingLine
+                .replace("Maven Central " + existingVersion, "Maven Central " + version)
+                .replace("versionPrefix=" + existingVersion, "versionPrefix=" + version)
+                .replace("Vaadin " + existingVersion, "Vaadin " + version)
+                .replace("VAADIN-v" + existingVersion, "VAADIN-v" + version);
+        return content.substring(0, lineStart) + newLine + "\n" + content.substring(lineStart);
     }
 }

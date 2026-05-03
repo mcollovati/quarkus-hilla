@@ -68,8 +68,9 @@ Unless `--skip-readme` is passed:
 
 - The Development Version row is updated (`<C>-SNAPSHOT` → `<N>-SNAPSHOT` and the Vaadin column from `<C>` to `<N>`).
 - The Quick Start XML examples are updated to reference `<C>.x` (the previous minor, which has now become the latest maintenance branch).
+- A new entry for version `<C>` is added at the top of the Current Releases table, cloning the existing top row and swapping its version strings. The Quarkus column is preserved as-is, since the Quarkus minimum version typically does not change on a minor bump — review the diff and adjust if needed.
 
-The Maven Central badges and the Current Releases table are **not** touched — those are tied to actual releases and should be updated as part of the [release process](release-process.md).
+The Maven Central badges at the top of the README are **not** touched.
 
 ## Idempotency
 
