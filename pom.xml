@@ -36,18 +36,18 @@
     </developers>
 
     <properties>
-        <revision>25.1-SNAPSHOT</revision>
+        <revision>25.2-SNAPSHOT</revision>
 
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
-        <quarkus.version>3.35.1</quarkus.version>
+        <quarkus.version>3.36.0</quarkus.version>
         <!--
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>25.1-SNAPSHOT</hilla.version>
+        <hilla.version>25.2-SNAPSHOT</hilla.version>
         <flow.version>${hilla.version}</flow.version>
         <vaadin.version>${hilla.version}</vaadin.version>
 
@@ -59,7 +59,7 @@
         <jspecify.version>1.0.0</jspecify.version>
 
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+        <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
         <maven-dependency-plugin.version>3.11.0</maven-dependency-plugin.version>
         <maven-shade-plugin.version>3.6.2</maven-shade-plugin.version>
@@ -75,7 +75,7 @@
         <jreleaser-maven-plugin.version>1.24.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
-        <spotless-maven-plugin.version>3.4.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.6.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
 
     </properties>
