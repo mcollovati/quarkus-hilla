@@ -19,6 +19,7 @@
 
         <awaitility.version>4.3.0</awaitility.version>
         <selenide.version>7.16.0</selenide.version>
+        <selenide.browser>chrome</selenide.browser>
 
         <!--
             By default, skips Hilla plugin execution to prevent build errors for modules
@@ -116,6 +117,7 @@
                         </selenide.reportsFolder>
                         <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                         </selenide.downloadsFolder>
+                        <selenide.browser>${selenide.browser}</selenide.browser>
                         <vaadin.reuseDevServer>false</vaadin.reuseDevServer>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
@@ -140,6 +142,7 @@
                                 </selenide.reportsFolder>
                                 <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                                 </selenide.downloadsFolder>
+                                <selenide.browser>${selenide.browser}</selenide.browser>
                             </systemPropertyVariables>
                             <forkNode
                                     implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
@@ -150,6 +153,17 @@
         </plugins>
     </build>
     <profiles>
+        <profile>
+            <id>macos-tests</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <selenide.browser>safari</selenide.browser>
+            </properties>
+        </profile>
         <profile>
             <id>development</id>
             <activation>
