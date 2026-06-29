@@ -205,7 +205,15 @@ class SignalsSecurityTest {
                 .build();
         try (Session ignored = ContainerProvider.getWebSocketContainer().connectToServer(client, cec, connectURI)) {
             client.assertMessageReceived(10, TimeUnit.SECONDS, "CONNECT");
-            consumer.accept(client, clientSignalId);
+            try {
+                consumer.accept(client, clientSignalId);
+            } finally {
+                // Work around https://github.com/vaadin/hilla/issues/5722
+                // until https://github.com/mcollovati/quarkus-hilla/issues/2140:
+                // closing the websocket can leave Hilla signal subscribers active
+                // long enough for the next server-side reset to emit a null command.
+                client.cancel();
+            }
         } catch (Exception e) {
             Assertions.fail("PUSH communication failed", e);
         }
