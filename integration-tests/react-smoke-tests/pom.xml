@@ -43,4 +43,27 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>copilot-clickability-test</id>
+            <activation>
+                <property>
+                    <name>quarkus-hilla.test-mode</name>
+                    <value>development</value>
+                </property>
+            </activation>
+            <properties>
+                <vaadin.copilot.enable>true</vaadin.copilot.enable>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>com.vaadin</groupId>
+                    <artifactId>copilot</artifactId>
+                    <version>${vaadin.version}</version>
+                    <scope>runtime</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

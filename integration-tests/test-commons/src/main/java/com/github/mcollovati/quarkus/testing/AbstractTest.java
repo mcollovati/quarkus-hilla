@@ -38,26 +38,26 @@ import static com.codeborne.selenide.Selenide.Wait;
 @ExtendWith({BrowserPerTestStrategyExtension.class})
 public abstract class AbstractTest {
 
-    private static final boolean isMacOS =
-            System.getProperty("os.name").toLowerCase().contains("mac");
-
     @TestHTTPResource()
     private String baseURL;
 
     @BeforeEach
     void setup() {
-        if (isMacOS) {
+        String configuredBrowser = System.getProperty("selenide.browser", "chrome");
+        if (configuredBrowser.isBlank()) {
+            configuredBrowser = "chrome";
+            System.setProperty("selenide.browser", configuredBrowser);
+        }
+        Configuration.browser = configuredBrowser;
+        if ("safari".equalsIgnoreCase(configuredBrowser)) {
             Configuration.headless = false;
-            Configuration.browser = "safari";
         } else {
             Configuration.headless = runHeadless();
+        }
+        if ("chrome".equalsIgnoreCase(configuredBrowser)) {
             System.setProperty("chromeoptions.args", "--remote-allow-origins=*");
         }
         Configuration.fastSetValue = true;
-
-        // Disable Copilot because currently it slows down the page load
-        // because of license checking
-        System.setProperty("vaadin.copilot.enable", "false");
     }
 
     protected final String getBaseURL() {
