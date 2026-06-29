@@ -20,6 +20,7 @@
         <awaitility.version>4.3.0</awaitility.version>
         <selenide.version>7.16.0</selenide.version>
         <selenide.browser>chrome</selenide.browser>
+        <vaadin.copilot.enable>false</vaadin.copilot.enable>
 
         <!--
             By default, skips Hilla plugin execution to prevent build errors for modules
@@ -93,6 +94,7 @@
                     <configuration>
                         <systemProperties>
                             <vaadin.build.enabled>${vaadin.build.enabled}</vaadin.build.enabled>
+                            <vaadin.copilot.enable>${vaadin.copilot.enable}</vaadin.copilot.enable>
                         </systemProperties>
                     </configuration>
                 </plugin>
@@ -118,6 +120,7 @@
                         <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                         </selenide.downloadsFolder>
                         <selenide.browser>${selenide.browser}</selenide.browser>
+                        <vaadin.copilot.enable>${vaadin.copilot.enable}</vaadin.copilot.enable>
                         <vaadin.reuseDevServer>false</vaadin.reuseDevServer>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
@@ -143,6 +146,7 @@
                                 <selenide.downloadsFolder>${project.build.directory}/selenide/downloads
                                 </selenide.downloadsFolder>
                                 <selenide.browser>${selenide.browser}</selenide.browser>
+                                <vaadin.copilot.enable>${vaadin.copilot.enable}</vaadin.copilot.enable>
                             </systemPropertyVariables>
                             <forkNode
                                     implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>

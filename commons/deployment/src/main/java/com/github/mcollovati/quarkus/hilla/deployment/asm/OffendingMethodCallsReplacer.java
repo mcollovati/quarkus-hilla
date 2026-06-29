@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
+import com.vaadin.flow.server.VaadinContext;
 import com.vaadin.hilla.ApplicationContextProvider;
 import com.vaadin.hilla.AuthenticationUtil;
 import com.vaadin.hilla.EndpointCodeGenerator;
@@ -43,6 +44,7 @@ import org.objectweb.asm.Opcodes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Sort;
 
+import com.github.mcollovati.quarkus.hilla.CopilotQuarkusIntegration;
 import com.github.mcollovati.quarkus.hilla.HillaReplacements;
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
@@ -127,6 +129,9 @@ public class OffendingMethodCallsReplacer {
         }));
         producer.produce(applicationContextProvider_runOnContext_patch());
         producer.produce(endpointCodeGenerator_findBrowserCallables_replacement());
+        producer.produce(copilotSpringBridge_patch());
+        producer.produce(
+                transform("com.vaadin.copilot.customcomponent.CustomComponents", "isCustomComponent", Class_forName));
         producer.produce(new BytecodeTransformerBuildItem(
                 "com.vaadin.hilla.EndpointController",
                 (className, classVisitor) -> new EndpointControllerVisitor(classVisitor)));
@@ -135,8 +140,14 @@ public class OffendingMethodCallsReplacer {
     @SafeVarargs
     private static BytecodeTransformerBuildItem transform(
             Class<?> clazz, String method, Map.Entry<MethodSignature, MethodSignature>... replacements) {
+        return transform(clazz.getName(), method, replacements);
+    }
+
+    @SafeVarargs
+    private static BytecodeTransformerBuildItem transform(
+            String className, String method, Map.Entry<MethodSignature, MethodSignature>... replacements) {
         return new BytecodeTransformerBuildItem(
-                clazz.getName(),
+                className,
                 (s, classVisitor) ->
                         new MethodReplacementClassVisitor(classVisitor, method, Map.ofEntries(replacements)));
     }
@@ -197,5 +208,48 @@ public class OffendingMethodCallsReplacer {
             }
             return transformer.applyTo(classVisitor);
         });
+    }
+
+    private static BytecodeTransformerBuildItem copilotSpringBridge_patch() {
+        return new BytecodeTransformerBuildItem("com.vaadin.copilot.SpringBridge", (className, classVisitor) -> {
+            ClassTransformer transformer = new ClassTransformer(className);
+            replaceCopilotBridgeMethod(transformer, className, "callSpring", "callSpring");
+            replaceCopilotBridgeMethod(transformer, className, "callSpringSecurity", "callSpringSecurity");
+            replaceCopilotBridgeMethod(transformer, className, "callSpringData", "callSpringData");
+            replaceCopilotIsSpringAvailable(transformer, className);
+            return transformer.applyTo(classVisitor);
+        });
+    }
+
+    private static void replaceCopilotBridgeMethod(
+            ClassTransformer transformer, String className, String methodName, String replacementMethodName) {
+        MethodDescriptor bridgeMethod =
+                MethodDescriptor.ofMethod(className, methodName, Object.class, String.class, Object[].class);
+        transformer.removeMethod(bridgeMethod);
+        try (MethodCreator creator = transformer.addMethod(bridgeMethod)) {
+            creator.setModifiers(Opcodes.ACC_PRIVATE | Opcodes.ACC_STATIC | Opcodes.ACC_VARARGS);
+            creator.returnValue(creator.invokeStaticMethod(
+                    MethodDescriptor.ofMethod(
+                            CopilotQuarkusIntegration.class,
+                            replacementMethodName,
+                            Object.class,
+                            String.class,
+                            Object[].class),
+                    creator.getMethodParam(0),
+                    creator.getMethodParam(1)));
+        }
+    }
+
+    private static void replaceCopilotIsSpringAvailable(ClassTransformer transformer, String className) {
+        MethodDescriptor isSpringAvailable =
+                MethodDescriptor.ofMethod(className, "isSpringAvailable", boolean.class, VaadinContext.class);
+        transformer.removeMethod(isSpringAvailable);
+        try (MethodCreator creator = transformer.addMethod(isSpringAvailable)) {
+            creator.setModifiers(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC);
+            creator.returnValue(creator.invokeStaticMethod(
+                    MethodDescriptor.ofMethod(
+                            CopilotQuarkusIntegration.class, "isAvailable", boolean.class, VaadinContext.class),
+                    creator.getMethodParam(0)));
+        }
     }
 }

@@ -53,6 +53,9 @@
                     <value>development</value>
                 </property>
             </activation>
+            <properties>
+                <vaadin.copilot.enable>true</vaadin.copilot.enable>
+            </properties>
             <dependencies>
                 <dependency>
                     <groupId>com.vaadin</groupId>
