@@ -36,11 +36,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 @Tag("development-only")
 class CopilotClickabilityTest extends AbstractTest {
 
-    @Override
-    protected boolean copilotEnabled() {
-        return true;
-    }
-
     @Test
     void copilotEnabled_rootViewControlsStayClickable() {
         assumeTrue("development".equals(System.getProperty("quarkus-hilla.test-mode")));
