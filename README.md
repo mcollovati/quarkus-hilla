@@ -45,6 +45,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 - ⚡ **Reactive Streaming** - Support for Mutiny `Multi` and reactive endpoints
 - 🔒 **Security Integration** - Built-in support for authentication and authorization
 - 🔄 **Hot Reload** - Endpoints live reload in development mode
+- 🧭 **Vaadin Copilot Integration** - Development-time support for Copilot endpoint and Flow service discovery
 - 🖥️ **Dev UI Integration** - Visualize endpoint security constraints and null-safety in Quarkus Dev UI (since 24.7)
 - 🏗️ **Auto CRUD** - Automatic CRUD operations with Auto Grid and Auto Form (React)
 - 🚀 **Native Image** - Full GraalVM native image support (since 24.5)
@@ -111,6 +112,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 - 📖 [Wiki Documentation](../../wiki)
 - 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
 - 🛠️ [Build and Test](docs/build-and-test.md)
+- 🧭 [Vaadin Copilot Integration](docs/copilot-integration.md)
 - 🚢 [Release Process](docs/release-process.md)
 - 🧬 [Update Codestarts](docs/update-codestarts.md)
 - 🔢 [Bump Project Version](docs/bump-project-version.md)
@@ -120,6 +122,25 @@ That's it! The TypeScript client is automatically generated and type-safe.
 ---
 
 ## 🎯 Features & Highlights
+
+### Vaadin Copilot Integration ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=0.9)
+
+Vaadin Copilot can inspect and edit Quarkus-Hilla applications in development mode. The integration maps Copilot's Spring-oriented backend hooks to Quarkus CDI and Vaadin Quarkus runtime APIs.
+
+Supported Copilot data sources:
+- Hilla `@BrowserCallable` and `@Endpoint` services from the Hilla `EndpointRegistry`
+- Flow UI services from Quarkus Arc bean discovery
+- Quarkus configuration properties
+- Vaadin route security status
+- Quarkus-Hilla version information
+
+Flow UI service discovery is intentionally conservative by default. It starts from application beans with service-like scopes and can be widened or narrowed with `vaadin.copilot.flow-services.*` configuration.
+
+> [!NOTE]
+> Copilot Java edits in Flow views currently use Quarkus Live Reload when no JVM hotswap agent is available. Changes are applied, but Copilot may show a warning that the operation is slower.
+
+> [!TIP]
+> See [Vaadin Copilot Integration](docs/copilot-integration.md) for service discovery modes, filtering options, and implementation details.
 
 ### Quarkus Dev UI Integration ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
@@ -329,7 +350,7 @@ Starting with 2.4.1, the extension is subdivided into two artifacts based on the
 
 The current Hilla support has some known limitations that we aim to address in future releases.
 
-- ❌ Vaadin Copilot is not supported
+- ⚠️ Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
 - ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
 <details>
@@ -410,6 +431,33 @@ Quarkus-Hilla provides various configuration parameters to customize the behavio
 | `vaadin.security.logout-path`               | String  | `/logout` | 24.7  | Path of the logout HTTP POST endpoint handling logout requests. |
 | `vaadin.security.post-logout-redirect-uri`  | String  | -         | 24.7  | URI to redirect to after successful logout.                     |
 | `vaadin.security.logout-invalidate-session` | Boolean | `true`    | 24.7  | Whether HTTP session should be invalidated on logout.           |
+
+### Copilot Configuration
+
+> [!NOTE]
+> Quarkus-Hilla supports Vaadin Copilot in development mode since 25.1.2. See [Vaadin Copilot Integration](docs/copilot-integration.md) for behavior details and limitations.
+
+| Property                                         | Type       | Default                                                                 | Since | Description                                                                                                                    |
+|--------------------------------------------------|------------|-------------------------------------------------------------------------|-------|--------------------------------------------------------------------------------------------------------------------------------|
+| `vaadin.copilot.flow-services.discovery`         | Enum       | `SERVICES`                                                              | 25.1.2 | Flow UI service discovery mode: `NONE`, `SERVICES`, or `ALL`. Explicit includes still work when discovery is `NONE`.           |
+| `vaadin.copilot.flow-services.packages`          | Enum       | `APPLICATION`                                                           | 25.1.2 | Package discovery mode: `APPLICATION` for root application archive classes, or `ALL` for all discovered bean packages.          |
+| `vaadin.copilot.flow-services.include-scopes`    | Set<String> | `application,singleton,dependent,vaadin-service,vaadin-session,vaadin-ui,vaadin-route` | 25.1.2 | Scope keys included when discovery is `SERVICES`.                                                                              |
+| `vaadin.copilot.flow-services.include-packages`  | Set<String> | -                                                                       | 25.1.2 | Package prefixes that are always added to Flow UI service discovery.                                                           |
+| `vaadin.copilot.flow-services.exclude-packages`  | Set<String> | -                                                                       | 25.1.2 | Package prefixes that are always removed from Flow UI service discovery.                                                       |
+| `vaadin.copilot.flow-services.include-classes`   | Set<String> | -                                                                       | 25.1.2 | Fully qualified class names that are always added to Flow UI service discovery.                                                |
+| `vaadin.copilot.flow-services.exclude-classes`   | Set<String> | -                                                                       | 25.1.2 | Fully qualified class names that are always removed from Flow UI service discovery. Excludes win over includes.                 |
+
+Example:
+
+```properties
+vaadin.copilot.flow-services.discovery=services
+vaadin.copilot.flow-services.packages=application
+vaadin.copilot.flow-services.include-packages=com.example.shared
+vaadin.copilot.flow-services.exclude-packages=com.example.internal
+vaadin.copilot.flow-services.include-classes=com.example.admin.AdminFacade
+```
+
+See [Vaadin Copilot Integration](docs/copilot-integration.md) for details.
 
 ### Build Configuration (Experimental)
 
