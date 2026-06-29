@@ -15,12 +15,19 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment;
 
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.vaadin.flow.component.page.AppShellConfigurator;
+import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.startup.ServletDeployer;
 import com.vaadin.hilla.BrowserCallable;
 import com.vaadin.hilla.Endpoint;
@@ -31,8 +38,10 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.AnnotationsTransformerBuildItem;
 import io.quarkus.arc.deployment.BeanDefiningAnnotationBuildItem;
 import io.quarkus.arc.deployment.ExcludedTypeBuildItem;
+import io.quarkus.arc.deployment.UnremovableBeanBuildItem;
 import io.quarkus.arc.processor.BuiltinScope;
 import io.quarkus.arc.processor.DotNames;
+import io.quarkus.deployment.ApplicationArchive;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
@@ -40,10 +49,12 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.AdditionalApplicationArchiveMarkerBuildItem;
 import io.quarkus.deployment.builditem.AdditionalIndexedClassesBuildItem;
+import io.quarkus.deployment.builditem.ApplicationArchivesBuildItem;
 import io.quarkus.deployment.builditem.BytecodeTransformerBuildItem;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.deployment.builditem.ExcludeDependencyBuildItem;
 import io.quarkus.deployment.builditem.FeatureBuildItem;
+import io.quarkus.deployment.builditem.GeneratedResourceBuildItem;
 import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.pkg.NativeConfig;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
@@ -56,12 +67,15 @@ import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.atmosphere.interceptor.SuspendTrackerInterceptor;
 import org.jboss.jandex.AnnotationInstance;
+import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationTransformation;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
+import com.github.mcollovati.quarkus.hilla.CopilotApplicationMetadata;
+import com.github.mcollovati.quarkus.hilla.CopilotConfiguration;
 import com.github.mcollovati.quarkus.hilla.HillaAtmosphereObjectFactory;
 import com.github.mcollovati.quarkus.hilla.HillaConfiguration;
 import com.github.mcollovati.quarkus.hilla.NonNullApi;
@@ -84,6 +98,32 @@ class QuarkusHillaExtensionProcessor {
             DotName.createSimple("com.github.mcollovati.quarkus.hilla.crud.spring.FilterableRepository");
     public static final DotName PANACHE_FILTERABLE_REPOSITORY =
             DotName.createSimple("com.github.mcollovati.quarkus.hilla.crud.panache.FilterableRepository");
+    private static final List<String> COPILOT_HARD_EXCLUDED_PACKAGES = List.of(
+            "com.vaadin.",
+            "com.github.mcollovati.quarkus.hilla.",
+            "io.quarkus.",
+            "io.smallrye.",
+            "io.vertx.",
+            "jakarta.",
+            "javax.",
+            "org.jboss.",
+            "org.eclipse.microprofile.",
+            "org.springframework.");
+    private static final DotName COPILOT_SPRING_SERVICE_ANNOTATION =
+            DotName.createSimple("org.springframework.stereotype.Service");
+    private static final Map<DotName, String> COPILOT_SCOPE_KEYS = Map.ofEntries(
+            Map.entry(DotName.createSimple("jakarta.enterprise.context.ApplicationScoped"), "application"),
+            Map.entry(DotName.createSimple("jakarta.inject.Singleton"), "singleton"),
+            Map.entry(DotName.createSimple("jakarta.enterprise.context.Dependent"), "dependent"),
+            Map.entry(DotName.createSimple("jakarta.enterprise.context.RequestScoped"), "request"),
+            Map.entry(DotName.createSimple("jakarta.enterprise.context.SessionScoped"), "session"),
+            Map.entry(DotName.createSimple("jakarta.enterprise.context.ConversationScoped"), "conversation"),
+            Map.entry(DotName.createSimple("com.vaadin.quarkus.annotation.VaadinServiceScoped"), "vaadin-service"),
+            Map.entry(DotName.createSimple("com.vaadin.quarkus.annotation.VaadinSessionScoped"), "vaadin-session"),
+            Map.entry(DotName.createSimple("com.vaadin.quarkus.annotation.UIScoped"), "vaadin-ui"),
+            Map.entry(DotName.createSimple("com.vaadin.quarkus.annotation.NormalUIScoped"), "vaadin-ui"),
+            Map.entry(DotName.createSimple("com.vaadin.quarkus.annotation.RouteScoped"), "vaadin-route"),
+            Map.entry(DotName.createSimple("com.vaadin.quarkus.annotation.NormalRouteScoped"), "vaadin-route"));
 
     @BuildStep
     FeatureBuildItem feature() {
@@ -214,6 +254,8 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     void addMarkersForHillaJars(BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
         producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/hilla"));
+        producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/copilot"));
+        producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/copilot/SpringBridge.class"));
     }
 
     @BuildStep
@@ -291,6 +333,71 @@ class QuarkusHillaExtensionProcessor {
     }
 
     @BuildStep
+    void generateCopilotApplicationMetadata(
+            ApplicationArchivesBuildItem applicationArchives,
+            BuildProducer<GeneratedResourceBuildItem> generatedResources) {
+        ApplicationArchive rootArchive = applicationArchives.getRootArchive();
+        if (rootArchive == null || rootArchive.getIndex() == null) {
+            generatedResources.produce(new GeneratedResourceBuildItem(
+                    CopilotApplicationMetadata.RESOURCE,
+                    CopilotApplicationMetadata.empty().toResourceBytes()));
+            return;
+        }
+
+        IndexView rootIndex = rootArchive.getIndex();
+        Set<String> applicationClasses = rootIndex.getKnownClasses().stream()
+                .filter(classInfo -> !classInfo.isSynthetic())
+                .filter(classInfo -> !classInfo.isAnnotation())
+                .map(classInfo -> classInfo.name().toString())
+                .filter(name -> !"module-info".equals(name))
+                .sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        String applicationClass =
+                selectCopilotApplicationClass(rootIndex, applicationClasses).orElse("");
+
+        generatedResources.produce(new GeneratedResourceBuildItem(
+                CopilotApplicationMetadata.RESOURCE,
+                CopilotApplicationMetadata.of(applicationClass, applicationClasses)
+                        .toResourceBytes()));
+    }
+
+    @BuildStep
+    void preserveCopilotFlowServiceBeans(
+            ApplicationArchivesBuildItem applicationArchives,
+            CopilotConfiguration copilotConfiguration,
+            BuildProducer<UnremovableBeanBuildItem> unremovableBeans) {
+        Set<String> includePackages = copy(copilotConfiguration.includePackages());
+        Set<String> excludePackages = copy(copilotConfiguration.excludePackages());
+        Set<String> includeClasses = copy(copilotConfiguration.includeClasses());
+        Set<String> excludeClasses = copy(copilotConfiguration.excludeClasses());
+        Set<String> includeScopeKeys = normalizeScopeKeys(copilotConfiguration.includeScopes());
+
+        ApplicationArchive rootArchive = applicationArchives.getRootArchive();
+        Set<String> rootArchiveClasses = rootArchive == null
+                ? Set.of()
+                : knownClasses(rootArchive)
+                        .map(classInfo -> classInfo.name().toString())
+                        .collect(Collectors.toSet());
+
+        Set<String> unremovableClassNames = applicationArchives.getAllApplicationArchives().stream()
+                .flatMap(archive -> knownClasses(archive)
+                        .filter(classInfo -> isCopilotUnremovableCandidate(
+                                classInfo,
+                                rootArchiveClasses,
+                                copilotConfiguration,
+                                includeScopeKeys,
+                                includePackages,
+                                excludePackages,
+                                includeClasses,
+                                excludeClasses))
+                        .map(classInfo -> classInfo.name().toString()))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+        if (!unremovableClassNames.isEmpty()) {
+            unremovableBeans.produce(UnremovableBeanBuildItem.beanClassNames(unremovableClassNames));
+        }
+    }
+
+    @BuildStep
     void replaceOffendingMethodCalls(BuildProducer<BytecodeTransformerBuildItem> producer) {
         OffendingMethodCallsReplacer.addClassVisitors(producer);
     }
@@ -347,5 +454,107 @@ class QuarkusHillaExtensionProcessor {
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.ContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem("org.atmosphere.cpr.AnnotationScanningServletContainerInitializer"));
         producer.produce(new ExcludedTypeBuildItem(ServletDeployer.class.getName()));
+    }
+
+    private static Optional<String> selectCopilotApplicationClass(IndexView rootIndex, Set<String> applicationClasses) {
+        DotName appShellConfigurator = DotName.createSimple(AppShellConfigurator.class.getName());
+        return Stream.of(
+                        rootIndex.getKnownDirectImplementations(appShellConfigurator).stream()
+                                .map(ClassInfo::name)
+                                .map(DotName::toString),
+                        annotatedClasses(rootIndex, DotName.createSimple(Route.class.getName())),
+                        annotatedClasses(rootIndex, DotName.createSimple(BrowserCallable.class.getName())),
+                        annotatedClasses(rootIndex, DotName.createSimple(Endpoint.class.getName())),
+                        applicationClasses.stream())
+                .map(stream ->
+                        stream.filter(applicationClasses::contains).sorted().findFirst())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst();
+    }
+
+    private static Stream<String> annotatedClasses(IndexView rootIndex, DotName annotation) {
+        return rootIndex.getAnnotations(annotation).stream()
+                .filter(instance -> instance.target().kind() == AnnotationTarget.Kind.CLASS)
+                .map(AnnotationInstance::target)
+                .map(AnnotationTarget::asClass)
+                .map(ClassInfo::name)
+                .map(DotName::toString);
+    }
+
+    private static boolean isCopilotUnremovableCandidate(
+            ClassInfo classInfo,
+            Set<String> rootArchiveClasses,
+            CopilotConfiguration config,
+            Set<String> includeScopeKeys,
+            Set<String> includePackages,
+            Set<String> excludePackages,
+            Set<String> includeClasses,
+            Set<String> excludeClasses) {
+        String className = classInfo.name().toString();
+        if (classInfo.isSynthetic()
+                || classInfo.isAnnotation()
+                || isCopilotHardExcluded(className)
+                || excludeClasses.contains(className)
+                || matchesPackage(className, excludePackages)) {
+            return false;
+        }
+        if (includeClasses.contains(className) || matchesPackage(className, includePackages)) {
+            return true;
+        }
+        if (config.discovery() == CopilotConfiguration.Discovery.NONE) {
+            return false;
+        }
+        if (config.packageMode() == CopilotConfiguration.PackageMode.APPLICATION
+                && !rootArchiveClasses.contains(className)) {
+            return false;
+        }
+        return config.discovery() == CopilotConfiguration.Discovery.ALL
+                || isCopilotServiceLike(classInfo, includeScopeKeys);
+    }
+
+    private static boolean isCopilotServiceLike(ClassInfo classInfo, Set<String> includeScopeKeys) {
+        return classInfo.classAnnotation(COPILOT_SPRING_SERVICE_ANNOTATION) != null
+                || COPILOT_SCOPE_KEYS.entrySet().stream()
+                        .filter(entry -> includeScopeKeys.contains(entry.getValue()))
+                        .map(Map.Entry::getKey)
+                        .anyMatch(annotation -> classInfo.classAnnotation(annotation) != null);
+    }
+
+    private static boolean isCopilotHardExcluded(String className) {
+        return COPILOT_HARD_EXCLUDED_PACKAGES.stream().anyMatch(className::startsWith);
+    }
+
+    private static boolean matchesPackage(String className, Set<String> packagePrefixes) {
+        int separator = className.lastIndexOf('.');
+        String packageName = separator > 0 ? className.substring(0, separator) : "";
+        return packagePrefixes.stream()
+                .anyMatch(prefix -> packageName.equals(prefix)
+                        || packageName.startsWith(prefix + ".")
+                        || className.startsWith(prefix + "."));
+    }
+
+    private static Stream<ClassInfo> knownClasses(ApplicationArchive archive) {
+        if (archive == null || archive.getIndex() == null) {
+            return Stream.empty();
+        }
+        return archive.getIndex().getKnownClasses().stream();
+    }
+
+    private static Set<String> normalizeScopeKeys(Set<String> scopeKeys) {
+        if (scopeKeys == null || scopeKeys.isEmpty()) {
+            return Set.of();
+        }
+        return scopeKeys.stream()
+                .map(scopeKey -> scopeKey.trim().toLowerCase(Locale.ROOT).replace('_', '-'))
+                .filter(scopeKey -> !scopeKey.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    private static Set<String> copy(Optional<Set<String>> values) {
+        return values.orElseGet(Set::of).stream()
+                .map(String::trim)
+                .filter(value -> !value.isEmpty())
+                .collect(Collectors.toUnmodifiableSet());
     }
 }

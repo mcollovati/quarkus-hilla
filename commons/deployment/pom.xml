@@ -153,6 +153,7 @@
                         </vaadin.frontend.frontend.folder>
                         <vaadin.project.frontend.generated>${project.build.directory}/frontend/generated
                         </vaadin.project.frontend.generated>
+                        <vaadin.version>${vaadin.version}</vaadin.version>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
