@@ -11,7 +11,7 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
 </p>
 
 <p align="center">
-  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 24.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25." /></a>
+  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 25.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25." /></a>
   <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 2.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2." /></a>
   <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" /></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img alt="Apache License 2.0" src="https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge&logo=apache" /></a>
@@ -51,7 +51,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 - 🚀 **Native Image** - Full GraalVM native image support (since 24.5)
 - 🎨 **Framework Choice** - Support for both Lit and React frontends
 - 🔌 **Panache Integration** - Custom repository services for Hibernate ORM Panache
-- 📦 **Embedded Build-Plugin** - Built-in Vaadin Maven plugin (24.7-24.9, integrated into official Vaadin extension in 25.0+)
+- 📦 **Vaadin Build Integration** - Build plugin support is provided by the official Vaadin Quarkus extension in 25.0+
 
 ---
 
@@ -71,7 +71,7 @@ Choose your frontend framework:
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla-react</artifactId>
-    <version>25.1.x</version>
+    <version>25.2.x</version>
 </dependency>
 ```
 
@@ -80,15 +80,15 @@ Choose your frontend framework:
 <dependency>
     <groupId>com.github.mcollovati</groupId>
     <artifactId>quarkus-hilla</artifactId>
-    <version>25.1.x</version>
+    <version>25.2.x</version>
 </dependency>
 ```
 
 > [!NOTE]
 > Hilla prioritizes React, so new features are typically available first or exclusively for React.
 
-> [!CAUTION]
-> **Vaadin 24.7** requires a workaround for frontend builds. See the **24.7 Build Workaround** in the [Limitations](#️-current-limitations) section for details.
+> [!NOTE]
+> For Vaadin 24.x and older setup notes and workarounds, see [Legacy Notes](docs/legacy-notes.md).
 
 ### Create Your First Endpoint
 
@@ -116,6 +116,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 - 🚢 [Release Process](docs/release-process.md)
 - 🧬 [Update Codestarts](docs/update-codestarts.md)
 - 🔢 [Bump Project Version](docs/bump-project-version.md)
+- 🗃️ [Legacy Notes](docs/legacy-notes.md)
 - 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🚀 [Quarkus Guides](https://quarkus.io/guides/)
 
@@ -189,14 +190,14 @@ public class ClockService {
 }
 ```
 
-### Experimental Embedded Vaadin Plugin ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
+### Vaadin Build Plugin Integration ![Since 25.0](https://flat.badgen.net/static/Since/25.0/007bff?scale=0.9)
 
-Simplify application setup by entirely removing the Vaadin Maven (or Gradle) plugin. The extension provides a built-in implementation that can be enabled by setting `vaadin.build.enabled=true` in `application.properties`.
+Vaadin 25.0+ applications can use the build plugin support provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/). This removes the need to configure the Vaadin Maven (or Gradle) plugin directly in most applications.
 
 > [!IMPORTANT]
-> **As of Vaadin 25.0**, this experimental feature has been integrated into the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) via [PR #215](https://github.com/vaadin/quarkus/pull/215). Applications using Vaadin 25.0+ benefit from this functionality natively through the official extension, where it is **enabled by default**. No Quarkus-Hilla specific configuration or the `quarkus.bootstrap.workspace-discovery` workaround is required.
+> No Quarkus-Hilla specific configuration or `quarkus.bootstrap.workspace-discovery` workaround is required for Vaadin 25.0+.
 
-**Setup for Vaadin 25.0+:**
+**Setup:**
 
 No configuration needed, the plugin is enabled by default. You can opt out by disabling it:
 
@@ -208,27 +209,8 @@ vaadin.build.enabled=false
 > [!TIP]
 > With the embedded build plugin, the `vaadin-maven-plugin` is no longer needed and can be removed from your `pom.xml`.
 
-> [!TIP]
-> While not required in Vaadin 25.0+, setting `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml` is still recommended for best results.
-
----
-
-**Setup for Vaadin 24.7-24.9:**
-
-Enable the embedded build plugin and add the required workaround:
-
-```properties
-# In application.properties
-vaadin.build.enabled=true
-```
-
-```xml
-<!-- In pom.xml properties section -->
-<quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
-```
-
-> [!WARNING]
-> The `quarkus.bootstrap.workspace-discovery` property is required for versions 24.7-24.9 because the Quarkus Maven plugin does not provide workspace information needed by Vaadin internals. See [Quarkus Issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for details.
+> [!NOTE]
+> Historical setup for Vaadin versions before 25.0 is kept in [Legacy Notes](docs/legacy-notes.md).
 
 ### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
@@ -324,25 +306,7 @@ The extension provides custom implementations of `CrudRepositoryService` and `Li
 > [!IMPORTANT]
 > The Auto CRUD, Auto Grid, and Auto Form **components** are only available for React. However, the `CrudRepositoryService` and `ListRepositoryService` can be used in Lit applications as well.
 
-<details>
-<summary><strong>📜 Older Changes (24.4 and earlier)</strong></summary>
-
-### Vaadin Unified Platform ![Since 24.4](https://flat.badgen.net/static/Since/24.4/007bff?scale=0.9)
-
-Since Vaadin 24.4, Flow and Hilla are unified in a single platform. The extension version now follows Vaadin platform releases (24.x instead of 2.x).
-
-**Breaking Changes:**
-- Hilla's Maven groupId changed from `dev.hilla` to `com.vaadin.hilla`
-- Java package names updated accordingly
-- Minimum Quarkus version: 3.7+
-
-### Lit and React Extensions ![Since 2.4.1](https://flat.badgen.net/static/Since/2.4.1/007bff?scale=0.9)
-
-Starting with 2.4.1, the extension is subdivided into two artifacts based on the desired front-end framework:
-- `quarkus-hilla` for **Lit** based applications
-- `quarkus-hilla-react` for **React** based applications
-
-</details>
+Historical migration notes for Vaadin versions before 25.0 are kept in [Legacy Notes](docs/legacy-notes.md).
 
 ---
 
@@ -353,56 +317,7 @@ The current Hilla support has some known limitations that we aim to address in f
 - ⚠️ Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
 - ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
-<details>
-<summary><strong>⚠️ Vaadin 24.7 Build Workaround (Not required in 24.8+)</strong></summary>
-
-With Vaadin 24.7, the frontend build fails because the Hilla endpoint generation tasks depend on the execution of a Spring process.
-
-> **NOTE:** The dependency workaround is **only required for production builds**. In development mode, the offending class is automatically replaced by the extension.
-
-> **CAUTION:** This workaround is **not required in 24.8+** because:
-> - The generation has been refactored to fall back to the original lookup of endpoints based on internal class finder
-> - Hilla now provides a pluggable API to configure endpoint discovery
-
-**Workaround Options:**
-
-1. **Enable experimental embedded plugin** (recommended, see [details](#experimental-embedded-vaadin-plugin-)):
-
-   Add the following property to `application.properties`:
-   ```properties
-   vaadin.build.enabled=true
-   ```
-    Also, add the following property to `pom.xml`:
-    ```xml
-    <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
-    ```
-
-2. **Add workaround dependency** to `vaadin-maven-plugin`:
-
-   ```xml
-   <plugin>
-       <groupId>com.vaadin</groupId>
-       <artifactId>vaadin-maven-plugin</artifactId>
-       <executions>
-           <execution>
-               <goals>
-                   <goal>prepare-frontend</goal>
-                   <goal>build-frontend</goal>
-               </goals>
-               <phase>compile</phase>
-           </execution>
-       </executions>
-       <dependencies>
-           <dependency>
-               <groupId>com.github.mcollovati</groupId>
-               <artifactId>aot-browser-finder-callable-workaround</artifactId>
-               <version>${quarkus-hilla.version}</version>
-           </dependency>
-       </dependencies>
-   </plugin>
-   ```
-
-</details>
+Older limitations and workarounds for Vaadin versions before 25.0 are kept in [Legacy Notes](docs/legacy-notes.md).
 
 ---
 
@@ -459,20 +374,14 @@ vaadin.copilot.flow-services.include-classes=com.example.admin.AdminFacade
 
 See [Vaadin Copilot Integration](docs/copilot-integration.md) for details.
 
-### Build Configuration (Experimental)
-
-> [!WARNING]
-> **For versions 24.7–24.9 only:** Build configuration is experimental and should be used with `quarkus.bootstrap.workspace-discovery=true` in your `pom.xml`.
-
-> [!CAUTION]
-> **As of Vaadin 25.0**, this configuration is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) and is no longer part of Quarkus-Hilla. Despite the removal, the configuration properties remain the same.
+### Build Configuration
 
 | Property               | Type    | Default | Since | Description                                                                        |
 |------------------------|---------|---------|-------|------------------------------------------------------------------------------------|
 | `vaadin.build.enabled` | Boolean | `true`  | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin. |
 
-> [!WARNING]
-> In versions 24.x, the default value for `vaadin.build.enabled` was `false`. Starting with Vaadin 25.0, the default is `true`.
+> [!NOTE]
+> In Vaadin 25.0+, this configuration is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/). Behavior before 25.0 is documented in [Legacy Notes](docs/legacy-notes.md).
 
 **Additional Configuration:**
 
@@ -511,6 +420,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
  |                                                                                        Quarkus-Hilla                                                                                        |                                                                Quarkus                                                                 |                                                           Vaadin / Hilla                                                            |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:--------------------------------------------------------------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Maven Central 25.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.2"></picture> | <picture><img alt="Quarkus 3.33+" src="https://img.shields.io/badge/QUARKUS-v3.33%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.2" src="https://img.shields.io/badge/VAADIN-v25.2-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 | <picture><img alt="Maven Central 25.1" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.1"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.1" src="https://img.shields.io/badge/VAADIN-v25.1-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 | <picture><img alt="Maven Central 25.0" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.0"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/VAADIN-v25.0-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 | <picture><img alt="Maven Central 24.9" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.9"></picture> | <picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.9" src="https://img.shields.io/badge/VAADIN-v24.9-blue?style=for-the-badge&logo=Vaadin"></picture>   |
@@ -519,6 +429,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 > [!NOTE]
 > The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
+> Older rows are kept as a historical compatibility reference. See [Legacy Notes](docs/legacy-notes.md) for old setup details and workarounds.
 
 ---
 
@@ -526,7 +437,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 |                                                                  Quarkus-Hilla                                                                  |                                                                Quarkus                                                                |                                                         Vaadin / Hilla                                                         |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Development 25.2-SNAPSHOT" src="https://img.shields.io/badge/25.2--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.33+" src="https://img.shields.io/badge/Quarkus-3.33%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.2" src="https://img.shields.io/badge/Vaadin-25.2-blue?style=for-the-badge&logo=Vaadin"></picture> |
+| <picture><img alt="Development 25.3-SNAPSHOT" src="https://img.shields.io/badge/25.3--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.33+" src="https://img.shields.io/badge/Quarkus-3.33%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.3" src="https://img.shields.io/badge/Vaadin-25.3-blue?style=for-the-badge&logo=Vaadin"></picture> |
 
 ---
 
