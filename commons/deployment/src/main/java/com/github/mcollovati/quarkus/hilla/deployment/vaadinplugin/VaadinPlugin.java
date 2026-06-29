@@ -18,7 +18,6 @@ package com.github.mcollovati.quarkus.hilla.deployment.vaadinplugin;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 import com.vaadin.experimental.FeatureFlags;
 import com.vaadin.flow.component.dependency.JavaScript;
@@ -120,7 +119,7 @@ public final class VaadinPlugin {
                 && BundleValidationUtil.needsBundleBuild(pluginAdapter.servletResourceOutputDirectory())) {
             try {
                 BuildFrontendUtil.runFrontendBuild(pluginAdapter);
-            } catch (URISyntaxException | TimeoutException exception) {
+            } catch (URISyntaxException exception) {
                 throw new BuildException(exception.getMessage(), exception, List.of());
             }
         }
