@@ -141,42 +141,42 @@ Older limitations and workarounds for Vaadin versions before 25.0 are kept in [Q
 
 Quarkus-Hilla provides various configuration parameters to customize the behavior of the extension. All parameters can be set in your `application.properties` file.
 
-### Live Reload Configuration
+### Live Reload Configuration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
 
-| Property                                  | Type      | Default   | Since | Description                                                                                                                                                                          |
-|-------------------------------------------|-----------|-----------|-------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.hilla.live-reload.enable`         | Boolean   | `false`   | 24.5  | Enable automatic regeneration of client-side code when endpoint classes change in dev mode.                                                                                          |
-| `vaadin.hilla.live-reload.watch-strategy` | Enum      | `CLASS`   | 24.5  | Strategy to watch for changes: `SOURCE` (watch Java source files) or `CLASS` (watch compiled classes). Use `CLASS` with `quarkus.live-reload.instrumentation=true` for best results. |
-| `vaadin.hilla.live-reload.watched-paths`  | Set<Path> | All paths | 24.5  | Comma-separated list of paths to watch for changes, relative to source/class root. Example: `com/example/service,com/example/model`                                                  |
+| Property                                  | Type      | Default   | Description                                                                                                                                                                          |
+|-------------------------------------------|-----------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `vaadin.hilla.live-reload.enable`         | Boolean   | `false`   | Enable automatic regeneration of client-side code when endpoint classes change in dev mode.                                                                                          |
+| `vaadin.hilla.live-reload.watch-strategy` | Enum      | `CLASS`   | Strategy to watch for changes: `SOURCE` (watch Java source files) or `CLASS` (watch compiled classes). Use `CLASS` with `quarkus.live-reload.instrumentation=true` for best results. |
+| `vaadin.hilla.live-reload.watched-paths`  | Set<Path> | All paths | Comma-separated list of paths to watch for changes, relative to source/class root. Example: `com/example/service,com/example/model`                                                  |
 
-### Endpoint Configuration
+### Endpoint Configuration ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
 
-| Property                 | Type   | Default    | Since | Description                                                                                                                            |
-|--------------------------|--------|------------|-------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.endpoint.prefix` | String | `/connect` | 24.6  | Custom prefix for Hilla endpoints. The extension automatically generates a custom `connect-client.ts` file with the configured prefix. |
+| Property                 | Type   | Default    | Description                                                                                                                            |
+|--------------------------|--------|------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| `vaadin.endpoint.prefix` | String | `/connect` | Custom prefix for Hilla endpoints. The extension automatically generates a custom `connect-client.ts` file with the configured prefix. |
 
-### Security Configuration
+### Security Configuration ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
 
-| Property                                    | Type    | Default   | Since | Description                                                     |
-|---------------------------------------------|---------|-----------|-------|-----------------------------------------------------------------|
-| `vaadin.security.logout-path`               | String  | `/logout` | 24.7  | Path of the logout HTTP POST endpoint handling logout requests. |
-| `vaadin.security.post-logout-redirect-uri`  | String  | -         | 24.7  | URI to redirect to after successful logout.                     |
-| `vaadin.security.logout-invalidate-session` | Boolean | `true`    | 24.7  | Whether HTTP session should be invalidated on logout.           |
+| Property                                    | Type    | Default   | Description                                                     |
+|---------------------------------------------|---------|-----------|-----------------------------------------------------------------|
+| `vaadin.security.logout-path`               | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests. |
+| `vaadin.security.post-logout-redirect-uri`  | String  | -         | URI to redirect to after successful logout.                     |
+| `vaadin.security.logout-invalidate-session` | Boolean | `true`    | Whether HTTP session should be invalidated on logout.           |
 
-### Copilot Configuration
+### Copilot Configuration ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=0.9)
 
 > [!NOTE]
 > Quarkus-Hilla supports Vaadin Copilot in development mode since 25.1.2. See [Vaadin Copilot Integration](docs/copilot-integration.md) for behavior details and limitations.
 
-| Property                                         | Type       | Default                                                                 | Since | Description                                                                                                                    |
-|--------------------------------------------------|------------|-------------------------------------------------------------------------|-------|--------------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.copilot.flow-services.discovery`         | Enum       | `SERVICES`                                                              | 25.1.2 | Flow UI service discovery mode: `NONE`, `SERVICES`, or `ALL`. Explicit includes still work when discovery is `NONE`.           |
-| `vaadin.copilot.flow-services.packages`          | Enum       | `APPLICATION`                                                           | 25.1.2 | Package discovery mode: `APPLICATION` for root application archive classes, or `ALL` for all discovered bean packages.          |
-| `vaadin.copilot.flow-services.include-scopes`    | Set<String> | `application,singleton,dependent,vaadin-service,vaadin-session,vaadin-ui,vaadin-route` | 25.1.2 | Scope keys included when discovery is `SERVICES`.                                                                              |
-| `vaadin.copilot.flow-services.include-packages`  | Set<String> | -                                                                       | 25.1.2 | Package prefixes that are always added to Flow UI service discovery.                                                           |
-| `vaadin.copilot.flow-services.exclude-packages`  | Set<String> | -                                                                       | 25.1.2 | Package prefixes that are always removed from Flow UI service discovery.                                                       |
-| `vaadin.copilot.flow-services.include-classes`   | Set<String> | -                                                                       | 25.1.2 | Fully qualified class names that are always added to Flow UI service discovery.                                                |
-| `vaadin.copilot.flow-services.exclude-classes`   | Set<String> | -                                                                       | 25.1.2 | Fully qualified class names that are always removed from Flow UI service discovery. Excludes win over includes.                 |
+| Property                                         | Type        | Default | Description                                                                                                            |
+|--------------------------------------------------|-------------|---------|------------------------------------------------------------------------------------------------------------------------|
+| `vaadin.copilot.flow-services.discovery`         | Enum        | `SERVICES` | Flow UI service discovery mode: `NONE`, `SERVICES`, or `ALL`. Explicit includes still work when discovery is `NONE`. |
+| `vaadin.copilot.flow-services.packages`          | Enum        | `APPLICATION` | Package discovery mode: `APPLICATION` for root application archive classes, or `ALL` for all discovered bean packages. |
+| `vaadin.copilot.flow-services.include-scopes`    | Set<String> | `application`<br>`singleton`<br>`dependent`<br>`vaadin-service`<br>`vaadin-session`<br>`vaadin-ui`<br>`vaadin-route` | Scope keys included when discovery is `SERVICES`. |
+| `vaadin.copilot.flow-services.include-packages`  | Set<String> | - | Package prefixes that are always added to Flow UI service discovery. |
+| `vaadin.copilot.flow-services.exclude-packages`  | Set<String> | - | Package prefixes that are always removed from Flow UI service discovery. |
+| `vaadin.copilot.flow-services.include-classes`   | Set<String> | - | Fully qualified class names that are always added to Flow UI service discovery. |
+| `vaadin.copilot.flow-services.exclude-classes`   | Set<String> | - | Fully qualified class names that are always removed from Flow UI service discovery. Excludes win over includes. |
 
 Example:
 
