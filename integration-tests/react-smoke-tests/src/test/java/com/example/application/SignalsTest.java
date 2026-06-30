@@ -28,6 +28,7 @@ import org.openqa.selenium.WindowType;
 
 import com.github.mcollovati.quarkus.testing.AbstractTest;
 
+import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.id;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Selenide.$;
@@ -49,16 +50,20 @@ public class SignalsTest extends AbstractTest {
     public void shouldUpdateValue_both_on_browser_and_server() {
         for (int i = 0; i < 5; i++) {
             var currentSharedValue = getSharedValue();
+            var expectedSharedValue = currentSharedValue + 2;
             clickButton("increaseSharedValue");
-            assertEquals(currentSharedValue + 2, getSharedValue(), 0.0);
-            assertEquals(getSharedValue(), fetchSharedValue(), 0.0);
+            waitUntilSharedValue(expectedSharedValue);
+            assertEquals(expectedSharedValue, getSharedValue(), 0.0);
+            assertEquals(expectedSharedValue, fetchSharedValue(expectedSharedValue), 0.0);
         }
 
         for (int i = 0; i < 5; i++) {
             var currentCounterValue = getCounterValue();
+            var expectedCounterValue = currentCounterValue + 1;
             clickButton("incrementCounter");
-            assertEquals(currentCounterValue + 1, getCounterValue());
-            assertEquals(getCounterValue(), fetchCounterValue());
+            waitUntilCounterValue(expectedCounterValue);
+            assertEquals(expectedCounterValue, getCounterValue());
+            assertEquals(expectedCounterValue, fetchCounterValue(expectedCounterValue));
         }
     }
 
@@ -95,16 +100,18 @@ public class SignalsTest extends AbstractTest {
             // press reset button on the second window
             secondWindowDriver.findElement(By.id("reset")).click();
 
-            secondWindowSharedValue = Double.parseDouble(
-                    secondWindowDriver.findElement(By.id("sharedValue")).getText());
+            waitUntilSharedValue(0.5);
+            secondWindowSharedValue = getSharedValue();
             assertEquals(0.5, secondWindowSharedValue, 0.0);
 
-            secondWindowCounterValue = Long.parseLong(
-                    secondWindowDriver.findElement(By.id("counter")).getText());
+            waitUntilCounterValue(0);
+            secondWindowCounterValue = getCounterValue();
             assertEquals(0, secondWindowCounterValue);
 
             // check that the first window is also updated:
             Selenide.switchTo().window(firstWindowHandle);
+            waitUntilSharedValue(0.5);
+            waitUntilCounterValue(0);
             assertEquals(0.5, getSharedValue(), 0.0);
             assertEquals(0, getCounterValue());
         } finally {
@@ -124,21 +131,39 @@ public class SignalsTest extends AbstractTest {
         return Long.parseLong($(By.id("counter")).shouldNotBe(Condition.empty).getText());
     }
 
-    private double fetchSharedValue() {
-        clickButton("fetchSharedValue");
-        return Double.parseDouble($("span[id=\"sharedValueFromServer\"]")
-                .shouldNotBe(Condition.empty)
-                .getText());
+    private void waitUntilSharedValue(double expectedValue) {
+        $(By.id("sharedValue")).shouldHave(exactText(Double.toString(expectedValue)), Duration.ofSeconds(10));
     }
 
-    private long fetchCounterValue() {
-        clickButton("fetchCounterValue");
-        return Long.parseLong($("span[id=\"counterValueFromServer\"]")
-                .shouldNotBe(Condition.empty)
-                .getText());
+    private void waitUntilCounterValue(long expectedValue) {
+        $(By.id("counter")).shouldHave(exactText(Long.toString(expectedValue)), Duration.ofSeconds(10));
+    }
+
+    private double fetchSharedValue(double expectedValue) {
+        return Wait().withTimeout(Duration.ofSeconds(10)).until(driver -> {
+            clickButton("fetchSharedValue");
+            var fetchedValue = Double.parseDouble($("span[id=\"sharedValueFromServer\"]")
+                    .shouldNotBe(Condition.empty)
+                    .getText());
+            return Double.compare(fetchedValue, expectedValue) == 0 ? fetchedValue : null;
+        });
+    }
+
+    private long fetchCounterValue(long expectedValue) {
+        return Wait().withTimeout(Duration.ofSeconds(10)).until(driver -> {
+            clickButton("fetchCounterValue");
+            var fetchedValue = Long.parseLong($("span[id=\"counterValueFromServer\"]")
+                    .shouldNotBe(Condition.empty)
+                    .getText());
+            return fetchedValue == expectedValue ? fetchedValue : null;
+        });
     }
 
     private void clickButton(String id) {
-        $$("vaadin-button").findBy(id(id)).click();
+        $$("vaadin-button")
+                .findBy(id(id))
+                .shouldBe(Condition.visible, Duration.ofSeconds(10))
+                .shouldBe(Condition.enabled)
+                .click();
     }
 }
