@@ -36,7 +36,7 @@
     </developers>
 
     <properties>
-        <revision>25.2-SNAPSHOT</revision>
+        <revision>25.3-SNAPSHOT</revision>
 
         <maven.compiler.release>21</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -47,7 +47,7 @@
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>25.2-SNAPSHOT</hilla.version>
+        <hilla.version>25.3-SNAPSHOT</hilla.version>
         <flow.version>${hilla.version}</flow.version>
         <vaadin.version>${hilla.version}</vaadin.version>
 
@@ -56,6 +56,7 @@
         -->
         <jakarta.ee.version>11.0.0</jakarta.ee.version>
         <assertj.version>3.27.7</assertj.version>
+        <junit.version>6.1.1</junit.version>
         <jspecify.version>1.0.0</jspecify.version>
 
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
@@ -72,15 +73,26 @@
         <maven-resources-plugin.version>3.5.0</maven-resources-plugin.version>
         <versions-maven-plugin.version>2.16.1</versions-maven-plugin.version>
         <jandex-maven-plugin.version>3.6.0</jandex-maven-plugin.version>
-        <jreleaser-maven-plugin.version>1.24.0</jreleaser-maven-plugin.version>
+        <jreleaser-maven-plugin.version>1.25.0</jreleaser-maven-plugin.version>
         <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
-        <spotless-maven-plugin.version>3.7.0</spotless-maven-plugin.version>
+        <spotless-maven-plugin.version>3.8.0</spotless-maven-plugin.version>
         <build-helper-maven-plugin.version>3.6.1</build-helper-maven-plugin.version>
 
     </properties>
     <dependencyManagement>
         <dependencies>
+            <!--
+            Align JUnit test runtime with Vaadin-managed JUnit Jupiter.
+            Older Quarkus BOMs may otherwise manage JUnit Platform to an incompatible version.
+            -->
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <!--
             Pin Jakarta EE API until Vaadin updates to Jakarta EE 11
             -->
