@@ -41,16 +41,16 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ## ✨ Feature Overview
 
-- 🧭 [Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration) ![25.1.2](https://img.shields.io/badge/25.1.2-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- 📦 [Official Vaadin Quarkus embedded build](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) ![25.0](https://img.shields.io/badge/25.0-007bff?style=flat-square) ![Vaadin Quarkus](https://img.shields.io/badge/Vaadin%20Quarkus-00b4f0?style=flat-square)
-- 🖥️ [Quarkus Dev UI Integration](docs/features.md#quarkus-dev-ui-integration) ![24.7](https://img.shields.io/badge/24.7-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- ⚡ [Mutiny Multi Support](docs/features.md#mutiny-multi-support) ![24.7](https://img.shields.io/badge/24.7-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix) ![24.6](https://img.shields.io/badge/24.6-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload) ![24.5](https://img.shields.io/badge/24.5-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- 🚀 [Native Image Support](docs/features.md#native-image-support) ![24.5](https://img.shields.io/badge/24.5-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment) ![24.5](https://img.shields.io/badge/24.5-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square)
-- 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) ![24.4.1](https://img.shields.io/badge/24.4.1-007bff?style=flat-square) ![Quarkus-Hilla](https://img.shields.io/badge/Quarkus--Hilla-4695eb?style=flat-square) React UI; Lit / React services
-- 🧪 [Experimental Quarkus-Hilla embedded build](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) ![24.7-24.9](https://img.shields.io/badge/24.7--24.9-777777?style=flat-square) ![Legacy](https://img.shields.io/badge/Legacy-777777?style=flat-square)
+- 🧭 [Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration) _(since 25.1.2)_
+- 📦 [Official Vaadin Quarkus embedded build](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) _(since 25.0, provided by Vaadin Quarkus)_
+- 🖥️ [Quarkus Dev UI Integration](docs/features.md#quarkus-dev-ui-integration) _(since 24.7)_
+- ⚡ [Mutiny Multi Support](docs/features.md#mutiny-multi-support) _(since 24.7)_
+- 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix) _(since 24.6)_
+- 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload) _(since 24.5)_
+- 🚀 [Native Image Support](docs/features.md#native-image-support) _(since 24.5)_
+- 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment) _(since 24.5)_
+- 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(since 24.4.1; React UI, Lit / React services)_
+- 🧪 [Experimental Quarkus-Hilla embedded build](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) _(legacy, 24.7-24.9)_
 
 > [!NOTE]
 > For Vaadin 25.0+, production build support comes from the official Vaadin Quarkus extension and is enabled by default. Quarkus-Hilla had an experimental equivalent in 24.7-24.9.
