@@ -25,8 +25,8 @@ import com.vaadin.hilla.BrowserCallable;
 @BrowserCallable
 public class SecureNumberSignalService {
 
-    private final SharedNumberSignal userCounter = new SharedNumberSignal(20d);
-    private final SharedNumberSignal adminCounter = new SharedNumberSignal(30d);
+    private volatile SharedNumberSignal userCounter = new SharedNumberSignal(20d);
+    private volatile SharedNumberSignal adminCounter = new SharedNumberSignal(30d);
 
     @PermitAll
     public SharedNumberSignal userCounter() {
@@ -40,7 +40,8 @@ public class SecureNumberSignalService {
 
     @AnonymousAllowed
     public void resetCounters() {
-        userCounter.set(20d);
-        adminCounter.set(30d);
+        // Avoid emitting reset commands into stale subscribers left by Hilla issue #5722.
+        userCounter = new SharedNumberSignal(20d);
+        adminCounter = new SharedNumberSignal(30d);
     }
 }
