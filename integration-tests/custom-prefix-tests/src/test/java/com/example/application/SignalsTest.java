@@ -48,16 +48,18 @@ public class SignalsTest extends AbstractTest {
     public void shouldUpdateValue_both_on_browser_and_server() {
         for (int i = 0; i < 5; i++) {
             var currentSharedValue = getSharedValue();
+            var expectedSharedValue = currentSharedValue + 2;
             clickButton("increaseSharedValue");
-            assertEquals(currentSharedValue + 2, getSharedValue(), 0.0);
-            assertEquals(getSharedValue(), fetchSharedValue(), 0.0);
+            assertEquals(expectedSharedValue, getSharedValue(), 0.0);
+            assertSharedValueFromServer(expectedSharedValue);
         }
 
         for (int i = 0; i < 5; i++) {
             var currentCounterValue = getCounterValue();
+            var expectedCounterValue = currentCounterValue + 1;
             clickButton("incrementCounter");
-            assertEquals(currentCounterValue + 1, getCounterValue());
-            assertEquals(getCounterValue(), fetchCounterValue());
+            assertEquals(expectedCounterValue, getCounterValue());
+            assertCounterValueFromServer(expectedCounterValue);
         }
     }
 
@@ -126,11 +128,27 @@ public class SignalsTest extends AbstractTest {
                 .getText());
     }
 
+    private void assertSharedValueFromServer(double expectedValue) {
+        var actualValue = Wait().until(d -> {
+            var value = fetchSharedValue();
+            return value == expectedValue ? value : null;
+        });
+        assertEquals(expectedValue, actualValue, 0.0);
+    }
+
     private long fetchCounterValue() {
         clickButton("fetchCounterValue");
         return Long.parseLong($("span[id=\"counterValueFromServer\"]")
                 .shouldNotBe(Condition.empty)
                 .getText());
+    }
+
+    private void assertCounterValueFromServer(long expectedValue) {
+        var actualValue = Wait().until(d -> {
+            var value = fetchCounterValue();
+            return value == expectedValue ? value : null;
+        });
+        assertEquals(expectedValue, actualValue);
     }
 
     private void clickButton(String id) {
