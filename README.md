@@ -41,18 +41,18 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ## ✨ Feature Overview
 
-| Feature | Since | Status | Framework | Details |
-|---------|-------|--------|-----------|---------|
-| 🏗️ Auto CRUD, Auto Grid and Auto Form | 24.4.1 | Quarkus-Hilla feature | React components; Lit and React services | [Feature details](docs/features.md#auto-crud-auto-grid-and-auto-form) |
-| 🔄 Endpoints Live Reload | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#endpoints-live-reload) |
-| 🚀 Native Image Support | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#native-image-support) |
-| 🔌 Vaadin Quarkus Alignment | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-quarkus-alignment) |
-| 🎯 Custom Endpoint Prefix | 24.6 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#custom-endpoint-prefix) |
-| 🖥️ Quarkus Dev UI Integration | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#quarkus-dev-ui-integration) |
-| ⚡ Mutiny Multi Support | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#mutiny-multi-support) |
-| 🧭 Vaadin Copilot Integration | 25.1.2 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-copilot-integration) |
-| 📦 Official Vaadin Quarkus embedded build | 25.0 | Provided by Vaadin Quarkus | Lit and React | [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) |
-| 🧪 Experimental Quarkus-Hilla embedded build | 24.7-24.9 | Quarkus-Hilla legacy | Lit and React | [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) |
+| Icon | Feature | Since | Status | Framework | Details |
+|------|---------|-------|--------|-----------|---------|
+| 🧭 | Vaadin Copilot Integration | ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-copilot-integration) |
+| 📦 | Official Vaadin Quarkus embedded build | ![Since 25.0](https://flat.badgen.net/static/Since/25.0/007bff?scale=0.8) | Provided by Vaadin Quarkus | Lit and React | [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) |
+| 🧪 | Experimental Quarkus-Hilla embedded build | ![Since 24.7-24.9](https://flat.badgen.net/static/Since/24.7-24.9/777777?scale=0.8) | Quarkus-Hilla legacy | Lit and React | [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) |
+| 🖥️ | Quarkus Dev UI Integration | ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#quarkus-dev-ui-integration) |
+| ⚡ | Mutiny Multi Support | ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#mutiny-multi-support) |
+| 🎯 | Custom Endpoint Prefix | ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#custom-endpoint-prefix) |
+| 🔄 | Endpoints Live Reload | ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#endpoints-live-reload) |
+| 🚀 | Native Image Support | ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#native-image-support) |
+| 🔌 | Vaadin Quarkus Alignment | ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.8) | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-quarkus-alignment) |
+| 🏗️ | Auto CRUD, Auto Grid and Auto Form | ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.8) | Quarkus-Hilla feature | React components; Lit and React services | [Feature details](docs/features.md#auto-crud-auto-grid-and-auto-form) |
 
 For Vaadin 25.0+, production build support comes from the official Vaadin Quarkus extension and is enabled by default. Quarkus-Hilla had an experimental equivalent in 24.7-24.9.
 
