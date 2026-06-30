@@ -1,18 +1,18 @@
-# Legacy Notes
+# 🗃️ Quarkus-Hilla Legacy Notes
 
 This document keeps historical setup notes for Quarkus-Hilla versions targeting Vaadin 24.x and older, meaning everything before Vaadin 25.0. The current README focuses on Vaadin 25.x usage.
 
-## Version Overview
+## 🧭 Version Overview
 
 | Version / Range | Change | Current Status |
 |-----------------|--------|----------------|
 | 2.4.1 | Split artifacts by frontend framework: `quarkus-hilla` for Lit and `quarkus-hilla-react` for React. | Historical |
 | 24.4 | Flow and Hilla unified under the Vaadin platform; Quarkus-Hilla versions started following Vaadin platform releases. | Historical |
 | 24.7 | Production builds may need a workaround because Hilla endpoint generation depends on a Spring process. | Legacy workaround |
-| 24.7-24.9 | Quarkus-Hilla provided an experimental embedded Vaadin build plugin. | Legacy |
+| 24.7-24.9 | Quarkus-Hilla provided an experimental embedded Vaadin build plugin. | Quarkus-Hilla legacy |
 | 25.0 | Embedded production build support moved to the official Vaadin Quarkus extension and is enabled by default. | Current behavior outside Quarkus-Hilla |
 
-## Vaadin 24.7 Build Workaround
+## 🛠️ Vaadin 24.7 Build Workaround
 
 With Vaadin 24.7, the frontend build may fail because Hilla endpoint generation tasks depend on a Spring process.
 
@@ -22,7 +22,7 @@ With Vaadin 24.7, the frontend build may fail because Hilla endpoint generation 
 > [!CAUTION]
 > This workaround is not required in 24.8+ because endpoint generation was refactored and Hilla added a pluggable endpoint discovery API.
 
-### Option 1: Experimental Embedded Plugin
+### 🧪 Option 1: Experimental Embedded Plugin
 
 Enable the experimental Quarkus-Hilla embedded build plugin in `application.properties`:
 
@@ -36,7 +36,7 @@ Add workspace discovery to `pom.xml`:
 <quarkus.bootstrap.workspace-discovery>true</quarkus.bootstrap.workspace-discovery>
 ```
 
-### Option 2: Workaround Dependency
+### 🔧 Option 2: Workaround Dependency
 
 Add the workaround dependency to `vaadin-maven-plugin`:
 
@@ -63,7 +63,9 @@ Add the workaround dependency to `vaadin-maven-plugin`:
 </plugin>
 ```
 
-## Experimental Embedded Build Plugin In Vaadin 24.7-24.9
+<a id="experimental-embedded-build-plugin-in-vaadin-247-249"></a>
+
+## 🧪 Experimental Embedded Build Plugin In Vaadin 24.7-24.9
 
 For Vaadin 24.7-24.9, Quarkus-Hilla provided an experimental embedded Vaadin build plugin. It replaced direct `vaadin-maven-plugin` or Vaadin Gradle plugin setup in application builds and could be enabled with:
 
@@ -81,7 +83,7 @@ See [Quarkus issue #45363](https://github.com/quarkusio/quarkus/issues/45363) fo
 
 As of Vaadin 25.0, production build support is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) and is enabled by default. The related upstream change was merged in [vaadin/quarkus#215](https://github.com/vaadin/quarkus/pull/215) on October 14, 2025.
 
-## Vaadin 24.4 Unified Platform
+## 🔗 Vaadin 24.4 Unified Platform
 
 Since Vaadin 24.4, Flow and Hilla are unified in a single platform. Quarkus-Hilla versions started following Vaadin platform releases (`24.x` instead of `2.x`).
 
@@ -91,7 +93,7 @@ Breaking changes:
 - Java package names changed accordingly.
 - Minimum Quarkus version became 3.7+.
 
-## Lit And React Extensions
+## 🎨 Lit And React Extensions
 
 Starting with 2.4.1, the extension was subdivided into two artifacts based on frontend framework:
 

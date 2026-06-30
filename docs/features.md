@@ -1,8 +1,10 @@
-# Feature Details
+# ✨ Feature Details
 
-This document keeps Quarkus-Hilla feature details out of the README. For historical setup notes and old workarounds, see [Legacy Notes](legacy-notes.md).
+This document keeps Quarkus-Hilla feature details out of the README. For historical setup notes and old workarounds, see [Quarkus-Hilla Legacy Notes](legacy-notes.md).
 
-## Auto CRUD, Auto Grid And Auto Form
+<a id="auto-crud-auto-grid-and-auto-form"></a>
+
+## 🏗️ Auto CRUD, Auto Grid And Auto Form
 
 Since: 24.4.1
 
@@ -15,7 +17,9 @@ Quarkus-Hilla also provides custom `CrudRepositoryService` and `ListRepositorySe
 
 Auto CRUD, Auto Grid, and Auto Form components are React-only. Repository services can also be used from Lit applications. See [CRUD & Repository Services](../../../wiki/Crud-List-repository-service) for more details.
 
-## Endpoints Live Reload
+<a id="endpoints-live-reload"></a>
+
+## 🔄 Endpoints Live Reload
 
 Since: 24.5
 
@@ -38,19 +42,25 @@ Configuration options:
 
 `CLASS` works with Java and Kotlin and is more reliable with `quarkus.live-reload.instrumentation=true`. `SOURCE` currently supports Java source files only.
 
-## Native Image Support
+<a id="native-image-support"></a>
+
+## 🚀 Native Image Support
 
 Since: 24.5
 
 Quarkus-Hilla supports GraalVM native image generation without known Quarkus-Hilla-specific limitations.
 
-## Vaadin Quarkus Alignment
+<a id="vaadin-quarkus-alignment"></a>
+
+## 🔌 Vaadin Quarkus Alignment
 
 Since: 24.5
 
 Starting with 24.5, `quarkus-hilla` depends on the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/). This reduces duplicated integration code and keeps Quarkus-Hilla closer to Vaadin's Quarkus runtime behavior.
 
-## Custom Endpoint Prefix
+<a id="custom-endpoint-prefix"></a>
+
+## 🎯 Custom Endpoint Prefix
 
 Since: 24.6
 
@@ -62,7 +72,9 @@ vaadin.endpoint.prefix=/new-prefix
 
 Quarkus-Hilla creates a custom `connect-client.ts` in the frontend folder and constructs `ConnectClient` with the configured prefix. If an existing `connect-client.ts` does not match the default Hilla template, it is not overwritten.
 
-## Quarkus Dev UI Integration
+<a id="quarkus-dev-ui-integration"></a>
+
+## 🖥️ Quarkus Dev UI Integration
 
 Since: 24.7
 
@@ -82,7 +94,9 @@ The page shows:
 
 Run `mvn quarkus:dev`, then open `http://localhost:8080/q/dev-ui`.
 
-## Mutiny Multi Support
+<a id="mutiny-multi-support"></a>
+
+## ⚡ Mutiny Multi Support
 
 Since: 24.7
 
@@ -112,7 +126,9 @@ public class ClockService {
 }
 ```
 
-## Vaadin Copilot Integration
+<a id="vaadin-copilot-integration"></a>
+
+## 🧭 Vaadin Copilot Integration
 
 Since: 25.1.2
 

@@ -43,16 +43,16 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 | Feature | Since | Status | Framework | Details |
 |---------|-------|--------|-----------|---------|
-| Auto CRUD, Auto Grid and Auto Form | 24.4.1 | Quarkus-Hilla feature | React components; Lit and React services | [Feature details](docs/features.md#auto-crud-auto-grid-and-auto-form) |
-| Endpoints Live Reload | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#endpoints-live-reload) |
-| Native Image Support | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#native-image-support) |
-| Vaadin Quarkus Alignment | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-quarkus-alignment) |
-| Custom Endpoint Prefix | 24.6 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#custom-endpoint-prefix) |
-| Quarkus Dev UI Integration | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#quarkus-dev-ui-integration) |
-| Mutiny Multi Support | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#mutiny-multi-support) |
-| Vaadin Copilot Integration | 25.1.2 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-copilot-integration) |
-| Official Vaadin Quarkus embedded build | 25.0 | Provided by Vaadin Quarkus | Lit and React | [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) |
-| Experimental Quarkus-Hilla embedded build | 24.7-24.9 | Legacy | Lit and React | [Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) |
+| 🏗️ Auto CRUD, Auto Grid and Auto Form | 24.4.1 | Quarkus-Hilla feature | React components; Lit and React services | [Feature details](docs/features.md#auto-crud-auto-grid-and-auto-form) |
+| 🔄 Endpoints Live Reload | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#endpoints-live-reload) |
+| 🚀 Native Image Support | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#native-image-support) |
+| 🔌 Vaadin Quarkus Alignment | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-quarkus-alignment) |
+| 🎯 Custom Endpoint Prefix | 24.6 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#custom-endpoint-prefix) |
+| 🖥️ Quarkus Dev UI Integration | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#quarkus-dev-ui-integration) |
+| ⚡ Mutiny Multi Support | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#mutiny-multi-support) |
+| 🧭 Vaadin Copilot Integration | 25.1.2 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-copilot-integration) |
+| 📦 Official Vaadin Quarkus embedded build | 25.0 | Provided by Vaadin Quarkus | Lit and React | [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) |
+| 🧪 Experimental Quarkus-Hilla embedded build | 24.7-24.9 | Quarkus-Hilla legacy | Lit and React | [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) |
 
 For Vaadin 25.0+, production build support comes from the official Vaadin Quarkus extension and is enabled by default. Quarkus-Hilla had an experimental equivalent in 24.7-24.9.
 
@@ -91,7 +91,7 @@ Choose your frontend framework:
 > Hilla prioritizes React, so new features are typically available first or exclusively for React.
 
 > [!NOTE]
-> For Vaadin 24.x and older setup notes and workarounds, see [Legacy Notes](docs/legacy-notes.md).
+> For Vaadin 24.x and older setup notes and workarounds, see [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md).
 
 ### Create Your First Endpoint
 
@@ -120,7 +120,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 - 🚢 [Release Process](docs/release-process.md)
 - 🧬 [Update Codestarts](docs/update-codestarts.md)
 - 🔢 [Bump Project Version](docs/bump-project-version.md)
-- 🗃️ [Legacy Notes](docs/legacy-notes.md)
+- 🗃️ [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md)
 - 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🚀 [Quarkus Guides](https://quarkus.io/guides/)
 
@@ -133,7 +133,7 @@ The current Hilla support has some known limitations that we aim to address in f
 - ⚠️ Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
 - ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
-Older limitations and workarounds for Vaadin versions before 25.0 are kept in [Legacy Notes](docs/legacy-notes.md).
+Older limitations and workarounds for Vaadin versions before 25.0 are kept in [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md).
 
 ---
 
@@ -192,7 +192,7 @@ See [Vaadin Copilot Integration](docs/copilot-integration.md) for details.
 
 ### Vaadin Build Configuration
 
-Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249).
+Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249).
 
 ---
 
@@ -219,7 +219,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 > [!NOTE]
 > The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
-> Older rows are kept as a historical compatibility reference. See [Legacy Notes](docs/legacy-notes.md) for old setup details and workarounds.
+> Older rows are kept as a historical compatibility reference. See [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md) for old setup details and workarounds.
 
 ---
 
