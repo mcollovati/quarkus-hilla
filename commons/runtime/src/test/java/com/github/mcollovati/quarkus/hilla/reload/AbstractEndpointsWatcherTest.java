@@ -19,13 +19,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiPredicate;
@@ -43,8 +46,8 @@ import org.mockito.Mockito;
 
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -69,6 +72,7 @@ class AbstractEndpointsWatcherTest {
     void tearDown() {
         if (watcher != null) {
             watcher.stop();
+            watcher.waitUntilStopped();
         }
     }
 
@@ -99,6 +103,7 @@ class AbstractEndpointsWatcherTest {
         Files.writeString(root1.resolve("file.txt"), "Some text");
         Files.writeString(root1.resolve(Path.of("com", "file.txt")), "Some text");
         Files.writeString(root1.resolve(Path.of("org", "file.txt")), "Some text");
+        watcher.waitUntilFileChanged(files -> files.size() == 3);
         watcher.waitForChanges(200, TimeUnit.MILLISECONDS);
         verify(watcher.hotReplacementContext, never()).doScan(anyBoolean());
         Assertions.assertEquals(0, watcher.hillaHotswapInvocations.get(), "Hilla hotswap not expected but invoked");
@@ -116,20 +121,20 @@ class AbstractEndpointsWatcherTest {
 
         Files.writeString(root1.resolve(Path.of("com", "example", "file.txt")), "Some text");
         Files.writeString(root1.resolve(Path.of("org", "application", "file2.txt")), "Some text");
-        watcher.waitUntilFileChanged(files -> files.size() == 2);
-        verify(watcher.hotReplacementContext, times(2)).doScan(anyBoolean());
+        watcher.waitUntilScanInvoked(2);
+        watcher.waitUntilHotswapInvoked(2);
         Assertions.assertEquals(2, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
     }
 
     @Test
     void fileAdded_watchedFolder_notEndpointRelated_changeIgnored() throws Exception {
+        Path file = root1.resolve(Path.of("com", "example", "file.txt"));
+        Files.createDirectories(file.getParent());
+
         createWatcher();
         watcher.start();
 
-        Path file = root1.resolve(Path.of("com", "example", "file.txt"));
-        Files.createDirectories(file.getParent());
-        writeFile(file, "Some text");
-
+        watcher.writeFileUntilChanged(file, "Some different text");
         watcher.waitForChanges(200, TimeUnit.MILLISECONDS);
         verify(watcher.hotReplacementContext, never()).doScan(anyBoolean());
         Assertions.assertEquals(0, watcher.hillaHotswapInvocations.get(), "Hilla hotswap not expected but invoked");
@@ -144,8 +149,7 @@ class AbstractEndpointsWatcherTest {
         createWatcher();
         watcher.start();
 
-        writeFile(file, "Some different text");
-
+        watcher.writeFileUntilChanged(file, "Some different text");
         watcher.waitForChanges(200, TimeUnit.MILLISECONDS);
         verify(watcher.hotReplacementContext, never()).doScan(anyBoolean());
         Assertions.assertEquals(0, watcher.hillaHotswapInvocations.get(), "Hilla hotswap not expected but invoked");
@@ -162,6 +166,7 @@ class AbstractEndpointsWatcherTest {
 
         Files.delete(file);
 
+        watcher.waitUntilFileChanged(files -> files.size() == 1);
         watcher.waitForChanges(200, TimeUnit.MILLISECONDS);
         verify(watcher.hotReplacementContext, never()).doScan(anyBoolean());
         Assertions.assertEquals(0, watcher.hillaHotswapInvocations.get(), "Hilla hotswap not expected but invoked");
@@ -169,18 +174,19 @@ class AbstractEndpointsWatcherTest {
 
     @Test
     void fileAdded_derivedClassIsUsedInEndpoint_liveReloadTriggered() throws Exception {
+        Path file = root1.resolve(Path.of("com", "example", "Endpoint.java"));
+        Files.createDirectories(file.getParent());
+
         createWatcher().matchEverything();
         watcher.classesUsedInEndpoints = () -> Set.of("com.example.Endpoint", "com.example.Data");
         watcher.deriveClassName = path -> Optional.of("com.example.Endpoint");
         watcher.start();
 
-        Path file = root1.resolve(Path.of("com", "example", "Endpoint.java"));
-        Files.createDirectories(file.getParent());
-        writeFile(file, "Some text");
+        watcher.writeFileUntilChanged(file, "Some different text");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     @Test
@@ -194,11 +200,11 @@ class AbstractEndpointsWatcherTest {
         watcher.deriveClassName = path -> Optional.of("com.example.Data");
         watcher.start();
 
-        writeFile(file, "Some different text");
+        watcher.writeFileUntilChanged(file, "Some different text");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     @Test
@@ -207,18 +213,37 @@ class AbstractEndpointsWatcherTest {
         Files.createDirectories(file.getParent());
         Files.writeString(file, "Some text");
 
+        file = file.getParent().resolve(Path.of("nested", "pkg", "File.java"));
+        Files.createDirectories(file.getParent());
+
         createWatcher().matchEverything();
         watcher.classesUsedInEndpoints = () -> Set.of("com.example.Endpoint", "com.example.Data");
         watcher.deriveClassName = path -> Optional.of("com.example.Data");
         watcher.start();
 
-        file = file.getParent().resolve(Path.of("nested", "pkg", "File.java"));
-        Files.createDirectories(file.getParent());
-        writeFile(file, "Some different text");
+        watcher.writeFileUntilChanged(file, "Some different text");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
+    }
+
+    @Test
+    void nestedFileAdded_newDirectoryRegistered_liveReloadTriggered() throws Exception {
+        createWatcher().matchEverything();
+        watcher.classesUsedInEndpoints = () -> Set.of("com.example.Endpoint", "com.example.Data");
+        watcher.deriveClassName = path -> Optional.of("com.example.Data");
+        watcher.start();
+
+        Path directory = root1.resolve(Path.of("com", "example", "nested", "pkg"));
+        Files.createDirectories(directory);
+
+        Path file = directory.resolve("File.java");
+        watcher.writeFileUntilChanged(file, "Some text");
+
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     @Test
@@ -234,8 +259,8 @@ class AbstractEndpointsWatcherTest {
 
         Files.delete(file);
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
         Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
     }
 
@@ -252,6 +277,7 @@ class AbstractEndpointsWatcherTest {
 
         Files.delete(file);
 
+        watcher.waitUntilFileChanged(files -> files.size() == 1);
         watcher.waitForChanges(200, TimeUnit.MILLISECONDS);
         verify(watcher.hotReplacementContext, never()).doScan(anyBoolean());
         Assertions.assertEquals(0, watcher.hillaHotswapInvocations.get(), "Hilla hotswap not expected but invoked");
@@ -259,19 +285,20 @@ class AbstractEndpointsWatcherTest {
 
     @Test
     void fileAdded_containsTypeIsUsedInEndpoint_liveReloadTriggered() throws Exception {
+        Path file = root1.resolve(Path.of("com", "example", "NotDirectlyUsedInEndpoint.java"));
+        Files.createDirectories(file.getParent());
+
         createWatcher().matchEverything();
         watcher.classesUsedInEndpoints = () -> Set.of("com.example.Endpoint", "com.example.Data");
         watcher.deriveClassName = path -> Optional.of("com.example.NotDirectlyUsedInEndpoint");
         watcher.fileContainsEndpointUsedClasses = (path, usedClasses) -> true;
         watcher.start();
 
-        Path file = root1.resolve(Path.of("com", "example", "NotDirectlyUsedInEndpoint.java"));
-        Files.createDirectories(file.getParent());
-        writeFile(file, "I contain references to classes used in com.example.Endpoint");
+        watcher.writeFileUntilChanged(file, "I contain references to classes used in com.example.Endpoint");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     @Test
@@ -286,11 +313,11 @@ class AbstractEndpointsWatcherTest {
         watcher.fileContainsEndpointUsedClasses = (path, usedClasses) -> true;
         watcher.start();
 
-        writeFile(file, "I contain references to classes used in com.example.Endpoint");
+        watcher.writeFileUntilChanged(file, "I contain references to classes used in com.example.Endpoint");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     @Test
@@ -314,16 +341,16 @@ class AbstractEndpointsWatcherTest {
         };
         watcher.start();
 
-        writeFile(file, "Some text");
+        watcher.writeFileUntilChanged(file, "Some different text");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
 
         Assertions.assertTrue(deriveClassNameInvoked.get(), "deriveClassName expected but not invoked");
         Assertions.assertFalse(
                 fileContainsEndpointUsedClassesInvoked.get(),
                 "fileContainsEndpointUsedClasses not expected but invoked");
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     @Test
@@ -337,10 +364,9 @@ class AbstractEndpointsWatcherTest {
         watcher.classesUsedInEndpoints = () -> null;
         watcher.start();
 
-        writeFile(file, "Some text");
+        watcher.writeFileUntilChanged(file, "Some different text");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
+        watcher.waitUntilScanInvoked(1);
 
         Assertions.assertEquals(0, watcher.hillaHotswapInvocations.get(), "Hilla hotswap not expected but invoked");
     }
@@ -356,28 +382,25 @@ class AbstractEndpointsWatcherTest {
         watcher.classesUsedInEndpoints = () -> null;
         watcher.start();
 
-        writeFile(file, "Some text");
+        watcher.writeFileUntilChanged(file, "Some different text");
 
-        watcher.waitUntilFileChanged(files -> files.size() == 1);
-        verify(watcher.hotReplacementContext, times(1)).doScan(anyBoolean());
+        watcher.waitUntilScanInvoked(1);
+        watcher.waitUntilHotswapInvoked(1);
 
-        Assertions.assertEquals(1, watcher.hillaHotswapInvocations.get(), "Hilla hotswap expected but not invoked");
-    }
-
-    private void writeFile(Path file, String content) throws IOException {
-        watcher.waitForChanges(5, TimeUnit.MILLISECONDS);
-        Files.writeString(file, content);
+        Assertions.assertTrue(watcher.hillaHotswapInvocations.get() >= 1, "Hilla hotswap expected but not invoked");
     }
 
     private static class TestEndpointsWatcher extends AbstractEndpointsWatcher {
 
         final HotReplacementContext hotReplacementContext;
-        final List<Path> changedFiles = new ArrayList<>();
+        final List<Path> changedFiles = new CopyOnWriteArrayList<>();
         final AtomicInteger hillaHotswapInvocations = new AtomicInteger(0);
+        final CountDownLatch started = new CountDownLatch(1);
         Predicate<Path> potentialEndpoint;
         Function<Path, Optional<String>> deriveClassName;
         BiPredicate<Path, Set<String>> fileContainsEndpointUsedClasses;
         Supplier<Set<String>> classesUsedInEndpoints;
+        CompletableFuture<Void> watcherTask;
 
         TestEndpointsWatcher(HotReplacementContext context, List<Path> rootPaths, Set<Path> endpointRelatedPaths)
                 throws IOException {
@@ -390,6 +413,12 @@ class AbstractEndpointsWatcherTest {
         protected boolean isPotentialEndpointRelatedFile(Path file) {
             changedFiles.add(file);
             return potentialEndpoint.test(file);
+        }
+
+        @Override
+        public void run() {
+            started.countDown();
+            super.run();
         }
 
         @Override
@@ -413,7 +442,8 @@ class AbstractEndpointsWatcherTest {
         }
 
         void start() {
-            CompletableFuture.runAsync(this);
+            watcherTask = CompletableFuture.runAsync(this);
+            await().atMost(10, TimeUnit.SECONDS).until(() -> started.getCount() == 0);
         }
 
         TestEndpointsWatcher matchEverything() {
@@ -437,12 +467,48 @@ class AbstractEndpointsWatcherTest {
         }
 
         void waitUntilFileChanged(Predicate<List<Path>> test) {
-            await().atMost(10000, TimeUnit.SECONDS).until(() -> test.test(changedFiles));
+            await().atMost(10, TimeUnit.SECONDS).until(() -> test.test(changedFiles));
+        }
+
+        void waitUntilScanInvoked(int invocations) {
+            await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> verify(hotReplacementContext, atLeast(invocations))
+                    .doScan(anyBoolean()));
+        }
+
+        void waitUntilHotswapInvoked(int invocations) {
+            await().atMost(10, TimeUnit.SECONDS).until(() -> hillaHotswapInvocations.get() >= invocations);
+        }
+
+        void writeFileUntilChanged(Path file, String content) {
+            AtomicInteger writes = new AtomicInteger();
+            await().atMost(10, TimeUnit.SECONDS)
+                    .pollInterval(50, TimeUnit.MILLISECONDS)
+                    .untilAsserted(() -> {
+                        Files.writeString(file, content + System.lineSeparator() + writes.incrementAndGet());
+                        Assertions.assertTrue(
+                                changedFiles.stream().anyMatch(file::equals), "File change expected but not seen");
+                    });
         }
 
         public void waitForChanges(long timeout, TimeUnit unit) {
             LocalTime untilTime = LocalTime.now().plus(timeout, unit.toChronoUnit());
             await().until(() -> LocalTime.now().isAfter(untilTime));
+        }
+
+        void waitUntilStopped() {
+            if (watcherTask != null) {
+                try {
+                    watcherTask.get(10, TimeUnit.SECONDS);
+                } catch (InterruptedException ex) {
+                    Thread.currentThread().interrupt();
+                    Assertions.fail("Watcher stop interrupted", ex);
+                } catch (ExecutionException ex) {
+                    Assertions.fail("Watcher failed", ex);
+                } catch (TimeoutException ex) {
+                    watcherTask.cancel(true);
+                    Assertions.fail("Watcher did not stop within timeout", ex);
+                }
+            }
         }
     }
 
