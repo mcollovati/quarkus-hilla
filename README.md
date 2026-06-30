@@ -19,7 +19,7 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
 
 <p align="center">
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
-  <a href="#-exclusive-quarkus-hilla-features">✨ Features</a> &nbsp; • &nbsp;
+  <a href="#-feature-overview">✨ Features</a> &nbsp; • &nbsp;
   <a href="#-documentation">📚 Documentation</a> &nbsp; • &nbsp;
   <a href="#%EF%B8%8F-configuration-reference">⚙️️ Configuration</a> &nbsp; • &nbsp;
   <a href="#-current-releases">📦 Releases</a> &nbsp; • &nbsp;
@@ -39,19 +39,22 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ---
 
-## 🌟 Exclusive Quarkus-Hilla Features
+## ✨ Feature Overview
 
-- 🎯 **Type-Safe Communication** - Automatically generated TypeScript types from Java endpoints
-- ⚡ **Reactive Streaming** - Support for Mutiny `Multi` and reactive endpoints
-- 🔒 **Security Integration** - Built-in support for authentication and authorization
-- 🔄 **Hot Reload** - Endpoints live reload in development mode
-- 🧭 **Vaadin Copilot Integration** - Development-time support for Copilot endpoint and Flow service discovery
-- 🖥️ **Dev UI Integration** - Visualize endpoint security constraints and null-safety in Quarkus Dev UI (since 24.7)
-- 🏗️ **Auto CRUD** - Automatic CRUD operations with Auto Grid and Auto Form (React)
-- 🚀 **Native Image** - Full GraalVM native image support (since 24.5)
-- 🎨 **Framework Choice** - Support for both Lit and React frontends
-- 🔌 **Panache Integration** - Custom repository services for Hibernate ORM Panache
-- 📦 **Vaadin Build Integration** - Build plugin support is provided by the official Vaadin Quarkus extension in 25.0+
+| Feature | Since | Status | Framework | Details |
+|---------|-------|--------|-----------|---------|
+| Auto CRUD, Auto Grid and Auto Form | 24.4.1 | Quarkus-Hilla feature | React components; Lit and React services | [Feature details](docs/features.md#auto-crud-auto-grid-and-auto-form) |
+| Endpoints Live Reload | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#endpoints-live-reload) |
+| Native Image Support | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#native-image-support) |
+| Vaadin Quarkus Alignment | 24.5 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-quarkus-alignment) |
+| Custom Endpoint Prefix | 24.6 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#custom-endpoint-prefix) |
+| Quarkus Dev UI Integration | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#quarkus-dev-ui-integration) |
+| Mutiny Multi Support | 24.7 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#mutiny-multi-support) |
+| Vaadin Copilot Integration | 25.1.2 | Quarkus-Hilla feature | Lit and React | [Feature details](docs/features.md#vaadin-copilot-integration) |
+| Official Vaadin Quarkus embedded build | 25.0 | Provided by Vaadin Quarkus | Lit and React | [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) |
+| Experimental Quarkus-Hilla embedded build | 24.7-24.9 | Legacy | Lit and React | [Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) |
+
+For Vaadin 25.0+, production build support comes from the official Vaadin Quarkus extension and is enabled by default. Quarkus-Hilla had an experimental equivalent in 24.7-24.9.
 
 ---
 
@@ -110,6 +113,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 ## 📚 Documentation
 
 - 📖 [Wiki Documentation](../../wiki)
+- ✨ [Feature Details](docs/features.md)
 - 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
 - 🛠️ [Build and Test](docs/build-and-test.md)
 - 🧭 [Vaadin Copilot Integration](docs/copilot-integration.md)
@@ -119,194 +123,6 @@ That's it! The TypeScript client is automatically generated and type-safe.
 - 🗃️ [Legacy Notes](docs/legacy-notes.md)
 - 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🚀 [Quarkus Guides](https://quarkus.io/guides/)
-
----
-
-## 🎯 Features & Highlights
-
-### Vaadin Copilot Integration ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=0.9)
-
-Vaadin Copilot can inspect and edit Quarkus-Hilla applications in development mode. The integration maps Copilot's Spring-oriented backend hooks to Quarkus CDI and Vaadin Quarkus runtime APIs.
-
-Supported Copilot data sources:
-- Hilla `@BrowserCallable` and `@Endpoint` services from the Hilla `EndpointRegistry`
-- Flow UI services from Quarkus Arc bean discovery
-- Quarkus configuration properties
-- Vaadin route security status
-- Quarkus-Hilla version information
-
-Flow UI service discovery is intentionally conservative by default. It starts from application beans with service-like scopes and can be widened or narrowed with `vaadin.copilot.flow-services.*` configuration.
-
-> [!NOTE]
-> Copilot Java edits in Flow views currently use Quarkus Live Reload when no JVM hotswap agent is available. Changes are applied, but Copilot may show a warning that the operation is slower.
-
-> [!TIP]
-> See [Vaadin Copilot Integration](docs/copilot-integration.md) for service discovery modes, filtering options, and implementation details.
-
-### Quarkus Dev UI Integration ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
-
-The extension provides a dedicated Dev UI page to help you understand and debug your Hilla endpoints during development.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="etc/dev-ui-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="etc/dev-ui-light.png">
-  <img src="etc/dev-ui-dark.png" alt="Quarkus Dev UI - Hilla Endpoints">
-</picture>
-
-**Key Features:**
-- **Security Visualization** - See the actual security constraints applied to each server-side endpoint, including roles and authentication requirements
-- **Null-Safety Overview** - All `@NonNull` types are highlighted, showing their null-safety status at a glance
-- **Endpoint Overview** - Complete list of all browser-callable endpoints with their methods and parameters
-
-> [!TIP]
-> Access the Dev UI by running your application in dev mode (`mvn quarkus:dev`) and navigating to `http://localhost:8080/q/dev-ui`
-
-### Mutiny Multi Support ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
-
-Support for [Mutiny](https://smallrye.io/smallrye-mutiny/latest/) `Multi` return type in Hilla endpoints. The `Multi` instance is automatically converted into a `Flux`, which is currently the only reactive type supported by Hilla.
-`MutinyEndpointSubscription` can be used as a replacement for Hilla `EndpointSubscription`, when an unsubscribe callback is needed.
-
-```java
-@BrowserCallable
-@AnonymousAllowed
-public class ClockService {
-
-    public Multi<String> getClock() {
-        return Multi.createFrom()
-                .ticks()
-                .startingAfter(Duration.ofSeconds(1))
-                .every(Duration.ofSeconds(1))
-                .onOverflow().drop()
-                .map(unused -> LocalTime.now().toString())
-                .onFailure()
-                .recoverWithItem(err -> "Sorry, something failed...");
-    }
-
-    public MutinyEndpointSubscription<String> getCancellableClock() {
-        return MutinyEndpointSubscription.of(getClock(), () -> {
-            // unsubscribe callback
-        });
-    }
-}
-```
-
-### Vaadin Build Plugin Integration ![Since 25.0](https://flat.badgen.net/static/Since/25.0/007bff?scale=0.9)
-
-Vaadin 25.0+ applications can use the build plugin support provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/). This removes the need to configure the Vaadin Maven (or Gradle) plugin directly in most applications.
-
-> [!IMPORTANT]
-> No Quarkus-Hilla specific configuration or `quarkus.bootstrap.workspace-discovery` workaround is required for Vaadin 25.0+.
-
-**Setup:**
-
-No configuration needed, the plugin is enabled by default. You can opt out by disabling it:
-
-```properties
-# In application.properties (optional - disable the embedded build plugin)
-vaadin.build.enabled=false
-```
-
-> [!TIP]
-> With the embedded build plugin, the `vaadin-maven-plugin` is no longer needed and can be removed from your `pom.xml`.
-
-> [!NOTE]
-> Historical setup for Vaadin versions before 25.0 is kept in [Legacy Notes](docs/legacy-notes.md).
-
-### Custom Endpoint Prefix ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
-
-Configure a custom endpoint prefix via `vaadin.endpoint.prefix` in `application.properties`. The extension automatically creates a custom `connect-client.ts` file in the frontend folder and constructs the `ConnectClient` object with the configured prefix.
-
-```properties
-vaadin.endpoint.prefix=/new-prefix
-```
-
-> [!IMPORTANT]
-> If `connect-client.ts` exists and does not match the default Hilla template, it is not overwritten.
-
-### Endpoints Live Reload ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
-
-In dev mode, the extension automatically regenerates client-side code when endpoint classes change, eliminating the need for a full rebuild.
-
-Quarkus-Hilla extends Quarkus Live Reload to automatically regenerate client-side code when Hilla endpoint-related classes change. The extension monitors file changes in either source code or compiled class folders and triggers the TypeScript client regeneration accordingly.
-
-<details>
-<summary><strong>🔍 Implementation Details</strong></summary>
-
-**How it works:**
-
-Quarkus uses a ClassLoader hierarchy that enables live reload of user code without requiring a rebuild and restart. However, reload is typically triggered by an HTTP request (e.g., browser page reload).
-
-Quarkus-Hilla extends this mechanism by:
-1. **Scanning for changes** in configured folders (source or compiled classes)
-2. **Detecting endpoint-related modifications** in Hilla endpoint classes
-3. **Triggering automatic regeneration** of TypeScript client code
-4. **Notifying the browser** to reload the updated code
-
-**Watch Strategies:**
-
-- **CLASS (default)**: Monitors compiled class files in `target/classes` (Maven) or `build/classes` (Gradle)
-    - ✅ Works with both Java and Kotlin
-    - ✅ More reliable when used with `quarkus.live-reload.instrumentation=true`
-
-- **SOURCE**: Monitors source files in `src/main/java`
-    - ⚠️ Currently only supports Java files
-    - ⚠️ Kotlin files are not detected
-
-**Restricting Watched Paths:**
-
-To prevent excessive reloads, specify only the folders containing Hilla endpoints:
-
-```properties
-# Watch only endpoint-related packages
-vaadin.hilla.live-reload.watched-paths=com/example/endpoints,com/example/services
-```
-
-Paths are relative to the source/class root directory.
-
-</details>
-
-**Configuration Example:**
-```properties
-quarkus.live-reload.instrumentation=true
-vaadin.hilla.live-reload.enable=true
-vaadin.hilla.live-reload.watch-strategy=source
-vaadin.hilla.live-reload.watched-paths=com/example/ui
-```
-
-**Configuration Options:**
-- `vaadin.hilla.live-reload.enable` - Enable/disable live reload (default: `false`)
-- `vaadin.hilla.live-reload.watch-strategy` - Watch `source` files or compiled `class` files (default: `class`)
-- `vaadin.hilla.live-reload.watched-paths` - Restrict watched folders (relative paths, comma-separated)
-
-> [!TIP]
-> Setting `quarkus.live-reload.instrumentation=true` allows Quarkus to potentially redefine classes at runtime without triggering a server restart, which works better with Endpoints Live Reload.
-
-> [!NOTE]
-> Source file watching currently supports only Java files, not Kotlin.
-
-### Native Image Support ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
-
-Full GraalVM native image generation support without any known limitations.
-
-### Vaadin Quarkus Integration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
-
-Starting with version 24.5, `quarkus-hilla` depends on the existing [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), eliminating code duplication and ensuring closer alignment with Vaadin's ecosystem.
-
-### Auto CRUD, Auto Grid and Auto Form ![Since 24.4.1](https://flat.badgen.net/static/Since/24.4.1/007bff?scale=0.9)
-
-The [Auto CRUD](https://vaadin.com/docs/latest/components/auto-crud), [Auto Grid](https://vaadin.com/docs/latest/components/auto-grid), and [Auto Form](https://vaadin.com/docs/latest/components/auto-crud) components are available in `quarkus-hilla-react`.
-
-The extension provides custom implementations of `CrudRepositoryService` and `ListRepositoryService` for both **Lit** and **React** applications, based on:
-- `quarkus-spring-data-jpa`
-- `quarkus-hibernate-orm-panache`
-
-> [!TIP]
-> Check the [documentation](../../wiki/Crud-List-repository-service) for details.
-
-> [!IMPORTANT]
-> The Auto CRUD, Auto Grid, and Auto Form **components** are only available for React. However, the `CrudRepositoryService` and `ListRepositoryService` can be used in Lit applications as well.
-
-Historical migration notes for Vaadin versions before 25.0 are kept in [Legacy Notes](docs/legacy-notes.md).
 
 ---
 
@@ -374,35 +190,9 @@ vaadin.copilot.flow-services.include-classes=com.example.admin.AdminFacade
 
 See [Vaadin Copilot Integration](docs/copilot-integration.md) for details.
 
-### Build Configuration
+### Vaadin Build Configuration
 
-| Property               | Type    | Default | Since | Description                                                                        |
-|------------------------|---------|---------|-------|------------------------------------------------------------------------------------|
-| `vaadin.build.enabled` | Boolean | `true`  | 24.7  | Enable the embedded Vaadin build plugin to replace the Vaadin Maven/Gradle plugin. |
-
-> [!NOTE]
-> In Vaadin 25.0+, this configuration is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/). Behavior before 25.0 is documented in [Legacy Notes](docs/legacy-notes.md).
-
-**Additional Configuration:**
-
-When the embedded build plugin is enabled, you can use all standard [Vaadin build configuration properties](https://vaadin.com/docs/latest/flow/configuration/properties) with the `vaadin.build.` prefix. These properties correspond 1:1 to the Vaadin Maven Plugin parameters.
-
-**Examples:**
-
-```properties
-# Enable the embedded build plugin (this is the default since version 25.0)
-vaadin.build.enabled=true
-
-# Standard Vaadin build properties
-vaadin.build.pnpm-enable=true
-vaadin.build.ci-build=true
-vaadin.build.frontend-directory=src/main/frontend
-vaadin.build.optimize-bundle=true
-vaadin.build.node-version=v22.0.0
-```
-
-> [!TIP]
-> For a complete list of available Vaadin build properties and their descriptions, see the [Vaadin Configuration Properties documentation](https://vaadin.com/docs/latest/configuration/properties).
+Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249).
 
 ---
 

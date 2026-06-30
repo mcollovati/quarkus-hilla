@@ -2,6 +2,16 @@
 
 This document keeps historical setup notes for Quarkus-Hilla versions targeting Vaadin 24.x and older, meaning everything before Vaadin 25.0. The current README focuses on Vaadin 25.x usage.
 
+## Version Overview
+
+| Version / Range | Change | Current Status |
+|-----------------|--------|----------------|
+| 2.4.1 | Split artifacts by frontend framework: `quarkus-hilla` for Lit and `quarkus-hilla-react` for React. | Historical |
+| 24.4 | Flow and Hilla unified under the Vaadin platform; Quarkus-Hilla versions started following Vaadin platform releases. | Historical |
+| 24.7 | Production builds may need a workaround because Hilla endpoint generation depends on a Spring process. | Legacy workaround |
+| 24.7-24.9 | Quarkus-Hilla provided an experimental embedded Vaadin build plugin. | Legacy |
+| 25.0 | Embedded production build support moved to the official Vaadin Quarkus extension and is enabled by default. | Current behavior outside Quarkus-Hilla |
+
 ## Vaadin 24.7 Build Workaround
 
 With Vaadin 24.7, the frontend build may fail because Hilla endpoint generation tasks depend on a Spring process.
@@ -12,9 +22,9 @@ With Vaadin 24.7, the frontend build may fail because Hilla endpoint generation 
 > [!CAUTION]
 > This workaround is not required in 24.8+ because endpoint generation was refactored and Hilla added a pluggable endpoint discovery API.
 
-### Option 1: Embedded Plugin
+### Option 1: Experimental Embedded Plugin
 
-Enable the embedded build plugin in `application.properties`:
+Enable the experimental Quarkus-Hilla embedded build plugin in `application.properties`:
 
 ```properties
 vaadin.build.enabled=true
@@ -53,9 +63,9 @@ Add the workaround dependency to `vaadin-maven-plugin`:
 </plugin>
 ```
 
-## Embedded Build Plugin In Vaadin 24.7-24.9
+## Experimental Embedded Build Plugin In Vaadin 24.7-24.9
 
-For Vaadin 24.7-24.9, Quarkus-Hilla provided an experimental embedded Vaadin build plugin. It could be enabled with:
+For Vaadin 24.7-24.9, Quarkus-Hilla provided an experimental embedded Vaadin build plugin. It replaced direct `vaadin-maven-plugin` or Vaadin Gradle plugin setup in application builds and could be enabled with:
 
 ```properties
 vaadin.build.enabled=true
@@ -69,7 +79,7 @@ The following Maven property was required because the Quarkus Maven plugin did n
 
 See [Quarkus issue #45363](https://github.com/quarkusio/quarkus/issues/45363) for background.
 
-As of Vaadin 25.0, this feature is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) and is enabled by default.
+As of Vaadin 25.0, production build support is provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) and is enabled by default. The related upstream change was merged in [vaadin/quarkus#215](https://github.com/vaadin/quarkus/pull/215) on October 14, 2025.
 
 ## Vaadin 24.4 Unified Platform
 
