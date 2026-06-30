@@ -4,7 +4,7 @@ This document describes the release process for the Quarkus-Hilla extension.
 
 ## Overview
 
-The release process uses [JReleaser](https://jreleaser.org/) to automate the publication of releases to GitHub and Maven Central.
+The release process uses [JReleaser](https://jreleaser.org/) to automate the publication of releases to GitHub and Maven Central. Maintainers should prefer the GitHub Actions release workflow for normal releases and use the local commands below for troubleshooting or manual fallback.
 
 ## Prerequisites
 
@@ -44,7 +44,7 @@ mvn -Pdistribution -Drevision=<version> -DskipTests \
 mvn -N -Pdistribution -Drevision=<version> jreleaser:full-release
 ```
 
-Replace `<version>` with the actual version number (e.g., `24.9.0`).
+Replace `<version>` with the actual version number (e.g., `25.2.0` or `25.2.0-beta1`).
 
 ### Dry Run (Testing)
 
@@ -68,14 +68,14 @@ The version format depends on the type of release:
 
 ### Regular Release
 - Format: `N.N.N`
-- Example: `24.9.0`, `25.0.0`
+- Example: `25.2.0`, `25.1.2`
 
 ### Pre-release
 - Format: `N.N.N-{alpha|beta|rc}N`
 - Examples:
-  - `24.9.0-alpha1`
-  - `24.9.0-beta2`
-  - `24.9.0-rc1`
+  - `25.2.0-alpha1`
+  - `25.2.0-beta2`
+  - `25.2.0-rc1`
 
 > [!IMPORTANT]
 > The major and minor version of Quarkus-Hilla must always match the Vaadin/Hilla version.
@@ -157,9 +157,11 @@ After a successful release:
 3. **Update release notes**
    - Document new features, bug fixes, and breaking changes
 
+4. **Pre-release soak**
+   - For new minor lines, publish a beta such as `25.2.0-beta1` first and let it soak before deciding on the GA release.
+
 ## Additional Resources
 
 - [JReleaser Documentation](https://jreleaser.org/)
 - [Maven Central Publishing Guide](https://central.sonatype.org/publish/)
 - [GitHub Releases Documentation](https://docs.github.com/en/repositories/releasing-projects-on-github)
-

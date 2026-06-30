@@ -9,11 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: [main, "25.1", "25.0", "24.9"]
+        branch: [main, "25.2", "25.1", "25.0"]
         java: [21, 25]
-        include:
-          - branch: "24.9"
-            java: 17
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:

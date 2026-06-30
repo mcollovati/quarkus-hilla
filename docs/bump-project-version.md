@@ -4,7 +4,7 @@ This document describes how to bump the project to a new development version (th
 
 ## Overview
 
-When a new minor is opened on `main` (e.g. moving from `25.1-SNAPSHOT` to `25.2-SNAPSHOT`), the previous version becomes a long-lived maintenance branch. CI workflows, the Dependabot configuration and the README all need to be updated so that the maintenance line keeps building, gets dependency updates and is reflected in the documentation.
+When a new minor is opened on `main` (e.g. moving from `25.2-SNAPSHOT` to `25.3-SNAPSHOT`), the previous version becomes a maintenance branch. CI workflows, the Dependabot configuration and the README need to be updated so that active lines keep building, get dependency updates and are reflected in the documentation.
 
 The `etc/UpdateProjectVersion.java` [JBang](https://www.jbang.dev) script automates this process.
 
@@ -21,10 +21,10 @@ The `etc/UpdateProjectVersion.java` [JBang](https://www.jbang.dev) script automa
 jbang etc/UpdateProjectVersion.java <project-folder> <new-version>
 ```
 
-For example, to bump the current project from `25.1-SNAPSHOT` to `25.2-SNAPSHOT`:
+For example, to bump the current project from `25.2-SNAPSHOT` to `25.3-SNAPSHOT`:
 
 ```bash
-jbang etc/UpdateProjectVersion.java . 25.2
+jbang etc/UpdateProjectVersion.java . 25.3
 ```
 
 The new version must be in `MAJOR.MINOR` format (no `-SNAPSHOT`, no patch).
@@ -82,4 +82,6 @@ After running the script:
 
 1. Review the diff (`git diff`) to confirm the changes look right.
 2. Create the actual `<C>` maintenance branch on the remote (`git checkout -b <C>` from the commit before the bump, then push).
-3. Update the wiki and any external references that pin a specific version.
+3. Keep automation focused on `main` plus the last three active 25.x lines. Remove older lines such as 24.x from workflow matrices and Dependabot when they are no longer maintained.
+4. Historical compatibility rows may remain in the README, but move bulky old setup/workaround notes to a legacy document.
+5. Update the wiki and any external references that pin a specific version.
