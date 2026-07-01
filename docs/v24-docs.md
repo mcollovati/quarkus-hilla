@@ -1,6 +1,6 @@
 # 🗃️ Quarkus-Hilla v24 Docs
 
-Setup notes, workarounds, and reference for Quarkus-Hilla on **Vaadin 24.x and earlier** (everything before 25.0). The main [README](../README.md) and [Feature Details](features.md) target Vaadin 25.x+.
+Setup notes, workarounds, and reference for Quarkus-Hilla on **v24 and earlier** (everything before 25.0). The main [README](../README.md) and [Feature Details](features.md) target v25+.
 
 > [!TIP]
 > Upgrading an existing project? See the [v24 → v25 Migration Guide](migration-v24-to-v25.md).

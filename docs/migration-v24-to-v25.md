@@ -1,6 +1,6 @@
-# 🧭 Migrating From v24.x To v25.x
+# 🧭 Migrating From v24 To v25
 
-Quarkus-Hilla-specific changes when upgrading an existing 24.x project to 25.x. This covers Quarkus-Hilla integration changes only — for Vaadin platform-level changes (Flow, Hilla, components), see the official [Hilla docs](https://vaadin.com/docs/latest/hilla).
+Quarkus-Hilla-specific changes when upgrading an existing v24 project to v25. This covers Quarkus-Hilla integration changes only — for Vaadin platform-level changes (Flow, Hilla, components), see the official [Hilla docs](https://vaadin.com/docs/latest/hilla).
 
 <a id="build-plugin"></a>
 
@@ -15,4 +15,4 @@ See [v24 Docs](v24-docs.md#vaadin-247-249-embedded-build-plugin--workaround) for
 
 ## 🗃️ Need The Old Setup Docs?
 
-Staying on Vaadin 24.x for now? See [v24 Docs](v24-docs.md).
+Staying on v24 for now? See [v24 Docs](v24-docs.md).

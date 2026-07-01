@@ -56,7 +56,7 @@ It's also currently the only way to get **Vaadin Copilot** support on Quarkus �
 ---
 
 > [!IMPORTANT]
-> **On Vaadin 24.x or older?** This README targets Vaadin 25.x. Go to the [v24 Docs](docs/v24-docs.md) for legacy setup, or the [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md) if you're upgrading.
+> **On v24 or older?** This README targets v25. Go to the [v24 Docs](docs/v24-docs.md) for legacy setup, or the [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md) if you're upgrading.
 
 ## 🚀 Quick Start
 
@@ -117,7 +117,7 @@ That's it! The TypeScript client is automatically generated and type-safe.
 - 🚢 [Release Process](docs/release-process.md)
 - 🧬 [Update Codestarts](docs/update-codestarts.md)
 - 🔢 [Bump Project Version](docs/bump-project-version.md)
-- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for Vaadin 24.x and older
+- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for v24 and older
 - 🧭 [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
 - 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🚀 [Quarkus Guides](https://quarkus.io/guides/)
@@ -219,7 +219,7 @@ Each row applies from its listed Quarkus-Hilla version up to (not including) the
 > [!NOTE]
 > Quarkus-Hilla's major/minor version matches Vaadin/Hilla, but the Quarkus baseline can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from `3.27` to `3.32` after Flow moved to Jackson `3.1.x`, which is why Quarkus-Hilla `25.0.2` needs the newer Quarkus.
 >
-> On Vaadin 24.x or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
+> On v24 or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
 ---
 
