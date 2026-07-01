@@ -28,9 +28,6 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
 
 ---
 
-> [!IMPORTANT]
-> **On Vaadin 24.x or older?** This README targets Vaadin 25.x. Go to the [v24 Docs](docs/v24-docs.md) for legacy setup, or the [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md) if you're upgrading.
-
 ## 📖 About
 
 Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com), that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
@@ -57,6 +54,9 @@ It's also currently the only way to get **Vaadin Copilot** support on Quarkus �
 - 📦 [Official Vaadin Quarkus embedded build](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) _(provided by Vaadin Quarkus)_
 
 ---
+
+> [!IMPORTANT]
+> **On Vaadin 24.x or older?** This README targets Vaadin 25.x. Go to the [v24 Docs](docs/v24-docs.md) for legacy setup, or the [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md) if you're upgrading.
 
 ## 🚀 Quick Start
 
