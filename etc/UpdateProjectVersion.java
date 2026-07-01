@@ -54,7 +54,8 @@ class UpdateProjectVersion implements Runnable {
     private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)-SNAPSHOT</hilla\\.version>");
     private static final Pattern README_QUICK_START_PATTERN = Pattern.compile("<version>\\d+\\.\\d+\\.x</version>");
     private static final Pattern README_MATRIX_TOP_ROW_PATTERN = Pattern.compile(
-            "(?m)^\\| `(\\d+\\.\\d+)\\.x` *\\| (`[^`]+`) *\\| `\\1\\.x` *\\|.*$");
+            "(?m)^\\| <picture><img alt=\"Maven Central (\\d+\\.\\d+\\.\\d+)\"[^>]*></picture> \\| "
+                    + "(<picture><img alt=\"Quarkus[^\"]*\"[^>]*></picture>) \\|.*$");
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new UpdateProjectVersion()).execute(args);
@@ -341,8 +342,9 @@ class UpdateProjectVersion implements Runnable {
     }
 
     /**
-     * Inserts a new entry at the top of the Compatibility Matrix, cloning the Quarkus column
-     * from the existing top row.
+     * Inserts a new entry at the top of the Compatibility Matrix for {@code <version>.0} (assuming
+     * the matured minor's first release is the {@code .0} patch), cloning the Quarkus badge from
+     * the existing top row.
      *
      * <p>This clone is a starting point only, not a verified value: Vaadin's Vaadin Quarkus
      * extension has changed its minimum Quarkus version between patch releases before (e.g.
@@ -351,17 +353,22 @@ class UpdateProjectVersion implements Runnable {
      * be confirmed manually — see the manual follow-up steps in {@code docs/bump-project-version.md}.
      */
     static String insertCompatibilityMatrixEntry(String content, String version) {
-        if (content.contains("| `" + version + ".x`")) {
+        String firstPatch = version + ".0";
+        if (content.contains("Maven Central " + firstPatch + "\"")) {
             return content;
         }
         Matcher m = README_MATRIX_TOP_ROW_PATTERN.matcher(content);
         if (!m.find()) {
             throw new IllegalStateException("Cannot find Compatibility Matrix table top row");
         }
-        String quarkusCell = m.group(2);
+        String quarkusBadge = m.group(2);
         int lineStart = m.start();
-        String newLine = "| `" + version + ".x` | " + quarkusCell + " | `" + version + ".x` "
-                + "| ⚠️ verify Quarkus baseline — see docs/bump-project-version.md |";
+        String newLine = "| <picture><img alt=\"Maven Central " + firstPatch + "\" "
+                + "src=\"https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla"
+                + "?style=for-the-badge&logo=apache-maven&versionPrefix=" + firstPatch + "\"></picture> | "
+                + quarkusBadge + " | <picture><img alt=\"Vaadin " + version + "\" "
+                + "src=\"https://img.shields.io/badge/VAADIN-v" + version + "-blue?style=for-the-badge&logo=Vaadin\">"
+                + "</picture> | ⚠️ verify Quarkus baseline — see docs/bump-project-version.md |";
         return content.substring(0, lineStart) + newLine + "\n" + content.substring(lineStart);
     }
 }
