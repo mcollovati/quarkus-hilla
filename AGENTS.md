@@ -310,4 +310,25 @@ public class MyService {
 - Include configuration examples
 - Document breaking changes
 
+### Docs Versioning & Maintenance
+
+File layout:
+- `README.md` — targets the current major Vaadin/Hilla line only (today: 25.x). Short, links out for depth.
+- `docs/features.md` — feature deep-dives for the current major.
+- `docs/vNN-docs.md` (e.g. `docs/v24-docs.md`) — setup notes, workarounds, and a "Release History" table for a **retired** major. Named after the version it documents, not "legacy".
+- `docs/migration-vNN-to-vMM.md` (e.g. `docs/migration-v24-to-v25.md`) — Quarkus-Hilla-specific upgrade steps between two majors. Link out to official Vaadin/Hilla docs for platform-level changes instead of duplicating them.
+
+Version-tag rule (mirrors how Vaadin docs versioning works):
+- Baseline = the oldest version in README's "Current Releases" table (today: 25.0).
+- Tag a feature with `since X.Y` (badge in `docs/features.md`, `_(since X.Y)_` in the README Feature Overview list) **only if X.Y is newer than the baseline** — i.e. not every install of the current major has it yet.
+- Feature shipped at or before the baseline → no tag, just describe it as a normal capability. A tag that only restates the baseline version is noise.
+- When the baseline moves to a new major, tags older than the new baseline lose their tag — they're default now.
+
+When bumping the baseline to a new major (e.g. 25.x → 26.0):
+1. In `README.md` and `docs/features.md`, drop `since` tags for anything at or before the new baseline.
+2. Create a new `docs/v25-docs.md` documenting the *outgoing* major's (25.x) setup/workarounds — the existing `docs/v24-docs.md` stays untouched as the archive for 24.x-and-earlier. Move the now-superseded "Current Releases" rows for 25.x into the new file's "Release History" table.
+3. Write `docs/migration-v25-to-v26.md` covering Quarkus-Hilla-specific changes only (build plugin, config defaults, dependency changes).
+4. Update the single `[!IMPORTANT]` callout near the top of `README.md` and the Documentation list to point at the new `vNN-docs.md` / migration doc.
+5. Keep that top callout as the **only** prominent "on an older version?" pointer. Topical mentions elsewhere (e.g. Configuration Reference, Current Releases) may link to a specific anchor, but don't re-add generic duplicate call-outs — that's the clutter this structure replaced.
+
 This file serves as the authoritative guide for development practices in the Quarkus-Hilla project. All agents should reference these guidelines when making changes to the codebase.

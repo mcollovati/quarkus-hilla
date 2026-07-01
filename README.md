@@ -28,6 +28,9 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
 
 ---
 
+> [!IMPORTANT]
+> **On Vaadin 24.x or older?** This README targets Vaadin 25.x. Go to the [v24 Docs](docs/v24-docs.md) for legacy setup, or the [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md) if you're upgrading.
+
 ## 📖 About
 
 Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com), that integrates a Spring Boot Java backend with a reactive TypeScript frontend.
@@ -42,18 +45,14 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 ## ✨ Feature Overview
 
 - 🧭 [Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration) _(since 25.1.2)_
-- 📦 [Official Vaadin Quarkus embedded build](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) _(since 25.0, provided by Vaadin Quarkus)_
-- 🖥️ [Quarkus Dev UI Integration](docs/features.md#quarkus-dev-ui-integration) _(since 24.7)_
-- ⚡ [Mutiny Multi Support](docs/features.md#mutiny-multi-support) _(since 24.7)_
-- 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix) _(since 24.6)_
-- 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload) _(since 24.5)_
-- 🚀 [Native Image Support](docs/features.md#native-image-support) _(since 24.5)_
-- 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment) _(since 24.5)_
-- 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(since 24.4.1; React UI, Lit / React services)_
-- 🧪 [Experimental Quarkus-Hilla embedded build](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249) _(legacy, 24.7-24.9)_
-
-> [!NOTE]
-> For Vaadin 25.0+, production build support comes from the official Vaadin Quarkus extension and is enabled by default. Quarkus-Hilla had an experimental equivalent in 24.7-24.9.
+- 🖥️ [Quarkus Dev UI Integration](docs/features.md#quarkus-dev-ui-integration)
+- 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(React UI, Lit / React services)_
+- 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload)
+- ⚡ [Mutiny Multi Support](docs/features.md#mutiny-multi-support)
+- 🚀 [Native Image Support](docs/features.md#native-image-support)
+- 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix)
+- 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment)
+- 📦 [Official Vaadin Quarkus embedded build](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) _(provided by Vaadin Quarkus)_
 
 ---
 
@@ -89,9 +88,6 @@ Choose your frontend framework:
 > [!NOTE]
 > Hilla prioritizes React, so new features are typically available first or exclusively for React.
 
-> [!NOTE]
-> For Vaadin 24.x and older setup notes and workarounds, see [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md).
-
 ### Create Your First Endpoint
 
 ```java
@@ -119,7 +115,8 @@ That's it! The TypeScript client is automatically generated and type-safe.
 - 🚢 [Release Process](docs/release-process.md)
 - 🧬 [Update Codestarts](docs/update-codestarts.md)
 - 🔢 [Bump Project Version](docs/bump-project-version.md)
-- 🗃️ [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md)
+- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for Vaadin 24.x and older
+- 🧭 [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
 - 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
 - 🚀 [Quarkus Guides](https://quarkus.io/guides/)
 
@@ -132,15 +129,13 @@ The current Hilla support has some known limitations that we aim to address in f
 - ⚠️ Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
 - ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
-Older limitations and workarounds for Vaadin versions before 25.0 are kept in [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md).
-
 ---
 
 ## ⚙️ Configuration Reference
 
 Quarkus-Hilla provides various configuration parameters to customize the behavior of the extension. All parameters can be set in your `application.properties` file.
 
-### Live Reload Configuration ![Since 24.5](https://flat.badgen.net/static/Since/24.5/007bff?scale=0.9)
+### Live Reload Configuration
 
 | Property                                  | Type      | Default   | Description                                                                                                                                                                          |
 |-------------------------------------------|-----------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -148,13 +143,13 @@ Quarkus-Hilla provides various configuration parameters to customize the behavio
 | `vaadin.hilla.live-reload.watch-strategy` | Enum      | `CLASS`   | Strategy to watch for changes: `SOURCE` (watch Java source files) or `CLASS` (watch compiled classes). Use `CLASS` with `quarkus.live-reload.instrumentation=true` for best results. |
 | `vaadin.hilla.live-reload.watched-paths`  | Set<Path> | All paths | Comma-separated list of paths to watch for changes, relative to source/class root. Example: `com/example/service,com/example/model`                                                  |
 
-### Endpoint Configuration ![Since 24.6](https://flat.badgen.net/static/Since/24.6/007bff?scale=0.9)
+### Endpoint Configuration
 
 | Property                 | Type   | Default    | Description                                                                                                                            |
 |--------------------------|--------|------------|----------------------------------------------------------------------------------------------------------------------------------------|
 | `vaadin.endpoint.prefix` | String | `/connect` | Custom prefix for Hilla endpoints. The extension automatically generates a custom `connect-client.ts` file with the configured prefix. |
 
-### Security Configuration ![Since 24.7](https://flat.badgen.net/static/Since/24.7/007bff?scale=0.9)
+### Security Configuration
 
 | Property                                    | Type    | Default   | Description                                                     |
 |---------------------------------------------|---------|-----------|-----------------------------------------------------------------|
@@ -191,7 +186,7 @@ See [Vaadin Copilot Integration](docs/copilot-integration.md) for details.
 
 ### Vaadin Build Configuration
 
-Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md#experimental-embedded-build-plugin-in-vaadin-247-249).
+Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [v24 Docs](docs/v24-docs.md#vaadin-247-249-embedded-build-plugin--workaround).
 
 ---
 
@@ -212,13 +207,10 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 | <picture><img alt="Maven Central 25.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.2"></picture> | <picture><img alt="Quarkus 3.33+" src="https://img.shields.io/badge/QUARKUS-v3.33%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.2" src="https://img.shields.io/badge/VAADIN-v25.2-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 | <picture><img alt="Maven Central 25.1" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.1"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.1" src="https://img.shields.io/badge/VAADIN-v25.1-blue?style=for-the-badge&logo=Vaadin"></picture>   |
 | <picture><img alt="Maven Central 25.0" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.0"></picture> | <picture><img alt="Quarkus 3.27+" src="https://img.shields.io/badge/QUARKUS-v3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 25.0" src="https://img.shields.io/badge/VAADIN-v25.0-blue?style=for-the-badge&logo=Vaadin"></picture>   |
-| <picture><img alt="Maven Central 24.9" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=24.9"></picture> | <picture><img alt="Quarkus 3.20+" src="https://img.shields.io/badge/QUARKUS-v3.20%2B-blue?style=for-the-badge&logo=Quarkus"></picture> |   <picture><img alt="Vaadin 24.9" src="https://img.shields.io/badge/VAADIN-v24.9-blue?style=for-the-badge&logo=Vaadin"></picture>   |
-|  <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5"></picture>  |  <picture><img alt="Quarkus 3.1+" src="https://img.shields.io/badge/QUARKUS-v3.1%2B-blue?style=for-the-badge&logo=Quarkus"></picture>  |   <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin"></picture>   |
-|   <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1"></picture>   | <picture><img alt="Quarkus 2.16+" src="https://img.shields.io/badge/QUARKUS-v2.16%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 23.3+" src="https://img.shields.io/badge/VAADIN-v23.3%2B-blue?style=for-the-badge&logo=Vaadin"></picture> |
 
 > [!NOTE]
 > The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version.
-> Older rows are kept as a historical compatibility reference. See [Quarkus-Hilla Legacy Notes](docs/legacy-notes.md) for old setup details and workarounds.
+> Looking for 24.x, 2.x, or 1.x releases? See [Release History](docs/v24-docs.md#release-history).
 
 ---
 
