@@ -349,8 +349,8 @@ class UpdateProjectVersion implements Runnable {
      * <p>This clone is a starting point only, not a verified value: Vaadin's Vaadin Quarkus
      * extension has changed its minimum Quarkus version between patch releases before (e.g.
      * Vaadin 25.0.9 raised it from 3.27 to 3.32 for a Jackson update), without a corresponding
-     * Quarkus-Hilla minor bump. The inserted row is flagged in the Notes column so this has to
-     * be confirmed manually — see the manual follow-up steps in {@code docs/bump-project-version.md}.
+     * Quarkus-Hilla minor bump. A warning is printed so this has to be confirmed manually — see
+     * the manual follow-up steps in {@code docs/bump-project-version.md}.
      */
     static String insertCompatibilityMatrixEntry(String content, String version) {
         String firstPatch = version + ".0";
@@ -368,7 +368,10 @@ class UpdateProjectVersion implements Runnable {
                 + "?style=for-the-badge&logo=apache-maven&versionPrefix=" + firstPatch + "\"></picture> | "
                 + quarkusBadge + " | <picture><img alt=\"Vaadin " + version + "\" "
                 + "src=\"https://img.shields.io/badge/VAADIN-v" + version + "-blue?style=for-the-badge&logo=Vaadin\">"
-                + "</picture> | ⚠️ verify Quarkus baseline — see docs/bump-project-version.md |";
+                + "</picture> |";
+        System.out.println(
+                "! Cloned the Quarkus baseline for " + firstPatch + " from the previous row — "
+                        + "verify it manually, see docs/bump-project-version.md");
         return content.substring(0, lineStart) + newLine + "\n" + content.substring(lineStart);
     }
 }

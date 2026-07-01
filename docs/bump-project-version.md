@@ -68,13 +68,13 @@ Unless `--skip-readme` is passed:
 
 - The Development Version row is updated (`<C>-SNAPSHOT` → `<N>-SNAPSHOT` and the Vaadin column from `<C>` to `<N>`).
 - The Quick Start XML examples are updated to reference `<C>.x` (the previous minor, which has now become the latest maintenance branch).
-- A new entry for version `<C>` is added at the top of the Compatibility Matrix, cloning the Quarkus column from the existing top row and marking the row for manual verification.
+- A new entry for version `<C>` is added at the top of the Compatibility Matrix, cloning the Quarkus column from the existing top row. The script prints a warning to verify this value manually.
 
 The Maven Central badges at the top of the README are **not** touched.
 
 ### ⚠️ Always verify the cloned Quarkus baseline
 
-The script clones the previous row's Quarkus column as a starting point, not a verified value. Vaadin's [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) has silently raised its minimum Quarkus version between **patch** releases before — e.g. Vaadin `25.0.9` moved the baseline from Quarkus `3.27` to `3.32` after Flow adopted Jackson `3.1.x`, with no corresponding Quarkus-Hilla minor bump to hang the change on. Before removing the inserted row's `⚠️ verify Quarkus baseline` marker, check the actual `vaadin-quarkus-extension-parent` / Quarkus version pulled in by the new release, not just what the previous minor used.
+The script clones the previous row's Quarkus column as a starting point, not a verified value, and prints a warning when it does. Vaadin's [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) has silently raised its minimum Quarkus version between **patch** releases before — e.g. Vaadin `25.0.9` moved the baseline from Quarkus `3.27` to `3.32` after Flow adopted Jackson `3.1.x`, with no corresponding Quarkus-Hilla minor bump to hang the change on. Before trusting the cloned value, check the actual `vaadin-quarkus-extension-parent` / Quarkus version pulled in by the new release, not just what the previous minor used.
 
 ## Idempotency
 
