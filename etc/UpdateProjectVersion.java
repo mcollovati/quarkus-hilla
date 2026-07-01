@@ -53,8 +53,8 @@ class UpdateProjectVersion implements Runnable {
     private static final Pattern REVISION_PATTERN = Pattern.compile("<revision>(.*?)-SNAPSHOT</revision>");
     private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)-SNAPSHOT</hilla\\.version>");
     private static final Pattern README_QUICK_START_PATTERN = Pattern.compile("<version>\\d+\\.\\d+\\.x</version>");
-    private static final Pattern README_RELEASES_TOP_ROW_PATTERN = Pattern.compile(
-            "(?m)^\\| <picture><img alt=\"Maven Central (\\d+\\.\\d+)\".*$");
+    private static final Pattern README_MATRIX_TOP_ROW_PATTERN = Pattern.compile(
+            "(?m)^\\| `(\\d+\\.\\d+)\\.x` *\\| (`[^`]+`) *\\| `\\1\\.x` *\\|.*$");
 
     public static void main(String... args) {
         int exitCode = new CommandLine(new UpdateProjectVersion()).execute(args);
@@ -325,8 +325,8 @@ class UpdateProjectVersion implements Runnable {
     }
 
     /**
-     * Updates the Development Version table row, the Quick Start XML examples and the Current
-     * Releases table in {@code README.md}.
+     * Updates the Development Version table row, the Quick Start XML examples and the
+     * Compatibility Matrix in {@code README.md}.
      */
     static String updateReadmeContent(String content, String currentVersion, String newVersion) {
         String updated = content;
@@ -336,31 +336,32 @@ class UpdateProjectVersion implements Runnable {
         updated = updated.replace("Vaadin-" + currentVersion, "Vaadin-" + newVersion);
         updated = README_QUICK_START_PATTERN.matcher(updated)
                 .replaceAll("<version>" + currentVersion + ".x</version>");
-        updated = insertCurrentReleasesEntry(updated, currentVersion);
+        updated = insertCompatibilityMatrixEntry(updated, currentVersion);
         return updated;
     }
 
     /**
-     * Inserts a new entry at the top of the Current Releases table, cloning the existing top row
-     * and swapping its version strings. The Quarkus column is preserved as-is, since the Quarkus
-     * minimum version typically does not change on a minor bump.
+     * Inserts a new entry at the top of the Compatibility Matrix, cloning the Quarkus column
+     * from the existing top row.
+     *
+     * <p>This clone is a starting point only, not a verified value: Vaadin's Vaadin Quarkus
+     * extension has changed its minimum Quarkus version between patch releases before (e.g.
+     * Vaadin 25.0.9 raised it from 3.27 to 3.32 for a Jackson update), without a corresponding
+     * Quarkus-Hilla minor bump. The inserted row is flagged in the Notes column so this has to
+     * be confirmed manually — see the manual follow-up steps in {@code docs/bump-project-version.md}.
      */
-    static String insertCurrentReleasesEntry(String content, String version) {
-        if (content.contains("| <picture><img alt=\"Maven Central " + version + "\"")) {
+    static String insertCompatibilityMatrixEntry(String content, String version) {
+        if (content.contains("| `" + version + ".x`")) {
             return content;
         }
-        Matcher m = README_RELEASES_TOP_ROW_PATTERN.matcher(content);
+        Matcher m = README_MATRIX_TOP_ROW_PATTERN.matcher(content);
         if (!m.find()) {
-            throw new IllegalStateException("Cannot find Current Releases table top row");
+            throw new IllegalStateException("Cannot find Compatibility Matrix table top row");
         }
-        String existingVersion = m.group(1);
-        String existingLine = m.group();
+        String quarkusCell = m.group(2);
         int lineStart = m.start();
-        String newLine = existingLine
-                .replace("Maven Central " + existingVersion, "Maven Central " + version)
-                .replace("versionPrefix=" + existingVersion, "versionPrefix=" + version)
-                .replace("Vaadin " + existingVersion, "Vaadin " + version)
-                .replace("VAADIN-v" + existingVersion, "VAADIN-v" + version);
+        String newLine = "| `" + version + ".x` | " + quarkusCell + " | `" + version + ".x` "
+                + "| ⚠️ verify Quarkus baseline — see docs/bump-project-version.md |";
         return content.substring(0, lineStart) + newLine + "\n" + content.substring(lineStart);
     }
 }
