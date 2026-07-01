@@ -37,6 +37,8 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 **Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://vaadin.com/docs/latest/hilla/guides/endpoints), [Reactive Endpoints](https://vaadin.com/docs/latest/hilla/guides/reactive-endpoints), and [Security](https://vaadin.com/docs/latest/hilla/guides/security).
 
+It's also currently the only way to get **Vaadin Copilot** support on Quarkus — the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) (Flow-only) doesn't support it yet.
+
 > [!NOTE]
 > This is an **unofficial community extension**, and it is **neither** directly related to **nor** supported by Vaadin Ltd.
 
@@ -44,7 +46,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 ## ✨ Feature Overview
 
-- 🧭 [Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration) _(since 25.1.2)_
+- 🧭 **[Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration)** _(since 25.1.2 — Quarkus-Hilla exclusive)_
 - 🖥️ [Quarkus Dev UI Integration](docs/features.md#quarkus-dev-ui-integration)
 - 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(React UI, Lit / React services)_
 - 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload)

@@ -10,6 +10,9 @@ This document keeps Quarkus-Hilla feature details out of the README. For histori
 
 Vaadin Copilot can inspect and edit Quarkus-Hilla applications in development mode. The integration maps Copilot's Spring-oriented backend hooks to Quarkus CDI and Vaadin Quarkus runtime APIs.
 
+> [!NOTE]
+> Quarkus-Hilla is currently the only Quarkus integration with Vaadin Copilot support — the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) (Flow-only) doesn't have it yet.
+
 Supported data sources:
 
 - Hilla `@BrowserCallable` and `@Endpoint` services from the Hilla `EndpointRegistry`.
