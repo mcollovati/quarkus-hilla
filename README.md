@@ -216,24 +216,8 @@ Each row applies from its listed Quarkus-Hilla version up to (not including) the
 | <picture><img alt="Maven Central 2.5" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2.5"></picture>        | <picture><img alt="Quarkus 3.1" src="https://img.shields.io/badge/QUARKUS-v3.1-blue?style=for-the-badge&logo=Quarkus"></picture>   | <picture><img alt="Vaadin 24.2" src="https://img.shields.io/badge/VAADIN-v24.2-blue?style=for-the-badge&logo=Vaadin"></picture> |
 | <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1"></picture>          | <picture><img alt="Quarkus 2.16" src="https://img.shields.io/badge/QUARKUS-v2.16-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 23.3" src="https://img.shields.io/badge/VAADIN-v23.3-blue?style=for-the-badge&logo=Vaadin"></picture> |
 
-<details>
-<summary>🔍 Exact per-release dependency versions (25.x)</summary>
-
-Reference points pulled from Quarkus-Hilla release tags, used to derive the baselines above:
-
-| Quarkus-Hilla    | Vaadin          | Flow            | Hilla            | Vaadin Quarkus extension |
-|------------------|-----------------|------------------|-------------------|----------------------------|
-| `25.0.1`         | `25.0.3`        | `25.0.3`         | `25.0.3`          | `3.0.2`                    |
-| `25.0.2`         | `25.0.12`       | `25.0.14`        | `25.0.13`         | `3.0.4`                    |
-| `25.1.2`         | `25.1.8`        | `25.1.11`        | `25.1.7`          | `3.1.3`                    |
-| `25.2.0-beta1`   | `25.2-SNAPSHOT` | `25.2-SNAPSHOT`  | `25.2-SNAPSHOT`   | `3.2.x`                    |
-
-These are snapshots taken at the listed release, not a guarantee for every later patch in the same line.
-
-</details>
-
 > [!NOTE]
-> The major and minor version of Quarkus-Hilla always matches the Vaadin/Hilla version, but the **Quarkus baseline can still change within a Vaadin/Hilla line**. Vaadin `25.0.0` started on Quarkus `3.27`; Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline to Quarkus `3.32` after Flow moved to Jackson `3.1.x` for a security fix, so Quarkus-Hilla `25.0.2` (which bundles that later Vaadin patch) already needs the newer Quarkus. Older combinations may still work if you pin Vaadin's dependencies manually, but the latest patch release is recommended.
+> Quarkus-Hilla's major/minor version matches Vaadin/Hilla, but the Quarkus baseline can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from `3.27` to `3.32` after Flow moved to Jackson `3.1.x`, which is why Quarkus-Hilla `25.0.2` needs the newer Quarkus.
 >
 > On Vaadin 24.x or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
