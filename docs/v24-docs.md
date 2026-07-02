@@ -9,7 +9,7 @@ Setup notes, workarounds, and reference for Quarkus-Hilla on **v24 and earlier**
 
 | Version | Change |
 |---------|--------|
-| [25.0](migration-v24-to-v25.md) | Embedded production build support moved to the official Vaadin Quarkus extension, enabled by default — see the migration guide. |
+| 25.0 | Embedded production build support moved to the official Vaadin Quarkus extension, enabled by default — see the [migration guide](migration-v24-to-v25.md). |
 | [24.7–24.9](#vaadin-247-249-embedded-build-plugin--workaround) | Production builds may need a workaround because Hilla endpoint generation depends on a Spring process; Quarkus-Hilla also provided an experimental embedded Vaadin build plugin. |
 | [24.4](#vaadin-244-unified-platform) | Flow and Hilla unified under the Vaadin platform; Quarkus-Hilla versions started following Vaadin platform releases. |
 | [2.4.1](#241-lit-and-react-extensions) | Split artifacts by frontend framework: `quarkus-hilla` for Lit and `quarkus-hilla-react` for React. |
