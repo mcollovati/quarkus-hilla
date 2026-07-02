@@ -66,15 +66,19 @@ A new `updates` entry is inserted, targeting branch `C` with `daily` schedule an
 
 Unless `--skip-readme` is passed:
 
-- The Development Version row is updated (`<C>-SNAPSHOT` → `<N>-SNAPSHOT` and the Vaadin column from `<C>` to `<N>`).
+- The SNAPSHOT row at the top of the Compatibility Matrix is updated (`<C>-SNAPSHOT` → `<N>-SNAPSHOT` and the Vaadin column from `<C>` to `<N>`).
 - The Quick Start XML examples are updated to reference `<C>.x` (the previous minor, which has now become the latest maintenance branch).
-- A new entry for version `<C>` is added at the top of the Current Releases table, cloning the existing top row and swapping its version strings. The Quarkus column is preserved as-is, since the Quarkus minimum version typically does not change on a minor bump — review the diff and adjust if needed.
+- A new release row for version `<C>` is inserted below the SNAPSHOT row, cloning the Quarkus column from the previous top release row. The script prints a warning to verify this value manually.
 
 The Maven Central badges at the top of the README are **not** touched.
 
+### ⚠️ Always verify the cloned Quarkus baseline
+
+The script clones the previous row's Quarkus column as a starting point, not a verified value, and prints a warning when it does. Vaadin's [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) has silently raised its minimum Quarkus version between **patch** releases before — e.g. Vaadin `25.0.9` moved the baseline from Quarkus `3.27` to `3.32` after Flow adopted Jackson `3.1.x`, with no corresponding Quarkus-Hilla minor bump to hang the change on. Before trusting the cloned value, check the actual `vaadin-quarkus-extension-parent` / Quarkus version pulled in by the new release, not just what the previous minor used.
+
 ## Idempotency
 
-Each file mutation skips itself if the version is already present, so re-running with the same arguments after a partial failure is safe for the YAML and README mutations. The script refuses to run if the project is already at the target version (i.e. `<revision>` already equals `<N>-SNAPSHOT`).
+Each file mutation skips itself if the version is already present. However, the script refuses to run once `<revision>` already equals `<N>-SNAPSHOT` — which is exactly the state left behind by a failure *after* the Maven property update. To recover from such a partial run, either apply the remaining YAML/README mutations manually or temporarily revert the `pom.xml` properties and re-run.
 
 ## Manual follow-up
 

@@ -1,4 +1,4 @@
-# Vaadin Copilot Integration
+# ✨ Vaadin Copilot Integration
 
 Quarkus-Hilla supports Vaadin Copilot in development mode by adapting Copilot's Spring-oriented backend bridge to Quarkus CDI, Hilla, and Vaadin Quarkus runtime APIs.
 
