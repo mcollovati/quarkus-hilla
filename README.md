@@ -150,10 +150,10 @@ All settings are set in `application.properties`. See the [Configuration Referen
 - 📖 [Wiki Documentation](../../wiki)
 - 💎 [Feature Details](docs/features.md)
 - ⚙️ [Configuration Reference](docs/configuration.md)
-- 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
 - ✨ [Vaadin Copilot Integration](docs/copilot-integration.md)
-- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for v24 and older
+- 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
 - ⬆️ [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
+- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for v24 and older
 
 **External**
 
