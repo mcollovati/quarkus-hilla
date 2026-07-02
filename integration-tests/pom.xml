@@ -122,6 +122,9 @@
                         <selenide.browser>${selenide.browser}</selenide.browser>
                         <vaadin.copilot.enable>${vaadin.copilot.enable}</vaadin.copilot.enable>
                         <vaadin.reuseDevServer>false</vaadin.reuseDevServer>
+                        <quarkus.rest.jackson.optimization.enable-reflection-free-serializers>
+                            false
+                        </quarkus.rest.jackson.optimization.enable-reflection-free-serializers>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
@@ -147,6 +150,9 @@
                                 </selenide.downloadsFolder>
                                 <selenide.browser>${selenide.browser}</selenide.browser>
                                 <vaadin.copilot.enable>${vaadin.copilot.enable}</vaadin.copilot.enable>
+                                <quarkus.rest.jackson.optimization.enable-reflection-free-serializers>
+                                    false
+                                </quarkus.rest.jackson.optimization.enable-reflection-free-serializers>
                             </systemPropertyVariables>
                             <forkNode
                                     implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
