@@ -154,6 +154,9 @@
                         <vaadin.project.frontend.generated>${project.build.directory}/frontend/generated
                         </vaadin.project.frontend.generated>
                         <vaadin.version>${vaadin.version}</vaadin.version>
+                        <quarkus.rest.jackson.optimization.enable-reflection-free-serializers>
+                            false
+                        </quarkus.rest.jackson.optimization.enable-reflection-free-serializers>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
