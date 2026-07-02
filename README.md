@@ -126,6 +126,7 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 
 > [!NOTE]
 > Quarkus-Hilla's major/minor version matches Vaadin/Hilla, but the Quarkus baseline can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from `3.27` to `3.32` after Flow moved to Jackson `3.1.x`, which is why Quarkus-Hilla `25.0.2` needs the newer Quarkus.
+> The Quarkus column shows the minimum required by the bundled Vaadin Quarkus extension, not the Quarkus version Quarkus-Hilla itself is built with.
 >
 > On v24 or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
@@ -133,7 +134,7 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 
 ## ⚙️ Configuration
 
-All settings are set in `application.properties`. See the [Configuration Reference](docs/configuration.md):
+All settings go in `application.properties`. See the [Configuration Reference](docs/configuration.md):
 
 - 🔄 [Live Reload](docs/configuration.md#live-reload)
 - 🎯 [Endpoints](docs/configuration.md#endpoints)

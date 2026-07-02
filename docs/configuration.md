@@ -1,6 +1,6 @@
 # ⚙️ Configuration Reference
 
-All Quarkus-Hilla settings are set in `application.properties`.
+All Quarkus-Hilla settings go in `application.properties`.
 
 <a id="live-reload"></a>
 

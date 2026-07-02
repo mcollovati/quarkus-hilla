@@ -45,7 +45,7 @@ Run `mvn quarkus:dev`, then open `http://localhost:8080/q/dev-ui`.
 
 <a id="auto-crud-auto-grid-and-auto-form"></a>
 
-## 🏗️ Auto CRUD, Auto Grid And Auto Form
+## 🏗️ Auto CRUD, Auto Grid and Auto Form
 
 The [Auto CRUD](https://vaadin.com/docs/latest/components/auto-crud), [Auto Grid](https://vaadin.com/docs/latest/components/auto-grid), and [Auto Form](https://vaadin.com/docs/latest/components/auto-crud) components are available in `quarkus-hilla-react`.
 
@@ -71,13 +71,7 @@ vaadin.hilla.live-reload.watch-strategy=class
 vaadin.hilla.live-reload.watched-paths=com/example/endpoints,com/example/services
 ```
 
-Configuration options:
-
-- `vaadin.hilla.live-reload.enable` enables endpoint client regeneration in dev mode. Default: `false`.
-- `vaadin.hilla.live-reload.watch-strategy` watches `class` or `source`. Default: `class`.
-- `vaadin.hilla.live-reload.watched-paths` restricts watched packages relative to source or class root.
-
-`CLASS` works with Java and Kotlin and is more reliable with `quarkus.live-reload.instrumentation=true`. `SOURCE` currently supports Java source files only.
+`CLASS` works with Java and Kotlin and is more reliable with `quarkus.live-reload.instrumentation=true`. `SOURCE` currently supports Java source files only. See the [Live Reload configuration](configuration.md#live-reload) for all options.
 
 <a id="mutiny-multi-support"></a>
 

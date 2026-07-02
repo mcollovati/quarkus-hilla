@@ -53,6 +53,7 @@ class UpdateProjectVersion implements Runnable {
     private static final Pattern REVISION_PATTERN = Pattern.compile("<revision>(.*?)-SNAPSHOT</revision>");
     private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)-SNAPSHOT</hilla\\.version>");
     private static final Pattern README_QUICK_START_PATTERN = Pattern.compile("<version>\\d+\\.\\d+\\.x</version>");
+    private static final Pattern README_SNAPSHOT_ROW_PATTERN = Pattern.compile("(?m)^\\|.*--SNAPSHOT.*$");
     private static final Pattern README_MATRIX_TOP_ROW_PATTERN = Pattern.compile(
             "(?m)^\\| <picture><img alt=\"Maven Central (\\d+\\.\\d+\\.\\d+)\"[^>]*></picture> \\| "
                     + "(<picture><img alt=\"Quarkus[^\"]*\"[^>]*></picture>) \\|.*$");
@@ -328,13 +329,20 @@ class UpdateProjectVersion implements Runnable {
     /**
      * Updates the SNAPSHOT row of the Compatibility Matrix, the Quick Start XML examples and
      * inserts the new release row in {@code README.md}.
+     *
+     * <p>The version replacements are confined to the SNAPSHOT table row. A global replace would
+     * corrupt other matrix rows: release rows carry the same {@code alt="Vaadin X.Y"} strings, and
+     * plain {@code "Vaadin X.Y"} is a prefix of patch-pinned cells like {@code "Vaadin 25.0.9"}.
      */
     static String updateReadmeContent(String content, String currentVersion, String newVersion) {
-        String updated = content;
-        updated = updated.replace(currentVersion + "--SNAPSHOT", newVersion + "--SNAPSHOT");
-        updated = updated.replace(currentVersion + "-SNAPSHOT", newVersion + "-SNAPSHOT");
-        updated = updated.replace("Vaadin " + currentVersion, "Vaadin " + newVersion);
-        updated = updated.replace("VAADIN-v" + currentVersion, "VAADIN-v" + newVersion);
+        String updated = README_SNAPSHOT_ROW_PATTERN.matcher(content).replaceAll(mr -> {
+            String row = mr.group();
+            row = row.replace(currentVersion + "--SNAPSHOT", newVersion + "--SNAPSHOT");
+            row = row.replace(currentVersion + "-SNAPSHOT", newVersion + "-SNAPSHOT");
+            row = row.replace("alt=\"Vaadin " + currentVersion + "\"", "alt=\"Vaadin " + newVersion + "\"");
+            row = row.replace("VAADIN-v" + currentVersion + "-blue", "VAADIN-v" + newVersion + "-blue");
+            return Matcher.quoteReplacement(row);
+        });
         updated = README_QUICK_START_PATTERN.matcher(updated)
                 .replaceAll("<version>" + currentVersion + ".x</version>");
         updated = insertCompatibilityMatrixEntry(updated, currentVersion);

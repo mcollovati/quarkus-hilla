@@ -78,7 +78,7 @@ The script clones the previous row's Quarkus column as a starting point, not a v
 
 ## Idempotency
 
-Each file mutation skips itself if the version is already present, so re-running with the same arguments after a partial failure is safe for the YAML and README mutations. The script refuses to run if the project is already at the target version (i.e. `<revision>` already equals `<N>-SNAPSHOT`).
+Each file mutation skips itself if the version is already present. However, the script refuses to run once `<revision>` already equals `<N>-SNAPSHOT` — which is exactly the state left behind by a failure *after* the Maven property update. To recover from such a partial run, either apply the remaining YAML/README mutations manually or temporarily revert the `pom.xml` properties and re-run.
 
 ## Manual follow-up
 
