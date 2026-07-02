@@ -30,6 +30,18 @@ import io.smallrye.config.WithDefault;
 public interface VaadinSecurityConfig {
 
     /**
+     * The frontend login path used by Flow navigation access control when a
+     * non-form authentication mechanism needs an application-defined login
+     * view.
+     * <p></p>
+     * If unset, Quarkus HTTP security handles authentication challenges for
+     * direct HTTP requests.
+     *
+     * @return the optional navigation login path.
+     */
+    Optional<String> loginPath();
+
+    /**
      * The path of the logout HTTP POST endpoint handling logout requests.
      * <p></p>
      * Defaults to {@literal /logout}.
