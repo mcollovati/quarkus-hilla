@@ -1,10 +1,10 @@
-# ✨ Feature Details
+# 💎 Feature Details
 
 This document keeps Quarkus-Hilla feature details out of the README. For historical setup notes and old workarounds, see [v24 Docs](v24-docs.md).
 
 <a id="vaadin-copilot-integration"></a>
 
-## 🧭 Vaadin Copilot Integration
+## ✨ Vaadin Copilot Integration
 
 ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=1.1)
 

@@ -17,7 +17,7 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
 
 <p align="center">
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
-  <a href="#-feature-overview">✨ Features</a> &nbsp; • &nbsp;
+  <a href="#-feature-overview">💎 Features</a> &nbsp; • &nbsp;
   <a href="#-compatibility-matrix">📦 Compatibility</a> &nbsp; • &nbsp;
   <a href="#%EF%B8%8F-configuration">⚙️ Configuration</a> &nbsp; • &nbsp;
   <a href="#-documentation">📚 Documentation</a>
@@ -38,9 +38,9 @@ It is also currently the **only Quarkus integration with Vaadin Copilot support*
 
 ---
 
-## ✨ Feature Overview
+## 💎 Feature Overview
 
-- 🧭 **[Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration)** _(since 25.1.2 — Quarkus-Hilla exclusive)_
+- ✨ **[Vaadin Copilot Integration](docs/features.md#vaadin-copilot-integration)** _(since 25.1.2 — Quarkus-Hilla exclusive)_
 - 🖥️ [Quarkus Dev UI Integration](docs/features.md#quarkus-dev-ui-integration)
 - 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(React UI, Lit / React services)_
 - 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload)
@@ -138,7 +138,7 @@ All settings are set in `application.properties`. See the [Configuration Referen
 - 🔄 [Live Reload](docs/configuration.md#live-reload)
 - 🎯 [Endpoints](docs/configuration.md#endpoints)
 - 🔒 [Security](docs/configuration.md#security)
-- 🧭 [Copilot](docs/configuration.md#copilot)
+- ✨ [Copilot](docs/configuration.md#copilot)
 - 🏗️ [Vaadin Build](docs/configuration.md#vaadin-build)
 
 ---
@@ -148,10 +148,10 @@ All settings are set in `application.properties`. See the [Configuration Referen
 **Guides**
 
 - 📖 [Wiki Documentation](../../wiki)
-- ✨ [Feature Details](docs/features.md)
+- 💎 [Feature Details](docs/features.md)
 - ⚙️ [Configuration Reference](docs/configuration.md)
 - 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
-- 🧭 [Vaadin Copilot Integration](docs/copilot-integration.md)
+- ✨ [Vaadin Copilot Integration](docs/copilot-integration.md)
 - 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for v24 and older
 - ⬆️ [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
 

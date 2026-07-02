@@ -34,7 +34,7 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 
 <a id="copilot"></a>
 
-## 🧭 Copilot
+## ✨ Copilot
 
 ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=1.1)
 
