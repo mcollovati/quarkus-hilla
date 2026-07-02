@@ -66,9 +66,9 @@ A new `updates` entry is inserted, targeting branch `C` with `daily` schedule an
 
 Unless `--skip-readme` is passed:
 
-- The Development Version row is updated (`<C>-SNAPSHOT` → `<N>-SNAPSHOT` and the Vaadin column from `<C>` to `<N>`).
+- The SNAPSHOT row at the top of the Compatibility Matrix is updated (`<C>-SNAPSHOT` → `<N>-SNAPSHOT` and the Vaadin column from `<C>` to `<N>`).
 - The Quick Start XML examples are updated to reference `<C>.x` (the previous minor, which has now become the latest maintenance branch).
-- A new entry for version `<C>` is added at the top of the Compatibility Matrix, cloning the Quarkus column from the existing top row. The script prints a warning to verify this value manually.
+- A new release row for version `<C>` is inserted below the SNAPSHOT row, cloning the Quarkus column from the previous top release row. The script prints a warning to verify this value manually.
 
 The Maven Central badges at the top of the README are **not** touched.
 

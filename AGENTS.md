@@ -315,6 +315,7 @@ public class MyService {
 File layout:
 - `README.md` — feature/setup docs target the current major Vaadin/Hilla line only (today: 25.x), short, links out for depth. The **Compatibility Matrix section is the one exception**: it keeps every major's row (currently down to `1.x`) permanently — it's the single source of truth for version history, so it's never trimmed on a major bump. See `etc/UpdateProjectVersion.java` for the automation that appends to it.
 - `docs/features.md` — feature deep-dives for the current major.
+- `docs/configuration.md` — the full Configuration Reference; the README's Configuration section only links its subsections. New config properties go here, not into the README.
 - `docs/vNN-docs.md` (e.g. `docs/v24-docs.md`) — setup notes and workarounds for a **retired** major. Named after the version it documents, not "legacy". Does not duplicate the Compatibility Matrix rows — link to `README.md#-compatibility-matrix` instead.
 - `docs/migration-vNN-to-vMM.md` (e.g. `docs/migration-v24-to-v25.md`) — Quarkus-Hilla-specific upgrade steps between two majors. Link out to official Vaadin/Hilla docs for platform-level changes instead of duplicating them.
 

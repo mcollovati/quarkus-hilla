@@ -12,18 +12,15 @@ A <a href="https://quarkus.io">Quarkus</a> extension to run <a href="https://vaa
 
 <p align="center">
   <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 25.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25." /></a>
-  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 2.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=2." /></a>
-  <a href="https://central.sonatype.com/artifact/com.github.mcollovati/quarkus-hilla"><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1" /></a>
   <a href="https://www.apache.org/licenses/LICENSE-2.0"><img alt="Apache License 2.0" src="https://img.shields.io/github/license/mcollovati/quarkus-hilla?style=for-the-badge&logo=apache" /></a>
 </p>
 
 <p align="center">
   <a href="#-quick-start">🚀 Quick Start</a> &nbsp; • &nbsp;
   <a href="#-feature-overview">✨ Features</a> &nbsp; • &nbsp;
-  <a href="#-documentation">📚 Documentation</a> &nbsp; • &nbsp;
-  <a href="#%EF%B8%8F-configuration-reference">⚙️️ Configuration</a> &nbsp; • &nbsp;
-  <a href="#-compatibility-matrix">📦 Releases</a> &nbsp; • &nbsp;
-  <a href="#-development-version">🔧 Development</a>
+  <a href="#-compatibility-matrix">📦 Compatibility</a> &nbsp; • &nbsp;
+  <a href="#%EF%B8%8F-configuration">⚙️ Configuration</a> &nbsp; • &nbsp;
+  <a href="#-documentation">📚 Documentation</a>
 </p>
 
 ---
@@ -34,7 +31,7 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 **Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://vaadin.com/docs/latest/hilla/guides/endpoints), [Reactive Endpoints](https://vaadin.com/docs/latest/hilla/guides/reactive-endpoints), and [Security](https://vaadin.com/docs/latest/hilla/guides/security).
 
-It's also currently the only way to get **Vaadin Copilot** support on Quarkus — the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) (Flow-only) doesn't support it yet.
+It is also currently the **only Quarkus integration with Vaadin Copilot support** — the official Flow-only [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) doesn't offer it yet.
 
 > [!NOTE]
 > This is an **unofficial community extension**, and it is **neither** directly related to **nor** supported by Vaadin Ltd.
@@ -51,25 +48,30 @@ It's also currently the only way to get **Vaadin Copilot** support on Quarkus �
 - 🚀 [Native Image Support](docs/features.md#native-image-support)
 - 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix)
 - 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment)
-- 📦 [Official Vaadin Quarkus embedded build](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) _(provided by Vaadin Quarkus)_
+- 📦 [Production builds via the official Vaadin Quarkus extension](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode)
+
+> [!WARNING]
+> Known limitations:
+> - Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
+> - [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
 ---
+
+## 🚀 Quick Start
 
 > [!IMPORTANT]
 > **On v24 or older?** This README targets v25. Go to the [v24 Docs](docs/v24-docs.md) for legacy setup, or the [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md) if you're upgrading.
 
-## 🚀 Quick Start
-
 > [!TIP]
 > - 📘 [Quick Start Guide](../../wiki/QuickStart) — Detailed setup instructions
 > - 🎬 [Starter Project](https://github.com/mcollovati/quarkus-hilla-starter) — Download and start coding immediately
-> - ⚙️ [Configuration Reference](#%EF%B8%8F-configuration-reference) — Learn about configuration options
+> - ⚙️ [Configuration Reference](docs/configuration.md) — All configuration options
 
 ### Setup
 
 Choose your frontend framework:
 
-**For React (recommended) applications:**
+**React** (recommended):
 ```xml
 <dependency>
     <groupId>com.github.mcollovati</groupId>
@@ -78,7 +80,7 @@ Choose your frontend framework:
 </dependency>
 ```
 
-**For Lit applications:**
+**Lit**:
 ```xml
 <dependency>
     <groupId>com.github.mcollovati</groupId>
@@ -107,107 +109,13 @@ That's it! The TypeScript client is automatically generated and type-safe.
 
 ---
 
-## 📚 Documentation
-
-- 📖 [Wiki Documentation](../../wiki)
-- ✨ [Feature Details](docs/features.md)
-- 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
-- 🛠️ [Build and Test](docs/build-and-test.md)
-- 🧭 [Vaadin Copilot Integration](docs/copilot-integration.md)
-- 🚢 [Release Process](docs/release-process.md)
-- 🧬 [Update Codestarts](docs/update-codestarts.md)
-- 🔢 [Bump Project Version](docs/bump-project-version.md)
-- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for v24 and older
-- 🧭 [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
-- 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
-- 🚀 [Quarkus Guides](https://quarkus.io/guides/)
-
----
-
-## ⚠️ Current Limitations
-
-The current Hilla support has some known limitations that we aim to address in future releases.
-
-- ⚠️ Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
-- ❌ [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
-
----
-
-## ⚙️ Configuration Reference
-
-Quarkus-Hilla provides various configuration parameters to customize the behavior of the extension. All parameters can be set in your `application.properties` file.
-
-### Live Reload Configuration
-
-| Property                                  | Type      | Default   | Description                                                                                                                                                                          |
-|-------------------------------------------|-----------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.hilla.live-reload.enable`         | Boolean   | `false`   | Enable automatic regeneration of client-side code when endpoint classes change in dev mode.                                                                                          |
-| `vaadin.hilla.live-reload.watch-strategy` | Enum      | `CLASS`   | Strategy to watch for changes: `SOURCE` (watch Java source files) or `CLASS` (watch compiled classes). Use `CLASS` with `quarkus.live-reload.instrumentation=true` for best results. |
-| `vaadin.hilla.live-reload.watched-paths`  | Set<Path> | All paths | Comma-separated list of paths to watch for changes, relative to source/class root. Example: `com/example/service,com/example/model`                                                  |
-
-### Endpoint Configuration
-
-| Property                 | Type   | Default    | Description                                                                                                                            |
-|--------------------------|--------|------------|----------------------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.endpoint.prefix` | String | `/connect` | Custom prefix for Hilla endpoints. The extension automatically generates a custom `connect-client.ts` file with the configured prefix. |
-
-### Security Configuration
-
-| Property                                    | Type    | Default   | Description                                                     |
-|---------------------------------------------|---------|-----------|-----------------------------------------------------------------|
-| `vaadin.security.logout-path`               | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests. |
-| `vaadin.security.post-logout-redirect-uri`  | String  | -         | URI to redirect to after successful logout.                     |
-| `vaadin.security.logout-invalidate-session` | Boolean | `true`    | Whether HTTP session should be invalidated on logout.           |
-
-### Copilot Configuration ![Since 25.1.2](https://flat.badgen.net/static/Since/25.1.2/007bff?scale=0.9)
-
-> [!NOTE]
-> Quarkus-Hilla supports Vaadin Copilot in development mode since 25.1.2. See [Vaadin Copilot Integration](docs/copilot-integration.md) for behavior details and limitations.
-
-| Property                                         | Type        | Default | Description                                                                                                            |
-|--------------------------------------------------|-------------|---------|------------------------------------------------------------------------------------------------------------------------|
-| `vaadin.copilot.flow-services.discovery`         | Enum        | `SERVICES` | Flow UI service discovery mode: `NONE`, `SERVICES`, or `ALL`. Explicit includes still work when discovery is `NONE`. |
-| `vaadin.copilot.flow-services.packages`          | Enum        | `APPLICATION` | Package discovery mode: `APPLICATION` for root application archive classes, or `ALL` for all discovered bean packages. |
-| `vaadin.copilot.flow-services.include-scopes`    | Set<String> | `application`<br>`singleton`<br>`dependent`<br>`vaadin-service`<br>`vaadin-session`<br>`vaadin-ui`<br>`vaadin-route` | Scope keys included when discovery is `SERVICES`. |
-| `vaadin.copilot.flow-services.include-packages`  | Set<String> | - | Package prefixes that are always added to Flow UI service discovery. |
-| `vaadin.copilot.flow-services.exclude-packages`  | Set<String> | - | Package prefixes that are always removed from Flow UI service discovery. |
-| `vaadin.copilot.flow-services.include-classes`   | Set<String> | - | Fully qualified class names that are always added to Flow UI service discovery. |
-| `vaadin.copilot.flow-services.exclude-classes`   | Set<String> | - | Fully qualified class names that are always removed from Flow UI service discovery. Excludes win over includes. |
-
-Example:
-
-```properties
-vaadin.copilot.flow-services.discovery=services
-vaadin.copilot.flow-services.packages=application
-vaadin.copilot.flow-services.include-packages=com.example.shared
-vaadin.copilot.flow-services.exclude-packages=com.example.internal
-vaadin.copilot.flow-services.include-classes=com.example.admin.AdminFacade
-```
-
-See [Vaadin Copilot Integration](docs/copilot-integration.md) for details.
-
-### Vaadin Build Configuration
-
-Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [v24 Docs](docs/v24-docs.md#vaadin-247-249-embedded-build-plugin--workaround).
-
----
-
-## 📊 Usage Statistics
-
-As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), the extension reports itself to Vaadin's usage statistics mechanism to help understand adoption and potentially encourage official support from Vaadin.
-
-- 📈 Statistics are collected **only during development mode**
-- 🔒 **No sensitive data** is collected
-- 🚫 [How to opt out](https://github.com/vaadin/vaadin-usage-statistics#opting-out)
-
----
-
 ## 📦 Compatibility Matrix
 
-Each row applies from its listed Quarkus-Hilla version up to (not including) the next row above it.
+Each row applies from its Quarkus-Hilla version up to the next row above it.
 
 |                                                                                          Quarkus-Hilla                                                                                          |                                                             Quarkus                                                              |                                                          Vaadin / Hilla                                                          |
 |:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------------------------------------------------------:|
+| <picture><img alt="Development 25.3-SNAPSHOT" src="https://img.shields.io/badge/25.3--SNAPSHOT-orange?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.33" src="https://img.shields.io/badge/QUARKUS-v3.33-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.3" src="https://img.shields.io/badge/VAADIN-v25.3-blue?style=for-the-badge&logo=Vaadin"></picture> |
 | <picture><img alt="Maven Central 25.2.0" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.2.0"></picture> | <picture><img alt="Quarkus 3.33" src="https://img.shields.io/badge/QUARKUS-v3.33-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.2" src="https://img.shields.io/badge/VAADIN-v25.2-blue?style=for-the-badge&logo=Vaadin"></picture> |
 | <picture><img alt="Maven Central 25.1.0" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.1.0"></picture> | <picture><img alt="Quarkus 3.32" src="https://img.shields.io/badge/QUARKUS-v3.32-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.1" src="https://img.shields.io/badge/VAADIN-v25.1-blue?style=for-the-badge&logo=Vaadin"></picture> |
 | <picture><img alt="Maven Central 25.0.2" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=25.0.2"></picture> | <picture><img alt="Quarkus 3.32" src="https://img.shields.io/badge/QUARKUS-v3.32-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.0.9" src="https://img.shields.io/badge/VAADIN-v25.0.9-blue?style=for-the-badge&logo=Vaadin"></picture> |
@@ -223,11 +131,51 @@ Each row applies from its listed Quarkus-Hilla version up to (not including) the
 
 ---
 
-## 🔧 Development Version
+## ⚙️ Configuration
 
-|                                                                  Quarkus-Hilla                                                                  |                                                                Quarkus                                                                |                                                         Vaadin / Hilla                                                         |
-|:-----------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Development 25.3-SNAPSHOT" src="https://img.shields.io/badge/25.3--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.33+" src="https://img.shields.io/badge/Quarkus-3.33%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.3" src="https://img.shields.io/badge/Vaadin-25.3-blue?style=for-the-badge&logo=Vaadin"></picture> |
+All settings are set in `application.properties`. See the [Configuration Reference](docs/configuration.md):
+
+- 🔄 [Live Reload](docs/configuration.md#live-reload)
+- 🎯 [Endpoints](docs/configuration.md#endpoints)
+- 🔒 [Security](docs/configuration.md#security)
+- 🧭 [Copilot](docs/configuration.md#copilot)
+- 🏗️ [Vaadin Build](docs/configuration.md#vaadin-build)
+
+---
+
+## 📚 Documentation
+
+**Guides**
+
+- 📖 [Wiki Documentation](../../wiki)
+- ✨ [Feature Details](docs/features.md)
+- ⚙️ [Configuration Reference](docs/configuration.md)
+- 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
+- 🧭 [Vaadin Copilot Integration](docs/copilot-integration.md)
+- 🗃️ [v24 Docs](docs/v24-docs.md) — setup notes and workarounds for v24 and older
+- ⬆️ [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
+
+**External**
+
+- 📘 [Hilla Official Docs](https://vaadin.com/docs/latest/hilla)
+- 🚀 [Quarkus Guides](https://quarkus.io/guides/)
+
+**Maintainer**
+
+- 🛠️ [Build and Test](docs/build-and-test.md)
+- 🚢 [Release Process](docs/release-process.md)
+- 🧬 [Update Codestarts](docs/update-codestarts.md)
+- 🔢 [Bump Project Version](docs/bump-project-version.md)
+
+---
+
+## 📊 Usage Statistics
+
+The extension reports itself to Vaadin's usage statistics mechanism (see [Hilla issue #211](https://github.com/vaadin/hilla/issues/211)) to help demonstrate adoption and encourage official support from Vaadin.
+
+- 📈 Statistics are collected **only during development mode**
+- 🔒 **No sensitive data** is collected
+- 🚫 [How to opt out](https://github.com/vaadin/vaadin-usage-statistics#opting-out)
 
 ---
 

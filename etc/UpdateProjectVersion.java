@@ -46,7 +46,7 @@ class UpdateProjectVersion implements Runnable {
     private boolean dryRun;
 
     @Option(names = "--skip-readme",
-            description = "Do not update README.md (Development Version row and Quick Start examples)")
+            description = "Do not update README.md (Compatibility Matrix and Quick Start examples)")
     private boolean skipReadme;
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+$");
@@ -326,15 +326,15 @@ class UpdateProjectVersion implements Runnable {
     }
 
     /**
-     * Updates the Development Version table row, the Quick Start XML examples and the
-     * Compatibility Matrix in {@code README.md}.
+     * Updates the SNAPSHOT row of the Compatibility Matrix, the Quick Start XML examples and
+     * inserts the new release row in {@code README.md}.
      */
     static String updateReadmeContent(String content, String currentVersion, String newVersion) {
         String updated = content;
         updated = updated.replace(currentVersion + "--SNAPSHOT", newVersion + "--SNAPSHOT");
         updated = updated.replace(currentVersion + "-SNAPSHOT", newVersion + "-SNAPSHOT");
         updated = updated.replace("Vaadin " + currentVersion, "Vaadin " + newVersion);
-        updated = updated.replace("Vaadin-" + currentVersion, "Vaadin-" + newVersion);
+        updated = updated.replace("VAADIN-v" + currentVersion, "VAADIN-v" + newVersion);
         updated = README_QUICK_START_PATTERN.matcher(updated)
                 .replaceAll("<version>" + currentVersion + ".x</version>");
         updated = insertCompatibilityMatrixEntry(updated, currentVersion);
