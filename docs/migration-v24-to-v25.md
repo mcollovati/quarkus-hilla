@@ -1,4 +1,4 @@
-# 🧭 Migrating From v24 To v25
+# ⬆️ Migrating From v24 To v25
 
 Quarkus-Hilla-specific changes when upgrading an existing v24 project to v25. This covers Quarkus-Hilla integration changes only — for Vaadin platform-level changes (Flow, Hilla, components), see the official [Hilla docs](https://vaadin.com/docs/latest/hilla).
 
