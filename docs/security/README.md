@@ -344,9 +344,12 @@ Tracked outcomes of the 2026-07 security review (Claude + Codex adversarial):
     composition matrix; includes direct `GET` + navigation tests for the
     permission-only route).
 12. **Policy-name diagnostics** — `ALLOW` and `DENY` results report *all*
-    matched policy names; `DENY` additionally marks the denying policy
-    (evaluation short-circuits on the first deny). Makes misconfigurations
-    visible, e.g. a permit and a deny rule both matching the same path.
+    matched policy names; `DENY` additionally marks the denying policy.
+    Enforcement short-circuits on the first deny (Quarkus semantics); in dev
+    mode / with debug logging the remaining matched policies are evaluated
+    best-effort so *all* denying policies are reported at once (no
+    fix-one-deny-hit-the-next loops). Production reports the matched list and
+    the first denier only.
 13. *(Candidate follow-up ticket, accepted limitation for now)* evaluate
     user-defined global (path-less) `HttpSecurityPolicy` beans during
     navigation to close the remaining divergence with direct HTTP requests.

@@ -107,10 +107,14 @@ above).
 * **Patterns to follow**: `NO_MATCH` must stay strictly neutral — never map it
   to allow or deny; error-handling navigation contexts return neutral; the
   `ALLOW`/`DENY` result reports **all matched** policy names for diagnostics;
-  `DENY` additionally marks which policy denied (evaluation short-circuits on
-  the first deny, so the list shows what *matched*, not what would also have
-  denied). Purpose: make misconfigurations visible, e.g. a permitting rule
-  and a denying rule both matching the same path.
+  `DENY` additionally marks which policy denied. Enforcement always
+  short-circuits on the first deny (exact Quarkus semantics — custom policies
+  may be expensive or have side effects, and identity augmentation is
+  undefined past a deny). **In development mode / with debug logging enabled**
+  the remaining matched policies are additionally evaluated best-effort after
+  the first deny and *all* denying policies are reported, so a
+  misconfiguration is fixed in one pass instead of deny-by-deny; in
+  production only the matched list and the first denier are reported.
 * **Patterns to avoid**: short-circuiting the annotation checker; interpreting
   Quarkus rule absence; evaluating navigation with a method other than `GET`;
   changing annotated-view semantics in the checker variant.
