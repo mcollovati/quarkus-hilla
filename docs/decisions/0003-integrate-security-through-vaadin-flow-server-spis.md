@@ -29,7 +29,12 @@ Security integrates **exclusively through Vaadin's public flow-server SPIs**:
   `NavigationAccessChecker` implementation
   (`QuarkusHttpPermissionNavigationAccessChecker`).
 * Vaadin stock checkers (`AnnotatedViewAccessChecker`) are reused, not
-  re-implemented.
+  re-implemented. One documented exception: a minimal variant of the
+  annotated checker that stays `NEUTRAL` for views without any security
+  annotation, required for correct composition with the HTTP-permission
+  checker (see [ADR-0004](0004-use-tri-state-decisions-for-http-permission-navigation-checking.md));
+  it changes only the unannotated case and remains a plain
+  `NavigationAccessChecker` SPI implementation.
 * Menu filtering (planned) implements the `MenuAccessControl` SPI.
 
 **Bytecode patching is allowed only to remove hard Spring dependencies inside

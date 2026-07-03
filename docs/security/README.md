@@ -146,6 +146,25 @@ Vaadin's decision resolver breaks. `NEUTRAL` composes correctly:
 annotation-allow + no-http-rule → allow; annotation-allow + http-deny → deny;
 no decision at all → deny (guarantee 1).
 
+#### Composition with the annotation checker
+
+Vaadin's stock `AnnotatedViewAccessChecker` *denies* unannotated views, and
+Vaadin's decision resolver turns a mixed ALLOW+DENY vote into a blocking
+"no unanimous consensus" result. Registering both checkers as-is would
+therefore block the core use case "protect a route solely via
+`quarkus.http.auth.permission.*`" (unannotated view + permitting rule →
+blocked navigation, passing deep link — a guarantee-5 violation). Quarkus-Hilla
+registers a variant of the annotated checker that returns `NEUTRAL` for views
+**without any** security annotation when the HTTP-permission checker is
+active; annotated views keep stock semantics. See ADR-0004 for the full
+composition matrix.
+
+**Documented limitation:** navigation checks evaluate *path-scoped* rules
+only. A user-defined **global** (path-less) `HttpSecurityPolicy` bean is
+enforced by Quarkus on direct HTTP requests but not consulted during
+navigation and can therefore diverge. Accepted for now to bound complexity;
+candidate follow-up ticket.
+
 ### 3.4 Path rule evaluation: `QuarkusAccessPathChecker`
 
 Answers "would a `GET` to path *P* be permitted for identity *I*?" outside a
@@ -315,5 +334,17 @@ Tracked outcomes of the 2026-07 security review (Claude + Codex adversarial):
 8. **`UidlRedirectStrategy` equivalent** for challenge/logout during
    UIDL/push (guarantee 6).
 9. **Parity test suite** (same scenario via HTTP and via navigation checker)
-   and guarantee-based acceptance tests for section 2.
+   and guarantee-based acceptance tests for section 2. Parity assertions must
+   run through the full `NavigationAccessControl` (both checkers + resolver),
+   not the HTTP-permission checker in isolation.
 10. Cleanup: remove the now-unused `AuthFormBuildItem`.
+11. **Annotation-checker composition variant** — neutral-on-unannotated
+    `AnnotatedViewAccessChecker` variant + registration, so routes protected
+    only by HTTP permission rules work through navigation (ADR-0004
+    composition matrix; includes direct `GET` + navigation tests for the
+    permission-only route).
+12. **Policy-name diagnostics** — `ALLOW` results report *all* matching
+    policy names, `DENY` reports the denying policy.
+13. *(Candidate follow-up ticket, accepted limitation for now)* evaluate
+    user-defined global (path-less) `HttpSecurityPolicy` beans during
+    navigation to close the remaining divergence with direct HTTP requests.

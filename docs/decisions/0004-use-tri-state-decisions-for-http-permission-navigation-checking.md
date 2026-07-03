@@ -42,8 +42,43 @@ by `QuarkusAccessPathChecker`) returns a **tri-state** result and is a
 annotation-allow + no-http-rule → allow; annotation-allow + http-deny → deny
 (consensus violation); no decision at all → reject (secure by default).
 
+### Composition with the annotation checker
+
+Verified against flow-server 25.2.1 bytecode: Vaadin's stock
+`AnnotatedViewAccessChecker` **denies** views without any security annotation,
+and `DefaultAccessCheckDecisionResolver` turns a mixed ALLOW+DENY vote into a
+"no unanimous consensus" REJECT (an exception in dev mode). With both
+checkers active this breaks the core use case *"protect a route solely via
+`quarkus.http.auth.permission.*`"*: unannotated view + permitting HTTP rule →
+annotation-DENY + http-ALLOW → blocked, while the direct HTTP request passes —
+violating base guarantee 5 (deep link ≙ client navigation). Vaadin's own
+documentation discourages combining annotation and path checkers for exactly
+this reason.
+
+Therefore Quarkus-Hilla registers a **variant of the annotated checker that
+returns `NEUTRAL` instead of `DENY` for views without any security
+annotation** whenever the HTTP-permission checker is active (annotated-view
+decisions themselves are unchanged). Resulting matrix:
+
+| View annotation | HTTP rule | Result |
+|---|---|---|
+| satisfied | none | allow |
+| satisfied | deny | blocked → deny (conflict surfaced) |
+| violated | allow | blocked → deny (stricter wins) |
+| none | allow/roles satisfied | **allow** (matches direct HTTP) |
+| none | none | all-neutral → deny (secure by default) |
+
+**Documented limitation (accepted for now):** the checker evaluates
+*path-scoped* rules only. A user-defined **global** `HttpSecurityPolicy`
+(no path) is enforced by Quarkus on direct HTTP requests but is not consulted
+during navigation, so such policies can diverge between deep link and client
+navigation. Consulting foreign global policies is deliberately out of scope
+for the first iteration (complexity); revisit as a potential follow-up.
+
 Non-goals: implementing the boolean `AccessPathChecker` SPI for Quarkus rules;
-re-implementing Vaadin's decision resolver.
+re-implementing Vaadin's decision resolver; evaluating user-defined global
+(path-less) `HttpSecurityPolicy` beans during navigation (see limitation
+above).
 
 ## Consequences
 
@@ -65,22 +100,33 @@ re-implementing Vaadin's decision resolver.
   (`Decision`/`AccessCheck` types),
   `commons/runtime/.../security/QuarkusHttpPermissionNavigationAccessChecker.java`
   (mapping to `context.neutral()/allow()/deny()`),
+  a neutral-on-unannotated variant of `AnnotatedViewAccessChecker` plus its
+  registration in `commons/deployment/.../security/QuarkusHillaSecurityProcessor.java`,
   `integration-tests/security-oidc-tests/` (decision assertions).
 * **Dependencies**: none.
 * **Patterns to follow**: `NO_MATCH` must stay strictly neutral — never map it
-  to allow or deny; error-handling navigation contexts return neutral.
+  to allow or deny; error-handling navigation contexts return neutral; the
+  `ALLOW`/`DENY` result reports the involved policy names (all matching ones
+  for `ALLOW`, the denying one for `DENY`) for diagnostics.
 * **Patterns to avoid**: short-circuiting the annotation checker; interpreting
-  Quarkus rule absence; evaluating navigation with a method other than `GET`.
+  Quarkus rule absence; evaluating navigation with a method other than `GET`;
+  changing annotated-view semantics in the checker variant.
 
 ### Verification
 
 - [ ] Unit/integration tests assert all four mapping rows of the decision
       table (including lowercase/mismatching `methods=` configuration).
-- [ ] Parity tests show identical outcomes for direct HTTP request vs.
-      navigation checker for each row.
+- [ ] Parity tests run through the **full `NavigationAccessControl`**
+      (both checkers + decision resolver), not only the checker in isolation,
+      and show identical outcomes to the direct HTTP request for each row.
+- [ ] A direct `GET` and a navigation to an **unannotated** route protected
+      only by an HTTP permission rule both succeed for an authorized user and
+      are both denied otherwise (composition matrix row 4).
 - [ ] A route with `@AnonymousAllowed` and no HTTP rule stays accessible
       (NEUTRAL does not override annotation allow).
 - [ ] A route with annotation allow but HTTP deny is denied.
+- [ ] The global-policy limitation is documented in
+      `docs/security/README.md`.
 
 ## Alternatives Considered
 
