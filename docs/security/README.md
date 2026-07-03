@@ -343,8 +343,10 @@ Tracked outcomes of the 2026-07 security review (Claude + Codex adversarial):
     only by HTTP permission rules work through navigation (ADR-0004
     composition matrix; includes direct `GET` + navigation tests for the
     permission-only route).
-12. **Policy-name diagnostics** — `ALLOW` results report *all* matching
-    policy names, `DENY` reports the denying policy.
+12. **Policy-name diagnostics** — `ALLOW` and `DENY` results report *all*
+    matched policy names; `DENY` additionally marks the denying policy
+    (evaluation short-circuits on the first deny). Makes misconfigurations
+    visible, e.g. a permit and a deny rule both matching the same path.
 13. *(Candidate follow-up ticket, accepted limitation for now)* evaluate
     user-defined global (path-less) `HttpSecurityPolicy` beans during
     navigation to close the remaining divergence with direct HTTP requests.
