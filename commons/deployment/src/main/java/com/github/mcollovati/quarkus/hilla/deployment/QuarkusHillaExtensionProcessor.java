@@ -254,6 +254,10 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep
     void addMarkersForHillaJars(BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
         producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/hilla"));
+    }
+
+    @BuildStep(onlyIf = IsDevelopment.class)
+    void addMarkersForCopilotJars(BuildProducer<AdditionalApplicationArchiveMarkerBuildItem> producer) {
         producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/copilot"));
         producer.produce(new AdditionalApplicationArchiveMarkerBuildItem("com/vaadin/copilot/SpringBridge.class"));
     }
@@ -332,7 +336,7 @@ class QuarkusHillaExtensionProcessor {
         servletProducer.produce(builder.build());
     }
 
-    @BuildStep
+    @BuildStep(onlyIf = IsDevelopment.class)
     void generateCopilotApplicationMetadata(
             ApplicationArchivesBuildItem applicationArchives,
             BuildProducer<GeneratedResourceBuildItem> generatedResources) {
@@ -361,7 +365,7 @@ class QuarkusHillaExtensionProcessor {
                         .toResourceBytes()));
     }
 
-    @BuildStep
+    @BuildStep(onlyIf = IsDevelopment.class)
     void preserveCopilotFlowServiceBeans(
             ApplicationArchivesBuildItem applicationArchives,
             CopilotConfiguration copilotConfiguration,
@@ -405,6 +409,11 @@ class QuarkusHillaExtensionProcessor {
     @BuildStep(onlyIf = IsDevelopment.class)
     void replaceOffendingMethodCallsDevMode(BuildProducer<BytecodeTransformerBuildItem> producer) {
         OffendingMethodCallsReplacer.addClassVisitorsDevMode(producer);
+    }
+
+    @BuildStep(onlyIf = IsDevelopment.class)
+    void replaceCopilotMethodCalls(BuildProducer<BytecodeTransformerBuildItem> producer) {
+        OffendingMethodCallsReplacer.addCopilotClassVisitors(producer);
     }
 
     @BuildStep
