@@ -16,9 +16,11 @@
 package com.github.mcollovati.quarkus.hilla.deployment.copilot;
 
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.vaadin.flow.server.VaadinContext;
 import dev.codex.quarkushilla.copilot.app.CopilotTestBeans;
@@ -27,8 +29,10 @@ import dev.codex.quarkushilla.copilot.included.IncludedTestBeans;
 import io.quarkus.maven.dependency.Dependency;
 import io.quarkus.test.QuarkusExtensionTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 
+import com.github.mcollovati.quarkus.hilla.CopilotApplicationMetadata;
 import com.github.mcollovati.quarkus.hilla.CopilotQuarkusIntegration;
 
 public final class CopilotQuarkusIntegrationTestSupport {
@@ -48,33 +52,19 @@ public final class CopilotQuarkusIntegrationTestSupport {
 
     private CopilotQuarkusIntegrationTestSupport() {}
 
-    public static QuarkusExtensionTest extensionTest() {
+    public static QuarkusExtensionTest copilotExtensionTest() {
         return new QuarkusExtensionTest()
                 .setForcedDependencies(
                         List.of(Dependency.of("com.vaadin", "copilot", System.getProperty("vaadin.version"))))
+                .overrideConfigKey("quarkus.arc.remove-unused-beans", "false")
+                .overrideConfigKey("quarkus.http.test-port", "0")
                 .overrideConfigKey("quarkus.class-loading.removed-artifacts", REMOVED_OPTIONAL_ARTIFACTS);
     }
 
     public static JavaArchive rootArchive() {
         return ShrinkWrap.create(JavaArchive.class)
-                .addClasses(
-                        CopilotQuarkusIntegrationTestSupport.class,
-                        CopilotTestBeans.class,
-                        CopilotTestBeans.AAlphabeticallyFirstHelper.class,
-                        CopilotTestBeans.ZzzAppShell.class,
-                        CopilotTestBeans.ApplicationScopedFlowService.class,
-                        CopilotTestBeans.SingletonFlowService.class,
-                        CopilotTestBeans.DependentFlowService.class,
-                        CopilotTestBeans.RequestScopedFlowService.class,
-                        CopilotTestBeans.VaadinServiceScopedFlowService.class,
-                        CopilotTestBeans.VaadinSessionScopedFlowService.class,
-                        CopilotTestBeans.VaadinUiScopedFlowService.class,
-                        CopilotTestBeans.VaadinRouteScopedFlowService.class,
-                        CopilotTestBeans.BrowserCallableEndpoint.class,
-                        CopilotTestBeans.LegacyEndpoint.class,
-                        IncludedTestBeans.class,
-                        IncludedTestBeans.IncludedPackageService.class,
-                        IncludedTestBeans.ExcludedIncludedService.class);
+                .addClasses(rootClasses())
+                .addAsResource(copilotApplicationMetadata(), CopilotApplicationMetadata.RESOURCE);
     }
 
     public static JavaArchive dependencyArchive() {
@@ -115,6 +105,38 @@ public final class CopilotQuarkusIntegrationTestSupport {
 
     public static String methodId(Class<?> serviceClass, String methodName) {
         return serviceClass.getName() + "#" + methodName;
+    }
+
+    private static Class<?>[] rootClasses() {
+        return new Class<?>[] {
+            CopilotQuarkusIntegrationTestSupport.class,
+            CopilotTestBeans.class,
+            CopilotTestBeans.AAlphabeticallyFirstHelper.class,
+            CopilotTestBeans.ZzzAppShell.class,
+            CopilotTestBeans.ApplicationScopedFlowService.class,
+            CopilotTestBeans.SingletonFlowService.class,
+            CopilotTestBeans.DependentFlowService.class,
+            CopilotTestBeans.RequestScopedFlowService.class,
+            CopilotTestBeans.VaadinServiceScopedFlowService.class,
+            CopilotTestBeans.VaadinSessionScopedFlowService.class,
+            CopilotTestBeans.VaadinUiScopedFlowService.class,
+            CopilotTestBeans.VaadinRouteScopedFlowService.class,
+            CopilotTestBeans.BrowserCallableEndpoint.class,
+            CopilotTestBeans.LegacyEndpoint.class,
+            IncludedTestBeans.class,
+            IncludedTestBeans.IncludedPackageService.class,
+            IncludedTestBeans.ExcludedIncludedService.class
+        };
+    }
+
+    private static StringAsset copilotApplicationMetadata() {
+        String content = new String(
+                CopilotApplicationMetadata.of(
+                                CopilotTestBeans.ZzzAppShell.class.getName(),
+                                Stream.of(rootClasses()).map(Class::getName).collect(Collectors.toSet()))
+                        .toResourceBytes(),
+                StandardCharsets.UTF_8);
+        return new StringAsset(content);
     }
 
     private static Set<String> methodIds(Iterable<?> serviceMethodInfos) {
