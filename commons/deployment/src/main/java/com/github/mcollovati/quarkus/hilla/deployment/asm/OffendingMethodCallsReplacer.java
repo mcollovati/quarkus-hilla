@@ -20,14 +20,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.vaadin.flow.server.VaadinContext;
-import com.vaadin.hilla.ApplicationContextProvider;
 import com.vaadin.hilla.AuthenticationUtil;
-import com.vaadin.hilla.EndpointCodeGenerator;
 import com.vaadin.hilla.EndpointInvoker;
 import com.vaadin.hilla.EndpointRegistry;
 import com.vaadin.hilla.EndpointUtil;
 import com.vaadin.hilla.Hotswapper;
-import com.vaadin.hilla.engine.EngineAutoConfiguration;
 import com.vaadin.hilla.push.PushEndpoint;
 import com.vaadin.hilla.push.PushMessageHandler;
 import com.vaadin.hilla.signals.internal.SecureSignalsRegistry;
@@ -41,7 +38,6 @@ import io.quarkus.gizmo.MethodCreator;
 import io.quarkus.gizmo.MethodDescriptor;
 import io.quarkus.gizmo.ResultHandle;
 import org.objectweb.asm.Opcodes;
-import org.springframework.context.ApplicationContext;
 import org.springframework.data.domain.Sort;
 
 import com.github.mcollovati.quarkus.hilla.CopilotQuarkusIntegration;
@@ -49,6 +45,11 @@ import com.github.mcollovati.quarkus.hilla.HillaReplacements;
 import com.github.mcollovati.quarkus.hilla.SpringReplacements;
 
 public class OffendingMethodCallsReplacer {
+
+    private static final String APPLICATION_CONTEXT = "org.springframework.context.ApplicationContext";
+    private static final String APPLICATION_CONTEXT_PROVIDER = "com.vaadin.hilla.ApplicationContextProvider";
+    private static final String ENDPOINT_CODE_GENERATOR = "com.vaadin.hilla.EndpointCodeGenerator";
+    private static final String ENGINE_AUTO_CONFIGURATION = "com.vaadin.hilla.engine.EngineAutoConfiguration";
 
     private static final Map.Entry<MethodSignature, MethodSignature> ClassUtils_getUserClass = Map.entry(
             MethodSignature.of("org/springframework/util/ClassUtils", "getUserClass"),
@@ -85,6 +86,12 @@ public class OffendingMethodCallsReplacer {
 
     public static void addClassVisitorsDevMode(BuildProducer<BytecodeTransformerBuildItem> producer) {
         producer.produce(transform(Hotswapper.class, "affectsEndpoints", Class_forName));
+    }
+
+    public static void addCopilotClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
+        producer.produce(copilotSpringBridge_patch());
+        producer.produce(
+                transform("com.vaadin.copilot.customcomponent.CustomComponents", "isCustomComponent", Class_forName));
     }
 
     public static void addClassVisitors(BuildProducer<BytecodeTransformerBuildItem> producer) {
@@ -129,9 +136,6 @@ public class OffendingMethodCallsReplacer {
         }));
         producer.produce(applicationContextProvider_runOnContext_patch());
         producer.produce(endpointCodeGenerator_findBrowserCallables_replacement());
-        producer.produce(copilotSpringBridge_patch());
-        producer.produce(
-                transform("com.vaadin.copilot.customcomponent.CustomComponents", "isCustomComponent", Class_forName));
         producer.produce(new BytecodeTransformerBuildItem(
                 "com.vaadin.hilla.EndpointController",
                 (className, classVisitor) -> new EndpointControllerVisitor(classVisitor)));
@@ -153,56 +157,55 @@ public class OffendingMethodCallsReplacer {
     }
 
     private static BytecodeTransformerBuildItem applicationContextProvider_runOnContext_patch() {
-        return new BytecodeTransformerBuildItem(
-                ApplicationContextProvider.class.getName(), (className, classVisitor) -> {
-                    ClassTransformer transformer = new ClassTransformer(className);
-                    MethodDescriptor runOnContextMethod = MethodDescriptor.ofMethod(
-                            ApplicationContextProvider.class, "runOnContext", void.class, Consumer.class);
-                    transformer.removeMethod(runOnContextMethod);
-                    try (MethodCreator creator = transformer.addMethod(runOnContextMethod)) {
-                        creator.setModifiers(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC);
-                        ResultHandle appCtxField = creator.readStaticField(FieldDescriptor.of(
-                                ApplicationContextProvider.class, "applicationContext", ApplicationContext.class));
-                        ResultHandle pendingActionsField = creator.readStaticField(
-                                FieldDescriptor.of(ApplicationContextProvider.class, "pendingActions", List.class));
-                        BranchResult ifNullAppCtx = creator.ifNull(appCtxField);
-                        try (BytecodeCreator trueBranch = ifNullAppCtx.trueBranch()) {
-                            trueBranch.invokeInterfaceMethod(
-                                    MethodDescriptor.ofMethod(List.class, "add", boolean.class, Object.class),
-                                    pendingActionsField,
-                                    creator.getMethodParam(0));
-                        }
-                        try (BytecodeCreator falseBranch = ifNullAppCtx.falseBranch()) {
-                            falseBranch.invokeInterfaceMethod(
-                                    MethodDescriptor.ofMethod(Consumer.class, "accept", void.class, Object.class),
-                                    creator.getMethodParam(0),
-                                    appCtxField);
-                        }
-                        creator.returnVoid();
-                    }
-                    return transformer.applyTo(classVisitor);
-                });
+        return new BytecodeTransformerBuildItem(APPLICATION_CONTEXT_PROVIDER, (className, classVisitor) -> {
+            ClassTransformer transformer = new ClassTransformer(className);
+            MethodDescriptor runOnContextMethod = MethodDescriptor.ofMethod(
+                    APPLICATION_CONTEXT_PROVIDER, "runOnContext", void.class.getName(), Consumer.class.getName());
+            transformer.removeMethod(runOnContextMethod);
+            try (MethodCreator creator = transformer.addMethod(runOnContextMethod)) {
+                creator.setModifiers(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC);
+                ResultHandle appCtxField = creator.readStaticField(
+                        FieldDescriptor.of(APPLICATION_CONTEXT_PROVIDER, "applicationContext", APPLICATION_CONTEXT));
+                ResultHandle pendingActionsField = creator.readStaticField(
+                        FieldDescriptor.of(APPLICATION_CONTEXT_PROVIDER, "pendingActions", List.class));
+                BranchResult ifNullAppCtx = creator.ifNull(appCtxField);
+                try (BytecodeCreator trueBranch = ifNullAppCtx.trueBranch()) {
+                    trueBranch.invokeInterfaceMethod(
+                            MethodDescriptor.ofMethod(List.class, "add", boolean.class, Object.class),
+                            pendingActionsField,
+                            creator.getMethodParam(0));
+                }
+                try (BytecodeCreator falseBranch = ifNullAppCtx.falseBranch()) {
+                    falseBranch.invokeInterfaceMethod(
+                            MethodDescriptor.ofMethod(Consumer.class, "accept", void.class, Object.class),
+                            creator.getMethodParam(0),
+                            appCtxField);
+                }
+                creator.returnVoid();
+            }
+            return transformer.applyTo(classVisitor);
+        });
     }
 
     private static BytecodeTransformerBuildItem endpointCodeGenerator_findBrowserCallables_replacement() {
-        return new BytecodeTransformerBuildItem(EndpointCodeGenerator.class.getName(), (className, classVisitor) -> {
+        return new BytecodeTransformerBuildItem(ENDPOINT_CODE_GENERATOR, (className, classVisitor) -> {
             ClassTransformer transformer = new ClassTransformer(className);
             MethodDescriptor findBrowserCallablesMethod = MethodDescriptor.ofMethod(
                     className,
                     "findBrowserCallables",
-                    List.class,
-                    EngineAutoConfiguration.class,
-                    ApplicationContext.class);
+                    List.class.getName(),
+                    ENGINE_AUTO_CONFIGURATION,
+                    APPLICATION_CONTEXT);
             transformer.removeMethod(findBrowserCallablesMethod);
             try (MethodCreator creator = transformer.addMethod(findBrowserCallablesMethod)) {
                 creator.setModifiers(Opcodes.ACC_STATIC | Opcodes.ACC_PUBLIC);
                 creator.returnValue(creator.invokeStaticMethod(
                         MethodDescriptor.ofMethod(
-                                HillaReplacements.class,
+                                HillaReplacements.class.getName(),
                                 "findBrowserCallables",
-                                List.class,
-                                EngineAutoConfiguration.class,
-                                ApplicationContext.class),
+                                List.class.getName(),
+                                ENGINE_AUTO_CONFIGURATION,
+                                APPLICATION_CONTEXT),
                         creator.getMethodParam(0),
                         creator.getMethodParam(1)));
             }
