@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CopilotQuarkusIntegrationDefaultTest {
 
     @RegisterExtension
-    static final QuarkusExtensionTest config = CopilotQuarkusIntegrationTestSupport.extensionTest()
+    static final QuarkusExtensionTest config = CopilotQuarkusIntegrationTestSupport.copilotExtensionTest()
             .setArchiveProducer(CopilotQuarkusIntegrationTestSupport::rootArchive)
             .addAdditionalDependency(CopilotQuarkusIntegrationTestSupport.dependencyArchive());
 
@@ -70,9 +70,9 @@ class CopilotQuarkusIntegrationDefaultTest {
     }
 
     @Test
-    void springBridgePatch_routesCopilotCallsToQuarkusIntegration() {
-        assertThat(CopilotQuarkusIntegrationTestSupport.springBridgeAvailable()).isTrue();
-        assertThat(CopilotQuarkusIntegrationTestSupport.springBridgeFlowServiceMethods())
+    void quarkusIntegration_routesCopilotCallsToApplicationMetadata() {
+        assertThat(CopilotQuarkusIntegration.isAvailable(null)).isTrue();
+        assertThat(CopilotQuarkusIntegrationTestSupport.flowServiceMethods())
                 .contains(method(CopilotTestBeans.ApplicationScopedFlowService.class, "applicationMethod"));
     }
 
