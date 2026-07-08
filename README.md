@@ -130,6 +130,12 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 >
 > On v24 or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
+### Known incompatible Quarkus versions
+
+| Quarkus version | Status | Details |
+| --- | --- | --- |
+| `3.37.0`, `3.37.1` | Avoid | These versions can drop `ObjectNode` request body fields in Quarkus REST Jackson when reflection-free serializers are enabled. Upgrade to Quarkus `3.37.2` or newer. If upgrading is not possible, set `quarkus.rest.jackson.optimization.enable-reflection-free-serializers=false`. See [quarkusio/quarkus#55254](https://github.com/quarkusio/quarkus/issues/55254). |
+
 ---
 
 ## ⚙️ Configuration
