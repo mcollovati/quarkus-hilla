@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        branch: [main, "25.2", "25.1", "25.0"]
+        branch: [main, "25.2", "25.1"]
         java: [21, 25]
     runs-on: ubuntu-latest
     timeout-minutes: 60

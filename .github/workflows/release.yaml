@@ -12,7 +12,6 @@ on:
           - main
           - "25.2"
           - "25.1"
-          - "25.0"
       version:
         description: "Version to release (e.g. 1.1.0 or 1.2.0-alpha1)"
         required: true
