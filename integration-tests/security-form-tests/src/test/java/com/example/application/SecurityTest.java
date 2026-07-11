@@ -123,6 +123,7 @@ class SecurityTest extends AbstractTest {
         $("vaadin-app-layout h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
         currentLocation = URI.create(WebDriverRunner.url());
         assertThat(currentLocation.getPath()).isEqualTo("/flow-protected");
+        assertThat(currentLocation.getQuery()).isEqualTo("tab=details");
     }
 
     @Test
