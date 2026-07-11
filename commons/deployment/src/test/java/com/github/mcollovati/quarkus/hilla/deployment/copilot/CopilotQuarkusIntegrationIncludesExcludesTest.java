@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CopilotQuarkusIntegrationIncludesExcludesTest {
 
     @RegisterExtension
-    static final QuarkusExtensionTest config = CopilotQuarkusIntegrationTestSupport.extensionTest()
+    static final QuarkusExtensionTest config = CopilotQuarkusIntegrationTestSupport.copilotExtensionTest()
             .overrideConfigKey("vaadin.copilot.flow-services.discovery", "none")
             .overrideConfigKey(
                     "vaadin.copilot.flow-services.include-packages", "dev.codex.quarkushilla.copilot.included")

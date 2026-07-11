@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CopilotQuarkusIntegrationDiscoveryAllTest {
 
     @RegisterExtension
-    static final QuarkusExtensionTest config = CopilotQuarkusIntegrationTestSupport.extensionTest()
+    static final QuarkusExtensionTest config = CopilotQuarkusIntegrationTestSupport.copilotExtensionTest()
             .overrideConfigKey("vaadin.copilot.flow-services.discovery", "all")
             .setArchiveProducer(CopilotQuarkusIntegrationTestSupport::rootArchive);
 
