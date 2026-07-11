@@ -15,6 +15,7 @@
  */
 package com.example.application;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.EnumSet;
@@ -36,6 +37,8 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
+import static com.codeborne.selenide.Selenide.Wait;
+import static com.codeborne.selenide.Selenide.executeJavaScript;
 import static com.example.application.SecurityTest.MenuItem.FLOW_ADMIN;
 import static com.example.application.SecurityTest.MenuItem.FLOW_AUTHENTICATED;
 import static com.example.application.SecurityTest.MenuItem.FLOW_PUBLIC;
@@ -103,6 +106,23 @@ class SecurityTest extends AbstractTest {
     @Test
     void anonymous_openProtectedFlowView_loginViewDisplayed() {
         openProtectedPage("flow-admin", true);
+    }
+
+    @Test
+    void anonymous_invalidCredentials_errorDisplayedAndSavedTargetOpenedAfterRetry() {
+        openProtectedPage("flow-protected?tab=details", true);
+
+        SelenideElement loginForm = submitLogin("user", "wrong");
+        Wait().until(ignored -> Boolean.TRUE.equals(executeJavaScript("return arguments[0].error", loginForm)));
+        URI currentLocation = URI.create(WebDriverRunner.url());
+        assertThat(currentLocation.getPath()).isEqualTo("/login");
+        assertThat(currentLocation.getQuery()).isNull();
+
+        submitLogin("user", "user");
+        $("vaadin-app-layout footer vaadin-avatar").shouldBe(visible, Duration.ofSeconds(10));
+        $("vaadin-app-layout h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
+        currentLocation = URI.create(WebDriverRunner.url());
+        assertThat(currentLocation.getPath()).isEqualTo("/flow-protected");
     }
 
     @Test
@@ -205,10 +225,15 @@ class SecurityTest extends AbstractTest {
     }
 
     private void login(String username, String password) {
+        submitLogin(username, password);
+        $("vaadin-app-layout footer vaadin-avatar").shouldBe(visible, Duration.ofSeconds(10));
+    }
+
+    private SelenideElement submitLogin(String username, String password) {
         SelenideElement loginForm = $("vaadin-login-overlay").shouldBe(visible);
         loginForm.$("vaadin-text-field#vaadinLoginUsername").setValue(username);
         loginForm.$("vaadin-password-field#vaadinLoginPassword").setValue(password);
         loginForm.$("vaadin-button[slot=submit]").click();
-        $("vaadin-app-layout footer vaadin-avatar").shouldBe(visible, Duration.ofSeconds(10));
+        return loginForm;
     }
 }
