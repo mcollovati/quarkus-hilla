@@ -63,9 +63,9 @@ Vaadin/Hilla Dependabot updates on maintenance branches trigger `prepare-vaadin-
 frontend package manifests and passes them to the privileged `apply-vaadin-npm-deps.yaml` workflow, which commits the
 generated files into the same Dependabot pull request. The preparation workflow runs pull request code with read-only
 permissions; write credentials remain isolated in the applying workflow. The applying workflow writes the merge-gate
-check directly to the pull request head revision, independent of the target branch's workflow files. It also maintains
-an idempotent NPM synchronization status block in the Dependabot pull request description, including the validated
-revision and workflow-run link.
+check directly to the pull request head revision, independent of the target branch's workflow files. After pushing
+generated dependencies, it adds `+ npm dependencies` to the pull request title, appends a short note to the pull request
+description and posts a comment linking the bot commit.
 
 Configure `NPM dependency sync gate` as a required status check for every active maintenance branch. Until the check
 reports success, the original Dependabot revision has no successful gate. The check passes only after the bot commit has
