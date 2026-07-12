@@ -54,9 +54,20 @@ The Maven properties are bumped via `mvn versions:set-property`:
 The previous version `C` is added as a target/branch entry alongside `main`, so the maintenance branch keeps running CI:
 
 - `release.yaml` — `on.workflow_dispatch.inputs.target-branch.options`
-- `update-npm-deps.yaml` — same options list, plus the embedded matrix in `jobs.compute-matrix.steps[0].run`
+- `update-npm-deps.yaml` — same options list for manual recovery runs; its weekly schedule remains limited to `main`
+- `prepare-vaadin-npm-deps.yaml` — `on.pull_request_target.branches`
 - `validation.yaml` — `on.push.branches`
 - `validation-nightly.yaml` — `jobs.snapshot-main.strategy.matrix.branch`
+
+Vaadin/Hilla Dependabot updates on maintenance branches trigger `prepare-vaadin-npm-deps.yaml`. It regenerates the
+frontend package manifests and passes them to the privileged `apply-vaadin-npm-deps.yaml` workflow, which commits the
+generated files into the same Dependabot pull request. The preparation workflow runs pull request code with read-only
+permissions; write credentials remain isolated in the applying workflow. The applying workflow writes the merge-gate
+check directly to the pull request head revision, independent of the target branch's workflow files.
+
+Configure `NPM dependency sync gate` as a required status check for every active maintenance branch. Until the check
+reports success, the original Dependabot revision has no successful gate. The check passes only after the bot commit has
+been validated on the new revision. Without the required-check rule, GitHub does not enforce this merge gate.
 
 ### `.github/dependabot.yml`
 

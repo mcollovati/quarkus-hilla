@@ -1,0 +1,141 @@
+name: Apply Vaadin NPM dependency sync
+
+on:
+  workflow_run:
+    workflows: ["Prepare Vaadin NPM dependency sync"]
+    types: [completed]
+
+permissions:
+  actions: read
+  checks: write
+  contents: write
+  pull-requests: read
+
+jobs:
+  apply:
+    name: Commit generated NPM dependencies
+    if: >-
+      github.event.workflow_run.event == 'pull_request_target' &&
+      github.event.workflow_run.pull_requests[0] != null
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read current pull request
+        id: pull-request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" > pull-request.json
+          jq -r '"head_sha=" + .head.sha,
+                 "head_ref=" + .head.ref,
+                 "head_repo=" + .head.repo.full_name,
+                 "base_ref=" + .base.ref,
+                 "author=" + .user.login' pull-request.json >> "$GITHUB_OUTPUT"
+      - name: Validate workflow provenance
+        env:
+          BASE_REF: ${{ steps.pull-request.outputs.base_ref }}
+          HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+          SOURCE_BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
+          SOURCE_HEAD_SHA: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
+        run: |
+          [[ "$BASE_REF" != "main" ]]
+          [[ "$BASE_REF" == "$SOURCE_BASE_REF" ]]
+          [[ "$HEAD_SHA" == "$SOURCE_HEAD_SHA" ]]
+      - name: Find generated patch
+        id: artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.name == "vaadin-npm-sync") | .id' | head -1)
+          echo "id=$artifact_id" >> "$GITHUB_OUTPUT"
+      - name: Report failed generation
+        if: github.event.workflow_run.conclusion != 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/check-runs" \
+            --raw-field name='NPM dependency sync gate' \
+            --raw-field head_sha="$HEAD_SHA" \
+            --raw-field status=completed \
+            --raw-field conclusion=failure \
+            --raw-field 'output[title]=NPM dependency generation failed' \
+            --raw-field 'output[summary]=Inspect Prepare Vaadin NPM dependency sync workflow.'
+          exit 1
+      - name: Report synchronized revision
+        if: steps.artifact.outputs.id == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+        run: |
+          gh api --method POST "repos/$GITHUB_REPOSITORY/check-runs" \
+            --raw-field name='NPM dependency sync gate' \
+            --raw-field head_sha="$HEAD_SHA" \
+            --raw-field status=completed \
+            --raw-field conclusion=success \
+            --raw-field 'output[title]=NPM dependencies synchronized' \
+            --raw-field 'output[summary]=No generated NPM dependency changes are pending.'
+      - name: Checkout exact Dependabot revision
+        if: steps.artifact.outputs.id != ''
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+        with:
+          ref: ${{ steps.pull-request.outputs.head_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download generated patch
+        if: steps.artifact.outputs.id != ''
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: vaadin-npm-sync
+          path: generated
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Validate and apply patch
+        if: steps.artifact.outputs.id != ''
+        env:
+          AUTHOR: ${{ steps.pull-request.outputs.author }}
+          EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+          HEAD_REF: ${{ steps.pull-request.outputs.head_ref }}
+          HEAD_REPO: ${{ steps.pull-request.outputs.head_repo }}
+        run: |
+          [[ "$AUTHOR" == "dependabot[bot]" ]]
+          [[ "$HEAD_REPO" == "$GITHUB_REPOSITORY" ]]
+          [[ "$HEAD_REF" == dependabot/maven/* ]]
+          [[ "$(cat generated/head-sha)" == "$EXPECTED_HEAD_SHA" ]]
+
+          invalid=$(git apply --numstat generated/npm-deps.patch | cut -f3- | grep -Ev '(^|/)package[^/]*\.json$' || true)
+          if [[ -n "$invalid" ]]; then
+            echo "Patch contains invalid paths:" >&2
+            echo "$invalid" >&2
+            exit 1
+          fi
+
+          git apply --check generated/npm-deps.patch
+          git apply generated/npm-deps.patch
+          git add -- ':(glob)**/package*.json'
+
+          invalid=$(git diff --cached --name-only | grep -Ev '(^|/)package[^/]*\.json$' || true)
+          [[ -z "$invalid" ]]
+          ! git diff --cached --quiet
+      - name: Generate bot token
+        if: steps.artifact.outputs.id != ''
+        id: app-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
+        with:
+          app-id: ${{ secrets.QUARKUS_HILLA_BOT_ID }}
+          private-key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
+      - name: Commit and push generated dependencies
+        if: steps.artifact.outputs.id != ''
+        env:
+          APP_TOKEN: ${{ steps.app-token.outputs.token }}
+          EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+          HEAD_REF: ${{ steps.pull-request.outputs.head_ref }}
+        run: |
+          git config user.name "quarkus-hilla-bot[bot]"
+          git config user.email "141157179+quarkus-hilla-bot[bot]@users.noreply.github.com"
+          git commit -m "chore(npm-deps): update npm dependencies"
+          git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git push --force-with-lease="${HEAD_REF}:${EXPECTED_HEAD_SHA}" origin "HEAD:${HEAD_REF}"

@@ -92,7 +92,9 @@ class UpdateProjectVersion implements Runnable {
             patch(workflows.resolve("release.yaml"),
                     c -> insertOptionAfterMain(c, currentVersion));
             patch(workflows.resolve("update-npm-deps.yaml"),
-                    c -> insertInRunScript(insertOptionAfterMain(c, currentVersion), currentVersion));
+                    c -> insertOptionAfterMain(c, currentVersion));
+            patch(workflows.resolve("prepare-vaadin-npm-deps.yaml"),
+                    c -> insertQuotedFlowArrayItemFirst(c, "branches", currentVersion));
             patch(workflows.resolve("validation.yaml"),
                     c -> insertFlowArrayItemAfterMain(c, "branches", currentVersion));
             patch(workflows.resolve("validation-nightly.yaml"),
@@ -257,20 +259,17 @@ class UpdateProjectVersion implements Runnable {
         return content.replace(marker, marker + inserted);
     }
 
-    /**
-     * Replaces the literal {@code "main"} token in the {@code compute-matrix} run script with
-     * {@code "main","<version>"}. Used for {@code update-npm-deps.yaml}.
-     */
-    static String insertInRunScript(String content, String version) {
-        String token = "\"main\"";
-        String replacement = "\"main\",\"" + version + "\"";
-        if (content.contains(replacement)) {
+    /** Inserts {@code "<version>"} at the start of a quoted YAML flow array. */
+    static String insertQuotedFlowArrayItemFirst(String content, String key, String version) {
+        String marker = key + ": [";
+        String inserted = marker + "\"" + version + "\", ";
+        if (content.contains(inserted)) {
             return content;
         }
-        if (!content.contains(token)) {
-            return content;
+        if (!content.contains(marker)) {
+            throw new IllegalStateException("Cannot find flow array '" + key + ": [...]' to insert version into");
         }
-        return content.replace(token, replacement);
+        return content.replace(marker, inserted);
     }
 
     /**
