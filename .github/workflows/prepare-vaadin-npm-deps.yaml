@@ -47,6 +47,20 @@ jobs:
             done
           fi
           echo "relevant=$relevant" >> "$GITHUB_OUTPUT"
+      - name: Write synchronization state
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RELEVANT: ${{ steps.classify.outputs.relevant }}
+        run: |
+          jq -n --arg headSha "$HEAD_SHA" --argjson relevant "$RELEVANT" \
+            '{headSha: $headSha, relevant: $relevant}' > vaadin-npm-sync-state.json
+      - name: Upload synchronization state
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: vaadin-npm-sync-state
+          path: vaadin-npm-sync-state.json
+          if-no-files-found: error
+          retention-days: 1
 
   generate:
     name: Generate NPM dependency patch

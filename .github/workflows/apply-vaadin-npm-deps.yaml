@@ -9,7 +9,7 @@ permissions:
   actions: read
   checks: write
   contents: write
-  pull-requests: read
+  pull-requests: write
 
 jobs:
   apply:
@@ -41,16 +41,7 @@ jobs:
           [[ "$BASE_REF" != "main" ]]
           [[ "$BASE_REF" == "$SOURCE_BASE_REF" ]]
           [[ "$HEAD_SHA" == "$SOURCE_HEAD_SHA" ]]
-      - name: Find generated patch
-        id: artifact
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
-            --jq '.artifacts[] | select(.name == "vaadin-npm-sync") | .id' | head -1)
-          echo "id=$artifact_id" >> "$GITHUB_OUTPUT"
-      - name: Report failed generation
+      - name: Publish failed generation gate
         if: github.event.workflow_run.conclusion != 'success'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -63,7 +54,78 @@ jobs:
             --raw-field conclusion=failure \
             --raw-field 'output[title]=NPM dependency generation failed' \
             --raw-field 'output[summary]=Inspect Prepare Vaadin NPM dependency sync workflow.'
-          exit 1
+      - name: Find generated patch
+        id: artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
+            --jq '.artifacts[] | select(.name == "vaadin-npm-sync") | .id' | head -1)
+          echo "id=$artifact_id" >> "$GITHUB_OUTPUT"
+      - name: Download synchronization state
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: vaadin-npm-sync-state
+          path: sync-state
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Validate synchronization state
+        id: sync-state
+        env:
+          EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+        run: |
+          head_sha=$(jq -er '.headSha' sync-state/vaadin-npm-sync-state.json)
+          relevant=$(jq -er '.relevant | tostring' sync-state/vaadin-npm-sync-state.json)
+          [[ "$head_sha" == "$EXPECTED_HEAD_SHA" ]]
+          [[ "$relevant" == "true" || "$relevant" == "false" ]]
+          echo "relevant=$relevant" >> "$GITHUB_OUTPUT"
+      - name: Update pull request sync status
+        if: steps.sync-state.outputs.relevant == 'true'
+        id: pr-status
+        continue-on-error: true
+        env:
+          ARTIFACT_ID: ${{ steps.artifact.outputs.id }}
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          short_sha="${HEAD_SHA:0:12}"
+          commit_url="https://github.com/${GITHUB_REPOSITORY}/commit/${HEAD_SHA}"
+          run_url="https://github.com/${GITHUB_REPOSITORY}/actions/runs/${RUN_ID}"
+
+          if [[ "$RUN_CONCLUSION" != "success" ]]; then
+            status="❌ Generation failed for"
+          elif [[ -n "$ARTIFACT_ID" ]]; then
+            status="⏳ Generated NPM update; bot commit pending for"
+          else
+            status="✅ Synchronized and validated"
+          fi
+
+          printf -v block '%s\n%s\n%s [`%s`](%s). [Workflow run](%s)\n%s' \
+            '<!-- vaadin-npm-sync:start -->' \
+            '### NPM dependency sync' \
+            "$status" "$short_sha" "$commit_url" "$run_url" \
+            '<!-- vaadin-npm-sync:end -->'
+
+          current_body=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.body // ""')
+          updated_body=$(jq -nr --arg body "$current_body" --arg block "$block" '
+            ($body
+              | gsub("(?s)<!-- vaadin-npm-sync:start -->.*?<!-- vaadin-npm-sync:end -->"; "")
+              | sub("[[:space:]]+$"; ""))
+            + "\n\n" + $block
+          ')
+          gh api --method PATCH "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" \
+            --raw-field body="$updated_body" > /dev/null
+      - name: Warn about pull request status failure
+        if: steps.pr-status.outcome == 'failure'
+        run: echo '::warning::Unable to update NPM synchronization block in pull request description.'
+      - name: Report failed generation
+        if: github.event.workflow_run.conclusion != 'success'
+        run: exit 1
       - name: Report synchronized revision
         if: steps.artifact.outputs.id == ''
         env:
@@ -79,6 +141,7 @@ jobs:
             --raw-field 'output[summary]=No generated NPM dependency changes are pending.'
       - name: Checkout exact Dependabot revision
         if: steps.artifact.outputs.id != ''
+        id: checkout
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: ${{ steps.pull-request.outputs.head_sha }}
@@ -86,6 +149,7 @@ jobs:
           persist-credentials: false
       - name: Download generated patch
         if: steps.artifact.outputs.id != ''
+        id: patch-artifact
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: vaadin-npm-sync
@@ -95,6 +159,7 @@ jobs:
           run-id: ${{ github.event.workflow_run.id }}
       - name: Validate and apply patch
         if: steps.artifact.outputs.id != ''
+        id: patch
         env:
           AUTHOR: ${{ steps.pull-request.outputs.author }}
           EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
@@ -129,6 +194,7 @@ jobs:
           private-key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
       - name: Commit and push generated dependencies
         if: steps.artifact.outputs.id != ''
+        id: push
         env:
           APP_TOKEN: ${{ steps.app-token.outputs.token }}
           EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
@@ -139,3 +205,24 @@ jobs:
           git commit -m "chore(npm-deps): update npm dependencies"
           git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push --force-with-lease="${HEAD_REF}:${EXPECTED_HEAD_SHA}" origin "HEAD:${HEAD_REF}"
+      - name: Report generated update application failure
+        if: >-
+          always() && steps.artifact.outputs.id != '' &&
+          (steps.checkout.outcome == 'failure' ||
+           steps.patch-artifact.outcome == 'failure' ||
+           steps.patch.outcome == 'failure' ||
+           steps.app-token.outcome == 'failure' ||
+           steps.push.outcome == 'failure')
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+        run: |
+          current_body=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq '.body // ""')
+          pending='⏳ Generated NPM update; bot commit pending for'
+          failed='❌ Applying generated NPM update failed for'
+          updated_body="${current_body/$pending/$failed}"
+          if [[ "$updated_body" != "$current_body" ]]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" \
+              --raw-field body="$updated_body" > /dev/null
+          fi
