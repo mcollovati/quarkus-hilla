@@ -18,6 +18,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 import java.util.Optional;
 import java.util.Set;
 
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.request.AuthenticationRequest;
@@ -31,6 +32,8 @@ import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
 public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
+    private static final String AUTHENTICATION_MECHANISM_KEY = HttpAuthenticationMechanism.class.getName();
+
     private final Config config;
 
     FormAuthenticationMechanism delegate;
@@ -67,7 +70,13 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
                 }
             });
         }
-        return delegate.authenticate(context, identityProviderManager);
+        Uni<SecurityIdentity> authentication = delegate.authenticate(context, identityProviderManager);
+        // FormAuthenticationMechanism selects itself for challenge handling. Restore this wrapper so TypeScript login
+        // failures pass through getChallenge and are not converted into successful responses.
+        if (ClientProxy.unwrap(context.get(AUTHENTICATION_MECHANISM_KEY)) == ClientProxy.unwrap(delegate)) {
+            context.put(AUTHENTICATION_MECHANISM_KEY, this);
+        }
+        return authentication;
     }
 
     @Override
@@ -75,7 +84,6 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
         if ("typescript".equals(context.request().getHeader("source"))) {
             context.put("typescript-login-failure", true);
         }
-        ;
         return delegate.getChallenge(context);
     }
 
