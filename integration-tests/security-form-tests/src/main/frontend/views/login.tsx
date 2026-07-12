@@ -24,14 +24,13 @@ export default function LoginView() {
       noForgotPassword
       i18n={loginI18n}
       onLogin={async ({ detail: { username, password } }) => {
-        const { defaultUrl, error, redirectUrl } = await login(username, password);
+        const { defaultUrl, error, redirectUrl } = await login(username, password, { navigate: () => undefined });
 
         if (error) {
           loginError.value = true;
         } else {
           const url = redirectUrl ?? defaultUrl ?? '/';
-          const path = new URL(url, document.baseURI).pathname;
-          document.location = path;
+          window.location.replace(new URL(url, document.baseURI));
         }
       }}
     />
