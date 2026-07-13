@@ -161,7 +161,7 @@ class SecurityTest extends AbstractTest {
         login("user", "user");
         appLayout.$("h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
         assertThatMenuHasItems(USER_VIEWS);
-        openForbiddenPage("hilla-admin");
+        openDeniedHillaPage("hilla-admin");
     }
 
     @Test
@@ -206,6 +206,14 @@ class SecurityTest extends AbstractTest {
 
     private void openForbiddenPage(String path) {
         openAndWait(getTestUrl() + path, () -> $("body").shouldHave(text("HTTP ERROR 403")));
+    }
+
+    private void openDeniedHillaPage(String path) {
+        openAndWait(getTestUrl() + path, () -> $("body"));
+        Wait()
+                .until(ignored -> $("body").getText().contains("HTTP ERROR 403")
+                        || $("vaadin-login-overlay").isDisplayed());
+        $("body").shouldNotHave(text(HILLA_ADMIN.toString()));
     }
 
     private void assertThatMenuHasItems(Collection<MenuItem> expectedItems) {

@@ -77,6 +77,19 @@ class FormAuthenticationProtocolTest {
     }
 
     @Test
+    void formLogin_directNavigation_enforcesFlowAndHillaRoles() throws Exception {
+        HttpClient userClient = newClient();
+        assertThat(login(userClient, "user", "user", true).statusCode()).isEqualTo(200);
+        assertStatus(userClient, "/flow-admin", 403);
+        assertStatus(userClient, "/hilla-admin", 403);
+
+        HttpClient adminClient = newClient();
+        assertThat(login(adminClient, "admin", "admin", true).statusCode()).isEqualTo(200);
+        assertStatus(adminClient, "/flow-admin", 200);
+        assertStatus(adminClient, "/hilla-admin", 200);
+    }
+
+    @Test
     void typescriptLogin_savedRequest_returnsOriginalUrlIncludingQuery() throws Exception {
         HttpClient client = newClient();
         assertLoginChallenge(client, "/flow-protected?tab=details");
@@ -155,6 +168,17 @@ class FormAuthenticationProtocolTest {
 
         assertThat(response.statusCode()).isEqualTo(302);
         assertRedirect(response, "/login", null);
+    }
+
+    private void assertStatus(HttpClient client, String path, int expectedStatus)
+            throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(baseUri.resolve(path))
+                .header("Accept", "text/html")
+                .GET()
+                .build();
+        HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+
+        assertThat(response.statusCode()).isEqualTo(expectedStatus);
     }
 
     private HttpResponse<Void> login(HttpClient client, String username, String password, boolean typescript)
