@@ -15,6 +15,7 @@
  */
 package com.github.mcollovati.quarkus.hilla;
 
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,27 +30,46 @@ import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 
 import com.vaadin.hilla.EndpointController;
+import io.quarkus.security.identity.SecurityIdentity;
+import io.smallrye.common.annotation.Blocking;
 import io.smallrye.common.annotation.Identifier;
+import io.vertx.ext.web.RoutingContext;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.springframework.http.ResponseEntity;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
 import com.github.mcollovati.quarkus.hilla.multipart.MultipartRequest;
+import com.github.mcollovati.quarkus.hilla.security.QuarkusSecurityIdentityHolder;
 
 @Path("")
+@Blocking
 public class QuarkusEndpointController {
 
     static final String ENDPOINT_METHODS = "/{endpoint}/{method}";
 
     private final EndpointController delegate;
     private final ObjectMapper objectMapper;
+    private final QuarkusSecurityIdentityHolder identityHolder;
+
+    public QuarkusEndpointController(
+            EndpointController delegate, @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
+        this(delegate, objectMapper, new QuarkusSecurityIdentityHolder(null));
+    }
 
     @Inject
     public QuarkusEndpointController(
-            EndpointController delegate, @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper) {
+            EndpointController delegate,
+            @Identifier("hillaEndpointObjectMapper") ObjectMapper objectMapper,
+            Instance<SecurityIdentity> securityIdentity) {
+        this(delegate, objectMapper, new QuarkusSecurityIdentityHolder(securityIdentity::get));
+    }
+
+    private QuarkusEndpointController(
+            EndpointController delegate, ObjectMapper objectMapper, QuarkusSecurityIdentityHolder identityHolder) {
         this.delegate = delegate;
         this.objectMapper = objectMapper;
+        this.identityHolder = identityHolder;
         QuarkusHillaExtension.markUsed();
     }
 
@@ -72,6 +92,7 @@ public class QuarkusEndpointController {
      *                     called has parameters
      * @param request      the current request which triggers the endpoint call
      * @param response     the current response
+     * @param routingContext the current Vert.x routing context
      * @return execution result as a JSON string or an error message string
      */
     @POST
@@ -82,6 +103,7 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
+            @Context RoutingContext routingContext,
             com.fasterxml.jackson.databind.node.ObjectNode body) {
 
         ObjectNode jackson3Node;
@@ -90,8 +112,11 @@ public class QuarkusEndpointController {
         } else {
             jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body.toString());
         }
-        ResponseEntity<String> endpointResponse =
-                delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
+        ResponseEntity<String> endpointResponse;
+        SecurityIdentity identity = identityHolder.capture(request, routingContext);
+        try (QuarkusSecurityIdentityHolder.IdentityScope ignored = identityHolder.activate(identity)) {
+            endpointResponse = delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
+        }
         return buildResponse(endpointResponse);
     }
 
@@ -100,7 +125,7 @@ public class QuarkusEndpointController {
      * used when there are uploaded files.
      * <p>
      * This method works as
-     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, com.fasterxml.jackson.databind.node.ObjectNode)},
+     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, RoutingContext, com.fasterxml.jackson.databind.node.ObjectNode)},
      * but it also captures the files uploaded in the request.
      *
      * @param endpointName the name of an endpoint to address the calls to, not case
@@ -108,6 +133,7 @@ public class QuarkusEndpointController {
      * @param methodName   the method name to execute on an endpoint, not case sensitive
      * @param request      the current multipart request which triggers the endpoint call
      * @param response     the current response
+     * @param routingContext the current Vert.x routing context
      * @param formData     the multipart form data containing uploaded files
      * @return execution result as a JSON string or an error message string
      * @throws IOException if an I/O error occurs during processing
@@ -121,10 +147,15 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
+            @Context RoutingContext routingContext,
             MultipartFormDataInput formData)
             throws IOException {
-        ResponseEntity<String> endpointResponse = delegate.serveMultipartEndpoint(
-                endpointName, methodName, new MultipartRequest(request, formData), response);
+        ResponseEntity<String> endpointResponse;
+        SecurityIdentity identity = identityHolder.capture(request, routingContext);
+        try (QuarkusSecurityIdentityHolder.IdentityScope ignored = identityHolder.activate(identity)) {
+            endpointResponse = delegate.serveMultipartEndpoint(
+                    endpointName, methodName, new MultipartRequest(request, formData), response);
+        }
         return buildResponse(endpointResponse);
     }
 

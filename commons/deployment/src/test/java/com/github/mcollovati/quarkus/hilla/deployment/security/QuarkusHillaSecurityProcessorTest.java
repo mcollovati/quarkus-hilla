@@ -17,23 +17,31 @@ package com.github.mcollovati.quarkus.hilla.deployment.security;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
+import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
 import io.quarkus.deployment.Capabilities;
 import io.quarkus.deployment.Capability;
-import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
+import io.quarkus.undertow.deployment.FilterBuildItem;
 import io.quarkus.vertx.http.runtime.AuthConfig;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
-import org.jboss.jandex.IndexView;
 import org.junit.jupiter.api.Test;
-
-import com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QuarkusHillaSecurityProcessorTest {
+
+    private static final String HTTP_PERMISSION_NAVIGATION_ACCESS_CHECKER =
+            "com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker";
+    private static final String ANNOTATED_VIEW_ACCESS_CHECKER =
+            "com.github.mcollovati.quarkus.hilla.security.QuarkusAnnotatedViewAccessChecker";
+    private static final String SECURITY_IDENTITY_CAPTURE_FILTER =
+            "com.github.mcollovati.quarkus.hilla.security.QuarkusSecurityIdentityCaptureFilter";
+    private static final String ANNOTATION_CONFIG_MISMATCH_DIAGNOSTICS =
+            "com.github.mcollovati.quarkus.hilla.security.AnnotationConfigMismatchDiagnostics";
 
     @Test
     void hillaSecurityBuildItem_genericSecurityCapability_enablesSecurityExtensionModel() {
@@ -50,13 +58,66 @@ class QuarkusHillaSecurityProcessorTest {
 
         new QuarkusHillaSecurityProcessor()
                 .registerNavigationAccessCheckers(
-                        new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC),
-                        new CombinedIndexBuildItem(IndexView.empty(), IndexView.empty()),
-                        accessCheckers::add);
+                        new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC), accessCheckers::add);
 
         assertThat(accessCheckers.stream().map(item -> item.getAccessChecker().toString()))
-                .contains(QuarkusHttpPermissionNavigationAccessChecker.class.getName())
-                .doesNotContain(AnnotatedViewAccessChecker.class.getName());
+                .contains(HTTP_PERMISSION_NAVIGATION_ACCESS_CHECKER)
+                .doesNotContain(ANNOTATED_VIEW_ACCESS_CHECKER);
+    }
+
+    @Test
+    void registerHillaSecurityPolicy_authEnabledRegistersIdentityCaptureFilter() {
+        List<AdditionalBeanBuildItem> beans = new ArrayList<>();
+        List<FilterBuildItem> filters = new ArrayList<>();
+
+        new QuarkusHillaSecurityProcessor()
+                .registerHillaSecurityPolicy(
+                        new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.OIDC),
+                        beans::add,
+                        filters::add);
+
+        assertThat(filters).singleElement().satisfies(filter -> {
+            assertThat(filter.getFilterClass()).isEqualTo(SECURITY_IDENTITY_CAPTURE_FILTER);
+            assertThat(filter.getMappings()).singleElement().satisfies(mapping -> assertThat(mapping.getMapping())
+                    .isEqualTo("/*"));
+        });
+        assertThat(beans).singleElement().satisfies(bean -> assertThat(bean.getBeanClasses())
+                .contains(ANNOTATION_CONFIG_MISMATCH_DIAGNOSTICS));
+    }
+
+    @Test
+    void registerHillaSecurityPolicy_withoutAuthenticationRegistersNothing() {
+        List<AdditionalBeanBuildItem> beans = new ArrayList<>();
+        List<FilterBuildItem> filters = new ArrayList<>();
+
+        new QuarkusHillaSecurityProcessor()
+                .registerHillaSecurityPolicy(
+                        new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.NONE),
+                        beans::add,
+                        filters::add);
+
+        assertThat(beans).isEmpty();
+        assertThat(filters).isEmpty();
+    }
+
+    @Test
+    void registerAnnotationDiagnostics_withoutAuthenticationRegistersNothing() {
+        List<SyntheticBeanBuildItem> configurations = new ArrayList<>();
+
+        new QuarkusHillaSecurityProcessor()
+                .registerAnnotationConfigMismatchConfiguration(
+                        new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.NONE),
+                        null,
+                        configurations::add);
+
+        assertThat(configurations).isEmpty();
+    }
+
+    @Test
+    void securityProcessor_doesNotRegisterQuarkusHttpSecurityInternalsForReflection() {
+        assertThat(Arrays.stream(QuarkusHillaSecurityProcessor.class.getDeclaredMethods())
+                        .map(method -> method.getName()))
+                .doesNotContain("registerHttpPermissionNavigationReflection");
     }
 
     private static VertxHttpBuildTimeConfig httpBuildTimeConfig(boolean formAuth) {

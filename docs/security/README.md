@@ -7,6 +7,13 @@ in [docs/plans/quarkus-hilla-security-oidc-parity.md](../plans/quarkus-hilla-sec
 
 Status: partially implemented (see [Roadmap](#roadmap-and-known-gaps)).
 
+This end-to-end Quarkus-native security bridge is exclusive to Quarkus-Hilla:
+it covers Flow navigation, Hilla client routes, and browser-callable endpoints.
+The official
+[Vaadin Quarkus extension](https://vaadin.com/docs/latest/flow/integrations/quarkus#limitations)
+is Flow-only and does not support Hilla. Vaadin Flow itself still provides the
+generic navigation-security SPIs used by this integration.
+
 The decisions in this document are formally recorded as ADRs:
 [ADR-0002](../decisions/0002-adopt-quarkus-native-security-integration-guided-by-vaadin-base-guarantees.md)
 (Quarkus-native integration, base guarantees),
@@ -98,9 +105,10 @@ A global Quarkus `HttpSecurityPolicy` that acts as the Vaadin/Hilla bridge for
 direct HTTP requests:
 
 - permits framework-internal requests, public resources, anonymous Hilla
-  endpoints and anonymous Flow/Hilla routes;
-- delegates everything else to `AuthenticatedHttpSecurityPolicy`, i.e. the
-  application is authenticated-by-default at the HTTP level;
+  endpoints and authorized Flow/Hilla routes;
+- denies registered Flow or Hilla client routes when their composed access
+  checks deny, while paths that belong to neither routing model remain owned
+  by Quarkus HTTP/JAX-RS security;
 - never issues challenges itself — authentication challenges remain with the
   active Quarkus mechanism (OIDC redirect, basic header, form redirect).
 
@@ -111,20 +119,21 @@ policy.
 ### 3.3 Navigation layer: `NavigationAccessControl` + checkers
 
 `QuarkusNavigationAccessControl` (extends Vaadin's `NavigationAccessControl`)
-resolves principal and role membership from the Vaadin request, falling back
-to the CDI `SecurityIdentity` (covers push/websocket situations where the
-Vaadin request carries no auth data).
+resolves principal and role membership from a request-captured
+`SecurityIdentity`. For navigation it uses the identity captured after
+application identity augmentors but before transport-path policies, then
+reapplies Quarkus's global role mapping. This prevents roles granted only to
+the `/connect` transport request from leaking into the target route.
 
-Two Vaadin-SPI `NavigationAccessChecker`s are registered:
+One composite Vaadin-SPI `NavigationAccessChecker` is registered:
 
-- **`AnnotatedViewAccessChecker`** (Vaadin stock) — route annotation
-  semantics; registered when the application has security annotations on
-  routes.
 - **`QuarkusHttpPermissionNavigationAccessChecker`** (Quarkus-Hilla) — makes
   Quarkus HTTP permission rules count for router navigation, so a rule like
   `quarkus.http.auth.permission.admin.paths=/admin/*` protects the `/admin`
   route also for client-side navigation, where no HTTP request per route
-  happens. Delegates to `QuarkusAccessPathChecker`.
+  happens. It delegates HTTP evaluation to `QuarkusAccessPathChecker` and
+  then applies Vaadin's annotation semantics through
+  `QuarkusAnnotatedViewAccessChecker`.
 
 #### Tri-state decision design
 
@@ -159,11 +168,13 @@ registers a variant of the annotated checker that returns `NEUTRAL` for views
 active; annotated views keep stock semantics. See ADR-0004 for the full
 composition matrix.
 
-**Documented limitation:** navigation checks evaluate *path-scoped* rules
-only. A user-defined **global** (path-less) `HttpSecurityPolicy` bean is
-enforced by Quarkus on direct HTTP requests but not consulted during
-navigation and can therefore diverge. Accepted for now to bound complexity;
-candidate follow-up ticket.
+All unnamed global `HttpSecurityPolicy` beans are also evaluated for
+synthetic navigation, in Quarkus CDI order. The Hilla bridge policy itself is
+excluded to prevent recursion; named policies remain owned by Quarkus's path
+policy. A denying or failing custom policy fails closed. A permitting global
+policy without a matching path rule does not turn an otherwise unannotated
+route into an explicitly owned route; secure-by-default therefore remains
+intact.
 
 ### 3.4 Path rule evaluation: `QuarkusAccessPathChecker`
 
@@ -173,27 +184,95 @@ real HTTP request. It reuses Quarkus's effective path-matching security policy
 shared permissions, method matching, roles mapping) so that navigation
 decisions cannot drift from direct-request decisions.
 
-> **Interim implementation, scheduled for replacement.** The current
-> implementation reads private fields of
-> `io.quarkus.vertx.http.runtime.security.*` via reflection and evaluates
-> policies against a synthetic `SecurityIdentity`/`RoutingContext`. This is
-> the main known weakness of the design — see decision D7 and the
-> [Roadmap](#roadmap-and-known-gaps).
+The checker invokes Quarkus's actual `PathMatchingHttpSecurityPolicy`; it does
+not reflect private fields and does not replay permission configuration for
+enforcement. A narrow same-package compatibility bridge exposes only the
+package-private operations needed to determine path-specific authentication
+mechanisms, the authoritative path-match marker, the global role mapping and
+the blocking authorization context. This coupling fails at compile time on
+an incompatible Quarkus upgrade instead of silently changing authorization.
+
+The target request receives a synthetic `RoutingContext`, but policy
+evaluation uses the real captured `SecurityIdentity`, including claims,
+credentials and permissions. Authentication is re-run through Quarkus's
+`HttpAuthenticator` for every target path, even without an explicit
+`auth-mechanism` constraint, so path-dependent tenant selection and identity
+augmentors are recomputed. A different or unreproducible principal is denied;
+an identity created by another target mechanism is never reused.
+
+The target context starts with a narrow allowlist rather than copied transport
+state. Global Quarkus role mapping is preserved, but arbitrary
+`RoutingContext.data()`, body and upload state are not. A custom policy that
+depends on state produced by an earlier application handler must reconstruct
+that state for the target or treat its absence as deny. Such policies can
+detect this path through
+`QuarkusAccessPathChecker.SYNTHETIC_NAVIGATION_ATTRIBUTE`. Exact parity cannot
+be claimed for a policy that treats missing target-only state as permit. Missing
+identity, event-loop invocation, policy exceptions and malformed target paths
+fail closed. Path canonicalization delegates to
+`HttpSecurityUtils.normalizePath`.
 
 ### 3.5 Endpoint layer
 
-Hilla `@BrowserCallable` security is annotation-driven and enforced by the
-Hilla endpoint access checker wired to the Quarkus `SecurityIdentity`
-(unannotated methods deny by default — guarantee 4). This layer is
-independent of the navigation layer.
+Hilla `@BrowserCallable` security is annotation-driven and enforced by
+`QuarkusEndpointAccessChecker` against the request-captured transport
+`SecurityIdentity`. The REST controller is explicitly blocking and preserves
+the identity across the REST/Hilla thread boundary. Path-specific role
+augmentation for `/connect` therefore applies to endpoint annotations, while
+unannotated methods remain denied by default (guarantee 4).
+
+Registered Hilla client routes use their `loginRequired`/`rolesAllowed`
+metadata as a separate tri-state check. A registered denial is decisive; a
+path that is neither a Flow nor a Hilla client route remains owned by Quarkus
+HTTP/JAX-RS security instead of receiving a new Hilla-wide default.
+
+The server loads the complete generated Hilla route tree and composes the
+metadata of every layout/ancestor with the leaf route. Matching mirrors React
+Router for required and optional parameters, optional static segments,
+wildcards, parameter suffixes, absolute nested routes, case-insensitive static
+segments, ranking ties and encoded slashes inside parameters. If the complete
+tree cannot be loaded, a path that is still identifiable as a Hilla route is
+denied rather than evaluated from incomplete ancestry metadata.
 
 ### 3.6 Login path for non-form mechanisms
 
-`vaadin.security.login-path` (build & runtime fixed config) tells the
-navigation access control where to send an unauthenticated user on a denied
-navigation when a non-form mechanism (e.g. OIDC) is active. If unset, denied
-anonymous navigations surface as rejections and authentication challenges are
-only triggered by direct HTTP requests.
+`vaadin.security.login-path` is runtime-initialized configuration (read when
+the process starts). It tells the navigation access control where to send an
+unauthenticated user on a denied navigation when a non-form mechanism (e.g.
+OIDC) is active. If unset, denied anonymous navigations surface as rejections
+and authentication challenges are only triggered by direct HTTP requests.
+
+### 3.7 Annotation/configuration composition and diagnostics
+
+For an annotated route or endpoint, effective authorization is always:
+
+`Quarkus HTTP authorization AND Vaadin/Hilla annotation authorization`
+
+Neither layer can weaken the other. In particular, a `permit` HTTP rule never
+overrides `@RolesAllowed` or `@DenyAll`, and an open annotation never overrides
+a stricter HTTP policy. A completely unannotated Flow route may instead be
+owned by a matching Quarkus HTTP permission; with neither a matching rule nor
+an annotation it remains denied by default.
+
+`vaadin.security.annotation-config-mismatch=off|warn|fail` controls a
+startup diagnostic, not authorization precedence. The default is `warn`.
+`fail` aborts startup only for a mismatch that can be proven from the static
+permission configuration. Configured custom policies, role augmentation,
+authentication-mechanism constraints and parameterized routes are reported as
+unverified and never treated as proven failures. Programmatic and unnamed
+global policies are outside this static comparison because they cannot be
+enumerated without replaying application code; enforcement still evaluates
+the authoritative Quarkus policies. This makes deployment-time policy changes
+visible without introducing a configuration switch that can silently override
+code security invariants.
+
+The startup comparison currently inventories Flow routes. Hilla endpoint
+method annotations are enforced conjunctively at request time, but are not yet
+included in the static mismatch report.
+
+Here, runtime configuration means that operators can choose the value per
+application start or deployment. It is not a promise that authorization rules
+are hot-reloaded safely inside an already running process.
 
 ## 4. Design decisions
 
@@ -232,29 +311,26 @@ integration — public paths now need `@AnonymousAllowed` routes/endpoints or
 explicit permit rules. An opt-out configuration switch and migration notes
 are planned (see roadmap).
 
-**D7 — Reflection-based rule evaluation is interim; move to public contracts
-and upstream API.** Target state, in order of preference:
+**D7 — Reuse authoritative Quarkus policies through a narrow compatibility
+bridge; pursue an upstream public evaluator.** The implementation:
 
-1. **Upstream Quarkus evaluator API.** File a feature request / draft PR at
-   quarkusio/quarkus for a public equivalent of Spring's
+1. Invokes the actual Quarkus path and unnamed global policies with the real
+   target-reauthenticated identity and a sanitized target request context.
+2. Isolates package-private Quarkus access in
+   `QuarkusHillaSecurityBridge`; it uses no reflection or private-field model.
+3. Fails closed when exact evaluation is unavailable and verifies direct vs.
+   synthetic parity in integration tests.
+4. Still targets an upstream Quarkus equivalent of Spring's
    `WebInvocationPrivilegeEvaluator`, roughly
    `CheckResult evaluate(String path, String method, SecurityIdentity identity)`
-   with `PERMIT`/`DENY`/`NO_MATCH`. Quarkus owns matcher and policies, can
-   evaluate with the real identity, and the need is generic for any UI
-   framework on Quarkus (Spring precedent: Thymeleaf `sec:authorize-url`).
-2. **Until then: build the rule model from public contracts only** —
-   `quarkus.http.auth.permission.*`/`policy.*` config (public contract),
-   observing the `HttpSecurity` event to capture programmatic rules (public
-   API), resolving named `HttpSecurityPolicy` beans via CDI (public), and
-   evaluating custom policies with the *real request-scoped*
-   `SecurityIdentity` (never a synthetic one). Anything not representable
-   fails closed.
-3. `QuarkusAccessPathChecker` stays the seam: when the upstream API lands,
-   the internal model becomes a delegation and is deleted.
+   with `PERMIT`/`DENY`/`NO_MATCH`.
+5. Keeps `QuarkusAccessPathChecker` as the seam so the compatibility bridge
+   can become an upstream delegation when that API exists.
 
-Drift risk against Quarkus matching semantics is handled by a parity test
-suite that runs every scenario twice — as a direct HTTP request and through
-the navigation checker — plus a Quarkus version matrix in CI.
+**D8 — Configuration and annotations compose conjunctively.** Runtime
+configuration can tighten or add policy for unannotated routes, but cannot
+silently weaken code annotations. Mismatch handling is diagnostic only
+(`off|warn|fail`); there is intentionally no "configuration wins" override.
 
 ## 5. Spring ↔ Quarkus compatibility matrix
 
@@ -265,8 +341,8 @@ why:
 |---|---|---|---|
 | `VaadinSecurityConfigurer` / `SpringSecurityAutoConfiguration` | Wire Vaadin into Spring Security's `HttpSecurity`, permit framework paths, login view | `QuarkusHillaSecurityProcessor` + `HillaSecurityPolicy` | ✅ Equivalent, Quarkus build steps + global `HttpSecurityPolicy` |
 | `SpringNavigationAccessControl` | Principal/roles from Spring `SecurityContext` | `QuarkusNavigationAccessControl` | ✅ Equivalent, based on `SecurityIdentity` |
-| `AnnotatedViewAccessChecker` (flow-server) | Route annotation security | Same class, registered by the extension | ✅ Shared Vaadin SPI |
-| `SpringAccessPathChecker` (via `WebInvocationPrivilegeEvaluator`) | "Would this URL be allowed?" for navigation | `QuarkusAccessPathChecker` + `QuarkusHttpPermissionNavigationAccessChecker` | ⚠️ Equivalent intent; interim reflection-based implementation, see D7. Tri-state instead of boolean by design (D4) |
+| `AnnotatedViewAccessChecker` (flow-server) | Route annotation security | `QuarkusAnnotatedViewAccessChecker`, delegating annotated cases to Vaadin | ✅ Vaadin semantics; unannotated routes stay neutral for HTTP-rule composition |
+| `SpringAccessPathChecker` (via `WebInvocationPrivilegeEvaluator`) | "Would this URL be allowed?" for navigation | `QuarkusAccessPathChecker` + `QuarkusHttpPermissionNavigationAccessChecker` | ✅ Equivalent intent using authoritative Quarkus policies; narrow compile-time compatibility bridge until a public Quarkus evaluator exists. Tri-state instead of boolean by design (D4) |
 | `WebIconsRequestMatcher` | Permit icon/PWA resources | Ported (`WebIconsRequestMatcher`) | ✅ Runtime-agnostic Vaadin mechanics |
 | `AuthenticationContext` | Injectable app API: current user, `logout()`, listeners | Planned: thin CDI helper over `SecurityIdentity` + Quarkus logout | 🔜 Same need (UI-thread logout, guarantee 6), Quarkus-idiomatic API instead of a port |
 | `SpringMenuAccessControl` | Filter client menu/routes by access | Planned: `MenuAccessControl` implementation on `SecurityIdentity` | 🔜 Missing; small, high user-visible value |
@@ -296,6 +372,7 @@ Conceptual mapping for developers coming from `VaadinWebSecurity` /
 | `VaadinStatelessSecurityConfigurer` | Not needed — Quarkus auth is cookie/token-based, see matrix |
 | Session-based CSRF (Spring) | Hilla CSRF token handling built into the extension |
 | `@EnableWebSecurity` debug etc. | `quarkus.log.category."io.quarkus.vertx.http.runtime.security".level=DEBUG` |
+| Conflicting code annotation and deployment rule | Effective access is the conjunction; configure `vaadin.security.annotation-config-mismatch=warn` (default), `fail`, or `off` for startup diagnostics |
 
 Behavioral differences to be aware of:
 
@@ -308,48 +385,47 @@ Behavioral differences to be aware of:
 - **Sparse rules:** in Quarkus, a path without any matching permission is not
   an implicit deny at the HTTP layer. The navigation layer, however, stays
   deny-by-default (guarantee 1) — protect routes with annotations or rules.
+- **Annotations and configuration:** both apply. Configuration is runtime
+  deployable and may tighten policy or own an unannotated route, but does not
+  override `@DenyAll`, `@RolesAllowed`, `@PermitAll` or `@AnonymousAllowed`.
 
 ## 7. Roadmap and known gaps
 
-Tracked outcomes of the 2026-07 security review (Claude + Codex adversarial):
+Completed outcomes of the 2026-07 security review:
 
-1. **Replace synthetic `SecurityIdentity`** in `QuarkusAccessPathChecker` with
-   the real request-scoped identity; fail closed for identity state that is
-   not available (claims via `getAttribute`, credentials, permission checks).
-   Without this, custom policies that inspect claims or the role *set* can
-   silently invert during navigation (review finding, high).
-2. **Remove reflection on Quarkus internals** per D7 (public-contract model,
-   upstream evaluator API issue at quarkusio/quarkus). Until removal: fail-fast
-   startup validation of the reflected fields + Quarkus version-matrix CI job.
-3. **Path canonicalization parity** with Quarkus (`HttpSecurityUtils`-style
-   percent-decoding, dot segments, backslashes) before matching.
-4. **`quarkus.http.root-path` awareness** — permission paths are root-path
-   relative, `Location.getPath()` is not; non-default root paths currently
-   bypass the navigation checker (silent `NO_MATCH`).
-5. **Opt-out switch + migration notes** for the secure-by-default activation
+- Real request identity capture across HTTP, servlet, Flow and Hilla endpoint
+  boundaries; transport-only role augmentation is isolated from target
+  navigation and global role mapping is reapplied.
+- Reflection-free enforcement through the actual Quarkus path policy and all
+  unnamed global policies, with fail-closed custom-policy behavior.
+- Quarkus path canonicalization, method semantics, root-path-aware matching
+  and path-specific authentication-mechanism enforcement.
+- Full Hilla client-route hierarchy enforcement, including protected layouts,
+  parameterized and encoded routes, React-compatible matching/ranking and
+  fail-closed handling of incomplete route metadata.
+- Neutral-on-unannotated annotation composition and direct/navigation parity
+  for config-only routes.
+- Startup mismatch diagnostics (`off|warn|fail`) with conservative static
+  analysis and no authorization override.
+- OIDC development and production parity tests, including encoded paths,
+  invalid credentials, `@DenyAll`, conflicting roles, global and path role
+  augmentation, global policies, Hilla client-route metadata, target-path
+  reauthentication, cross-mechanism isolation and non-default HTTP root paths.
+
+Remaining roadmap:
+
+1. **Opt-out switch + migration notes** for the secure-by-default activation
    on non-form models (D6).
-6. **`MenuAccessControl` implementation** (guarantee 7).
-7. **`AuthenticationContext`-style CDI helper** (current user, logout from UI
+2. **`MenuAccessControl` implementation** (guarantee 7).
+3. **`AuthenticationContext`-style CDI helper** (current user, logout from UI
    thread).
-8. **`UidlRedirectStrategy` equivalent** for challenge/logout during
+4. **`UidlRedirectStrategy` equivalent** for challenge/logout during
    UIDL/push (guarantee 6).
-9. **Parity test suite** (same scenario via HTTP and via navigation checker)
-   and guarantee-based acceptance tests for section 2. Parity assertions must
-   run through the full `NavigationAccessControl` (both checkers + resolver),
-   not the HTTP-permission checker in isolation.
-10. Cleanup: remove the now-unused `AuthFormBuildItem`.
-11. **Annotation-checker composition variant** — neutral-on-unannotated
-    `AnnotatedViewAccessChecker` variant + registration, so routes protected
-    only by HTTP permission rules work through navigation (ADR-0004
-    composition matrix; includes direct `GET` + navigation tests for the
-    permission-only route).
-12. **Policy-name diagnostics** — `ALLOW` and `DENY` results report *all*
-    matched policy names; `DENY` additionally marks the denying policy.
-    Enforcement short-circuits on the first deny (Quarkus semantics); in dev
-    mode / with debug logging the remaining matched policies are evaluated
-    best-effort so *all* denying policies are reported at once (no
-    fix-one-deny-hit-the-next loops). Production reports the matched list and
-    the first denier only.
-13. *(Candidate follow-up ticket, accepted limitation for now)* evaluate
-    user-defined global (path-less) `HttpSecurityPolicy` beans during
-    navigation to close the remaining divergence with direct HTTP requests.
+5. **Upstream public evaluator API** in Quarkus, replacing the narrow
+   same-package compatibility bridge.
+6. **Policy-name diagnostics** that report all matched policies while
+   preserving Quarkus short-circuit enforcement semantics.
+7. **Guarantee-suite completion** for menu filtering, UIDL-aware redirects
+   and push identity.
+8. **Synthetic target-context extension point** for applications whose custom
+   policies require safe reconstruction of handler-produced request state.

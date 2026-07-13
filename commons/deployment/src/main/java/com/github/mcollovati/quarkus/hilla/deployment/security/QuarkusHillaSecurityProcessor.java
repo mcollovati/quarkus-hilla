@@ -15,17 +15,12 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
-import jakarta.annotation.security.DenyAll;
-import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Singleton;
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import com.vaadin.flow.router.Route;
-import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -39,24 +34,28 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
-import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.undertow.deployment.FilterBuildItem;
 import io.quarkus.vertx.http.deployment.SecurityInformationBuildItem;
 import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
-import org.eclipse.microprofile.config.ConfigProvider;
-import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 
+import com.github.mcollovati.quarkus.hilla.security.AnnotationConfigMismatchDiagnostics;
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
-import com.github.mcollovati.quarkus.hilla.security.QuarkusAccessPathChecker;
-import com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
+import com.github.mcollovati.quarkus.hilla.security.QuarkusSecurityIdentityAugmentor;
+import com.github.mcollovati.quarkus.hilla.security.QuarkusSecurityIdentityCaptureFilter;
+import com.github.mcollovati.quarkus.hilla.security.VaadinSecurityRuntimeConfiguration;
 
 class QuarkusHillaSecurityProcessor {
+
+    private static final String QUARKUS_ACCESS_PATH_CHECKER =
+            "com.github.mcollovati.quarkus.hilla.security.QuarkusAccessPathChecker";
+    private static final String QUARKUS_HTTP_PERMISSION_NAVIGATION_ACCESS_CHECKER =
+            "com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker";
 
     @BuildStep
     HillaSecurityBuildItem hillaSecurityBuildItem(
@@ -76,14 +75,30 @@ class QuarkusHillaSecurityProcessor {
 
     @BuildStep
     void registerHillaSecurityPolicy(
-            HillaSecurityBuildItem hillaSecurity, BuildProducer<AdditionalBeanBuildItem> beans) {
-        if (hillaSecurity.isAuthEnabled()) {
-            beans.produce(AdditionalBeanBuildItem.builder()
-                    .addBeanClasses(HillaSecurityPolicy.class, EndpointUtil.class, QuarkusAccessPathChecker.class)
-                    .setDefaultScope(DotNames.APPLICATION_SCOPED)
-                    .setUnremovable()
-                    .build());
+            HillaSecurityBuildItem hillaSecurity,
+            BuildProducer<AdditionalBeanBuildItem> beans,
+            BuildProducer<FilterBuildItem> filters) {
+        if (!hillaSecurity.isAuthEnabled()) {
+            return;
         }
+        AdditionalBeanBuildItem.Builder securityBeans = AdditionalBeanBuildItem.builder()
+                .addBeanClass(AnnotationConfigMismatchDiagnostics.class)
+                .setDefaultScope(DotNames.APPLICATION_SCOPED)
+                .setUnremovable();
+        securityBeans
+                .addBeanClasses(
+                        HillaSecurityPolicy.class,
+                        EndpointUtil.class,
+                        QuarkusSecurityIdentityCaptureFilter.class,
+                        QuarkusSecurityIdentityAugmentor.class)
+                .addBeanClass(QUARKUS_ACCESS_PATH_CHECKER);
+        filters.produce(FilterBuildItem.builder(
+                        QuarkusSecurityIdentityCaptureFilter.class.getName(),
+                        QuarkusSecurityIdentityCaptureFilter.class.getName())
+                .setAsyncSupported(true)
+                .addFilterUrlMapping("/*", DispatcherType.REQUEST)
+                .build());
+        beans.produce(securityBeans.build());
     }
 
     @BuildStep
@@ -122,12 +137,35 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void configureNavigationAccessControl(
+            HillaSecurityBuildItem hillaSecurity,
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer,
             Optional<NavigationAccessControlBuildItem> navigationAccessControlBuildItem) {
-        navigationAccessControlBuildItem
-                .map(NavigationAccessControlBuildItem::getLoginPath)
-                .ifPresent(loginPath -> recorder.configureNavigationAccessControl(beanContainer.getValue(), loginPath));
+        if (hillaSecurity.isAuthEnabled()) {
+            recorder.configureNavigationAccessControl(
+                    beanContainer.getValue(),
+                    navigationAccessControlBuildItem
+                            .map(NavigationAccessControlBuildItem::getLoginPath)
+                            .orElse(null),
+                    hillaSecurity.isFormAuthEnabled());
+        }
+    }
+
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void registerAnnotationConfigMismatchConfiguration(
+            HillaSecurityBuildItem hillaSecurity,
+            HillaSecurityRecorder recorder,
+            BuildProducer<SyntheticBeanBuildItem> producer) {
+        if (!hillaSecurity.isAuthEnabled()) {
+            return;
+        }
+        producer.produce(SyntheticBeanBuildItem.configure(VaadinSecurityRuntimeConfiguration.class)
+                .setRuntimeInit()
+                .scope(Singleton.class)
+                .unremovable()
+                .supplier(recorder.setupRuntimeSecurityConfiguration())
+                .done());
     }
 
     @BuildStep
@@ -146,26 +184,9 @@ class QuarkusHillaSecurityProcessor {
     }
 
     @BuildStep
-    void registerHttpPermissionNavigationReflection(
-            HillaSecurityBuildItem hillaSecurity, BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
-        if (hillaSecurity.isAuthEnabled()) {
-            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(
-                            "io.quarkus.vertx.http.runtime.security.AbstractPathMatchingHttpSecurityPolicy",
-                            "io.quarkus.vertx.http.runtime.security.AbstractPathMatchingHttpSecurityPolicy$HttpMatcher",
-                            "io.quarkus.vertx.http.runtime.security.HttpSecurityConfiguration",
-                            "io.quarkus.vertx.http.runtime.security.RolesAllowedHttpSecurityPolicy",
-                            "io.quarkus.vertx.http.runtime.security.RolesMapping")
-                    .fields()
-                    .build());
-        }
-    }
-
-    @BuildStep
     void registerNavigationAccessControl(
             HillaSecurityBuildItem hillaSecurity,
-            CombinedIndexBuildItem index,
             BuildProducer<AdditionalBeanBuildItem> beans,
-            BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
         if (hillaSecurity.isAuthEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
@@ -175,27 +196,18 @@ class QuarkusHillaSecurityProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-            registerNavigationAccessCheckers(hillaSecurity, index, accessCheckerProducer);
-
-            navigationLoginPath(hillaSecurity)
-                    .map(NavigationAccessControlBuildItem::new)
-                    .ifPresent(accessControlProducer::produce);
+            registerNavigationAccessCheckers(hillaSecurity, accessCheckerProducer);
         }
     }
 
     void registerNavigationAccessCheckers(
             HillaSecurityBuildItem hillaSecurity,
-            CombinedIndexBuildItem index,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
         if (!hillaSecurity.isAuthEnabled()) {
             return;
         }
-        if (hasSecuredRoutes(index)) {
-            accessCheckerProducer.produce(
-                    new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
-        }
         accessCheckerProducer.produce(new NavigationAccessCheckerBuildItem(
-                DotName.createSimple(QuarkusHttpPermissionNavigationAccessChecker.class)));
+                DotName.createSimple(QUARKUS_HTTP_PERMISSION_NAVIGATION_ACCESS_CHECKER)));
     }
 
     private static HillaSecurityBuildItem.SecurityModel toSecurityModel(
@@ -231,23 +243,5 @@ class QuarkusHillaSecurityProcessor {
             return HillaSecurityBuildItem.SecurityModel.SECURITY_EXTENSION;
         }
         return HillaSecurityBuildItem.SecurityModel.NONE;
-    }
-
-    private Optional<String> navigationLoginPath(HillaSecurityBuildItem hillaSecurity) {
-        if (hillaSecurity.isFormAuthEnabled()) {
-            return ConfigProvider.getConfig().getOptionalValue("quarkus.http.auth.form.login-page", String.class);
-        }
-        return ConfigProvider.getConfig().getOptionalValue("vaadin.security.login-path", String.class);
-    }
-
-    private boolean hasSecuredRoutes(CombinedIndexBuildItem indexBuildItem) {
-        Set<DotName> securityAnnotations = Set.of(
-                DotName.createSimple(DenyAll.class.getName()),
-                DotName.createSimple(AnonymousAllowed.class.getName()),
-                DotName.createSimple(RolesAllowed.class.getName()),
-                DotName.createSimple(PermitAll.class.getName()));
-        return indexBuildItem.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
-                .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
-                .anyMatch(securityAnnotations::contains);
     }
 }

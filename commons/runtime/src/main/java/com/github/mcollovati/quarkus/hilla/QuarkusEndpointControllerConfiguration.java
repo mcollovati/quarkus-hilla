@@ -47,6 +47,7 @@ import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
 import com.vaadin.quarkus.annotation.VaadinServiceEnabled;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.arc.Unremovable;
+import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.common.annotation.Identifier;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.context.ManagedExecutor;
@@ -54,6 +55,8 @@ import org.springframework.context.ApplicationContext;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
+
+import com.github.mcollovati.quarkus.hilla.security.QuarkusEndpointAccessChecker;
 
 @Unremovable
 class QuarkusEndpointControllerConfiguration {
@@ -74,8 +77,9 @@ class QuarkusEndpointControllerConfiguration {
     @Produces
     @Singleton
     @DefaultBean
-    EndpointAccessChecker accessChecker(AccessAnnotationChecker accessAnnotationChecker) {
-        return new EndpointAccessChecker(accessAnnotationChecker);
+    EndpointAccessChecker accessChecker(
+            AccessAnnotationChecker accessAnnotationChecker, Instance<SecurityIdentity> securityIdentity) {
+        return new QuarkusEndpointAccessChecker(accessAnnotationChecker, securityIdentity);
     }
 
     /**

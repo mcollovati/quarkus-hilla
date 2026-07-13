@@ -92,6 +92,24 @@ class FormAuthenticationProtocolTest {
     }
 
     @Test
+    void typescriptLogin_publicAssetDoesNotReplaceSavedRequest() throws Exception {
+        HttpClient client = newClient();
+        assertLoginChallenge(client, "/flow-protected?tab=details");
+
+        HttpRequest assetRequest = HttpRequest.newBuilder(baseUri.resolve("images/empty-plant.png"))
+                .GET()
+                .build();
+        HttpResponse<Void> assetResponse = client.send(assetRequest, HttpResponse.BodyHandlers.discarding());
+        assertThat(assetResponse.statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = login(client, "user", "user", true);
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.headers().firstValue("Saved-url"))
+                .hasValueSatisfying(savedUrl -> assertUri(savedUrl, "/flow-protected", "tab=details"));
+    }
+
+    @Test
     void typescriptLogin_invalidThenValid_preservesSavedRequestIncludingQuery() throws Exception {
         HttpClient client = newClient();
         assertLoginChallenge(client, "/flow-protected?tab=details");

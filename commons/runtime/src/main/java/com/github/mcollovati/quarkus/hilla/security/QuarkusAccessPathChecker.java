@@ -15,72 +15,100 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.security.Permission;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
-import io.quarkus.security.credential.Credential;
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.security.spi.runtime.BlockingSecurityExecutor;
 import io.quarkus.vertx.http.runtime.security.AbstractPathMatchingHttpSecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.DenySecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.HttpSecurityConfiguration;
+import io.quarkus.vertx.http.runtime.security.HttpAuthenticator;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
+import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils;
 import io.quarkus.vertx.http.runtime.security.PathMatchingHttpSecurityPolicy;
-import io.quarkus.vertx.http.runtime.security.RolesMapping;
+import io.quarkus.vertx.http.runtime.security.QuarkusHillaSecurityBridge;
+import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.Context;
 import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
+import io.vertx.ext.auth.User;
 import io.vertx.ext.web.RoutingContext;
+import org.jboss.logging.Logger;
 
 /**
- * Low-level Quarkus HTTP permission path checker for Vaadin route navigation.
- * <p>
- * This checker reuses Quarkus's effective path matching security policy, which
- * already includes runtime configuration, {@code HttpSecurity} observer
- * permissions, named {@link HttpSecurityPolicy} beans, shared permissions, and
- * the method matching rules used for direct HTTP requests. A missing path match
- * is represented as {@link Decision#NO_MATCH}, so callers can combine the
- * result with other access checks without turning absence of a Quarkus rule into
- * an allow or deny.
+ * Evaluates synthetic Vaadin navigation requests against the authoritative
+ * Quarkus HTTP security policies.
  */
 public class QuarkusAccessPathChecker {
 
-    private static final String NAVIGATION_METHOD = "GET";
-    private static final Field HAS_NO_PERMISSIONS =
-            field(AbstractPathMatchingHttpSecurityPolicy.class, "hasNoPermissions");
-    private static final Field PATH_MATCHER = field(AbstractPathMatchingHttpSecurityPolicy.class, "pathMatcher");
-    private static final Field SHARED_PERMISSION_PATH_MATCHERS =
-            field(AbstractPathMatchingHttpSecurityPolicy.class, "sharedPermissionsPathMatchers");
-    private static final Field HTTP_MATCHER_METHODS = field(httpMatcherClass(), "methods");
-    private static final Field HTTP_MATCHER_CHECKER = field(httpMatcherClass(), "checker");
-    private static final Field ROLES_ALLOWED =
-            field("io.quarkus.vertx.http.runtime.security.RolesAllowedHttpSecurityPolicy", "rolesAllowed");
-    private static final Field ROLE_TO_ROLES =
-            field("io.quarkus.vertx.http.runtime.security.RolesMapping", "roleToRoles");
-    private static final Field HTTP_SECURITY_CONFIGURATION_INSTANCE =
-            field(HttpSecurityConfiguration.class, "instance");
-    private static final Field HTTP_SECURITY_CONFIGURATION_ROLES_MAPPING =
-            field(HttpSecurityConfiguration.class, "rolesMapping");
-    private static final HttpSecurityPolicy.AuthorizationRequestContext DIRECT_REQUEST_CONTEXT =
-            (context, identity, function) -> identity.map(identityValue -> function.apply(context, identityValue));
+    /**
+     * Routing-context marker exposed to custom policies while they evaluate a
+     * synthetic navigation target.
+     */
+    public static final String SYNTHETIC_NAVIGATION_ATTRIBUTE =
+            QuarkusAccessPathChecker.class.getName() + ".synthetic-navigation";
 
-    private final transient AbstractPathMatchingHttpSecurityPolicy pathMatchingPolicy;
+    private static final Logger LOGGER = Logger.getLogger(QuarkusAccessPathChecker.class);
+    private static final String NAVIGATION_METHOD = "GET";
+
+    private final transient QuarkusSecurityIdentityHolder identityHolder;
+    private final transient List<HttpSecurityPolicy> globalPolicies;
+    private final transient PathMatchingHttpSecurityPolicy pathMatchingPolicy;
+    private final transient HttpAuthenticator httpAuthenticator;
+    private final transient HttpSecurityPolicy.AuthorizationRequestContext authorizationRequestContext;
+    private final transient Supplier<VaadinSecurityRuntimeConfiguration> runtimeConfiguration;
 
     @Inject
-    public QuarkusAccessPathChecker(PathMatchingHttpSecurityPolicy pathMatchingPolicy) {
+    public QuarkusAccessPathChecker(
+            Instance<SecurityIdentity> securityIdentity,
+            Instance<HttpSecurityPolicy> installedPolicies,
+            PathMatchingHttpSecurityPolicy pathMatchingPolicy,
+            HttpAuthenticator httpAuthenticator,
+            BlockingSecurityExecutor blockingSecurityExecutor,
+            Instance<VaadinSecurityRuntimeConfiguration> runtimeConfiguration) {
+        this(
+                new QuarkusSecurityIdentityHolder(securityIdentity::get),
+                globalPolicies(installedPolicies, pathMatchingPolicy),
+                pathMatchingPolicy,
+                httpAuthenticator,
+                QuarkusHillaSecurityBridge.authorizationRequestContext(blockingSecurityExecutor),
+                runtimeConfiguration::get);
+    }
+
+    QuarkusAccessPathChecker(
+            QuarkusSecurityIdentityHolder identityHolder,
+            List<HttpSecurityPolicy> globalPolicies,
+            PathMatchingHttpSecurityPolicy pathMatchingPolicy,
+            HttpAuthenticator httpAuthenticator,
+            HttpSecurityPolicy.AuthorizationRequestContext authorizationRequestContext,
+            Supplier<VaadinSecurityRuntimeConfiguration> runtimeConfiguration) {
+        this.identityHolder = identityHolder;
+        this.globalPolicies = List.copyOf(globalPolicies);
         this.pathMatchingPolicy = pathMatchingPolicy;
+        this.httpAuthenticator = httpAuthenticator;
+        this.authorizationRequestContext = authorizationRequestContext;
+        this.runtimeConfiguration = runtimeConfiguration;
+        LOGGER.debugf(
+                "Synthetic Vaadin navigation will evaluate Quarkus HTTP policies %s",
+                this.globalPolicies.stream()
+                        .map(QuarkusAccessPathChecker::policyDescription)
+                        .toList());
     }
 
     public AccessCheck check(String path, Principal principal, Predicate<String> roleChecker) {
@@ -88,344 +116,377 @@ public class QuarkusAccessPathChecker {
     }
 
     public AccessCheck check(String path, String method, Principal principal, Predicate<String> roleChecker) {
-        if (hasNoPermissions()) {
-            return AccessCheck.noMatch();
+        TargetRequest targetRequest = targetRequest(runtimeConfiguration.get().resolveApplicationPath(path), method);
+        if (!targetRequest.valid()) {
+            return AccessCheck.deny("invalid path: " + targetRequest.diagnostic(), null);
+        }
+        if (Context.isOnEventLoopThread()) {
+            LOGGER.warnf(
+                    "Synthetic HTTP permission evaluation for %s %s was requested on an event-loop thread; "
+                            + "denying before invoking application policies",
+                    targetRequest.method(), targetRequest.path());
+            return AccessCheck.deny("synthetic navigation policy evaluation on event-loop", null);
         }
 
-        String normalizedPath = removeMatrixParameters(PathUtil.ensureSlashBegin(path));
-        String requestMethod = method == null ? NAVIGATION_METHOD : method;
-        List<HttpSecurityPolicy> matchingPolicies = matchingPolicies(normalizedPath, requestMethod);
-
-        if (matchingPolicies.isEmpty()) {
-            return AccessCheck.noMatch();
+        SecurityIdentity transportIdentity = identityHolder.currentIdentity();
+        SecurityIdentity baseIdentity = identityHolder.currentNavigationIdentity();
+        AccessCheck identityFailure = validateIdentity(principal, transportIdentity, baseIdentity);
+        if (identityFailure != null) {
+            return identityFailure;
         }
 
-        RoutingContext routingContext = routingContext(normalizedPath, requestMethod);
-        RolesMapping rolesMapping = rolesMapping();
-        SecurityIdentity securityIdentity =
-                securityIdentity(principal, roleChecker, candidateRoles(matchingPolicies, rolesMapping));
-        if (rolesMapping != null) {
-            securityIdentity = rolesMapping.apply(securityIdentity);
-        }
-        for (HttpSecurityPolicy policy : matchingPolicies) {
-            HttpSecurityPolicy.CheckResult checkResult = checkPolicy(policy, routingContext, securityIdentity);
-            if (!checkResult.isPermitted()) {
-                return new AccessCheck(Decision.DENY, policyDescription(policy));
-            }
-            if (checkResult.getAugmentedIdentity() != null) {
-                securityIdentity = checkResult.getAugmentedIdentity();
-            }
-        }
-        return new AccessCheck(Decision.ALLOW, policyDescription(matchingPolicies.get(0)));
-    }
-
-    private List<HttpSecurityPolicy> matchingPolicies(String path, String method) {
-        List<HttpSecurityPolicy> result = new ArrayList<>();
-        List<ImmutablePathMatcher<List<Object>>> sharedMatchers = sharedPathMatchers();
-        if (sharedMatchers != null) {
-            for (ImmutablePathMatcher<List<Object>> sharedMatcher : sharedMatchers) {
-                result.addAll(findPolicies(sharedMatcher, path, method));
-            }
-        }
-        result.addAll(findPolicies(pathMatcher(), path, method));
-        return result;
-    }
-
-    private List<HttpSecurityPolicy> findPolicies(
-            ImmutablePathMatcher<List<Object>> pathMatcher, String path, String method) {
-        List<Object> matchers = pathMatcher.match(path).getValue();
-        if (matchers == null || matchers.isEmpty()) {
-            return List.of();
+        RoutingContext transportContext = HttpSecurityUtils.getRoutingContextAttribute(transportIdentity);
+        if (transportContext == null) {
+            return AccessCheck.deny("request RoutingContext unavailable", baseIdentity);
         }
 
-        List<HttpSecurityPolicy> methodMatches = new ArrayList<>();
-        List<HttpSecurityPolicy> noMethod = new ArrayList<>();
-        for (Object matcher : matchers) {
-            Set<String> methods = methods(matcher);
-            if (methods == null || methods.isEmpty()) {
-                noMethod.add(checker(matcher));
-            } else if (methods.contains(method)) {
-                methodMatches.add(checker(matcher));
-            }
-        }
-        if (!methodMatches.isEmpty()) {
-            return methodMatches;
-        }
-        if (!noMethod.isEmpty()) {
-            return noMethod;
-        }
-        return List.of(DenySecurityPolicy.INSTANCE);
-    }
+        RoutingContext targetContext = routingContext(targetRequest, transportContext, baseIdentity);
+        QuarkusHillaSecurityBridge.prepareTargetAuthentication(targetContext, pathMatchingPolicy);
+        Set<String> requiredMechanisms =
+                QuarkusHillaSecurityBridge.requiredAuthenticationMechanisms(pathMatchingPolicy, targetContext);
 
-    private HttpSecurityPolicy.CheckResult checkPolicy(
-            HttpSecurityPolicy policy, RoutingContext routingContext, SecurityIdentity securityIdentity) {
         try {
-            return policy.checkPermission(
-                            routingContext, Uni.createFrom().item(securityIdentity), DIRECT_REQUEST_CONTEXT)
+            SecurityIdentity targetIdentity = httpAuthenticator
+                    .attemptAuthentication(targetContext)
                     .await()
                     .indefinitely();
-        } catch (RuntimeException exception) {
-            UnsupportedOperationException unsupported = findCause(exception, UnsupportedOperationException.class);
-            if (unsupported != null) {
-                throw new IllegalStateException(
-                        "HTTP security policy %s cannot be evaluated during Vaadin navigation because it requires "
-                                + "request or identity state that is unavailable outside a real HTTP request: %s"
-                                        .formatted(policyDescription(policy), unsupported.getMessage()),
-                        exception);
-            }
-            throw exception;
-        }
-    }
-
-    private boolean hasNoPermissions() {
-        return get(HAS_NO_PERMISSIONS, pathMatchingPolicy);
-    }
-
-    @SuppressWarnings("unchecked")
-    private ImmutablePathMatcher<List<Object>> pathMatcher() {
-        return (ImmutablePathMatcher<List<Object>>) get(PATH_MATCHER, pathMatchingPolicy);
-    }
-
-    @SuppressWarnings("unchecked")
-    private List<ImmutablePathMatcher<List<Object>>> sharedPathMatchers() {
-        return (List<ImmutablePathMatcher<List<Object>>>) get(SHARED_PERMISSION_PATH_MATCHERS, pathMatchingPolicy);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Set<String> methods(Object matcher) {
-        return (Set<String>) get(HTTP_MATCHER_METHODS, matcher);
-    }
-
-    private static HttpSecurityPolicy checker(Object matcher) {
-        return get(HTTP_MATCHER_CHECKER, matcher);
-    }
-
-    private static RolesMapping rolesMapping() {
-        Object configuration = get(HTTP_SECURITY_CONFIGURATION_INSTANCE, null);
-        if (configuration == null) {
-            return null;
-        }
-        return get(HTTP_SECURITY_CONFIGURATION_ROLES_MAPPING, configuration);
-    }
-
-    private static Set<String> candidateRoles(List<HttpSecurityPolicy> policies, RolesMapping rolesMapping) {
-        Set<String> candidates = new HashSet<>();
-        for (HttpSecurityPolicy policy : policies) {
-            String[] rolesAllowed = getIfAssignable(ROLES_ALLOWED, policy, String[].class);
-            if (rolesAllowed != null) {
-                Collections.addAll(candidates, rolesAllowed);
-            }
-
-            Map<String, List<String>> roleToRoles = getIfAssignable(ROLE_TO_ROLES, policy, Map.class);
-            if (roleToRoles != null) {
-                candidates.addAll(roleToRoles.keySet());
-                roleToRoles.values().forEach(candidates::addAll);
-            }
-        }
-        addRoleMappingCandidates(candidates, rolesMapping);
-        return Set.copyOf(candidates);
-    }
-
-    private static void addRoleMappingCandidates(Set<String> candidates, RolesMapping rolesMapping) {
-        Map<String, List<String>> roleToRoles = getIfAssignable(ROLE_TO_ROLES, rolesMapping, Map.class);
-        if (roleToRoles != null) {
-            candidates.addAll(roleToRoles.keySet());
-            roleToRoles.values().forEach(candidates::addAll);
-        }
-    }
-
-    private static SecurityIdentity securityIdentity(
-            Principal principal, Predicate<String> roleChecker, Set<String> candidateRoles) {
-        return new SecurityIdentity() {
-            @Override
-            public Principal getPrincipal() {
-                return principal;
-            }
-
-            @Override
-            public boolean isAnonymous() {
-                return principal == null;
-            }
-
-            @Override
-            public Set<String> getRoles() {
-                if (candidateRoles.isEmpty()) {
-                    return Set.of();
+            if (targetIdentity == null) {
+                if (!baseIdentity.isAnonymous()) {
+                    String diagnostic = requiredMechanisms.isEmpty()
+                            ? "target authentication could not reproduce the transport identity"
+                            : "target requires authentication mechanism " + requiredMechanisms;
+                    return AccessCheck.deny(diagnostic, baseIdentity);
                 }
-                return candidateRoles.stream()
-                        .filter(roleChecker)
-                        .collect(java.util.stream.Collectors.toUnmodifiableSet());
+                targetIdentity = baseIdentity;
+            } else if (!principalMatches(baseIdentity.getPrincipal(), targetIdentity)) {
+                return AccessCheck.deny("target authentication principal mismatch", baseIdentity);
             }
-
-            @Override
-            public boolean hasRole(String role) {
-                return roleChecker.test(role);
-            }
-
-            @Override
-            public <T extends Credential> T getCredential(Class<T> credentialType) {
-                return null;
-            }
-
-            @Override
-            public Set<Credential> getCredentials() {
-                return Set.of();
-            }
-
-            @Override
-            public <T> T getAttribute(String name) {
-                return null;
-            }
-
-            @Override
-            public Map<String, Object> getAttributes() {
-                return Map.of();
-            }
-
-            @Override
-            public Set<Permission> getPermissions() {
-                return Set.of();
-            }
-
-            @Override
-            public Uni<Boolean> checkPermission(Permission permission) {
-                return Uni.createFrom()
-                        .failure(new UnsupportedOperationException(
-                                "SecurityIdentity permission checks are not exposed by Vaadin NavigationContext"));
-            }
-        };
+            targetIdentity = withRoutingContext(targetIdentity, targetContext);
+            targetContext.setUser(new QuarkusHttpUser(targetIdentity));
+            AccessCheck result =
+                    evaluatePolicies(targetContext, targetIdentity, 0).await().indefinitely();
+            LOGGER.debugf(
+                    "Synthetic navigation %s %s resolved to %s by %s",
+                    targetRequest.method(), targetRequest.path(), result.decision(), result.policyName());
+            return result;
+        } catch (RuntimeException exception) {
+            LOGGER.warnf(
+                    exception,
+                    "Quarkus HTTP security policies cannot be evaluated for synthetic navigation %s %s; denying",
+                    targetRequest.method(),
+                    targetRequest.path());
+            return AccessCheck.deny("target policy evaluation failed", baseIdentity);
+        }
     }
 
-    private static RoutingContext routingContext(String path, String method) {
-        Map<String, Object> data = new HashMap<>();
-        HttpServerRequest request = httpServerRequest(path, method);
-        Object[] proxy = new Object[1];
-        proxy[0] = Proxy.newProxyInstance(
-                QuarkusAccessPathChecker.class.getClassLoader(),
-                new Class<?>[] {RoutingContext.class},
-                (ignored, invokedMethod, args) -> switch (invokedMethod.getName()) {
-                    case "request" -> request;
-                    case "normalizedPath", "normalisedPath" -> path;
-                    case "put" -> {
-                        data.put((String) args[0], args[1]);
-                        yield proxy[0];
+    AccessCheck checkCurrentRequest(String path, Principal principal, Predicate<String> roleChecker) {
+        SecurityIdentity currentIdentity = identityHolder.currentIdentity();
+        if (currentIdentity == null) {
+            return AccessCheck.deny("request SecurityIdentity unavailable", null);
+        }
+        SecurityIdentity navigationIdentity = identityHolder.currentNavigationIdentity();
+        if (navigationIdentity == null) {
+            return AccessCheck.deny("pre-path SecurityIdentity unavailable", null);
+        }
+        if (!principalMatches(principal, navigationIdentity)) {
+            return AccessCheck.deny("request SecurityIdentity principal mismatch", navigationIdentity);
+        }
+        RoutingContext routingContext = HttpSecurityUtils.getRoutingContextAttribute(currentIdentity);
+        if (routingContext == null) {
+            return AccessCheck.deny("request RoutingContext unavailable", navigationIdentity);
+        }
+        TargetRequest targetRequest =
+                targetRequest(runtimeConfiguration.get().resolveApplicationPath(path), NAVIGATION_METHOD);
+        if (!targetRequest.valid()) {
+            return AccessCheck.deny("invalid path: " + targetRequest.diagnostic(), navigationIdentity);
+        }
+        CanonicalPath currentPath = canonicalize(routingContext.normalizedPath());
+        if (!currentPath.valid()) {
+            return AccessCheck.deny("current request path normalization failed", navigationIdentity);
+        }
+        if (!currentPath.path().equals(targetRequest.path())) {
+            return check(path, NAVIGATION_METHOD, principal, roleChecker);
+        }
+        if (!principalMatches(principal, currentIdentity)) {
+            return AccessCheck.deny("current target SecurityIdentity principal mismatch", navigationIdentity);
+        }
+        return QuarkusHillaSecurityBridge.pathPolicyApplied(routingContext)
+                ? AccessCheck.allow("Quarkus HTTP permission policy", currentIdentity)
+                : AccessCheck.noMatch(currentIdentity);
+    }
+
+    private Uni<AccessCheck> evaluatePolicies(
+            RoutingContext targetContext, SecurityIdentity identity, int policyIndex) {
+        if (policyIndex == globalPolicies.size()) {
+            return Uni.createFrom()
+                    .item(
+                            QuarkusHillaSecurityBridge.pathPolicyApplied(targetContext)
+                                    ? AccessCheck.allow("Quarkus HTTP permission policy", identity)
+                                    : AccessCheck.noMatch(identity));
+        }
+
+        HttpSecurityPolicy policy = globalPolicies.get(policyIndex);
+        LOGGER.debugf("Evaluating synthetic navigation with HTTP security policy %s", policyDescription(policy));
+        Uni<HttpSecurityPolicy.CheckResult> permission;
+        try {
+            permission =
+                    policy.checkPermission(targetContext, Uni.createFrom().item(identity), authorizationRequestContext);
+        } catch (RuntimeException exception) {
+            return policyFailure(policy, identity, exception);
+        }
+        if (permission == null) {
+            return Uni.createFrom()
+                    .item(AccessCheck.deny(
+                            "HTTP security policy " + policyDescription(policy) + " returned no result", identity));
+        }
+        return permission
+                .onItem()
+                .transformToUni(result -> {
+                    if (result == null || !result.isPermitted()) {
+                        SecurityIdentity deniedIdentity = result == null || result.getAugmentedIdentity() == null
+                                ? identity
+                                : result.getAugmentedIdentity();
+                        return Uni.createFrom().item(AccessCheck.deny(policyDescription(policy), deniedIdentity));
                     }
-                    case "get" -> args.length == 1 ? data.get(args[0]) : data.getOrDefault(args[0], args[1]);
-                    case "remove" -> data.remove(args[0]);
-                    case "data" -> data;
-                    case "toString" -> "Vaadin navigation routing context for " + method + " " + path;
-                    default -> throw unsupported(invokedMethod, "RoutingContext");
-                });
-        return (RoutingContext) proxy[0];
+                    SecurityIdentity nextIdentity =
+                            result.getAugmentedIdentity() == null ? identity : result.getAugmentedIdentity();
+                    return evaluatePolicies(targetContext, nextIdentity, policyIndex + 1);
+                })
+                .onFailure()
+                .recoverWithUni(exception -> policyFailure(policy, identity, exception));
     }
 
-    private static HttpServerRequest httpServerRequest(String path, String method) {
-        HttpMethod httpMethod = new HttpMethod(method);
-        return (HttpServerRequest) Proxy.newProxyInstance(
-                QuarkusAccessPathChecker.class.getClassLoader(),
-                new Class<?>[] {HttpServerRequest.class},
-                (ignored, invokedMethod, args) -> switch (invokedMethod.getName()) {
-                    case "method" -> httpMethod;
-                    case "path", "uri", "absoluteURI" -> path;
-                    case "scheme" -> "http";
-                    case "headers", "params" -> MultiMap.caseInsensitiveMultiMap();
-                    case "host" -> "";
-                    case "isSSL" -> false;
-                    case "toString" -> "Vaadin navigation HTTP request for " + method + " " + path;
-                    default -> throw unsupported(invokedMethod, "HttpServerRequest");
-                });
+    private static Uni<AccessCheck> policyFailure(
+            HttpSecurityPolicy policy, SecurityIdentity identity, Throwable exception) {
+        LOGGER.warnf(
+                exception,
+                "HTTP security policy %s failed during synthetic Vaadin navigation; denying",
+                policyDescription(policy));
+        return Uni.createFrom()
+                .item(AccessCheck.deny("HTTP security policy " + policyDescription(policy) + " failed", identity));
     }
 
-    private static UnsupportedOperationException unsupported(java.lang.reflect.Method method, String type) {
-        return new UnsupportedOperationException(type + "." + method.getName());
-    }
-
-    private static String removeMatrixParameters(String path) {
-        StringBuilder result = new StringBuilder(path.length());
-        boolean matrixParameter = false;
-        for (int i = 0; i < path.length(); i++) {
-            char character = path.charAt(i);
-            if (character == ';') {
-                matrixParameter = true;
-            } else if (character == '/') {
-                matrixParameter = false;
-                result.append(character);
-            } else if (!matrixParameter) {
-                result.append(character);
-            }
+    private static AccessCheck validateIdentity(
+            Principal principal, SecurityIdentity transportIdentity, SecurityIdentity baseIdentity) {
+        if (transportIdentity == null) {
+            return AccessCheck.deny("request SecurityIdentity unavailable", null);
         }
-        return result.toString();
-    }
-
-    private static String policyDescription(HttpSecurityPolicy policy) {
-        if (policy.name() != null) {
-            return policy.name();
+        if (baseIdentity == null) {
+            return AccessCheck.deny("pre-path SecurityIdentity unavailable", null);
         }
-        return policy.getClass().getName();
-    }
-
-    private static <T extends Throwable> T findCause(Throwable throwable, Class<T> causeType) {
-        Throwable current = throwable;
-        while (current != null) {
-            if (causeType.isInstance(current)) {
-                return causeType.cast(current);
-            }
-            current = current.getCause();
+        if (!principalMatches(principal, baseIdentity)) {
+            return AccessCheck.deny("request SecurityIdentity principal mismatch", baseIdentity);
         }
         return null;
     }
 
-    private static Class<?> httpMatcherClass() {
-        try {
-            return Class.forName(
-                    "io.quarkus.vertx.http.runtime.security.AbstractPathMatchingHttpSecurityPolicy$HttpMatcher");
-        } catch (ClassNotFoundException exception) {
-            throw new ExceptionInInitializerError(exception);
+    private static boolean principalMatches(Principal expected, SecurityIdentity identity) {
+        if (identity == null) {
+            return false;
         }
+        if (expected == null) {
+            return identity.isAnonymous();
+        }
+        return !identity.isAnonymous()
+                && identity.getPrincipal() != null
+                && Objects.equals(expected.getName(), identity.getPrincipal().getName());
     }
 
-    private static Field field(String className, String fieldName) {
-        try {
-            return field(Class.forName(className), fieldName);
-        } catch (ClassNotFoundException exception) {
-            throw new ExceptionInInitializerError(exception);
-        }
-    }
-
-    private static Field field(Class<?> type, String fieldName) {
-        try {
-            Field field = type.getDeclaredField(fieldName);
-            field.setAccessible(true);
-            return field;
-        } catch (NoSuchFieldException exception) {
-            throw new ExceptionInInitializerError(exception);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T get(Field field, Object instance) {
-        try {
-            return (T) field.get(instance);
-        } catch (IllegalAccessException exception) {
-            throw new IllegalStateException("Cannot read Quarkus HTTP security state", exception);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T getIfAssignable(Field field, Object instance, Class<?> expectedType) {
-        if (instance == null) {
-            return null;
-        }
-        try {
-            Object value = field.get(instance);
-            if (value == null || !expectedType.isInstance(value)) {
-                return null;
+    private static List<HttpSecurityPolicy> globalPolicies(
+            Instance<HttpSecurityPolicy> installedPolicies, PathMatchingHttpSecurityPolicy pathMatchingPolicy) {
+        List<HttpSecurityPolicy> policies = new ArrayList<>();
+        boolean pathPolicyFound = pathMatchingPolicy.hasNoPermissions();
+        Object unwrappedPathPolicy = ClientProxy.unwrap(pathMatchingPolicy);
+        for (HttpSecurityPolicy policy : installedPolicies) {
+            Object unwrappedPolicy = ClientProxy.unwrap(policy);
+            if (unwrappedPolicy == unwrappedPathPolicy) {
+                pathPolicyFound = true;
             }
-            return (T) value;
+            if (policy.name() != null
+                    || unwrappedPolicy instanceof HillaSecurityPolicy
+                    || (unwrappedPolicy instanceof AbstractPathMatchingHttpSecurityPolicy pathPolicy
+                            && pathPolicy.hasNoPermissions())) {
+                continue;
+            }
+            policies.add(policy);
+        }
+        if (!pathPolicyFound) {
+            throw new IllegalStateException(
+                    "Quarkus PathMatchingHttpSecurityPolicy is missing from the installed global policies");
+        }
+        return List.copyOf(policies);
+    }
+
+    private static SecurityIdentity withRoutingContext(SecurityIdentity identity, RoutingContext routingContext) {
+        SecurityIdentity targetIdentity = new SecurityIdentityWithAttributes(
+                identity,
+                Map.of(
+                        RoutingContext.class.getName(),
+                        routingContext,
+                        HttpSecurityUtils.ROUTING_CONTEXT_ATTRIBUTE,
+                        routingContext));
+        routingContext.setUser(new QuarkusHttpUser(targetIdentity));
+        return targetIdentity;
+    }
+
+    private static RoutingContext routingContext(
+            TargetRequest targetRequest, RoutingContext transportContext, SecurityIdentity baseIdentity) {
+        Map<String, Object> data = QuarkusHillaSecurityBridge.targetData(transportContext);
+        data.put(SYNTHETIC_NAVIGATION_ATTRIBUTE, Boolean.TRUE);
+        HttpServerRequest request = httpServerRequest(targetRequest, transportContext.request());
+        Object[] proxyReference = new Object[1];
+        User[] user = new User[] {new QuarkusHttpUser(baseIdentity)};
+        proxyReference[0] = Proxy.newProxyInstance(
+                QuarkusAccessPathChecker.class.getClassLoader(),
+                new Class<?>[] {RoutingContext.class},
+                (proxy, invokedMethod, arguments) -> switch (invokedMethod.getName()) {
+                    case "request" -> request;
+                    case "normalizedPath", "normalisedPath" -> targetRequest.path();
+                    case "queryParams" -> targetRequest.queryParameters();
+                    case "pathParams" -> Map.of();
+                    case "pathParam" -> null;
+                    case "body", "getBody", "getBodyAsString", "getBodyAsJson", "getBodyAsJsonArray" -> null;
+                    case "fileUploads" -> Set.of();
+                    case "user" -> user[0];
+                    case "setUser" -> {
+                        user[0] = (User) arguments[0];
+                        yield proxyReference[0];
+                    }
+                    case "put" -> {
+                        data.put((String) arguments[0], arguments[1]);
+                        yield proxyReference[0];
+                    }
+                    case "get" ->
+                        arguments.length == 1 ? data.get(arguments[0]) : data.getOrDefault(arguments[0], arguments[1]);
+                    case "remove" -> data.remove(arguments[0]);
+                    case "data" -> data;
+                    case "equals" -> proxy == arguments[0];
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "toString" ->
+                        "Vaadin navigation routing context for " + targetRequest.method() + " " + targetRequest.uri();
+                    default -> invoke(transportContext, invokedMethod, arguments);
+                });
+        return (RoutingContext) proxyReference[0];
+    }
+
+    private static HttpServerRequest httpServerRequest(
+            TargetRequest targetRequest, HttpServerRequest transportRequest) {
+        HttpMethod httpMethod = new HttpMethod(targetRequest.method());
+        return (HttpServerRequest) Proxy.newProxyInstance(
+                QuarkusAccessPathChecker.class.getClassLoader(),
+                new Class<?>[] {HttpServerRequest.class},
+                (proxy, invokedMethod, arguments) -> switch (invokedMethod.getName()) {
+                    case "method" -> httpMethod;
+                    case "path" -> targetRequest.path();
+                    case "uri" -> targetRequest.uri();
+                    case "absoluteURI" ->
+                        transportRequest.scheme() + "://" + transportRequest.host() + targetRequest.uri();
+                    case "query" -> targetRequest.query();
+                    case "params" -> targetRequest.queryParameters();
+                    case "getParam" -> {
+                        String value = targetRequest.queryParameters().get((String) arguments[0]);
+                        yield value == null && arguments.length > 1 ? arguments[1] : value;
+                    }
+                    case "equals" -> proxy == arguments[0];
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "toString" ->
+                        "Vaadin navigation HTTP request for " + targetRequest.method() + " " + targetRequest.uri();
+                    default -> invoke(transportRequest, invokedMethod, arguments);
+                });
+    }
+
+    private static Object invoke(Object delegate, Method method, Object[] arguments) throws Throwable {
+        try {
+            return method.invoke(delegate, arguments);
+        } catch (InvocationTargetException exception) {
+            throw exception.getCause();
+        }
+    }
+
+    private static TargetRequest targetRequest(String uri, String method) {
+        if (uri == null) {
+            return TargetRequest.invalid("path is null");
+        }
+        int fragmentStart = uri.indexOf('#');
+        if (fragmentStart >= 0) {
+            uri = uri.substring(0, fragmentStart);
+        }
+        int queryStart = uri.indexOf('?');
+        String rawPath = queryStart < 0 ? uri : uri.substring(0, queryStart);
+        String query = queryStart < 0 ? null : uri.substring(queryStart + 1);
+        CanonicalPath canonicalPath = canonicalize(rawPath);
+        if (!canonicalPath.valid()) {
+            return TargetRequest.invalid(canonicalPath.diagnostic());
+        }
+        MultiMap queryParameters;
+        try {
+            queryParameters = queryParameters(query);
         } catch (IllegalArgumentException exception) {
-            return null;
-        } catch (IllegalAccessException exception) {
-            throw new IllegalStateException("Cannot read Quarkus HTTP security policy state", exception);
+            return TargetRequest.invalid("invalid query string");
+        }
+        String requestMethod = method == null || method.isBlank() ? NAVIGATION_METHOD : method.toUpperCase(Locale.ROOT);
+        String targetUri = query == null || query.isEmpty() ? canonicalPath.path() : canonicalPath.path() + "?" + query;
+        return TargetRequest.valid(canonicalPath.path(), targetUri, query, queryParameters, requestMethod);
+    }
+
+    private static MultiMap queryParameters(String query) {
+        MultiMap parameters = MultiMap.caseInsensitiveMultiMap();
+        if (query == null || query.isEmpty()) {
+            return parameters;
+        }
+        for (String part : query.split("&")) {
+            int separator = part.indexOf('=');
+            String name = separator < 0 ? part : part.substring(0, separator);
+            String value = separator < 0 ? "" : part.substring(separator + 1);
+            parameters.add(
+                    URLDecoder.decode(name, StandardCharsets.UTF_8), URLDecoder.decode(value, StandardCharsets.UTF_8));
+        }
+        return parameters;
+    }
+
+    private static CanonicalPath canonicalize(String path) {
+        try {
+            return CanonicalPath.valid(HttpSecurityUtils.normalizePath(PathUtil.ensureSlashBegin(path)));
+        } catch (RuntimeException exception) {
+            return CanonicalPath.invalid("path normalization failed");
+        }
+    }
+
+    private static String policyDescription(HttpSecurityPolicy policy) {
+        String name = policy.name();
+        if (name != null) {
+            return name;
+        }
+        Object unwrapped = ClientProxy.unwrap(policy);
+        return unwrapped.getClass().getName();
+    }
+
+    private record TargetRequest(
+            boolean valid,
+            String path,
+            String uri,
+            String query,
+            MultiMap queryParameters,
+            String method,
+            String diagnostic) {
+
+        static TargetRequest valid(String path, String uri, String query, MultiMap queryParameters, String method) {
+            return new TargetRequest(true, path, uri, query, queryParameters, method, null);
+        }
+
+        static TargetRequest invalid(String diagnostic) {
+            return new TargetRequest(false, null, null, null, null, null, diagnostic);
+        }
+    }
+
+    private record CanonicalPath(boolean valid, String path, String diagnostic) {
+
+        static CanonicalPath valid(String path) {
+            return new CanonicalPath(true, path, null);
+        }
+
+        static CanonicalPath invalid(String diagnostic) {
+            return new CanonicalPath(false, null, diagnostic);
         }
     }
 
@@ -435,10 +496,18 @@ public class QuarkusAccessPathChecker {
         DENY
     }
 
-    public record AccessCheck(Decision decision, String policyName) {
+    public record AccessCheck(Decision decision, String policyName, SecurityIdentity identity) {
 
-        static AccessCheck noMatch() {
-            return new AccessCheck(Decision.NO_MATCH, null);
+        static AccessCheck noMatch(SecurityIdentity identity) {
+            return new AccessCheck(Decision.NO_MATCH, null, identity);
+        }
+
+        static AccessCheck allow(String policyName, SecurityIdentity identity) {
+            return new AccessCheck(Decision.ALLOW, policyName, identity);
+        }
+
+        static AccessCheck deny(String policyName, SecurityIdentity identity) {
+            return new AccessCheck(Decision.DENY, policyName, identity);
         }
     }
 }

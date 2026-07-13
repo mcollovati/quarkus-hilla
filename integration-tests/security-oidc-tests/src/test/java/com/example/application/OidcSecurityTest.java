@@ -17,23 +17,19 @@ package com.example.application;
 
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
-import java.security.Principal;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
-import com.example.application.views.FlowLowercaseMethodView;
-import com.example.application.views.FlowNamedPolicyView;
-import com.example.application.views.FlowPermissionOnlyView;
-import com.example.application.views.FlowProgrammaticView;
-import com.vaadin.flow.router.Location;
-import com.vaadin.flow.router.RouteParameters;
+import com.example.application.security.TestHeaderAuthenticationMechanism;
 import com.vaadin.flow.server.auth.AccessCheckDecision;
+import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
-import com.vaadin.flow.server.auth.NavigationContext;
 import io.quarkus.arc.All;
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.restassured.RestAssured;
@@ -45,7 +41,6 @@ import org.junit.jupiter.api.Test;
 
 import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
-import com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -56,6 +51,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 class OidcSecurityTest {
 
     private static final String SECURE_ENDPOINT = "SecureEndpoint";
+    private static final String HTTP_PERMISSION_NAVIGATION_ACCESS_CHECKER =
+            "com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker";
 
     private final Map<String, String> tokens = new ConcurrentHashMap<>();
 
@@ -79,19 +76,30 @@ class OidcSecurityTest {
     NavigationAccessControl navigationAccessControl;
 
     @Inject
-    Instance<QuarkusHttpPermissionNavigationAccessChecker> httpPermissionAccessChecker;
+    @All
+    List<NavigationAccessChecker> navigationAccessCheckers;
 
     @Test
     void oidcSecurityModel_registersGenericHillaSecurityBeansOnly() {
         assertThat(hillaSecurityPolicy.isResolvable()).isTrue();
         assertThat(navigationAccessControl).isInstanceOf(QuarkusNavigationAccessControl.class);
-        assertThat(httpPermissionAccessChecker.isResolvable()).isTrue();
+        assertThat(navigationAccessCheckers)
+                .extracting(OidcSecurityTest::beanClassName)
+                .containsExactly(HTTP_PERMISSION_NAVIGATION_ACCESS_CHECKER);
         assertThat(authenticationMechanisms).noneMatch(HillaFormAuthenticationMechanism.class::isInstance);
     }
 
     @Test
     void anonymousEndpoint_withoutToken_allowed() {
         endpointRequest("anonymous").then().assertThat().statusCode(200).body(equalTo("\"ANONYMOUS\""));
+    }
+
+    @Test
+    void anonymousEndpoint_withInvalidBearerToken_rejectsAuthenticationFailure() {
+        endpointRequest("anonymous", request -> request.header("Authorization", "Bearer invalid"))
+                .then()
+                .assertThat()
+                .statusCode(401);
     }
 
     @Test
@@ -112,6 +120,26 @@ class OidcSecurityTest {
 
     @Test
     void roleProtectedEndpoint_enforcesOidcRoles() {
+        String tokenPayload =
+                new String(Base64.getUrlDecoder().decode(token("user").split("\\.")[1]), StandardCharsets.UTF_8);
+        assertThat(tokenPayload).contains("\"groups\":[\"USER\"");
+
+        RestAssured.given()
+                .auth()
+                .oauth2(token("user"))
+                .when()
+                .post("/connect/security/probe/roles")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body("$", org.hamcrest.Matchers.hasItem("USER"));
+
+        endpointRequest("effectiveRoles", bearer("user"))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body("$", org.hamcrest.Matchers.hasItem("USER"));
+
         endpointRequest("userOnly", bearer("user"))
                 .then()
                 .assertThat()
@@ -136,134 +164,255 @@ class OidcSecurityTest {
     }
 
     @Test
-    void flowRoutes_honorOidcHttpPermissionPolicies() {
-        RestAssured.given().when().get("/flow-public").then().assertThat().statusCode(200);
+    void httpPermissionRules_matchNavigationCheckerDecisions() {
+        assertHttpAndNavigation("/flow-public", null, 200);
+        assertHttpAndNavigation("/flow-protected", null, 401);
+        assertHttpAndNavigation("/flow-protected", "user", 200);
 
-        RestAssured.given().when().get("/flow-protected").then().assertThat().statusCode(401);
+        assertHttpAndNavigation("/flow-user", "user", 200);
+        assertHttpAndNavigation("/flow-user", "guest", 403);
+
+        assertHttpAndNavigation("/flow-admin", "admin", 200);
+        assertHttpAndNavigation("/flow-admin", "user", 403);
+
+        assertHttpAndNavigation("/flow-annotation-stricter", null, 401);
+        assertHttpAndNavigation("/flow-annotation-stricter", "user", 200);
+        assertHttpAndNavigation("/flow-annotation-stricter", "guest", 403);
+
+        assertHttpAndNavigation("/flow-config-stricter", null, 401);
+        assertHttpAndNavigation("/flow-config-stricter", "user", 403);
+        assertHttpAndNavigation("/flow-config-stricter", "admin", 200);
+
+        assertHttpAndNavigation("/flow-combined-roles", "user", 403);
+        assertHttpAndNavigation("/flow-combined-roles", "admin", 200);
+        assertHttpAndNavigation("/flow-combined-roles", "guest", 403);
+
+        assertHttpAndNavigation("/flow-denied", null, 401);
+        assertHttpAndNavigation("/flow-denied", "admin", 403);
+
+        assertHttpAndNavigation("/flow-global-denied", null, 401);
+        assertHttpAndNavigation("/flow-global-denied", "user", 403);
+
+        assertHttpAndNavigation("/flow-global-role", "mapped", 200);
+        assertHttpAndNavigation("/flow-global-role", "guest", 403);
+
+        assertHttpAndNavigation("/flow-permission-only", null, 401);
+        assertHttpAndNavigation("/flow-permission-only", "user", 200);
+        assertHttpAndNavigation("/flow-permission-only", "guest", 403);
+
+        assertHttpAndNavigation("/flow-programmatic", null, 401);
+        assertHttpAndNavigation("/flow-programmatic", "user", 200);
+        assertHttpAndNavigation("/flow-programmatic", "guest", 403);
+
+        assertHttpAndNavigation("/flow-named-policy", null, 401);
+        assertHttpAndNavigation("/flow-named-policy", "user", 200);
+        assertHttpAndNavigation("/flow-named-policy", "guest", 403);
+
+        assertHttpAndNavigation("/flow-lowercase-method", "user", 403);
+    }
+
+    @Test
+    void connectPathRoleAugmentation_doesNotLeakIntoTargetNavigation() {
+        assertHttpAndNavigation("/flow-transport-role", "transport", 403);
+
+        endpointRequest("transportNavigationDecision", "{\"path\":\"/flow-transport-role\"}", bearer("transport"))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"DENY\""));
+    }
+
+    @Test
+    void invalidBearerToken_onAnonymousFlowRoute_rejectsAuthenticationFailure() {
+        RestAssured.given()
+                .header("Authorization", "Bearer invalid")
+                .when()
+                .get("/flow-public")
+                .then()
+                .assertThat()
+                .statusCode(401);
+    }
+
+    @Test
+    void bearerOnlyTarget_doesNotReuseIdentityFromAnotherAuthenticationMechanism() {
+        assertHttpAndNavigation("/flow-bearer-only", "user", 200);
+
+        RestAssured.given()
+                .header(TestHeaderAuthenticationMechanism.HEADER, "header-user")
+                .when()
+                .get("/flow-bearer-only")
+                .then()
+                .assertThat()
+                .statusCode(401);
+
+        endpointRequest(
+                        "navigationDecision",
+                        "{\"path\":\"/flow-bearer-only\"}",
+                        request -> request.header(TestHeaderAuthenticationMechanism.HEADER, "header-user"))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"DENY\""));
+    }
+
+    @Test
+    void targetPath_reauthenticatesWithoutExplicitMechanismConstraint() {
+        RestAssured.given()
+                .header(
+                        TestHeaderAuthenticationMechanism.HEADER,
+                        TestHeaderAuthenticationMechanism.TRANSPORT_ONLY_ADMIN)
+                .when()
+                .get("/flow-target-reauthentication")
+                .then()
+                .assertThat()
+                .statusCode(401);
+
+        endpointRequest(
+                        "navigationDecision",
+                        "{\"path\":\"/flow-target-reauthentication\"}",
+                        request -> request.header(
+                                TestHeaderAuthenticationMechanism.HEADER,
+                                TestHeaderAuthenticationMechanism.TRANSPORT_ONLY_ADMIN))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"DENY\""));
+    }
+
+    @Test
+    void hillaClientRoutes_enforceRouteMetadata() {
+        RestAssured.given().when().get("/hilla-protected").then().statusCode(401);
         RestAssured.given()
                 .auth()
                 .oauth2(token("user"))
                 .when()
-                .get("/flow-protected")
+                .get("/hilla-protected")
                 .then()
-                .assertThat()
                 .statusCode(200);
-
         RestAssured.given()
                 .auth()
                 .oauth2(token("user"))
                 .when()
-                .get("/flow-user")
+                .get("/hilla-user")
                 .then()
-                .assertThat()
                 .statusCode(200);
         RestAssured.given()
                 .auth()
                 .oauth2(token("guest"))
                 .when()
-                .get("/flow-user")
+                .get("/hilla-user")
                 .then()
-                .assertThat()
                 .statusCode(403);
-
         RestAssured.given()
                 .auth()
                 .oauth2(token("admin"))
                 .when()
-                .get("/flow-admin")
+                .get("/hilla-admin")
                 .then()
-                .assertThat()
                 .statusCode(200);
         RestAssured.given()
                 .auth()
                 .oauth2(token("user"))
                 .when()
-                .get("/flow-admin")
+                .get("/hilla-admin")
                 .then()
-                .assertThat()
                 .statusCode(403);
-
-        RestAssured.given().when().get("/flow-programmatic").then().assertThat().statusCode(401);
         RestAssured.given()
                 .auth()
-                .oauth2(token("user"))
+                .oauth2(token("admin"))
                 .when()
-                .get("/flow-programmatic")
+                .get("/hilla-layout-admin")
                 .then()
-                .assertThat()
                 .statusCode(200);
         RestAssured.given()
                 .auth()
-                .oauth2(token("guest"))
-                .when()
-                .get("/flow-programmatic")
-                .then()
-                .assertThat()
-                .statusCode(403);
-
-        RestAssured.given()
-                .auth()
                 .oauth2(token("user"))
                 .when()
-                .get("/flow-named-policy")
+                .get("/hilla-layout-admin")
                 .then()
-                .assertThat()
+                .statusCode(403);
+        RestAssured.given()
+                .auth()
+                .oauth2(token("admin"))
+                .when()
+                .get("/hilla-absolute-admin/users")
+                .then()
                 .statusCode(200);
         RestAssured.given()
                 .auth()
-                .oauth2(token("guest"))
+                .oauth2(token("user"))
                 .when()
-                .get("/flow-named-policy")
+                .get("/hilla-absolute-admin/users")
                 .then()
-                .assertThat()
                 .statusCode(403);
-
+        RestAssured.given()
+                .auth()
+                .oauth2(token("admin"))
+                .when()
+                .get("/hilla-items/42")
+                .then()
+                .statusCode(200);
         RestAssured.given()
                 .auth()
                 .oauth2(token("user"))
                 .when()
-                .get("/flow-lowercase-method")
+                .get("/hilla-items/42")
                 .then()
-                .assertThat()
+                .statusCode(403);
+        RestAssured.given()
+                .urlEncodingEnabled(false)
+                .auth()
+                .oauth2(token("admin"))
+                .when()
+                .get("/hilla-items/a%2Fb")
+                .then()
+                .statusCode(200);
+        RestAssured.given()
+                .urlEncodingEnabled(false)
+                .auth()
+                .oauth2(token("user"))
+                .when()
+                .get("/hilla-items/a%2Fb")
+                .then()
+                .statusCode(403);
+        RestAssured.given()
+                .urlEncodingEnabled(false)
+                .auth()
+                .oauth2(token("admin"))
+                .when()
+                .get("/hilla%2Dadmin")
+                .then()
+                .statusCode(200);
+        RestAssured.given()
+                .urlEncodingEnabled(false)
+                .auth()
+                .oauth2(token("user"))
+                .when()
+                .get("/hilla%2Dadmin")
+                .then()
+                .statusCode(403);
+        RestAssured.given()
+                .auth()
+                .oauth2(token("admin"))
+                .when()
+                .get("/hilla-wildcard/a/b")
+                .then()
+                .statusCode(200);
+        RestAssured.given()
+                .auth()
+                .oauth2(token("user"))
+                .when()
+                .get("/hilla-wildcard/a/b")
+                .then()
                 .statusCode(403);
     }
 
     @Test
-    void permissionOnlyFlowRoute_navigationCheckerHonorsHttpPermissionPolicy() {
-        assertNavigationDecision(FlowPermissionOnlyView.class, "flow-permission-only", null, role -> false,
-                AccessCheckDecision.DENY);
-        assertNavigationDecision(FlowPermissionOnlyView.class, "flow-permission-only", principal("user"), "USER"::equals,
-                AccessCheckDecision.ALLOW);
-        assertNavigationDecision(FlowPermissionOnlyView.class, "flow-permission-only", principal("guest"), "GUEST"::equals,
-                AccessCheckDecision.DENY);
-    }
-
-    @Test
-    void programmaticFlowRoute_navigationCheckerHonorsHttpSecurityObserverPermission() {
-        assertNavigationDecision(
-                FlowProgrammaticView.class, "flow-programmatic", null, role -> false, AccessCheckDecision.DENY);
-        assertNavigationDecision(
-                FlowProgrammaticView.class, "flow-programmatic", principal("user"), "USER"::equals,
-                AccessCheckDecision.ALLOW);
-        assertNavigationDecision(
-                FlowProgrammaticView.class, "flow-programmatic", principal("guest"), "GUEST"::equals,
-                AccessCheckDecision.DENY);
-    }
-
-    @Test
-    void namedHttpSecurityPolicy_navigationCheckerInvokesNamedPolicyBean() {
-        assertNavigationDecision(FlowNamedPolicyView.class, "flow-named-policy", null, role -> false,
-                AccessCheckDecision.DENY);
-        assertNavigationDecision(FlowNamedPolicyView.class, "flow-named-policy", principal("user"), "USER"::equals,
-                AccessCheckDecision.ALLOW);
-        assertNavigationDecision(FlowNamedPolicyView.class, "flow-named-policy", principal("guest"), "GUEST"::equals,
-                AccessCheckDecision.DENY);
-    }
-
-    @Test
-    void lowercaseMethodPermission_navigationCheckerDeniesLikeQuarkusHttp() {
-        assertNavigationDecision(FlowLowercaseMethodView.class, "flow-lowercase-method", principal("user"), "USER"::equals,
-                AccessCheckDecision.DENY);
+    void encodedPaths_matchNavigationCheckerDecisions() {
+        assertHttpAndNavigation("/rest/encoded%3Bv=1", "user", 200);
+        assertHttpAndNavigation("/rest/encoded%3Bv=1", "guest", 403);
+        assertHttpAndNavigation("/rest/dot/%2e%2e/dot", "user", 200);
+        assertHttpAndNavigation("/rest/dot/%2e%2e/dot", "guest", 403);
     }
 
     private Response endpointRequest(String methodName) {
@@ -271,11 +420,15 @@ class OidcSecurityTest {
     }
 
     private Response endpointRequest(String methodName, UnaryOperator<RequestSpecification> customizer) {
+        return endpointRequest(methodName, "{}", customizer);
+    }
+
+    private Response endpointRequest(String methodName, String body, UnaryOperator<RequestSpecification> customizer) {
         RequestSpecification request = RestAssured.given()
                 .contentType(ContentType.JSON)
                 .cookie("csrfToken", "CSRF_TOKEN")
                 .header("X-CSRF-Token", "CSRF_TOKEN")
-                .body("{}")
+                .body(body)
                 .basePath("/connect");
         return customizer.apply(request).when().post("{endpointName}/{methodName}", SECURE_ENDPOINT, methodName);
     }
@@ -301,21 +454,34 @@ class OidcSecurityTest {
                 .path("access_token"));
     }
 
-    private void assertNavigationDecision(Class<?> route, String path, Principal principal, Predicate<String> rolesChecker,
-            AccessCheckDecision expectedDecision) {
-        NavigationContext context = new NavigationContext(
-                null,
-                route,
-                new Location(path),
-                RouteParameters.empty(),
-                principal,
-                rolesChecker,
-                false);
+    private void assertHttpAndNavigation(String path, String username, int expectedStatus) {
+        RequestSpecification directRequest = RestAssured.given().urlEncodingEnabled(false);
+        if (username != null) {
+            directRequest.auth().oauth2(token(username));
+        }
+        directRequest.when().get(path).then().assertThat().statusCode(expectedStatus);
 
-        assertThat(httpPermissionAccessChecker.get().check(context).decision()).isEqualTo(expectedDecision);
+        AccessCheckDecision expectedDecision =
+                expectedStatus == 200 ? AccessCheckDecision.ALLOW : AccessCheckDecision.DENY;
+        assertThat(navigationDecision(path, username)).isEqualTo(expectedDecision);
     }
 
-    private static Principal principal(String name) {
-        return () -> name;
+    private AccessCheckDecision navigationDecision(String path, String username) {
+        UnaryOperator<RequestSpecification> customizer = username == null ? UnaryOperator.identity() : bearer(username);
+        String response = endpointRequest(
+                        "navigationDecision",
+                        "{\"path\":\"" + path.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}",
+                        customizer)
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .extract()
+                .asString();
+        return AccessCheckDecision.valueOf(response.replace("\"", ""));
+    }
+
+    private static String beanClassName(Object bean) {
+        Object unwrapped = bean instanceof ClientProxy ? ClientProxy.unwrap(bean) : bean;
+        return unwrapped.getClass().getName();
     }
 }

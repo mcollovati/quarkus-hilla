@@ -68,17 +68,20 @@ decisions themselves are unchanged). Resulting matrix:
 | none | allow/roles satisfied | **allow** (matches direct HTTP) |
 | none | none | all-neutral → deny (secure by default) |
 
-**Documented limitation (accepted for now):** the checker evaluates
-*path-scoped* rules only. A user-defined **global** `HttpSecurityPolicy`
-(no path) is enforced by Quarkus on direct HTTP requests but is not consulted
-during navigation, so such policies can diverge between deep link and client
-navigation. Consulting foreign global policies is deliberately out of scope
-for the first iteration (complexity); revisit as a potential follow-up.
+For annotated routes, the HTTP decision and annotation decision are
+conjunctive: neither may override the other. Runtime configuration can own an
+unannotated route or tighten an annotated route, but a permitting rule cannot
+weaken `@RolesAllowed` or `@DenyAll`.
+
+The checker also evaluates unnamed global `HttpSecurityPolicy` beans. The
+Hilla bridge policy is excluded to prevent recursion, and named policies stay
+inside Quarkus's authoritative path policy. A global deny is decisive; a
+global permit without a matching path rule does not by itself opt an
+unannotated route out of secure-by-default behavior.
 
 Non-goals: implementing the boolean `AccessPathChecker` SPI for Quarkus rules;
-re-implementing Vaadin's decision resolver; evaluating user-defined global
-(path-less) `HttpSecurityPolicy` beans during navigation (see limitation
-above).
+re-implementing Vaadin's decision resolver; allowing configuration or
+annotations to override the other authorization layer.
 
 ## Consequences
 
@@ -106,34 +109,29 @@ above).
 * **Dependencies**: none.
 * **Patterns to follow**: `NO_MATCH` must stay strictly neutral — never map it
   to allow or deny; error-handling navigation contexts return neutral; the
-  `ALLOW`/`DENY` result reports **all matched** policy names for diagnostics;
-  `DENY` additionally marks which policy denied. Enforcement always
-  short-circuits on the first deny (exact Quarkus semantics — custom policies
-  may be expensive or have side effects, and identity augmentation is
-  undefined past a deny). **In development mode / with debug logging enabled**
-  the remaining matched policies are additionally evaluated best-effort after
-  the first deny and *all* denying policies are reported, so a
-  misconfiguration is fixed in one pass instead of deny-by-deny; in
-  production only the matched list and the first denier are reported.
+  `DENY` result identifies the policy that denied. Enforcement always
+  short-circuits on the first deny, matching Quarkus semantics; remaining
+  custom policies are never executed only for diagnostics because they may be
+  expensive, have side effects, or depend on prior identity augmentation.
 * **Patterns to avoid**: short-circuiting the annotation checker; interpreting
   Quarkus rule absence; evaluating navigation with a method other than `GET`;
   changing annotated-view semantics in the checker variant.
 
 ### Verification
 
-- [ ] Unit/integration tests assert all four mapping rows of the decision
+- [x] Unit/integration tests assert all four mapping rows of the decision
       table (including lowercase/mismatching `methods=` configuration).
-- [ ] Parity tests run through the **full `NavigationAccessControl`**
+- [x] Parity tests run through the **full `NavigationAccessControl`**
       (both checkers + decision resolver), not only the checker in isolation,
       and show identical outcomes to the direct HTTP request for each row.
-- [ ] A direct `GET` and a navigation to an **unannotated** route protected
+- [x] A direct `GET` and a navigation to an **unannotated** route protected
       only by an HTTP permission rule both succeed for an authorized user and
       are both denied otherwise (composition matrix row 4).
-- [ ] A route with `@AnonymousAllowed` and no HTTP rule stays accessible
+- [x] A route with `@AnonymousAllowed` and no HTTP rule stays accessible
       (NEUTRAL does not override annotation allow).
-- [ ] A route with annotation allow but HTTP deny is denied.
-- [ ] The global-policy limitation is documented in
-      `docs/security/README.md`.
+- [x] A route with annotation allow but HTTP deny is denied.
+- [x] An unnamed global policy deny produces the same direct and synthetic
+      result in the OIDC integration suite.
 
 ## Alternatives Considered
 
@@ -151,3 +149,9 @@ Related: [ADR-0002](0002-adopt-quarkus-native-security-integration-guided-by-vaa
 [ADR-0003](0003-integrate-security-through-vaadin-flow-server-spis.md),
 [ADR-0005](0005-replace-reflection-based-path-rule-evaluation-with-public-contracts.md).
 Design rationale: [docs/security/README.md](../security/README.md) section 3.3.
+
+2026-07-12 implementation update: global unnamed policies are now evaluated;
+config-only unannotated routes, conflicting annotations/configuration,
+`@DenyAll`, global policies and direct/navigation parity are covered by the
+OIDC integration suite. Configuration/annotation mismatches are diagnostic
+(`off|warn|fail`) and never change the conjunctive enforcement rule.

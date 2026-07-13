@@ -39,7 +39,9 @@ public class NamedNavigationPolicy implements HttpSecurityPolicy {
         return identity.map(new Function<>() {
             @Override
             public CheckResult apply(SecurityIdentity securityIdentity) {
-                return !securityIdentity.isAnonymous() && securityIdentity.hasRole("USER")
+                securityIdentity.getAttribute("navigation-policy-attribute-probe");
+                return !securityIdentity.isAnonymous()
+                                && securityIdentity.getRoles().contains("USER")
                         ? CheckResult.PERMIT
                         : CheckResult.DENY;
             }

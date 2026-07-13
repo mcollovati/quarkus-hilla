@@ -37,11 +37,39 @@ Quarkus-Hilla provides a Dev UI page for endpoint inspection during development.
 
 The page shows:
 
-- Security constraints applied to server-side endpoints.
+- The effective Hilla access annotation for each endpoint class and method.
+  Quarkus HTTP permissions and the runtime identity are enforced separately and
+  are not included in this build-time display.
 - Null-safety status for `@NonNull` types.
 - Browser-callable endpoints with methods and parameters.
 
 Run `mvn quarkus:dev`, then open `http://localhost:8080/q/dev-ui`.
+
+<a id="quarkus-native-security-integration"></a>
+
+## 🔒 Quarkus-native Security Integration
+
+> [!NOTE]
+> The end-to-end Quarkus-native bridge for Flow navigation, Hilla client
+> routes, and Hilla endpoints is exclusive to Quarkus-Hilla. The official
+> [Vaadin Quarkus extension](https://vaadin.com/docs/latest/flow/integrations/quarkus#limitations)
+> is Flow-only and does not support Hilla.
+
+Quarkus-Hilla integrates Vaadin Flow and Hilla route and endpoint security with
+Quarkus authentication mechanisms such as form login and OIDC. Quarkus HTTP
+permissions and Vaadin/Hilla security annotations compose conjunctively: either
+layer may tighten access, but configuration cannot weaken `@RolesAllowed` or
+`@DenyAll`.
+
+Stateless bearer/JWT authentication, including OIDC service applications, uses
+Quarkus Security directly and does not require Spring's
+`VaadinStatelessSecurityConfigurer`. Vaadin UI state remains server-side; this
+is independent from authentication state.
+
+See [Security Architecture and Behavior](security/README.md) for activation,
+navigation and endpoint enforcement, annotation/configuration mismatch
+diagnostics, runtime configuration semantics, login/logout behavior, known
+compatibility boundaries, and security design decisions.
 
 <a id="auto-crud-auto-grid-and-auto-form"></a>
 

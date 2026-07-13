@@ -15,16 +15,29 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+
 import com.vaadin.flow.server.auth.AccessCheckResult;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationContext;
+import io.quarkus.security.identity.SecurityIdentity;
 
+@Singleton
 public class QuarkusHttpPermissionNavigationAccessChecker implements NavigationAccessChecker {
 
     private final transient QuarkusAccessPathChecker pathChecker;
+    private final transient QuarkusAnnotatedViewAccessChecker annotatedViewAccessChecker;
 
+    @Inject
     public QuarkusHttpPermissionNavigationAccessChecker(QuarkusAccessPathChecker pathChecker) {
+        this(pathChecker, new QuarkusAnnotatedViewAccessChecker());
+    }
+
+    QuarkusHttpPermissionNavigationAccessChecker(
+            QuarkusAccessPathChecker pathChecker, QuarkusAnnotatedViewAccessChecker annotatedViewAccessChecker) {
         this.pathChecker = pathChecker;
+        this.annotatedViewAccessChecker = annotatedViewAccessChecker;
     }
 
     @Override
@@ -33,12 +46,33 @@ public class QuarkusHttpPermissionNavigationAccessChecker implements NavigationA
             return context.neutral();
         }
 
-        QuarkusAccessPathChecker.AccessCheck check = pathChecker.check(
-                context.getLocation().getPath(), context.getPrincipal(), context::hasRole);
-        return switch (check.decision()) {
-            case NO_MATCH -> context.neutral();
-            case ALLOW -> context.allow();
-            case DENY -> context.deny("Access denied by Quarkus HTTP permission policy " + check.policyName());
-        };
+        QuarkusAccessPathChecker.AccessCheck httpCheck = context.isNavigating()
+                ? pathChecker.check(
+                        context.getLocation().getPathWithQueryParameters(), context.getPrincipal(), context::hasRole)
+                : pathChecker.checkCurrentRequest(
+                        context.getLocation().getPathWithQueryParameters(), context.getPrincipal(), context::hasRole);
+        if (httpCheck.decision() == QuarkusAccessPathChecker.Decision.DENY) {
+            return context.deny("Access denied by Quarkus HTTP permission policy " + httpCheck.policyName());
+        }
+
+        AccessCheckResult annotationCheck =
+                annotatedViewAccessChecker.check(withIdentity(context, httpCheck.identity()));
+        if (httpCheck.decision() == QuarkusAccessPathChecker.Decision.ALLOW
+                && annotationCheck.decision() == com.vaadin.flow.server.auth.AccessCheckDecision.NEUTRAL) {
+            return context.allow();
+        }
+        return annotationCheck;
+    }
+
+    private static NavigationContext withIdentity(NavigationContext context, SecurityIdentity identity) {
+        return new NavigationContext(
+                context.getRouter(),
+                context.getNavigationTarget(),
+                context.getLocation(),
+                context.getParameters(),
+                identity == null || identity.isAnonymous() ? null : identity.getPrincipal(),
+                role -> role != null && identity != null && !identity.isAnonymous() && identity.hasRole(role),
+                context.isErrorHandling(),
+                context.isNavigating());
     }
 }

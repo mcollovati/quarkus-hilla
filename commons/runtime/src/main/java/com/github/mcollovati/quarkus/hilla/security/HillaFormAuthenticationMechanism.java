@@ -25,6 +25,7 @@ import io.quarkus.security.identity.request.AuthenticationRequest;
 import io.quarkus.vertx.http.runtime.security.ChallengeData;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
+import io.quarkus.vertx.http.runtime.security.HttpCredentialTransport;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.HttpServerRequest;
@@ -90,6 +91,16 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
     @Override
     public Set<Class<? extends AuthenticationRequest>> getCredentialTypes() {
         return delegate.getCredentialTypes();
+    }
+
+    @Override
+    public Uni<HttpCredentialTransport> getCredentialTransport(RoutingContext context) {
+        return delegate.getCredentialTransport(context);
+    }
+
+    @Override
+    public int getPriority() {
+        return delegate.getPriority();
     }
 
     private void logout(RoutingContext ctx) {

@@ -34,47 +34,52 @@ the main weakness:
 
 ## Decision
 
-Phased replacement; `QuarkusAccessPathChecker` remains the internal seam so
-callers never change:
+`QuarkusAccessPathChecker` remains the internal seam, but enforcement reuses
+Quarkus's authoritative runtime objects instead of rebuilding their model:
 
-1. **Interim first**: rebuild the internal rule model from **public contracts
-   only** — parse `quarkus.http.auth.permission.*` / `quarkus.http.auth.policy.*`
-   configuration (public contract), observe the `HttpSecurity` event to
-   capture programmatic rules (public API), resolve named `HttpSecurityPolicy`
-   beans via CDI (public). Evaluate custom policies with the **real
-   request-scoped `SecurityIdentity`** — never a synthetic one. Identity state
-   that is unavailable **fails closed**. Shipping this workaround now is an
-   explicit, accepted trade-off.
-2. **Hardening while any reflection remains**: fail-fast startup validation
-   of all reflected fields (fail at boot, not at first navigation) and a
-   Quarkus version-matrix CI job.
-3. **Upstream afterwards**: once the Quarkus-Hilla implementation (PR) exists,
-   open a feature request / PR at quarkusio/quarkus for a public evaluator in
-   `quarkus-vertx-http`, roughly
-   `CheckResult evaluate(String path, String method, SecurityIdentity identity)`
-   returning `PERMIT`/`DENY`/`NO_MATCH` — describing the problem and
-   **referencing the Quarkus-Hilla PR/code** as concrete motivation and prior
-   art. Rationale for acceptance: Quarkus owns matcher and policies,
-   evaluation with the real identity is trivial internally, the need is
-   generic for UI frameworks (Spring precedent), and it also serves menu
-   filtering.
-4. When the upstream API is available, the internal model becomes a
-   delegation and is deleted.
+1. Invoke the actual `PathMatchingHttpSecurityPolicy` and every installed
+   unnamed global `HttpSecurityPolicy` except the Hilla bridge itself. Named
+   policies, programmatic `HttpSecurity` rules, shared rules, method matching
+   and runtime configuration therefore remain Quarkus-owned.
+2. Isolate the few package-private operations in a narrow same-package
+   `QuarkusHillaSecurityBridge`. This is compile-time compatibility coupling,
+   not reflection: an incompatible pinned-Quarkus upgrade fails compilation.
+3. Evaluate policies with a target-reauthenticated `SecurityIdentity`.
+   Capture the identity after application augmentors but before
+   transport-path role augmentation, then rerun authentication and augmentors
+   for every target path so tenant/path-dependent identity state is not
+   inherited. Endpoint checks keep the transport identity.
+4. Build a sanitized target `RoutingContext` from the live request and rerun
+   authentication through Quarkus's `HttpAuthenticator`, including when no
+   explicit mechanism constraint exists. Never reuse an identity created for
+   another path or by a non-selected authentication mechanism.
+5. Fail closed when identity/context state is missing, the principal differs,
+   execution is attempted on the event loop, a policy fails, or exact target
+   authentication cannot be established.
+6. Pursue an upstream public evaluator in `quarkus-vertx-http`, roughly
+   `CheckResult evaluate(String path, String method, SecurityIdentity identity)`.
+   When available, replace the compatibility bridge behind the existing seam.
 
-Non-goals: keeping reflection as a permanent solution; evaluating policies
-with fabricated identity state; supporting policies that require a live
-`RoutingContext` beyond path/method (these fail closed with a diagnostic).
+Non-goals: keeping reflection; replaying Quarkus configuration as a second
+enforcement engine; fabricating identity claims, credentials, roles or
+permissions; treating an evaluation failure as `NO_MATCH`.
 
 ## Consequences
 
 * Good, because the fail-open inversion for claim/role-set-based policies is
   eliminated (real identity or fail-closed).
-* Good, because Quarkus upgrades stop being a runtime-breakage risk; drift
-  becomes test-detectable instead of crash-detectable.
+* Good, because Quarkus owns path matching, named/programmatic policies,
+  authentication-mechanism selection and identity augmentation.
+* Good, because Quarkus upgrades break the narrow bridge at compile time
+  instead of private reflection at first navigation.
 * Good, because the same evaluator serves navigation and `MenuAccessControl`.
-* Bad, because the interim model re-implements Quarkus path-matching
-  semantics (canonicalization, method matching, AND combination, roles
-  mapping) — drift risk, mitigated by the parity test suite.
+* Bad, because the same-package bridge intentionally compiles against
+  package-private Quarkus contracts and must be reviewed on every Quarkus
+  upgrade.
+* Bad, because policies receive a sanitized target context rather than a real
+  second network request. Arbitrary transport-context, body and upload state is
+  deliberately not copied; policies depending on earlier handler state must
+  reconstruct it or treat absence as deny.
 * Bad, because the upstream timeline is not under our control; the interim
   model may live longer than intended.
 
@@ -89,38 +94,40 @@ with fabricated identity state; supporting policies that require a live
   gone), `integration-tests/security-oidc-tests/` (parity suite).
 * **Dependencies**: none new; later an optional dependency on the upstream
   evaluator API when released.
-* **Patterns to follow**: inject the request-scoped `SecurityIdentity`
-  (`CurrentIdentityAssociation`) instead of building one; path
-  canonicalization equivalent to Quarkus (`HttpSecurityUtils`-style:
-  percent-decoding, dot segments, backslashes, matrix parameters);
-  `quarkus.http.root-path`-aware matching.
+* **Patterns to follow**: capture the request-scoped `SecurityIdentity`
+  (`CurrentIdentityAssociation`) at the servlet/endpoint boundary; preserve
+  base vs. transport identity; delegate canonicalization to
+  `HttpSecurityUtils.normalizePath`; use the actual root-path-aware Quarkus
+  matcher and `HttpAuthenticator`.
 * **Patterns to avoid**: `setAccessible(true)` on Quarkus classes; synthetic
-  `SecurityIdentity`; interpreting missing identity state as "no roles/claims"
-  (must fail closed); silent `NO_MATCH` on evaluation errors.
+  identity state; interpreting missing identity state as "no roles/claims"
+  (must fail closed); silent `NO_MATCH` on evaluation errors; executing
+  remaining policies after a deny only for diagnostics.
 
 ### Verification
 
 - [ ] Upstream issue/PR filed at quarkusio/quarkus (after the Quarkus-Hilla
       implementation PR exists, referencing it) and linked here.
-- [ ] No reflection on `io.quarkus.vertx.http.runtime.security` internals in
+- [x] No reflection on `io.quarkus.vertx.http.runtime.security` internals in
       `commons/runtime` (grep for `getDeclaredField`/`setAccessible`).
-- [ ] A named policy that inspects `SecurityIdentity.getRoles()` or
+- [x] A named policy that inspects `SecurityIdentity.getRoles()` or
       `getAttribute()` yields the same decision via HTTP and via navigation,
       or the navigation check fails closed with a diagnostic.
-- [ ] Parity test suite runs every permission scenario as direct HTTP request
+- [x] Parity test suite runs every permission scenario as direct HTTP request
       and as navigation check with identical outcomes, including encoded
       paths, dot segments, and non-default `quarkus.http.root-path`.
-- [ ] Until reflection removal: startup fails fast when a reflected field is
-      missing, and CI runs the security ITs against the pinned and the latest
-      Quarkus 3.x.
+- [x] Bearer-only target rules reject an identity created by another
+      authentication mechanism in direct and synthetic checks.
 
 ## Alternatives Considered
 
 * **Keep reflection permanently**: rejected — no API contract, fail-open
   identity semantics, breakage surfaces at first navigation in production.
-* **Fork Quarkus matching code into the extension**: rejected — same drift
-  risk as the config-model without the benefit of staying on public
-  contracts; license/maintenance overhead.
+* **Rebuild from configuration and `HttpSecurity` observers**: rejected after
+  implementation review — duplicates Quarkus's effective model, cannot
+  enumerate all programmatic/custom state, and risks direct/navigation drift.
+* **Fork Quarkus matching code into the extension**: rejected — duplicates
+  matcher semantics and increases upgrade drift.
 * **Wait for upstream before shipping anything**: rejected — OIDC support is
   needed now; the seam keeps the migration cheap.
 
@@ -130,4 +137,12 @@ Related: [ADR-0002](0002-adopt-quarkus-native-security-integration-guided-by-vaa
 [ADR-0004](0004-use-tri-state-decisions-for-http-permission-navigation-checking.md).
 Review findings and roadmap: [docs/security/README.md](../security/README.md)
 sections 3.4, 4 (D7), and 7. Revisit trigger: upstream evaluator API released
-→ execute step 4 and update this ADR under More Information.
+→ replace the compatibility bridge and update this ADR under More Information.
+
+2026-07-12 implementation update: the reflection/config-replay interim was
+replaced by the authoritative-policy compatibility bridge described above.
+OIDC parity tests cover named and programmatic rules, global policies, role
+augmentation isolation, authentication-mechanism selection, encoded paths
+and config/annotation conjunction in development and production modes. A
+dedicated fixture verifies direct and synthetic decisions below a non-default
+`quarkus.http.root-path` in both modes.

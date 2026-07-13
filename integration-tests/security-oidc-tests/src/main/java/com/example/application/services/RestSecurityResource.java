@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Marco Collovati, Dario Götze
+ * Copyright 2026 Marco Collovati, Dario Götze
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla.deployment.security;
+package com.example.application.services;
 
-import io.quarkus.builder.item.SimpleBuildItem;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
 
-public final class AuthFormBuildItem extends SimpleBuildItem {
+@Path("/rest")
+public class RestSecurityResource {
 
-    private final boolean enabled;
-
-    public AuthFormBuildItem(boolean enabled) {
-        this.enabled = enabled;
+    @GET
+    @Path("encoded")
+    public String encoded() {
+        return "ENCODED";
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    @GET
+    @Path("dot")
+    public String dot() {
+        return "DOT";
     }
 }

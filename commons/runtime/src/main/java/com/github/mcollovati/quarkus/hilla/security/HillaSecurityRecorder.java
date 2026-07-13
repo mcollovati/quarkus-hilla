@@ -20,9 +20,11 @@ import java.util.function.Supplier;
 import com.vaadin.flow.internal.UsageStatistics;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
+import io.quarkus.runtime.RuntimeValue;
 import io.quarkus.runtime.annotations.Recorder;
+import io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig;
+import io.quarkus.vertx.http.runtime.VertxHttpConfig;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
-import io.smallrye.config.SmallRyeConfig;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
@@ -31,18 +33,30 @@ import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 @Recorder
 public class HillaSecurityRecorder {
 
+    private final RuntimeValue<VertxHttpConfig> httpConfig;
+    private final VertxHttpBuildTimeConfig httpBuildTimeConfig;
+    private final RuntimeValue<VaadinSecurityConfig> securityConfig;
+
+    public HillaSecurityRecorder(
+            VertxHttpBuildTimeConfig httpBuildTimeConfig,
+            RuntimeValue<VertxHttpConfig> httpConfig,
+            RuntimeValue<VaadinSecurityConfig> securityConfig) {
+        this.httpBuildTimeConfig = httpBuildTimeConfig;
+        this.httpConfig = httpConfig;
+        this.securityConfig = securityConfig;
+    }
+
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
         return () -> {
             Config config = ConfigProvider.getConfig();
-            VaadinSecurityConfig securityConfig =
-                    config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
+            VaadinSecurityConfig currentSecurityConfig = securityConfig.getValue();
             var authConfig = new HillaFormAuthenticationMechanism.Config(
                     config.getValue("quarkus.http.auth.form.cookie-name", String.class),
                     config.getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
                             .orElse("/"),
-                    securityConfig.logoutPath(),
-                    securityConfig.postLogoutRedirectUri().orElse(null),
-                    securityConfig.logoutInvalidateSession());
+                    currentSecurityConfig.logoutPath(),
+                    currentSecurityConfig.postLogoutRedirectUri().orElse(null),
+                    currentSecurityConfig.logoutInvalidateSession());
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
             return new HillaFormAuthenticationMechanism(delegate, authConfig);
@@ -55,9 +69,34 @@ public class HillaSecurityRecorder {
         policy.withFormLogin(config);
     }
 
-    public void configureNavigationAccessControl(BeanContainer container, String loginPath) {
+    public void configureNavigationAccessControl(
+            BeanContainer container, String loginPathOverride, boolean formAuthentication) {
+        Config config = ConfigProvider.getConfig();
+        String loginPath = loginPathOverride;
+        if (loginPath == null) {
+            if (formAuthentication) {
+                loginPath = config.getOptionalValue("quarkus.http.auth.form.login-page", String.class)
+                        .orElse(null);
+            } else {
+                loginPath = securityConfig.getValue().loginPath().orElse(null);
+            }
+        }
+        if (loginPath == null) {
+            return;
+        }
         QuarkusNavigationAccessControl accessChecker = container.beanInstance(QuarkusNavigationAccessControl.class);
         accessChecker.setLoginView(loginPath);
+    }
+
+    public Supplier<VaadinSecurityRuntimeConfiguration> setupRuntimeSecurityConfiguration() {
+        return () -> {
+            VertxHttpConfig currentHttpConfig = httpConfig.getValue();
+            return new VaadinSecurityRuntimeConfiguration(
+                    currentHttpConfig.auth().permissions(),
+                    currentHttpConfig.auth().rolePolicy(),
+                    httpBuildTimeConfig.rootPath(),
+                    securityConfig.getValue().annotationConfigMismatch());
+        };
     }
 
     /**

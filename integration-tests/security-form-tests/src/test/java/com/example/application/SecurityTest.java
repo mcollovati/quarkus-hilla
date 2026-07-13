@@ -36,7 +36,6 @@ import static com.codeborne.selenide.Condition.image;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-import static com.codeborne.selenide.Selenide.$$;
 import static com.codeborne.selenide.Selenide.Wait;
 import static com.codeborne.selenide.Selenide.executeJavaScript;
 import static com.example.application.SecurityTest.MenuItem.FLOW_ADMIN;
@@ -162,7 +161,7 @@ class SecurityTest extends AbstractTest {
         login("user", "user");
         appLayout.$("h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
         assertThatMenuHasItems(USER_VIEWS);
-        openProtectedPage("hilla-admin", true);
+        openForbiddenPage("hilla-admin");
     }
 
     @Test
@@ -171,11 +170,7 @@ class SecurityTest extends AbstractTest {
         login("user", "user");
         appLayout.$("h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
         assertThatMenuHasItems(USER_VIEWS);
-        openProtectedPage("flow-admin", false);
-        $$("div")
-                .filter(Condition.text("Could not navigate to 'flow-admin'"))
-                .first()
-                .shouldBe(visible);
+        openForbiddenPage("flow-admin");
     }
 
     @Test
@@ -207,6 +202,10 @@ class SecurityTest extends AbstractTest {
         String selector = expectRedirectToLogin ? "vaadin-login-overlay" : "vaadin-app-layout footer vaadin-avatar";
         openAndWait(getTestUrl() + path, () -> $(selector));
         appLayout = $("vaadin-app-layout");
+    }
+
+    private void openForbiddenPage(String path) {
+        openAndWait(getTestUrl() + path, () -> $("body").shouldHave(text("HTTP ERROR 403")));
     }
 
     private void assertThatMenuHasItems(Collection<MenuItem> expectedItems) {
