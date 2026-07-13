@@ -67,10 +67,24 @@ class SecurityTest extends AbstractTest {
     }
 
     @Test
+    void notAdminUser_openRoleProtectedClockView_forbiddenPage() {
+        openAndWait(getTestUrl() + "flow-view", () -> $("vaadin-login-overlay"));
+        login("scott", "pwd");
+        $("body").shouldHave(text("HTTP ERROR 403"));
+    }
+
+    @Test
     void adminUser_adminView_viewDisplayed() {
         openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-overlay"));
         login("stuart", "test");
         $("div#admin-view").shouldBe(visible);
+    }
+
+    @Test
+    void adminUser_roleProtectedClockView_viewDisplayed() {
+        openAndWait(getTestUrl() + "flow-view", () -> $("vaadin-login-overlay"));
+        login("stuart", "test");
+        $("span#title").shouldBe(visible);
     }
 
     @Test

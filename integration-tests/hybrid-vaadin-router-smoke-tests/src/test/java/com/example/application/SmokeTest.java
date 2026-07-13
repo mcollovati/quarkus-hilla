@@ -66,11 +66,11 @@ class SmokeTest extends AbstractTest {
     }
 
     @Test
-    void home_navigateToFlowView_viewDisplayed() {
+    void home_navigateToPublicClockView_viewDisplayed() {
         openAndWait(() -> $("hello-world-view"));
 
         $$(Selectors.shadowCss("vaadin-side-nav-item", "main-layout"))
-                .filter(Condition.attribute("path", "/flow-view"))
+                .filter(Condition.attribute("path", "/flow-public-clock-view"))
                 .first()
                 .click();
         $("span#title").shouldBe(visible);
@@ -85,8 +85,8 @@ class SmokeTest extends AbstractTest {
     }
 
     @Test
-    void openFlowView_viewDisplayed() {
-        openAndWait(getTestUrl() + "flow-view", () -> $("span#title"));
+    void openPublicClockView_viewDisplayed() {
+        openAndWait(getTestUrl() + "flow-public-clock-view", () -> $("span#title"));
 
         $("vaadin-button").click();
         $("div#time").shouldBe(visible).should(Condition.partialText("Anonymous"));
