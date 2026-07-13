@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import com.vaadin.flow.server.HandlerHelper;
 import com.vaadin.flow.server.communication.StreamRequestHandler;
@@ -26,6 +27,9 @@ import io.vertx.ext.web.RoutingContext;
 import static com.vaadin.flow.server.HandlerHelper.getPathIfInsideServlet;
 
 public class QuarkusHandlerHelper implements Serializable {
+
+    private static final Pattern UPLOAD_REQUEST_PATTERN =
+            Pattern.compile(StreamRequestHandler.DYN_RES_PREFIX + "(\\d+)/([0-9a-z-]*)/upload");
 
     /**
      * Checks whether the request is an internal request.
@@ -114,7 +118,8 @@ public class QuarkusHandlerHelper implements Serializable {
     private static boolean isUploadRequest(String requestedPathWithoutServletMapping) {
         // First key is uiId
         // Second key is security key
-        return requestedPathWithoutServletMapping.matches(
-                StreamRequestHandler.DYN_RES_PREFIX + "(\\d+)/([0-9a-z-]*)/upload");
+        return UPLOAD_REQUEST_PATTERN
+                .matcher(requestedPathWithoutServletMapping)
+                .matches();
     }
 }

@@ -56,6 +56,7 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.ObjectMapper;
 
+import com.github.mcollovati.quarkus.hilla.security.QuarkusAccessAnnotationChecker;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusEndpointAccessChecker;
 
 @Unremovable
@@ -91,7 +92,7 @@ class QuarkusEndpointControllerConfiguration {
     @Singleton
     @DefaultBean
     AccessAnnotationChecker accessAnnotationChecker() {
-        return new AccessAnnotationChecker();
+        return new QuarkusAccessAnnotationChecker();
     }
 
     /**

@@ -18,6 +18,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
@@ -38,6 +39,31 @@ class RouteUtilTest {
         routeUtil.setRoutes(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
 
         assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+    }
+
+    @Test
+    void checkRouteAccess_readsRuntimeConfigurationOnce() {
+        VaadinSecurityRuntimeConfiguration configuration = new VaadinSecurityRuntimeConfiguration(
+                Map.of(), Map.of(), "/", VaadinSecurityRuntimeConfig.AnnotationConfigMismatch.OFF);
+        AtomicInteger lookups = new AtomicInteger();
+        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), () -> {
+            lookups.incrementAndGet();
+            return configuration;
+        });
+        routeUtil.setRoutes(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
+
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(1, lookups.get());
+    }
+
+    @Test
+    void checkRouteAccess_runtimeConfigurationFailureDenies() {
+        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), () -> {
+            throw new IllegalStateException("configuration unavailable");
+        });
+        routeUtil.setRoutes(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
+
+        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
     }
 
     @Test

@@ -18,6 +18,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
+import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.AccessCheckResult;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationContext;
@@ -30,8 +31,9 @@ public class QuarkusHttpPermissionNavigationAccessChecker implements NavigationA
     private final transient QuarkusAnnotatedViewAccessChecker annotatedViewAccessChecker;
 
     @Inject
-    public QuarkusHttpPermissionNavigationAccessChecker(QuarkusAccessPathChecker pathChecker) {
-        this(pathChecker, new QuarkusAnnotatedViewAccessChecker());
+    public QuarkusHttpPermissionNavigationAccessChecker(
+            QuarkusAccessPathChecker pathChecker, AccessAnnotationChecker accessAnnotationChecker) {
+        this(pathChecker, new QuarkusAnnotatedViewAccessChecker(accessAnnotationChecker));
     }
 
     QuarkusHttpPermissionNavigationAccessChecker(

@@ -23,10 +23,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -77,16 +75,7 @@ public class RouteUtil {
     }
 
     public RouteAccess checkRouteAccess(RoutingContext context, SecurityIdentity identity) {
-        // Ensure that the VaadinService is set for the current thread, so that collectClientRoutes can access it.
-        // The current instances should always be null, but for safety, we restore them after the operation.
-        final var oldInstances = CurrentInstance.getInstances();
-        VaadinService.setCurrent(vaadinService);
-        try {
-            return checkRouteAccessSafe(context, identity);
-        } finally {
-            CurrentInstance.clearAll();
-            CurrentInstance.restoreInstances(oldInstances);
-        }
+        return checkRouteAccessSafe(context, identity);
     }
 
     private RouteAccess checkRouteAccessSafe(RoutingContext context, SecurityIdentity identity) {
@@ -99,18 +88,23 @@ public class RouteUtil {
             return RouteAccess.NO_MATCH;
         }
         String requestPath = context.normalizedPath();
-        Set<String> candidatePaths = new LinkedHashSet<>();
+        String normalizedCandidate;
+        String clientCandidate;
         try {
-            candidatePaths.add(
-                    runtimeConfiguration.get().relativizeApplicationPath(HttpSecurityUtils.normalizePath(requestPath)));
+            VaadinSecurityRuntimeConfiguration configuration = runtimeConfiguration.get();
+            normalizedCandidate = configuration.relativizeApplicationPath(HttpSecurityUtils.normalizePath(requestPath));
+            clientCandidate = configuration.relativizeApplicationPath(clientRouterPath(requestPath));
         } catch (RuntimeException exception) {
             LOGGER.debug("Cannot normalize Hilla client route path; denying access", exception);
             return RouteAccess.DENY;
         }
-        candidatePaths.add(runtimeConfiguration.get().relativizeApplicationPath(clientRouterPath(requestPath)));
-        Set<String> matchedRoutes = new LinkedHashSet<>();
-        for (String candidatePath : candidatePaths) {
-            matchedRoutes.addAll(getRoutesByPath(snapshot.routes(), candidatePath));
+        List<CompiledRoute> matchedRoutes = new ArrayList<>(getRoutesByPath(snapshot.routes(), normalizedCandidate));
+        if (!normalizedCandidate.equals(clientCandidate)) {
+            for (CompiledRoute route : getRoutesByPath(snapshot.routes(), clientCandidate)) {
+                if (!matchedRoutes.contains(route)) {
+                    matchedRoutes.add(route);
+                }
+            }
         }
         if (matchedRoutes.isEmpty()) {
             return RouteAccess.NO_MATCH;
@@ -118,8 +112,8 @@ public class RouteUtil {
         if (!snapshot.hierarchyComplete()) {
             return RouteAccess.DENY;
         }
-        for (String route : matchedRoutes) {
-            if (!isRouteAccessible(snapshot, route, identity)) {
+        for (CompiledRoute route : matchedRoutes) {
+            if (!isRouteAccessible(route, identity)) {
                 return RouteAccess.DENY;
             }
         }
@@ -131,23 +125,34 @@ public class RouteUtil {
         if (snapshot != null && snapshot.hierarchyComplete()) {
             return;
         }
-        ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
+        // Route discovery needs a current VaadinService. Matching an already
+        // published snapshot does not, so keep thread-local manipulation out of
+        // the per-request hot path.
+        final var oldInstances = CurrentInstance.getInstances();
+        VaadinService.setCurrent(vaadinService);
         try {
-            URL routesResource = MenuRegistry.getViewsJsonAsResource(config);
-            if (routesResource != null) {
-                try (InputStream input = routesResource.openStream()) {
-                    List<AvailableViewInfo> routeTree =
-                            ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
-                    setRouteTree(routeTree);
-                    return;
+            ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
+            try {
+                URL routesResource = MenuRegistry.getViewsJsonAsResource(config);
+                if (routesResource != null) {
+                    try (InputStream input = routesResource.openStream()) {
+                        List<AvailableViewInfo> routeTree =
+                                ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
+                        setRouteTree(routeTree);
+                        return;
+                    }
                 }
+            } catch (IOException | RuntimeException exception) {
+                LOGGER.warn(
+                        "Cannot load complete Hilla client route tree; matched client routes will be denied",
+                        exception);
             }
-        } catch (IOException | RuntimeException exception) {
-            LOGGER.warn(
-                    "Cannot load complete Hilla client route tree; matched client routes will be denied", exception);
+            Map<String, AvailableViewInfo> fallbackRoutes = MenuRegistry.collectClientMenuItems(false, config, null);
+            setRoutes(fallbackRoutes, false);
+        } finally {
+            CurrentInstance.clearAll();
+            CurrentInstance.restoreInstances(oldInstances);
         }
-        Map<String, AvailableViewInfo> fallbackRoutes = MenuRegistry.collectClientMenuItems(false, config, null);
-        setRoutes(fallbackRoutes, false);
     }
 
     void setRoutes(final Map<String, AvailableViewInfo> registeredRoutes) {
@@ -161,7 +166,7 @@ public class RouteUtil {
             Map<String, AvailableViewInfo> routes = Map.copyOf(new LinkedHashMap<>(registeredRoutes));
             Map<String, List<List<AvailableViewInfo>>> chains = new LinkedHashMap<>();
             registeredRoutes.forEach((route, view) -> chains.put(route, List.of(List.of(view))));
-            routeSnapshot = new RouteSnapshot(routes, Map.copyOf(chains), hierarchyComplete);
+            routeSnapshot = createSnapshot(routes, chains, hierarchyComplete);
         }
     }
 
@@ -171,7 +176,20 @@ public class RouteUtil {
         for (AvailableViewInfo route : routeTree) {
             collectRouteTree("", List.of(), route, routes, chains);
         }
-        routeSnapshot = new RouteSnapshot(Map.copyOf(routes), Map.copyOf(chains), true);
+        routeSnapshot = createSnapshot(routes, chains, true);
+    }
+
+    private static RouteSnapshot createSnapshot(
+            Map<String, AvailableViewInfo> routes,
+            Map<String, List<List<AvailableViewInfo>>> securityChains,
+            boolean hierarchyComplete) {
+        List<CompiledRoute> compiledRoutes = new ArrayList<>(routes.size());
+        for (String route : routes.keySet()) {
+            List<List<AvailableViewInfo>> chains = securityChains.get(route);
+            compiledRoutes.add(
+                    new CompiledRoute(route, routeSegments(route), chains == null ? List.of() : List.copyOf(chains)));
+        }
+        return new RouteSnapshot(List.copyOf(compiledRoutes), hierarchyComplete);
     }
 
     private static void collectRouteTree(
@@ -211,12 +229,20 @@ public class RouteUtil {
         return route.replaceAll("/+", "/");
     }
 
-    private static boolean isRouteAccessible(RouteSnapshot snapshot, String route, SecurityIdentity identity) {
-        List<List<AvailableViewInfo>> chains = snapshot.securityChains().get(route);
-        return chains != null
-                && !chains.isEmpty()
-                && chains.stream()
-                        .allMatch(chain -> chain.stream().allMatch(view -> validateViewAccessible(view, identity)));
+    private static boolean isRouteAccessible(CompiledRoute route, SecurityIdentity identity) {
+        List<List<AvailableViewInfo>> chains = route.securityChains();
+        return chains != null && !chains.isEmpty() && allChainsAccessible(chains, identity);
+    }
+
+    private static boolean allChainsAccessible(List<List<AvailableViewInfo>> chains, SecurityIdentity identity) {
+        for (List<AvailableViewInfo> chain : chains) {
+            for (AvailableViewInfo view : chain) {
+                if (!validateViewAccessible(view, identity)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     private static boolean validateViewAccessible(AvailableViewInfo viewInfo, SecurityIdentity identity) {
@@ -224,15 +250,23 @@ public class RouteUtil {
             return false;
         }
         String[] roles = viewInfo.rolesAllowed();
-        return roles == null || roles.length == 0 || Arrays.stream(roles).anyMatch(identity::hasRole);
+        if (roles == null || roles.length == 0) {
+            return true;
+        }
+        for (String role : roles) {
+            if (identity.hasRole(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private Set<String> getRoutesByPath(Map<String, AvailableViewInfo> availableRoutes, String path) {
-        Set<String> bestMatches = new LinkedHashSet<>();
+    private static List<CompiledRoute> getRoutesByPath(List<CompiledRoute> availableRoutes, String path) {
+        List<CompiledRoute> bestMatches = new ArrayList<>();
+        List<String> pathSegments = segments(path);
         int bestScore = Integer.MIN_VALUE;
-        for (Map.Entry<String, AvailableViewInfo> entry : availableRoutes.entrySet()) {
-            List<String> routeSegments = routeSegments(entry.getKey());
-            int score = matchScore(routeSegments, segments(path), 0, 0);
+        for (CompiledRoute route : availableRoutes) {
+            int score = matchScore(route.segments(), pathSegments, 0, 0);
             if (score == Integer.MIN_VALUE) {
                 continue;
             }
@@ -241,20 +275,19 @@ public class RouteUtil {
                 bestScore = score;
             }
             if (score == bestScore) {
-                bestMatches.add(entry.getKey());
+                bestMatches.add(route);
             }
         }
-        return bestMatches;
+        return List.copyOf(bestMatches);
     }
 
     private static int matchScore(
-            List<String> routeSegments, List<String> pathSegments, int routeIndex, int pathIndex) {
+            List<SegmentPattern> routeSegments, List<String> pathSegments, int routeIndex, int pathIndex) {
         if (routeIndex == routeSegments.size()) {
             return pathIndex == pathSegments.size() ? 0 : Integer.MIN_VALUE;
         }
 
-        String routeSegment = routeSegments.get(routeIndex);
-        SegmentPattern segmentPattern = segmentPattern(routeSegment);
+        SegmentPattern segmentPattern = routeSegments.get(routeIndex);
         if (segmentPattern.type() == SegmentType.WILDCARD) {
             if (routeIndex == routeSegments.size() - 1) {
                 return -1;
@@ -289,9 +322,9 @@ public class RouteUtil {
         return Math.max(skipped, consumed);
     }
 
-    private static boolean remainingSegmentsCanBeOmitted(List<String> routeSegments, int routeIndex) {
+    private static boolean remainingSegmentsCanBeOmitted(List<SegmentPattern> routeSegments, int routeIndex) {
         for (int index = routeIndex; index < routeSegments.size(); index++) {
-            SegmentPattern remaining = segmentPattern(routeSegments.get(index));
+            SegmentPattern remaining = routeSegments.get(index);
             if (!remaining.optional() || !remaining.canBeOmitted()) {
                 return false;
             }
@@ -330,14 +363,22 @@ public class RouteUtil {
                 : Arrays.asList(path.substring(start, end).split("/", -1));
     }
 
-    private static List<String> routeSegments(String route) {
+    private static List<SegmentPattern> routeSegments(String route) {
         if (route != null && route.endsWith("*") && !"*".equals(route) && !route.endsWith("/*")) {
             route = route.substring(0, route.length() - 1) + "/*";
         }
-        return segments(route);
+        List<String> segments = segments(route);
+        List<SegmentPattern> patterns = new ArrayList<>(segments.size());
+        for (String segment : segments) {
+            patterns.add(segmentPattern(segment));
+        }
+        return List.copyOf(patterns);
     }
 
     private static String clientRouterPath(String path) {
+        if (path.indexOf('%') < 0) {
+            return path;
+        }
         return String.join(
                 "/",
                 Arrays.stream(path.split("/", -1))
@@ -379,10 +420,10 @@ public class RouteUtil {
         }
     }
 
-    private record RouteSnapshot(
-            Map<String, AvailableViewInfo> routes,
-            Map<String, List<List<AvailableViewInfo>>> securityChains,
-            boolean hierarchyComplete) {}
+    private record CompiledRoute(
+            String path, List<SegmentPattern> segments, List<List<AvailableViewInfo>> securityChains) {}
+
+    private record RouteSnapshot(List<CompiledRoute> routes, boolean hierarchyComplete) {}
 
     public enum RouteAccess {
         NO_MATCH,

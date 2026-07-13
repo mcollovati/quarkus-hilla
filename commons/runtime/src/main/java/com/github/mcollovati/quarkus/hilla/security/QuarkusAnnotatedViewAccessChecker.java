@@ -41,7 +41,7 @@ public class QuarkusAnnotatedViewAccessChecker extends AnnotatedViewAccessChecke
     private final AccessAnnotationChecker accessAnnotationChecker;
 
     public QuarkusAnnotatedViewAccessChecker() {
-        this(new AccessAnnotationChecker());
+        this(new QuarkusAccessAnnotationChecker());
     }
 
     QuarkusAnnotatedViewAccessChecker(AccessAnnotationChecker accessAnnotationChecker) {
@@ -65,9 +65,7 @@ public class QuarkusAnnotatedViewAccessChecker extends AnnotatedViewAccessChecke
         Class<?> target = context.getNavigationTarget();
         RouteRegistry registry = context.getRouter().getRegistry();
         String routePath = context.getLocation().getPath();
-        while (routePath.startsWith("/")) {
-            routePath = routePath.substring(1);
-        }
+        routePath = PathUtil.removeLeadingSlashes(routePath);
         NavigationRouteTarget resolvedRoute = registry.getNavigationRouteTarget(routePath);
         if (resolvedRoute == null
                 || !resolvedRoute.hasTarget()

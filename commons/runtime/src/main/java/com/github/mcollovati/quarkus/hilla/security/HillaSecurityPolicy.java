@@ -19,11 +19,11 @@ import jakarta.annotation.Priority;
 import jakarta.enterprise.event.Observes;
 import jakarta.enterprise.inject.Instance;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import com.vaadin.flow.router.Location;
 import com.vaadin.flow.router.QueryParameters;
@@ -56,6 +56,8 @@ import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 @Startup
 @Priority(Integer.MIN_VALUE)
 public class HillaSecurityPolicy implements HttpSecurityPolicy {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HillaSecurityPolicy.class);
 
     private ImmutablePathMatcher<Boolean> permitAllMatcher;
     private ImmutablePathMatcher<Boolean> endpointMatcher;
@@ -110,11 +112,12 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         if (Boolean.TRUE.equals(endpointMatcher.match(request.request().path()).getValue())
                 || isAnonymousEndpoint(request)) {
             return identity.onItem().transform(requestIdentity -> {
-                getLogger()
-                        .debug(
-                                "Resolved Hilla endpoint request identity: anonymous={}, roles={}",
-                                requestIdentity.isAnonymous(),
-                                requestIdentity.getRoles());
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug(
+                            "Resolved Hilla endpoint request identity: anonymous={}, roles={}",
+                            requestIdentity.isAnonymous(),
+                            requestIdentity.getRoles());
+                }
                 return new CheckResult(true, requestIdentity);
             });
         }
@@ -134,15 +137,13 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                             request));
             try (QuarkusSecurityIdentityHolder.IdentityScope ignored = identityHolder.activate(requestIdentity)) {
                 if (vaadinService == null) {
-                    getLogger()
-                            .warn(
-                                    "VaadinService not set. Cannot determine server route for {}",
-                                    request.normalizedPath());
+                    LOGGER.warn(
+                            "VaadinService not set. Cannot determine server route for {}", request.normalizedPath());
                     return CheckResult.deny();
                 }
                 NavigationContext navigationContext = tryCreateNavigationContext(request, requestIdentity);
                 if (navigationContext == null) {
-                    getLogger().trace("No Flow route defined for {}", request.normalizedPath());
+                    LOGGER.trace("No Flow route defined for {}", request.normalizedPath());
                     return routeDecision(routeUtil.checkRouteAccess(request, requestIdentity));
                 }
                 AccessCheckResult routeAccess = checkRouteAccess(navigationContext, request.normalizedPath());
@@ -206,9 +207,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             String message =
                     "Navigation Access Control is disabled. Cannot determine if {} refers to a public view, thus access is denied. Please add an explicit request matcher rule for this URL.";
             if (productionMode) {
-                getLogger().debug(message, path);
+                LOGGER.debug(message, path);
             } else {
-                getLogger().info(message, path);
+                LOGGER.info(message, path);
             }
             return navigationContext.deny("Navigation Access Control is disabled");
         }
@@ -217,18 +218,17 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         try {
             result = accessControl.checkAccess(navigationContext, productionMode);
         } catch (IllegalStateException exception) {
-            getLogger()
-                    .debug(
-                            "Cannot determine if {} refers to a public view. Treating route as not anonymous.",
-                            path,
-                            exception);
+            LOGGER.debug(
+                    "Cannot determine if {} refers to a public view. Treating route as not anonymous.",
+                    path,
+                    exception);
             return navigationContext.deny("Navigation access cannot be determined");
         }
         boolean isAllowed = result.decision() == AccessCheckDecision.ALLOW;
         if (isAllowed) {
-            getLogger().debug("{} refers to a public view", path);
+            LOGGER.debug("{} refers to a public view", path);
         } else {
-            getLogger().debug("Access to {} denied by Flow navigation access control. {}", path, result.reason());
+            LOGGER.debug("Access to {} denied by Flow navigation access control. {}", path, result.reason());
         }
         return result;
     }
@@ -283,17 +283,18 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     private QueryParameters queryParametersFromRequest(RoutingContext routingContext) {
         MultiMap params = routingContext.request().params();
-        return QueryParameters.full(params.names().stream()
-                .map(name -> Map.entry(name, params.getAll(name).toArray(String[]::new)))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        if (params.isEmpty()) {
+            return QueryParameters.empty();
+        }
+        Map<String, String[]> queryParameters = new LinkedHashMap<>();
+        for (String name : params.names()) {
+            queryParameters.put(name, params.getAll(name).toArray(String[]::new));
+        }
+        return QueryParameters.full(queryParameters);
     }
 
     private String getUrlMapping() {
         return "/*";
-    }
-
-    private Logger getLogger() {
-        return LoggerFactory.getLogger(getClass());
     }
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
