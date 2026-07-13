@@ -80,6 +80,8 @@ class FormAuthenticationProtocolTest {
     void formLogin_directNavigation_enforcesFlowAndHillaRoles() throws Exception {
         HttpClient userClient = newClient();
         assertThat(login(userClient, "user", "user", true).statusCode()).isEqualTo(200);
+        // A cold dev-mode frontend request generates the Hilla client-route manifest.
+        assertStatus(userClient, "/", 200);
         assertStatus(userClient, "/flow-admin", 403);
         assertStatus(userClient, "/hilla-admin", 403);
 

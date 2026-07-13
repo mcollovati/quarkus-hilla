@@ -71,8 +71,9 @@ codified as an integration test suite:
 4. **Endpoint security is server-side.** `@BrowserCallable` method access is
    checked on the server against the real identity; unannotated methods are
    denied by default.
-5. **Deep links and client-side navigation agree.** A direct URL load and an
-   in-app router navigation to the same route yield the same access decision.
+5. **Deep links and client-side navigation agree.** Once Hilla's generated
+   client-route manifest is available, a direct URL load and an in-app router
+   navigation to the same route yield the same access decision.
 6. **UIDL/push-aware redirects.** Authentication challenges and logout during
    a UIDL/XHR/push request must use Vaadin client commands, not plain HTTP
    302 (an XHR cannot follow a redirect to an IdP).
@@ -233,6 +234,17 @@ wildcards, parameter suffixes, absolute nested routes, case-insensitive static
 segments, ranking ties and encoded slashes inside parameters. If the complete
 tree cannot be loaded, a path that is still identifiable as a Hilla route is
 denied rather than evaluated from incomplete ancestry metadata.
+
+In a cold development-mode start, Vite creates the client-route manifest
+asynchronously when the frontend is first requested. Until that manifest
+exists, the server cannot distinguish a Hilla deep link from an unrelated
+non-Flow URL and leaves the request to Quarkus/Vaadin instead of claiming it.
+The returned document is only the static SPA shell: Hilla's client router still
+blocks a protected component, and endpoint data remains protected server-side.
+The bridge retries incomplete route discovery on later requests, so direct
+HTTP route enforcement becomes active as soon as Vite has generated the
+manifest. Production builds package the manifest before startup and do not
+have this initialization window.
 
 ### 3.6 Login path for non-form mechanisms
 
