@@ -179,7 +179,7 @@ class FormAuthenticationProtocolTest {
 
     private void assertStatus(HttpClient client, String path, int expectedStatus)
             throws IOException, InterruptedException {
-        assertThat(status(client, path)).isEqualTo(expectedStatus);
+        assertThat(request(client, path).statusCode()).isEqualTo(expectedStatus);
     }
 
     private void awaitStatus(HttpClient client, String path, int expectedStatus)
@@ -187,23 +187,24 @@ class FormAuthenticationProtocolTest {
         long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
         int actualStatus;
         do {
-            actualStatus = status(client, path);
+            HttpResponse<Void> response = request(client, path);
+            actualStatus = response.statusCode();
             assertThat(actualStatus).isIn(200, expectedStatus);
             if (actualStatus == expectedStatus) {
                 return;
             }
+            assertThat(response.headers().firstValue("X-DevModePending")).hasValue("true");
             Thread.sleep(100);
         } while (System.nanoTime() < deadline);
         assertThat(actualStatus).isEqualTo(expectedStatus);
     }
 
-    private int status(HttpClient client, String path) throws IOException, InterruptedException {
+    private HttpResponse<Void> request(HttpClient client, String path) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(baseUri.resolve(path))
                 .header("Accept", "text/html")
                 .GET()
                 .build();
-        HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-        return response.statusCode();
+        return client.send(request, HttpResponse.BodyHandlers.discarding());
     }
 
     private HttpResponse<Void> login(HttpClient client, String username, String password, boolean typescript)

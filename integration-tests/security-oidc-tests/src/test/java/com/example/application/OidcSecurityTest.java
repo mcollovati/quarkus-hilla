@@ -18,10 +18,12 @@ package com.example.application;
 import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
 import com.example.application.security.TestHeaderAuthenticationMechanism;
@@ -280,8 +282,8 @@ class OidcSecurityTest {
     }
 
     @Test
-    void hillaClientRoutes_enforceRouteMetadata() {
-        RestAssured.given().when().get("/hilla-protected").then().statusCode(401);
+    void hillaClientRoutes_enforceRouteMetadata() throws InterruptedException {
+        assertHillaRouteStatus(() -> RestAssured.given().when().get("/hilla-protected"), 401);
         RestAssured.given()
                 .auth()
                 .oauth2(token("user"))
@@ -417,6 +419,27 @@ class OidcSecurityTest {
 
     private Response endpointRequest(String methodName) {
         return endpointRequest(methodName, UnaryOperator.identity());
+    }
+
+    private static void assertHillaRouteStatus(Supplier<Response> request, int expectedStatus)
+            throws InterruptedException {
+        if (!"development".equals(System.getProperty("quarkus-hilla.test-mode"))) {
+            request.get().then().statusCode(expectedStatus);
+            return;
+        }
+        long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
+        int actualStatus;
+        do {
+            Response response = request.get();
+            actualStatus = response.statusCode();
+            assertThat(actualStatus).isIn(200, expectedStatus);
+            if (actualStatus == expectedStatus) {
+                return;
+            }
+            assertThat(response.header("X-DevModePending")).isEqualTo("true");
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        assertThat(actualStatus).isEqualTo(expectedStatus);
     }
 
     private Response endpointRequest(String methodName, UnaryOperator<RequestSpecification> customizer) {

@@ -15,16 +15,20 @@
  */
 package com.example.application;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.CoreMatchers.equalTo;
 
 @QuarkusTest
@@ -64,14 +68,9 @@ class OidcRootPathSecurityTest {
     }
 
     @Test
-    void hillaRouteMetadata_remainsEnforcedBelowRootPath() {
-        RestAssured.given()
-                .auth()
-                .oauth2(token("user"))
-                .when()
-                .get("/hilla-admin")
-                .then()
-                .statusCode(403);
+    void hillaRouteMetadata_remainsEnforcedBelowRootPath() throws InterruptedException {
+        assertHillaRouteStatus(
+                () -> RestAssured.given().auth().oauth2(token("user")).when().get("/hilla-admin"), 403);
         RestAssured.given()
                 .auth()
                 .oauth2(token("admin"))
@@ -157,6 +156,27 @@ class OidcRootPathSecurityTest {
                 .then()
                 .statusCode(200)
                 .body(equalTo("\"" + decision + "\""));
+    }
+
+    private static void assertHillaRouteStatus(Supplier<Response> request, int expectedStatus)
+            throws InterruptedException {
+        if (!"development".equals(System.getProperty("quarkus-hilla.test-mode"))) {
+            request.get().then().statusCode(expectedStatus);
+            return;
+        }
+        long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
+        int actualStatus;
+        do {
+            Response response = request.get();
+            actualStatus = response.statusCode();
+            assertThat(actualStatus).isIn(200, expectedStatus);
+            if (actualStatus == expectedStatus) {
+                return;
+            }
+            assertThat(response.header("X-DevModePending")).isEqualTo("true");
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        assertThat(actualStatus).isEqualTo(expectedStatus);
     }
 
     private String token(String username) {
