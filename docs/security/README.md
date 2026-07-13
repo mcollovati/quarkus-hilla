@@ -65,9 +65,9 @@ codified as an integration test suite:
 2. **Framework internals stay reachable.** UIDL, heartbeat, push, `/VAADIN/*`,
    service-worker and web icon requests are always permitted
    (`HillaSecurityPolicy`, `WebIconsRequestMatcher`).
-3. **Route annotations work everywhere.** `@AnonymousAllowed`, `@PermitAll`,
-   `@RolesAllowed`, `@DenyAll` are enforced for Flow routes and Hilla client
-   routes.
+3. **Route constraints work everywhere.** `@AnonymousAllowed`, `@PermitAll`,
+   `@RolesAllowed` and `@DenyAll` are enforced for Flow routes; Hilla client
+   routes enforce their `loginRequired` and `rolesAllowed` metadata.
 4. **Endpoint security is server-side.** `@BrowserCallable` method access is
    checked on the server against the real identity; unannotated methods are
    denied by default.

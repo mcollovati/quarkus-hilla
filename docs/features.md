@@ -37,7 +37,7 @@ Quarkus-Hilla provides a Dev UI page for endpoint inspection during development.
 
 The page shows:
 
-- The effective Hilla access annotation for each endpoint class and method.
+- The resolved Hilla access annotation for each endpoint class and method.
   Quarkus HTTP permissions and the runtime identity are enforced separately and
   are not included in this build-time display.
 - Null-safety status for `@NonNull` types.
