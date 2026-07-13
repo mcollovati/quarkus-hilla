@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.quarkus.security.identity.SecurityIdentity;
@@ -31,6 +32,7 @@ import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils;
 import io.quarkus.vertx.http.runtime.security.PathMatchingHttpSecurityPolicy;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.Vertx;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
@@ -174,7 +176,112 @@ class QuarkusAccessPathCheckerTest {
                 checker.check("/tenant-b/admin", baseIdentity.getPrincipal(), baseIdentity::hasRole);
 
         assertEquals(QuarkusAccessPathChecker.Decision.DENY, result.decision());
+        assertEquals("target authentication could not reproduce the transport identity", result.policyName());
         verify(authenticator).attemptAuthentication(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void check_successfulAuthenticationSkipsDiagnosticMechanismLookup() {
+        RoutingContext transportContext = transportContext();
+        SecurityIdentity baseIdentity = TestSecurityIdentity.authenticated("user", "USER");
+        SecurityIdentity transportIdentity = transportIdentity(baseIdentity, baseIdentity, transportContext);
+        HttpAuthenticator authenticator = mock(HttpAuthenticator.class);
+        when(authenticator.attemptAuthentication(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(Uni.createFrom().item(baseIdentity));
+        PathMatchingHttpSecurityPolicy pathMatchingPolicy = mock(PathMatchingHttpSecurityPolicy.class, invocation -> {
+            if ("getAuthMechanisms".equals(invocation.getMethod().getName())) {
+                throw new IllegalStateException("diagnostic lookup must not run");
+            }
+            return org.mockito.Answers.RETURNS_DEFAULTS.answer(invocation);
+        });
+        HttpSecurityPolicy pathPolicy = (request, identity, requestContext) -> identity.map(value -> {
+            request.put(AbstractPathMatchingHttpSecurityPolicy.class.getName() + ".POLICY_FOUND", true);
+            return HttpSecurityPolicy.CheckResult.PERMIT;
+        });
+        QuarkusAccessPathChecker checker = new QuarkusAccessPathChecker(
+                new QuarkusSecurityIdentityHolder(() -> transportIdentity),
+                List.of(pathPolicy),
+                pathMatchingPolicy,
+                authenticator,
+                (context, identityUni, function) -> identityUni.map(value -> function.apply(context, value)),
+                () -> runtimeConfiguration("/"));
+
+        QuarkusAccessPathChecker.AccessCheck result =
+                checker.check("/secure", baseIdentity.getPrincipal(), baseIdentity::hasRole);
+
+        assertEquals(QuarkusAccessPathChecker.Decision.ALLOW, result.decision());
+    }
+
+    @Test
+    void check_failedDiagnosticMechanismLookupDeniesClosed() {
+        RoutingContext transportContext = transportContext();
+        SecurityIdentity baseIdentity = TestSecurityIdentity.authenticated("user", "USER");
+        SecurityIdentity transportIdentity = transportIdentity(baseIdentity, baseIdentity, transportContext);
+        HttpAuthenticator authenticator = mock(HttpAuthenticator.class);
+        when(authenticator.attemptAuthentication(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(Uni.createFrom().nullItem());
+        PathMatchingHttpSecurityPolicy pathMatchingPolicy = mock(PathMatchingHttpSecurityPolicy.class, invocation -> {
+            if ("getAuthMechanisms".equals(invocation.getMethod().getName())) {
+                throw new IllegalStateException("diagnostic lookup failed");
+            }
+            return org.mockito.Answers.RETURNS_DEFAULTS.answer(invocation);
+        });
+        QuarkusAccessPathChecker checker = new QuarkusAccessPathChecker(
+                new QuarkusSecurityIdentityHolder(() -> transportIdentity),
+                List.of(),
+                pathMatchingPolicy,
+                authenticator,
+                (context, identityUni, function) -> identityUni.map(value -> function.apply(context, value)),
+                () -> runtimeConfiguration("/"));
+
+        QuarkusAccessPathChecker.AccessCheck result =
+                checker.check("/secure", baseIdentity.getPrincipal(), baseIdentity::hasRole);
+
+        assertEquals(QuarkusAccessPathChecker.Decision.DENY, result.decision());
+        assertEquals("target policy evaluation failed", result.policyName());
+    }
+
+    @Test
+    void check_exposesWrappedTargetIdentityAndCanonicalHttpMethodToPolicy() {
+        RoutingContext transportContext = transportContext();
+        SecurityIdentity baseIdentity = TestSecurityIdentity.authenticated("user", "USER");
+        SecurityIdentity transportIdentity = transportIdentity(baseIdentity, baseIdentity, transportContext);
+        AtomicReference<io.vertx.ext.auth.User> evaluatedUser = new AtomicReference<>();
+        AtomicReference<HttpMethod> evaluatedMethod = new AtomicReference<>();
+        HttpSecurityPolicy pathPolicy = (request, identity, requestContext) -> identity.map(value -> {
+            evaluatedUser.set(request.user());
+            evaluatedMethod.set(request.request().method());
+            request.put(AbstractPathMatchingHttpSecurityPolicy.class.getName() + ".POLICY_FOUND", true);
+            return HttpSecurityPolicy.CheckResult.PERMIT;
+        });
+        QuarkusAccessPathChecker checker = checker(() -> transportIdentity, List.of(pathPolicy));
+
+        QuarkusAccessPathChecker.AccessCheck result =
+                checker.check("/secure", "GET", baseIdentity.getPrincipal(), baseIdentity::hasRole);
+
+        assertEquals(QuarkusAccessPathChecker.Decision.ALLOW, result.decision());
+        assertTrue(evaluatedUser.get() instanceof io.quarkus.vertx.http.runtime.security.QuarkusHttpUser);
+        assertSame(HttpMethod.GET, evaluatedMethod.get());
+    }
+
+    @Test
+    void check_preservesCustomHttpMethod() {
+        RoutingContext transportContext = transportContext();
+        SecurityIdentity baseIdentity = TestSecurityIdentity.authenticated("user", "USER");
+        SecurityIdentity transportIdentity = transportIdentity(baseIdentity, baseIdentity, transportContext);
+        AtomicReference<HttpMethod> evaluatedMethod = new AtomicReference<>();
+        HttpSecurityPolicy pathPolicy = (request, identity, requestContext) -> identity.map(value -> {
+            evaluatedMethod.set(request.request().method());
+            request.put(AbstractPathMatchingHttpSecurityPolicy.class.getName() + ".POLICY_FOUND", true);
+            return HttpSecurityPolicy.CheckResult.PERMIT;
+        });
+        QuarkusAccessPathChecker checker = checker(() -> transportIdentity, List.of(pathPolicy));
+
+        QuarkusAccessPathChecker.AccessCheck result =
+                checker.check("/secure", "PURGE", baseIdentity.getPrincipal(), baseIdentity::hasRole);
+
+        assertEquals(QuarkusAccessPathChecker.Decision.ALLOW, result.decision());
+        assertEquals("PURGE", evaluatedMethod.get().name());
     }
 
     @Test
@@ -215,6 +322,39 @@ class QuarkusAccessPathCheckerTest {
 
         assertEquals(QuarkusAccessPathChecker.Decision.ALLOW, result.decision());
         assertEquals("/app/menu-target", evaluatedPath.get());
+    }
+
+    @Test
+    void checkCurrentRequest_otherMenuTargetReadsRuntimeConfigurationOnce() {
+        RoutingContext transportContext = transportContext();
+        when(transportContext.normalizedPath()).thenReturn("/app/current");
+        SecurityIdentity baseIdentity = TestSecurityIdentity.authenticated("user", "USER");
+        SecurityIdentity transportIdentity = transportIdentity(baseIdentity, baseIdentity, transportContext);
+        HttpSecurityPolicy pathPolicy = (request, identity, requestContext) -> identity.map(value -> {
+            request.put(AbstractPathMatchingHttpSecurityPolicy.class.getName() + ".POLICY_FOUND", true);
+            return HttpSecurityPolicy.CheckResult.PERMIT;
+        });
+        PathMatchingHttpSecurityPolicy pathMatchingPolicy = mock(PathMatchingHttpSecurityPolicy.class);
+        HttpAuthenticator authenticator = mock(HttpAuthenticator.class);
+        when(authenticator.attemptAuthentication(org.mockito.ArgumentMatchers.any()))
+                .thenReturn(Uni.createFrom().item(baseIdentity));
+        AtomicInteger configurationLookups = new AtomicInteger();
+        QuarkusAccessPathChecker checker = new QuarkusAccessPathChecker(
+                new QuarkusSecurityIdentityHolder(() -> transportIdentity),
+                List.of(pathPolicy),
+                pathMatchingPolicy,
+                authenticator,
+                (context, identityUni, function) -> identityUni.map(value -> function.apply(context, value)),
+                () -> {
+                    configurationLookups.incrementAndGet();
+                    return runtimeConfiguration("/app/");
+                });
+
+        QuarkusAccessPathChecker.AccessCheck result =
+                checker.checkCurrentRequest("/menu-target", baseIdentity.getPrincipal(), baseIdentity::hasRole);
+
+        assertEquals(QuarkusAccessPathChecker.Decision.ALLOW, result.decision());
+        assertEquals(1, configurationLookups.get());
     }
 
     private static QuarkusAccessPathChecker checker(

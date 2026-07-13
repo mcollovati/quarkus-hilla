@@ -104,11 +104,13 @@ public class QuarkusAccessPathChecker {
         this.httpAuthenticator = httpAuthenticator;
         this.authorizationRequestContext = authorizationRequestContext;
         this.runtimeConfiguration = runtimeConfiguration;
-        LOGGER.debugf(
-                "Synthetic Vaadin navigation will evaluate Quarkus HTTP policies %s",
-                this.globalPolicies.stream()
-                        .map(QuarkusAccessPathChecker::policyDescription)
-                        .toList());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debugf(
+                    "Synthetic Vaadin navigation will evaluate Quarkus HTTP policies %s",
+                    this.globalPolicies.stream()
+                            .map(QuarkusAccessPathChecker::policyDescription)
+                            .toList());
+        }
     }
 
     public AccessCheck check(String path, Principal principal, Predicate<String> roleChecker) {
@@ -117,6 +119,10 @@ public class QuarkusAccessPathChecker {
 
     public AccessCheck check(String path, String method, Principal principal, Predicate<String> roleChecker) {
         TargetRequest targetRequest = targetRequest(runtimeConfiguration.get().resolveApplicationPath(path), method);
+        return check(targetRequest, principal);
+    }
+
+    private AccessCheck check(TargetRequest targetRequest, Principal principal) {
         if (!targetRequest.valid()) {
             return AccessCheck.deny("invalid path: " + targetRequest.diagnostic(), null);
         }
@@ -142,8 +148,6 @@ public class QuarkusAccessPathChecker {
 
         RoutingContext targetContext = routingContext(targetRequest, transportContext, baseIdentity);
         QuarkusHillaSecurityBridge.prepareTargetAuthentication(targetContext, pathMatchingPolicy);
-        Set<String> requiredMechanisms =
-                QuarkusHillaSecurityBridge.requiredAuthenticationMechanisms(pathMatchingPolicy, targetContext);
 
         try {
             SecurityIdentity targetIdentity = httpAuthenticator
@@ -152,6 +156,8 @@ public class QuarkusAccessPathChecker {
                     .indefinitely();
             if (targetIdentity == null) {
                 if (!baseIdentity.isAnonymous()) {
+                    Set<String> requiredMechanisms = QuarkusHillaSecurityBridge.requiredAuthenticationMechanisms(
+                            pathMatchingPolicy, targetContext);
                     String diagnostic = requiredMechanisms.isEmpty()
                             ? "target authentication could not reproduce the transport identity"
                             : "target requires authentication mechanism " + requiredMechanisms;
@@ -162,12 +168,13 @@ public class QuarkusAccessPathChecker {
                 return AccessCheck.deny("target authentication principal mismatch", baseIdentity);
             }
             targetIdentity = withRoutingContext(targetIdentity, targetContext);
-            targetContext.setUser(new QuarkusHttpUser(targetIdentity));
             AccessCheck result =
                     evaluatePolicies(targetContext, targetIdentity, 0).await().indefinitely();
-            LOGGER.debugf(
-                    "Synthetic navigation %s %s resolved to %s by %s",
-                    targetRequest.method(), targetRequest.path(), result.decision(), result.policyName());
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debugf(
+                        "Synthetic navigation %s %s resolved to %s by %s",
+                        targetRequest.method(), targetRequest.path(), result.decision(), result.policyName());
+            }
             return result;
         } catch (RuntimeException exception) {
             LOGGER.warnf(
@@ -205,7 +212,7 @@ public class QuarkusAccessPathChecker {
             return AccessCheck.deny("current request path normalization failed", navigationIdentity);
         }
         if (!currentPath.path().equals(targetRequest.path())) {
-            return check(path, NAVIGATION_METHOD, principal, roleChecker);
+            return check(targetRequest, principal);
         }
         if (!principalMatches(principal, currentIdentity)) {
             return AccessCheck.deny("current target SecurityIdentity principal mismatch", navigationIdentity);
@@ -226,7 +233,9 @@ public class QuarkusAccessPathChecker {
         }
 
         HttpSecurityPolicy policy = globalPolicies.get(policyIndex);
-        LOGGER.debugf("Evaluating synthetic navigation with HTTP security policy %s", policyDescription(policy));
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debugf("Evaluating synthetic navigation with HTTP security policy %s", policyDescription(policy));
+        }
         Uni<HttpSecurityPolicy.CheckResult> permission;
         try {
             permission =
@@ -371,7 +380,7 @@ public class QuarkusAccessPathChecker {
 
     private static HttpServerRequest httpServerRequest(
             TargetRequest targetRequest, HttpServerRequest transportRequest) {
-        HttpMethod httpMethod = new HttpMethod(targetRequest.method());
+        HttpMethod httpMethod = HttpMethod.valueOf(targetRequest.method());
         return (HttpServerRequest) Proxy.newProxyInstance(
                 QuarkusAccessPathChecker.class.getClassLoader(),
                 new Class<?>[] {HttpServerRequest.class},
