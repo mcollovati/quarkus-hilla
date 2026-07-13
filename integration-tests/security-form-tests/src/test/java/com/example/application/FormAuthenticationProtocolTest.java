@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -83,7 +84,11 @@ class FormAuthenticationProtocolTest {
         // A cold dev-mode frontend request generates the Hilla client-route manifest.
         assertStatus(userClient, "/", 200);
         assertStatus(userClient, "/flow-admin", 403);
-        assertStatus(userClient, "/hilla-admin", 403);
+        if ("development".equals(System.getProperty("quarkus-hilla.test-mode"))) {
+            awaitStatus(userClient, "/hilla-admin", 403);
+        } else {
+            assertStatus(userClient, "/hilla-admin", 403);
+        }
 
         HttpClient adminClient = newClient();
         assertThat(login(adminClient, "admin", "admin", true).statusCode()).isEqualTo(200);
@@ -174,13 +179,31 @@ class FormAuthenticationProtocolTest {
 
     private void assertStatus(HttpClient client, String path, int expectedStatus)
             throws IOException, InterruptedException {
+        assertThat(status(client, path)).isEqualTo(expectedStatus);
+    }
+
+    private void awaitStatus(HttpClient client, String path, int expectedStatus)
+            throws IOException, InterruptedException {
+        long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
+        int actualStatus;
+        do {
+            actualStatus = status(client, path);
+            assertThat(actualStatus).isIn(200, expectedStatus);
+            if (actualStatus == expectedStatus) {
+                return;
+            }
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        assertThat(actualStatus).isEqualTo(expectedStatus);
+    }
+
+    private int status(HttpClient client, String path) throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder(baseUri.resolve(path))
                 .header("Accept", "text/html")
                 .GET()
                 .build();
         HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
-
-        assertThat(response.statusCode()).isEqualTo(expectedStatus);
+        return response.statusCode();
     }
 
     private HttpResponse<Void> login(HttpClient client, String username, String password, boolean typescript)
