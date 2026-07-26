@@ -57,7 +57,7 @@
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "6.0.3",
-    "vite": "8.1.3",
+    "vite": "8.0.16",
     "vite-plugin-checker": "0.14.4"
   },
   "overrides": {
@@ -211,10 +211,10 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "6.0.3",
-      "vite": "8.1.3",
+      "vite": "8.0.16",
       "vite-plugin-checker": "0.14.4"
     },
-    "hash": "11c048452202a057f9839ab0041d86cea2e18d80f0f5420e08e3cdb7f1e2caa6"
+    "hash": "b3f10b1f3c205877aa1046a8f56928098bf84de8dbaa6be028637ff02a89f6f2"
   },
   "type": "module"
 }
