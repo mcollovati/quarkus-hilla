@@ -48,7 +48,7 @@
             To be removed in the future
         -->
         <hilla.version>25.1.7</hilla.version>
-        <flow.version>25.1.11</flow.version>
+        <flow.version>25.1.13</flow.version>
         <vaadin.version>25.1.8</vaadin.version>
 
         <!--
