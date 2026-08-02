@@ -90,11 +90,11 @@
     "@babel/plugin-transform-react-jsx-development": "7.29.7",
     "@babel/preset-react": "7.29.7",
     "@babel/types": "7.29.7",
-    "@preact/signals-react-transform": "0.8.1",
+    "@preact/signals-react-transform": "0.8.2",
     "@rolldown/plugin-babel": "0.2.3",
     "@rollup/plugin-replace": "6.0.3",
     "@rollup/pluginutils": "5.4.0",
-    "@types/node": "26.1.0",
+    "@types/node": "26.1.1",
     "@vaadin/hilla-generator-cli": "25.3.0-alpha6",
     "@vaadin/hilla-generator-core": "25.3.0-alpha6",
     "@vaadin/hilla-generator-plugin-backbone": "25.3.0-alpha6",
@@ -106,15 +106,15 @@
     "@vaadin/hilla-generator-plugin-subtypes": "25.3.0-alpha6",
     "@vaadin/hilla-generator-plugin-transfertypes": "25.3.0-alpha6",
     "@vaadin/hilla-generator-utils": "25.3.0-alpha6",
-    "@vitejs/plugin-react": "6.0.3",
-    "magic-string": "0.30.21",
+    "@vitejs/plugin-react": "6.0.4",
+    "magic-string": "1.1.0",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "7.0.1",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "6.0.3",
     "vite": "8.0.16",
-    "vite-plugin-checker": "0.14.4"
+    "vite-plugin-checker": "0.14.5"
   },
   "overrides": {
     "@adobe/lit-mobx": "$@adobe/lit-mobx",
@@ -289,11 +289,11 @@
       "@babel/plugin-transform-react-jsx-development": "7.29.7",
       "@babel/preset-react": "7.29.7",
       "@babel/types": "7.29.7",
-      "@preact/signals-react-transform": "0.8.1",
+      "@preact/signals-react-transform": "0.8.2",
       "@rolldown/plugin-babel": "0.2.3",
       "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.4.0",
-      "@types/node": "26.1.0",
+      "@types/node": "26.1.1",
       "@vaadin/hilla-generator-cli": "25.3.0-alpha6",
       "@vaadin/hilla-generator-core": "25.3.0-alpha6",
       "@vaadin/hilla-generator-plugin-backbone": "25.3.0-alpha6",
@@ -305,17 +305,17 @@
       "@vaadin/hilla-generator-plugin-subtypes": "25.3.0-alpha6",
       "@vaadin/hilla-generator-plugin-transfertypes": "25.3.0-alpha6",
       "@vaadin/hilla-generator-utils": "25.3.0-alpha6",
-      "@vitejs/plugin-react": "6.0.3",
-      "magic-string": "0.30.21",
+      "@vitejs/plugin-react": "6.0.4",
+      "magic-string": "1.1.0",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "7.0.1",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "6.0.3",
       "vite": "8.0.16",
-      "vite-plugin-checker": "0.14.4"
+      "vite-plugin-checker": "0.14.5"
     },
-    "hash": "05c92abcd085c68d6948f6b42a34ad456c7d124ff1e7a4169d1cdb6c9fe125dc"
+    "hash": "04e337376a5dee76951b7499b67c809f291766958e08f712406164b2fd921eb6"
   },
   "type": "module"
 }
