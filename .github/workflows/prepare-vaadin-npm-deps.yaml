@@ -49,29 +49,29 @@ jobs:
           echo "relevant=$relevant" >> "$GITHUB_OUTPUT"
   generate:
     name: Generate NPM dependency patch
-    if: needs.classify.outputs.relevant == 'true'
+    if: always() && needs.classify.result == 'success'
     needs: classify
     runs-on: ubuntu-latest
-    outputs:
-      changed: ${{ steps.patch.outputs.changed }}
     steps:
       - name: Checkout Dependabot revision
+        if: needs.classify.outputs.relevant == 'true'
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Setup Java
+        if: needs.classify.outputs.relevant == 'true'
         uses: actions/setup-java@0f481fcb613427c0f801b606911222b5b6f3083a # v5
         with:
           java-version: 21
           distribution: temurin
       - name: Generate frontend dependencies
+        if: needs.classify.outputs.relevant == 'true'
         run: mvn -V -e -ntp install -Pall-modules -Dflatten.skip=true -DskipTests
       - name: Create restricted patch
+        if: needs.classify.outputs.relevant == 'true'
         id: patch
-        env:
-          EXPECTED_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
           git add -- ':(glob)**/package*.json'
 
@@ -102,15 +102,37 @@ jobs:
           fi
 
           git diff --cached --binary > npm-deps.patch
-          printf '%s\n' "$EXPECTED_HEAD_SHA" > head-sha
           echo "changed=true" >> "$GITHUB_OUTPUT"
-      - name: Upload NPM dependency patch
-        if: steps.patch.outputs.changed == 'true'
+      - name: Create synchronization result
+        env:
+          CHANGED: ${{ steps.patch.outputs.changed || 'false' }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RELEVANT: ${{ needs.classify.outputs.relevant }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          [[ "$RELEVANT" == "true" || "$RELEVANT" == "false" ]]
+          [[ "$CHANGED" == "true" || "$CHANGED" == "false" ]]
+          [[ "$RELEVANT" == "true" || "$CHANGED" == "false" ]]
+
+          mkdir generated
+          jq -n \
+            --argjson relevant "$RELEVANT" \
+            --argjson changed "$CHANGED" \
+            --arg head_sha "$HEAD_SHA" \
+            --argjson run_id "$RUN_ID" \
+            --argjson run_attempt "$RUN_ATTEMPT" \
+            '{relevant: $relevant, changed: $changed, head_sha: $head_sha,
+              run_id: $run_id, run_attempt: $run_attempt}' \
+            > generated/result.json
+
+          if [[ "$CHANGED" == "true" ]]; then
+            cp npm-deps.patch generated/npm-deps.patch
+          fi
+      - name: Upload NPM dependency synchronization result
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
-          name: vaadin-npm-sync
-          path: |
-            npm-deps.patch
-            head-sha
+          name: vaadin-npm-sync-${{ github.run_attempt }}
+          path: generated
           if-no-files-found: error
           retention-days: 1

@@ -51,18 +51,20 @@ jobs:
       - name: Validate source workflow freshness
         env:
           GH_TOKEN: ${{ github.token }}
+          HEAD_REF: ${{ steps.pull-request.outputs.head_ref }}
           PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
           SOURCE_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
           SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
         run: |
-          gh api \
-            "repos/$GITHUB_REPOSITORY/actions/workflows/prepare-vaadin-npm-deps.yaml/runs?event=pull_request_target&per_page=100" \
-            > prepare-runs.json
           read -r latest_run_id latest_run_attempt < <(
-            jq -r --argjson pr "$PR_NUMBER" \
-              '[.workflow_runs[] | select(any(.pull_requests[]?; .number == $pr))]
-               | max_by(.id)
-               | "\(.id) \(.run_attempt)"' prepare-runs.json
+            gh api --method GET --paginate \
+              "repos/$GITHUB_REPOSITORY/actions/workflows/prepare-vaadin-npm-deps.yaml/runs" \
+              -f event=pull_request_target -f branch="$HEAD_REF" -F per_page=100 \
+              --jq '.workflow_runs[]' \
+              | jq -rs --argjson pr "$PR_NUMBER" \
+                '[.[] | select(any(.pull_requests[]?; .number == $pr))]
+                 | max_by(.id)
+                 | "\(.id) \(.run_attempt)"'
           )
           [[ "$SOURCE_RUN_ID" == "$latest_run_id" ]]
           [[ "$SOURCE_RUN_ATTEMPT" == "$latest_run_attempt" ]]
@@ -79,20 +81,50 @@ jobs:
             --raw-field conclusion=failure \
             --raw-field 'output[title]=NPM dependency generation failed' \
             --raw-field 'output[summary]=Inspect Prepare Vaadin NPM dependency sync workflow.'
-      - name: Find generated patch
-        id: artifact
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-        run: |
-          artifact_id=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID/artifacts" \
-            --jq '.artifacts[] | select(.name == "vaadin-npm-sync") | .id' | head -1)
-          echo "id=$artifact_id" >> "$GITHUB_OUTPUT"
       - name: Report failed generation
         if: github.event.workflow_run.conclusion != 'success'
         run: exit 1
+      - name: Download synchronization result
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: vaadin-npm-sync-${{ github.event.workflow_run.run_attempt }}
+          path: ${{ runner.temp }}/vaadin-npm-sync
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Validate synchronization result
+        id: result
+        env:
+          EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+          EXPECTED_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          EXPECTED_RUN_ID: ${{ github.event.workflow_run.id }}
+          RESULT_DIR: ${{ runner.temp }}/vaadin-npm-sync
+        run: |
+          jq -e '
+            type == "object" and
+            (.relevant | type == "boolean") and
+            (.changed | type == "boolean") and
+            (.head_sha | type == "string") and
+            (.run_id | type == "number") and
+            (.run_attempt | type == "number")
+          ' "$RESULT_DIR/result.json" > /dev/null
+
+          [[ "$(jq -r '.head_sha' "$RESULT_DIR/result.json")" == "$EXPECTED_HEAD_SHA" ]]
+          [[ "$(jq -r '.run_id' "$RESULT_DIR/result.json")" == "$EXPECTED_RUN_ID" ]]
+          [[ "$(jq -r '.run_attempt' "$RESULT_DIR/result.json")" == "$EXPECTED_RUN_ATTEMPT" ]]
+
+          relevant=$(jq -r '.relevant' "$RESULT_DIR/result.json")
+          changed=$(jq -r '.changed' "$RESULT_DIR/result.json")
+          if [[ "$changed" == "true" ]]; then
+            [[ "$relevant" == "true" ]]
+            [[ -f "$RESULT_DIR/npm-deps.patch" ]]
+          else
+            [[ "$changed" == "false" ]]
+            [[ ! -e "$RESULT_DIR/npm-deps.patch" ]]
+          fi
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
       - name: Report synchronized revision
-        if: steps.artifact.outputs.id == ''
+        if: steps.result.outputs.changed == 'false'
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
@@ -105,50 +137,42 @@ jobs:
             --raw-field 'output[title]=NPM dependencies synchronized' \
             --raw-field 'output[summary]=No generated NPM dependency changes are pending.'
       - name: Checkout exact Dependabot revision
-        if: steps.artifact.outputs.id != ''
+        if: steps.result.outputs.changed == 'true'
         uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           ref: ${{ steps.pull-request.outputs.head_sha }}
           fetch-depth: 0
           persist-credentials: false
-      - name: Download generated patch
-        if: steps.artifact.outputs.id != ''
-        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
-        with:
-          name: vaadin-npm-sync
-          path: generated
-          github-token: ${{ github.token }}
-          repository: ${{ github.repository }}
-          run-id: ${{ github.event.workflow_run.id }}
       - name: Validate and apply patch
-        if: steps.artifact.outputs.id != ''
+        if: steps.result.outputs.changed == 'true'
         env:
           AUTHOR: ${{ steps.pull-request.outputs.author }}
           EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
           HEAD_REF: ${{ steps.pull-request.outputs.head_ref }}
           HEAD_REPO: ${{ steps.pull-request.outputs.head_repo }}
+          RESULT_DIR: ${{ runner.temp }}/vaadin-npm-sync
         run: |
           [[ "$AUTHOR" == "dependabot[bot]" ]]
           [[ "$HEAD_REPO" == "$GITHUB_REPOSITORY" ]]
           [[ "$HEAD_REF" == dependabot/maven/* ]]
-          [[ "$(cat generated/head-sha)" == "$EXPECTED_HEAD_SHA" ]]
+          [[ "$(jq -r '.head_sha' "$RESULT_DIR/result.json")" == "$EXPECTED_HEAD_SHA" ]]
 
-          invalid=$(git apply --numstat generated/npm-deps.patch | cut -f3- | grep -Ev '(^|/)package[^/]*\.json$' || true)
+          invalid=$(git apply --numstat "$RESULT_DIR/npm-deps.patch" | cut -f3- | grep -Ev '(^|/)package[^/]*\.json$' || true)
           if [[ -n "$invalid" ]]; then
             echo "Patch contains invalid paths:" >&2
             echo "$invalid" >&2
             exit 1
           fi
 
-          git apply --check generated/npm-deps.patch
-          git apply generated/npm-deps.patch
+          git apply --check "$RESULT_DIR/npm-deps.patch"
+          git apply "$RESULT_DIR/npm-deps.patch"
           git add -- ':(glob)**/package*.json'
 
           invalid=$(git diff --cached --name-only | grep -Ev '(^|/)package[^/]*\.json$' || true)
           [[ -z "$invalid" ]]
           ! git diff --cached --quiet
       - name: Generate content token
-        if: steps.artifact.outputs.id != ''
+        if: steps.result.outputs.changed == 'true'
         id: content-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
@@ -156,7 +180,7 @@ jobs:
           private-key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
           permission-contents: write
       - name: Commit and push generated dependencies
-        if: steps.artifact.outputs.id != ''
+        if: steps.result.outputs.changed == 'true'
         env:
           APP_TOKEN: ${{ steps.content-token.outputs.token }}
           EXPECTED_HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
@@ -168,7 +192,7 @@ jobs:
           git remote set-url origin "https://x-access-token:${APP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push --force-with-lease="${HEAD_REF}:${EXPECTED_HEAD_SHA}" origin "HEAD:${HEAD_REF}"
       - name: Generate pull request token
-        if: steps.artifact.outputs.id != ''
+        if: steps.result.outputs.changed == 'true'
         id: pull-request-token
         uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2
         with:
@@ -176,7 +200,7 @@ jobs:
           private-key: ${{ secrets.QUARKUS_HILLA_BOT_PRIVATE_KEY }}
           permission-pull-requests: write
       - name: Update pull request metadata and comment
-        if: steps.artifact.outputs.id != ''
+        if: steps.result.outputs.changed == 'true'
         env:
           GH_TOKEN: ${{ steps.pull-request-token.outputs.token }}
           PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
