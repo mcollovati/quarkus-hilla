@@ -11,6 +11,10 @@ permissions:
   contents: read
   pull-requests: read
 
+concurrency:
+  group: vaadin-npm-sync-apply-${{ github.event.workflow_run.pull_requests[0].number || github.event.workflow_run.id }}
+  cancel-in-progress: true
+
 jobs:
   apply:
     name: Commit generated NPM dependencies
@@ -30,17 +34,38 @@ jobs:
                  "head_ref=" + .head.ref,
                  "head_repo=" + .head.repo.full_name,
                  "base_ref=" + .base.ref,
-                 "author=" + .user.login' pull-request.json >> "$GITHUB_OUTPUT"
+                 "author=" + .user.login,
+                 "state=" + .state' pull-request.json >> "$GITHUB_OUTPUT"
       - name: Validate workflow provenance
         env:
           BASE_REF: ${{ steps.pull-request.outputs.base_ref }}
           HEAD_SHA: ${{ steps.pull-request.outputs.head_sha }}
+          STATE: ${{ steps.pull-request.outputs.state }}
           SOURCE_BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
           SOURCE_HEAD_SHA: ${{ github.event.workflow_run.pull_requests[0].head.sha }}
         run: |
+          [[ "$STATE" == "open" ]]
           [[ "$BASE_REF" != "main" ]]
           [[ "$BASE_REF" == "$SOURCE_BASE_REF" ]]
           [[ "$HEAD_SHA" == "$SOURCE_HEAD_SHA" ]]
+      - name: Validate source workflow freshness
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          SOURCE_RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
+          SOURCE_RUN_ID: ${{ github.event.workflow_run.id }}
+        run: |
+          gh api \
+            "repos/$GITHUB_REPOSITORY/actions/workflows/prepare-vaadin-npm-deps.yaml/runs?event=pull_request_target&per_page=100" \
+            > prepare-runs.json
+          read -r latest_run_id latest_run_attempt < <(
+            jq -r --argjson pr "$PR_NUMBER" \
+              '[.workflow_runs[] | select(any(.pull_requests[]?; .number == $pr))]
+               | max_by(.id)
+               | "\(.id) \(.run_attempt)"' prepare-runs.json
+          )
+          [[ "$SOURCE_RUN_ID" == "$latest_run_id" ]]
+          [[ "$SOURCE_RUN_ATTEMPT" == "$latest_run_attempt" ]]
       - name: Publish failed generation gate
         if: github.event.workflow_run.conclusion != 'success'
         env:
