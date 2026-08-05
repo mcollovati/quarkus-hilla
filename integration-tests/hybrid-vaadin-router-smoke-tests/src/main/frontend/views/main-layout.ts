@@ -49,10 +49,10 @@ export class MainLayout extends Layout {
                                     </vaadin-side-nav-item>
                                 `
                         )}
-                        <vaadin-side-nav-item path=${router.urlForPath('flow-view')}>
+                        <vaadin-side-nav-item path=${router.urlForPath('flow-public-clock-view')}>
                             <span class="la la-globe nav-item-icon"
                                   slot="prefix" aria-hidden="true"></span>
-                            Flow View
+                            Flow Public Clock View
                         </vaadin-side-nav-item>
                         <vaadin-side-nav-item path=${router.urlForPath('flow-public-view')}>
                             <span class="la la-globe nav-item-icon"

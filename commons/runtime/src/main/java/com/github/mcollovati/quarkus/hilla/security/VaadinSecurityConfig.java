@@ -26,8 +26,29 @@ import io.smallrye.config.WithDefault;
  * Configuration properties for Vaadin security.
  */
 @ConfigMapping(prefix = "vaadin.security")
-@ConfigRoot(phase = ConfigPhase.BUILD_AND_RUN_TIME_FIXED)
+@ConfigRoot(phase = ConfigPhase.RUN_TIME)
 public interface VaadinSecurityConfig {
+
+    /**
+     * Controls startup diagnostics for routes whose Quarkus HTTP permission
+     * and Vaadin annotation requirements are not equivalent.
+     *
+     * @return the mismatch diagnostic mode
+     */
+    @WithDefault("warn")
+    VaadinSecurityRuntimeConfig.AnnotationConfigMismatch annotationConfigMismatch();
+
+    /**
+     * The frontend login path used by Flow navigation access control when a
+     * non-form authentication mechanism needs an application-defined login
+     * view.
+     * <p></p>
+     * If unset, Quarkus HTTP security handles authentication challenges for
+     * direct HTTP requests.
+     *
+     * @return the optional navigation login path.
+     */
+    Optional<String> loginPath();
 
     /**
      * The path of the logout HTTP POST endpoint handling logout requests.

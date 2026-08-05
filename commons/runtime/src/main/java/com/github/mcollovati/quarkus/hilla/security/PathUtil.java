@@ -45,6 +45,14 @@ public class PathUtil {
         return path.startsWith("/") ? path : "/" + path;
     }
 
+    static String removeLeadingSlashes(String path) {
+        int start = 0;
+        while (start < path.length() && path.charAt(start) == '/') {
+            start++;
+        }
+        return start == 0 ? path : path.substring(start);
+    }
+
     public static String normalizeWildcard(String path) {
         if (path.endsWith("/") || path.endsWith("/**")) {
             path = path.replaceFirst("/(\\*\\*)?$", "/*");

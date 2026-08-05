@@ -16,6 +16,7 @@
 package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.security.Principal;
@@ -35,30 +36,43 @@ import io.quarkus.security.identity.SecurityIdentity;
 @DefaultBean
 public class QuarkusNavigationAccessControl extends NavigationAccessControl {
 
-    private final SecurityIdentity securityIdentity;
+    private final QuarkusSecurityIdentityHolder identityHolder;
 
+    @Inject
     public QuarkusNavigationAccessControl(
             @All List<NavigationAccessChecker> checkerList,
             AccessCheckDecisionResolver decisionResolver,
-            SecurityIdentity securityIdentity) {
+            Instance<SecurityIdentity> securityIdentity) {
+        this(checkerList, decisionResolver, new QuarkusSecurityIdentityHolder(securityIdentity::get));
+    }
+
+    QuarkusNavigationAccessControl(
+            List<NavigationAccessChecker> checkerList,
+            AccessCheckDecisionResolver decisionResolver,
+            QuarkusSecurityIdentityHolder identityHolder) {
         super(checkerList, decisionResolver);
-        this.securityIdentity = securityIdentity;
+        this.identityHolder = identityHolder;
     }
 
     @Override
     protected Principal getPrincipal(VaadinRequest request) {
-        if (request == null) {
-            return securityIdentity.getPrincipal();
-        }
-        return super.getPrincipal(request);
+        SecurityIdentity currentIdentity = navigationIdentity(request);
+        return currentIdentity == null || currentIdentity.isAnonymous() ? null : currentIdentity.getPrincipal();
     }
 
     @Override
     protected Predicate<String> getRolesChecker(VaadinRequest request) {
-        if (request == null) {
-            return securityIdentity::hasRole;
-        }
-        return super.getRolesChecker(request);
+        SecurityIdentity currentIdentity = navigationIdentity(request);
+        return role -> role != null
+                && currentIdentity != null
+                && !currentIdentity.isAnonymous()
+                && currentIdentity.hasRole(role);
+    }
+
+    private SecurityIdentity navigationIdentity(VaadinRequest request) {
+        return request == null
+                ? identityHolder.currentNavigationIdentity()
+                : identityHolder.currentNavigationIdentity(request);
     }
 
     @Singleton

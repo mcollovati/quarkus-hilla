@@ -31,7 +31,12 @@ Hilla is an open source framework, provided by [Vaadin Ltd.](https://vaadin.com)
 
 **Quarkus-Hilla** replaces the Spring Boot backend with **Quarkus Context & Dependency Injection (CDI)** and **RESTEasy Reactive** for a simpler integration with Quarkus, while preserving the main features of the Hilla Framework, such as [Endpoints](https://vaadin.com/docs/latest/hilla/guides/endpoints), [Reactive Endpoints](https://vaadin.com/docs/latest/hilla/guides/reactive-endpoints), and [Security](https://vaadin.com/docs/latest/hilla/guides/security).
 
-It is also currently the **only Quarkus integration with Vaadin Copilot support** — the official Flow-only [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) doesn't offer it yet.
+Quarkus-Hilla is currently the **only Quarkus integration with Hilla support**.
+Its security bridge applies Quarkus authentication and HTTP authorization to
+Flow navigation, Hilla client routes, and browser-callable endpoints. It is
+also the **only Quarkus integration with Vaadin Copilot support** — the
+official Flow-only [Vaadin Quarkus extension](https://vaadin.com/docs/latest/flow/integrations/quarkus#limitations)
+offers neither Hilla nor Copilot support.
 
 > [!NOTE]
 > This is an **unofficial community extension**, and it is **neither** directly related to **nor** supported by Vaadin Ltd.
@@ -45,6 +50,7 @@ It is also currently the **only Quarkus integration with Vaadin Copilot support*
 - 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(React UI, Lit / React services)_
 - 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload)
 - ⚡ [Mutiny Multi Support](docs/features.md#mutiny-multi-support)
+- 🔒 **[Quarkus-native Security Integration](docs/features.md#quarkus-native-security-integration)** _(Flow + Hilla routes/endpoints — Quarkus-Hilla exclusive)_
 - 🚀 [Native Image Support](docs/features.md#native-image-support)
 - 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix)
 - 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment)
@@ -53,7 +59,6 @@ It is also currently the **only Quarkus integration with Vaadin Copilot support*
 > [!WARNING]
 > Known limitations:
 > - Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
-> - [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
 ---
 
@@ -157,6 +162,7 @@ All settings go in `application.properties`. See the [Configuration Reference](d
 - 📖 [Wiki Documentation](../../wiki)
 - 💎 [Feature Details](docs/features.md)
 - ⚙️ [Configuration Reference](docs/configuration.md)
+- 🔒 [Security Architecture and Behavior](docs/security/README.md)
 - ✨ [Vaadin Copilot Integration](docs/copilot-integration.md)
 - 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
 - ⬆️ [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
