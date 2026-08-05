@@ -47,16 +47,16 @@
             For backward compatibility of GH actions workflows
             To be removed in the future
         -->
-        <hilla.version>25.1.7</hilla.version>
+        <hilla.version>25.1.8</hilla.version>
         <flow.version>25.1.13</flow.version>
-        <vaadin.version>25.1.8</vaadin.version>
+        <vaadin.version>25.1.9</vaadin.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
         -->
         <jakarta.ee.version>11.0.0</jakarta.ee.version>
         <assertj.version>3.27.7</assertj.version>
-        <jspecify.version>1.0.0</jspecify.version>
+        <jspecify.version>1.0.1</jspecify.version>
 
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
