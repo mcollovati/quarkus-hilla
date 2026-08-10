@@ -32,6 +32,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.vaadin.flow.internal.CurrentInstance;
+import com.vaadin.flow.internal.JacksonUtils;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
@@ -41,20 +42,25 @@ import io.vertx.ext.web.RoutingContext;
 import org.jboss.logging.Logger;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
+import tools.jackson.databind.ObjectReader;
 
 public class RouteUtil {
 
     private static final Logger LOGGER = Logger.getLogger(RouteUtil.class);
-    private static final ObjectMapper ROUTE_MAPPER = JsonMapper.builder()
-            .disable(
+    private static final ObjectReader ROUTE_READER = JacksonUtils.getMapper()
+            .readerFor(new TypeReference<List<AvailableViewInfo>>() {})
+            .without(
                     DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                    DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-            .build();
+                    DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
     private static final Pattern DYNAMIC_SEGMENT = Pattern.compile("^:([\\w-]+)(\\?)?(.*)$");
     private static final Pattern OPTIONAL_STATIC_SEGMENT = Pattern.compile("^[\\w-]+\\?$");
     private static final long DISCOVERY_RETRY_NANOS = Duration.ofSeconds(1).toNanos();
+
+    /*
+     * Relative scores follow React Router route ranking. Static and suffixed
+     * parameter segments rank above plain parameters, empty segments rank below
+     * them, and wildcards rank last. Only ordering matters.
+     */
     private static final int NO_MATCH_SCORE = Integer.MIN_VALUE;
     private static final int WILDCARD_SCORE = -1;
     private static final int EMPTY_SEGMENT_SCORE = 2;
@@ -212,7 +218,7 @@ public class RouteUtil {
     }
 
     static List<AvailableViewInfo> readRouteTree(InputStream input) throws IOException {
-        return ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
+        return ROUTE_READER.readValue(input);
     }
 
     private void publishRouteTree(List<AvailableViewInfo> routeTree) {
@@ -357,8 +363,6 @@ public class RouteUtil {
             return pathIndex == pathSegments.size() ? 0 : NO_MATCH_SCORE;
         }
 
-        // Relative weights follow React Router branch ranking: literal and
-        // suffixed segments outrank plain parameters, while wildcards rank last.
         SegmentPattern segmentPattern = routeSegments.get(routeIndex);
         if (segmentPattern.type() == SegmentType.WILDCARD) {
             if (routeIndex == routeSegments.size() - 1) {
