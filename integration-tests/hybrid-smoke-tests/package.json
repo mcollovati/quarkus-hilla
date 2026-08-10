@@ -15,7 +15,6 @@
     "@vaadin/hilla-react-i18n": "25.2.5",
     "@vaadin/hilla-react-signals": "25.2.5",
     "@vaadin/react-components": "25.2.6",
-    "@vaadin/react-components-pro": "25.2.6",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
     "@vaadin/vaadin-lumo-styles": "25.2.6",
     "@vaadin/vaadin-themable-mixin": "25.2.6",
@@ -128,7 +127,6 @@
     "@vaadin/progress-bar": "25.2.6",
     "@vaadin/radio-group": "25.2.6",
     "@vaadin/react-components": "$@vaadin/react-components",
-    "@vaadin/react-components-pro": "$@vaadin/react-components-pro",
     "@vaadin/rich-text-editor": "25.2.6",
     "@vaadin/router": "2.0.1",
     "@vaadin/scroller": "25.2.6",
@@ -169,7 +167,6 @@
       "@vaadin/hilla-react-i18n": "25.2.5",
       "@vaadin/hilla-react-signals": "25.2.5",
       "@vaadin/react-components": "25.2.6",
-      "@vaadin/react-components-pro": "25.2.6",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
       "@vaadin/vaadin-lumo-styles": "25.2.6",
       "@vaadin/vaadin-themable-mixin": "25.2.6",
@@ -213,7 +210,7 @@
       "vite": "8.0.16",
       "vite-plugin-checker": "0.14.4"
     },
-    "hash": "f45bb68177823ad9540e6e83b11d133dd4fd5f960a95c7b5a56f648e31d65749"
+    "hash": "128f792e29825fb4f796388e42b2bd351fd6905f647f1241efad18488c08a0c6"
   },
   "type": "module"
 }
