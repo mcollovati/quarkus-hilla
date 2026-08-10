@@ -47,6 +47,7 @@ import static com.example.application.SecurityTest.MenuItem.HILLA_ADMIN;
 import static com.example.application.SecurityTest.MenuItem.HILLA_AUTHENTICATED;
 import static com.example.application.SecurityTest.MenuItem.HILLA_PUBLIC;
 import static com.example.application.SecurityTest.MenuItem.HILLA_USER;
+import static com.example.application.views.DynamicFlowAdminView.TITLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
@@ -179,6 +180,17 @@ class SecurityTest extends AbstractTest {
     }
 
     @Test
+    void authenticatedUser_dynamicallyRegisteredFlowView_viewNotDisplayed() {
+        openProtectedPage("flow-protected", true);
+        login("user", "user");
+        openProtectedPage("flow-dynamic-admin", false);
+        $$("div")
+                .filter(Condition.text("Could not navigate to 'flow-dynamic-admin'"))
+                .first()
+                .shouldBe(visible);
+    }
+
+    @Test
     void authenticatedUser_unannotatedFlowView_viewNotDisplayed() {
         openProtectedPage("flow-protected", true);
         login("user", "user");
@@ -207,6 +219,14 @@ class SecurityTest extends AbstractTest {
         assertThatMenuHasItems(ADMIN_VIEWS);
         openProtectedPage("flow-admin", false);
         appLayout.$("h2").shouldHave(text(FLOW_ADMIN.toString()));
+    }
+
+    @Test
+    void adminUser_dynamicallyRegisteredFlowView_viewDisplayed() {
+        openProtectedPage("flow-protected", true);
+        login("admin", "admin");
+        openProtectedPage("flow-dynamic-admin", false);
+        appLayout.$("h2").shouldHave(text(TITLE));
     }
 
     protected void openPublicPage(String path) {
