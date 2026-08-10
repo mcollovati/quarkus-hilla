@@ -21,12 +21,14 @@ import io.quarkus.arc.ClientProxy;
 import io.quarkus.security.identity.IdentityProviderManager;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
+import io.quarkus.vertx.http.runtime.security.HttpCredentialTransport;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -76,6 +78,20 @@ class HillaFormAuthenticationMechanismTest {
         wrapper.authenticate(context, mock(IdentityProviderManager.class));
 
         assertSame(foreignMechanism, selectedMechanism.get());
+    }
+
+    @Test
+    void authenticationMetadata_isDelegatedTransparently() {
+        FormAuthenticationMechanism delegate = mock(FormAuthenticationMechanism.class);
+        RoutingContext context = mock(RoutingContext.class);
+        HttpCredentialTransport transport = mock(HttpCredentialTransport.class);
+        Uni<HttpCredentialTransport> transportResult = Uni.createFrom().item(transport);
+        when(delegate.getCredentialTransport(context)).thenReturn(transportResult);
+        when(delegate.getPriority()).thenReturn(123);
+        HillaFormAuthenticationMechanism wrapper = mechanism(delegate);
+
+        assertSame(transportResult, wrapper.getCredentialTransport(context));
+        assertEquals(123, wrapper.getPriority());
     }
 
     private RoutingContext routingContext(AtomicReference<Object> selectedMechanism) {

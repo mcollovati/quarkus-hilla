@@ -27,6 +27,7 @@ import com.github.mcollovati.quarkus.testing.AbstractTest;
 import com.github.mcollovati.quarkus.testing.VaadinConditions;
 
 import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.Selenide.$$;
@@ -59,13 +60,17 @@ class SecurityTest extends AbstractTest {
     }
 
     @Test
-    void notAdminUser_adminView_notFoundPage() {
+    void notAdminUser_openAdminView_forbiddenPage() {
         openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-overlay"));
         login("scott", "pwd");
-        $$("div")
-                .filter(Condition.text("Could not navigate to 'flow-admin-view'"))
-                .first()
-                .shouldBe(visible);
+        $("body").shouldHave(text("HTTP ERROR 403"));
+    }
+
+    @Test
+    void notAdminUser_openRoleProtectedClockView_forbiddenPage() {
+        openAndWait(getTestUrl() + "flow-view", () -> $("vaadin-login-overlay"));
+        login("scott", "pwd");
+        $("body").shouldHave(text("HTTP ERROR 403"));
     }
 
     @Test
@@ -73,6 +78,13 @@ class SecurityTest extends AbstractTest {
         openAndWait(getTestUrl() + "flow-admin-view", () -> $("vaadin-login-overlay"));
         login("stuart", "test");
         $("div#admin-view").shouldBe(visible);
+    }
+
+    @Test
+    void adminUser_roleProtectedClockView_viewDisplayed() {
+        openAndWait(getTestUrl() + "flow-view", () -> $("vaadin-login-overlay"));
+        login("stuart", "test");
+        $("span#title").shouldBe(visible);
     }
 
     @Test

@@ -26,11 +26,13 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 
 ## 🔒 Security
 
-| Property                                    | Type    | Default   | Description                                                     |
-|---------------------------------------------|---------|-----------|-----------------------------------------------------------------|
-| `vaadin.security.logout-path`               | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests. |
-| `vaadin.security.post-logout-redirect-uri`  | String  | -         | URI to redirect to after successful logout.                     |
-| `vaadin.security.logout-invalidate-session` | Boolean | `true`    | Whether HTTP session should be invalidated on logout.           |
+| Property                                      | Type    | Default   | Description                                                                                                                                                          |
+|-----------------------------------------------|---------|-----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `vaadin.security.login-path`                  | String  | -         | Login path used for denied anonymous navigation with non-form mechanisms such as OIDC. Read when the application starts.                                            |
+| `vaadin.security.logout-path`                 | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests.                                                                                                      |
+| `vaadin.security.post-logout-redirect-uri`    | String  | -         | URI to redirect to after successful logout.                                                                                                                         |
+| `vaadin.security.logout-invalidate-session`   | Boolean | `true`    | Whether HTTP session should be invalidated on logout.                                                                                                               |
+| `vaadin.security.annotation-config-mismatch`  | Enum    | `WARN`    | Startup diagnostics for statically provable annotation/configuration mismatches: `OFF`, `WARN`, or `FAIL`. This does not change authorization precedence.           |
 
 <a id="copilot"></a>
 

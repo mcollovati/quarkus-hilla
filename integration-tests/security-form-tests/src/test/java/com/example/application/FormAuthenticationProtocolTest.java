@@ -22,6 +22,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
@@ -77,6 +78,25 @@ class FormAuthenticationProtocolTest {
     }
 
     @Test
+    void formLogin_directNavigation_enforcesFlowAndHillaRoles() throws Exception {
+        HttpClient userClient = newClient();
+        assertThat(login(userClient, "user", "user", true).statusCode()).isEqualTo(200);
+        // A cold dev-mode frontend request generates the Hilla client-route manifest.
+        assertStatus(userClient, "/", 200);
+        assertStatus(userClient, "/flow-admin", 403);
+        if ("development".equals(System.getProperty("quarkus-hilla.test-mode"))) {
+            awaitStatus(userClient, "/hilla-admin", 403);
+        } else {
+            assertStatus(userClient, "/hilla-admin", 403);
+        }
+
+        HttpClient adminClient = newClient();
+        assertThat(login(adminClient, "admin", "admin", true).statusCode()).isEqualTo(200);
+        assertStatus(adminClient, "/flow-admin", 200);
+        assertStatus(adminClient, "/hilla-admin", 200);
+    }
+
+    @Test
     void typescriptLogin_savedRequest_returnsOriginalUrlIncludingQuery() throws Exception {
         HttpClient client = newClient();
         assertLoginChallenge(client, "/flow-protected?tab=details");
@@ -89,6 +109,24 @@ class FormAuthenticationProtocolTest {
         assertThat(response.headers().firstValue("Saved-url"))
                 .hasValueSatisfying(savedUrl -> assertUri(savedUrl, "/flow-protected", "tab=details"));
         assertThat(response.headers().firstValue("Location")).isEmpty();
+    }
+
+    @Test
+    void typescriptLogin_publicAssetDoesNotReplaceSavedRequest() throws Exception {
+        HttpClient client = newClient();
+        assertLoginChallenge(client, "/flow-protected?tab=details");
+
+        HttpRequest assetRequest = HttpRequest.newBuilder(baseUri.resolve("images/empty-plant.png"))
+                .GET()
+                .build();
+        HttpResponse<Void> assetResponse = client.send(assetRequest, HttpResponse.BodyHandlers.discarding());
+        assertThat(assetResponse.statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = login(client, "user", "user", true);
+
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.headers().firstValue("Saved-url"))
+                .hasValueSatisfying(savedUrl -> assertUri(savedUrl, "/flow-protected", "tab=details"));
     }
 
     @Test
@@ -137,6 +175,36 @@ class FormAuthenticationProtocolTest {
 
         assertThat(response.statusCode()).isEqualTo(302);
         assertRedirect(response, "/login", null);
+    }
+
+    private void assertStatus(HttpClient client, String path, int expectedStatus)
+            throws IOException, InterruptedException {
+        assertThat(request(client, path).statusCode()).isEqualTo(expectedStatus);
+    }
+
+    private void awaitStatus(HttpClient client, String path, int expectedStatus)
+            throws IOException, InterruptedException {
+        long deadline = System.nanoTime() + Duration.ofSeconds(30).toNanos();
+        int actualStatus;
+        do {
+            HttpResponse<Void> response = request(client, path);
+            actualStatus = response.statusCode();
+            assertThat(actualStatus).isIn(200, expectedStatus);
+            if (actualStatus == expectedStatus) {
+                return;
+            }
+            assertThat(response.headers().firstValue("X-DevModePending")).hasValue("true");
+            Thread.sleep(100);
+        } while (System.nanoTime() < deadline);
+        assertThat(actualStatus).isEqualTo(expectedStatus);
+    }
+
+    private HttpResponse<Void> request(HttpClient client, String path) throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(baseUri.resolve(path))
+                .header("Accept", "text/html")
+                .GET()
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.discarding());
     }
 
     private HttpResponse<Void> login(HttpClient client, String username, String password, boolean typescript)

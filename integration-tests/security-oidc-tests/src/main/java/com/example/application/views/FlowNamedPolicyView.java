@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Marco Collovati, Dario Götze
+ * Copyright 2026 Marco Collovati, Dario Götze
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.mcollovati.quarkus.hilla.deployment.security;
+package com.example.application.views;
 
-import io.quarkus.builder.item.SimpleBuildItem;
+import com.vaadin.flow.router.PageTitle;
+import com.vaadin.flow.router.Route;
 
-public final class AuthFormBuildItem extends SimpleBuildItem {
+@PageTitle("Flow - Named Policy")
+@Route("flow-named-policy")
+public class FlowNamedPolicyView extends AbstractFlowView {
 
-    private final boolean enabled;
-
-    public AuthFormBuildItem(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
+    public FlowNamedPolicyView() {
+        super("flow-named-policy", "Flow - Named Policy", "Access controlled by a named HTTP security policy");
     }
 }

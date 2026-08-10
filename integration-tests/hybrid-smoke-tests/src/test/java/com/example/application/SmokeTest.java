@@ -76,8 +76,8 @@ class SmokeTest extends AbstractTest {
     }
 
     @Test
-    void openFlowView_viewDisplayed() {
-        openAndWait(getTestUrl() + "flow-view", () -> $("span#title"));
+    void openPublicClockView_viewDisplayed() {
+        openAndWait(getTestUrl() + "flow-public-clock-view", () -> $("span#title"));
 
         $("vaadin-button").click();
         $("div#time").shouldBe(visible).should(Condition.partialText("Anonymous"));

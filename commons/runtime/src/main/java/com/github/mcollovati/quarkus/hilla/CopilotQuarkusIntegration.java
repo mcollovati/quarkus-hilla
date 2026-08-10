@@ -49,6 +49,8 @@ import com.vaadin.hilla.EndpointRegistry;
 import io.smallrye.config.SmallRyeConfig;
 import org.eclipse.microprofile.config.ConfigProvider;
 
+import com.github.mcollovati.quarkus.hilla.security.QuarkusHttpPermissionNavigationAccessChecker;
+
 /**
  * Reflection target for Vaadin Copilot's Spring bridge in Quarkus applications.
  */
@@ -122,9 +124,14 @@ public final class CopilotQuarkusIntegration {
 
     public static boolean isViewSecurityEnabled(VaadinContext context) {
         return bean(NavigationAccessControl.class)
-                .filter(NavigationAccessControl::isEnabled)
-                .filter(accessControl -> accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class))
+                .filter(CopilotQuarkusIntegration::hasViewSecurity)
                 .isPresent();
+    }
+
+    static boolean hasViewSecurity(NavigationAccessControl accessControl) {
+        return accessControl.isEnabled()
+                && (accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class)
+                        || accessControl.hasAccessChecker(QuarkusHttpPermissionNavigationAccessChecker.class));
     }
 
     public static boolean isSpringSecurityEnabled(VaadinContext context) {
