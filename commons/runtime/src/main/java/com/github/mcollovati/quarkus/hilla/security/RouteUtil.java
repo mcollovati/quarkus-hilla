@@ -35,7 +35,6 @@ import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
-import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.vertx.ext.web.RoutingContext;
 import org.jboss.logging.Logger;
@@ -57,7 +56,7 @@ public class RouteUtil {
             .build();
     private static final Pattern DYNAMIC_SEGMENT = Pattern.compile("^:([\\w-]+)(\\?)?(.*)$");
     private static final Pattern OPTIONAL_STATIC_SEGMENT = Pattern.compile("^[\\w-]+\\?$");
-    private static final long DISCOVERY_RETRY_NANOS = Duration.ofSeconds(1).toNanos();
+    private static final long DISCOVERY_REFRESH_NANOS = Duration.ofSeconds(1).toNanos();
 
     /*
      * Relative scores follow React Router route ranking. Static and suffixed
@@ -71,21 +70,32 @@ public class RouteUtil {
     private static final int STATIC_SEGMENT_SCORE = 11;
 
     private final VaadinService vaadinService;
+    private final boolean developmentMode;
     private final Supplier<DiscoveryResult> routeDiscovery;
     private final LongSupplier nanoTime;
 
     private volatile RouteSnapshot routeSnapshot;
     private volatile DiscoveryState discoveryState = DiscoveryState.UNINITIALIZED;
-    private volatile long retryAfterNanos;
+    private volatile long refreshAfterNanos;
 
     public RouteUtil(VaadinService vaadinService) {
         this.vaadinService = vaadinService;
+        this.developmentMode = !vaadinService.getDeploymentConfiguration().isProductionMode();
         this.routeDiscovery = this::discoverClientRoutes;
         this.nanoTime = System::nanoTime;
     }
 
     RouteUtil(VaadinService vaadinService, Supplier<DiscoveryResult> routeDiscovery, LongSupplier nanoTime) {
+        this(vaadinService, true, routeDiscovery, nanoTime);
+    }
+
+    RouteUtil(
+            VaadinService vaadinService,
+            boolean developmentMode,
+            Supplier<DiscoveryResult> routeDiscovery,
+            LongSupplier nanoTime) {
         this.vaadinService = vaadinService;
+        this.developmentMode = developmentMode;
         this.routeDiscovery = routeDiscovery;
         this.nanoTime = nanoTime;
     }
@@ -135,10 +145,11 @@ public class RouteUtil {
 
     private void ensureRoutesDiscovered() {
         DiscoveryState state = discoveryState;
+        if (isTerminal(state)) {
+            return;
+        }
         long now = nanoTime.getAsLong();
-        if (state == DiscoveryState.COMPLETE
-                || state == DiscoveryState.FALLBACK
-                || (state == DiscoveryState.RETRY_PENDING && now - retryAfterNanos < 0)) {
+        if (!requiresDiscovery(state, now)) {
             return;
         }
         discoverRoutes(now);
@@ -146,9 +157,7 @@ public class RouteUtil {
 
     private synchronized void discoverRoutes(long now) {
         DiscoveryState state = discoveryState;
-        if (state == DiscoveryState.COMPLETE
-                || state == DiscoveryState.FALLBACK
-                || (state == DiscoveryState.RETRY_PENDING && now - retryAfterNanos < 0)) {
+        if (isTerminal(state) || !requiresDiscovery(state, now)) {
             return;
         }
 
@@ -157,24 +166,33 @@ public class RouteUtil {
             result = routeDiscovery.get();
         } catch (RuntimeException exception) {
             LOGGER.warn("Cannot discover Hilla client routes; route access cannot be evaluated", exception);
-            publishFallback(Map.of(), true, now);
+            handleDiscoveryFailure(Map.of(), now);
             return;
         }
         if (result == null) {
             LOGGER.warn("Hilla client route discovery returned no result; route access cannot be evaluated");
-            publishFallback(Map.of(), true, now);
+            handleDiscoveryFailure(Map.of(), now);
             return;
         }
 
         if (result.routeTree() != null) {
             try {
-                publishRouteTree(result.routeTree());
+                publishRouteTree(result.routeTree(), now);
                 return;
             } catch (RuntimeException exception) {
                 LOGGER.warn("Cannot compile Hilla client route tree; route access cannot be evaluated", exception);
             }
         }
-        publishFallback(result.fallbackRoutes(), result.retryable(), now);
+        handleDiscoveryFailure(result.fallbackRoutes(), now);
+    }
+
+    private boolean requiresDiscovery(DiscoveryState state, long now) {
+        return state == DiscoveryState.UNINITIALIZED
+                || (state == DiscoveryState.REFRESH_PENDING && now - refreshAfterNanos >= 0);
+    }
+
+    private static boolean isTerminal(DiscoveryState state) {
+        return state == DiscoveryState.COMPLETE || state == DiscoveryState.FALLBACK;
     }
 
     private DiscoveryResult discoverClientRoutes() {
@@ -184,8 +202,7 @@ public class RouteUtil {
         final var oldInstances = CurrentInstance.getInstances();
         VaadinService.setCurrent(vaadinService);
         try {
-            ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
-            boolean retryable = !config.isProductionMode();
+            var config = vaadinService.getDeploymentConfiguration();
             try {
                 URL routesResource = MenuRegistry.getViewsJsonAsResource(config);
                 if (routesResource != null) {
@@ -204,7 +221,7 @@ public class RouteUtil {
                 LOGGER.warn("Cannot collect fallback Hilla client routes; route access cannot be evaluated", exception);
                 fallbackRoutes = Map.of();
             }
-            return DiscoveryResult.fallback(fallbackRoutes, retryable);
+            return DiscoveryResult.fallback(fallbackRoutes);
         } finally {
             CurrentInstance.clearAll();
             CurrentInstance.restoreInstances(oldInstances);
@@ -217,31 +234,53 @@ public class RouteUtil {
     }
 
     void setRouteTree(List<AvailableViewInfo> routeTree) {
-        publishRouteTree(routeTree);
+        publishRouteTreeSnapshot(routeTree);
+        discoveryState = DiscoveryState.COMPLETE;
     }
 
     static List<AvailableViewInfo> readRouteTree(InputStream input) throws IOException {
         return ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
     }
 
-    private void publishRouteTree(List<AvailableViewInfo> routeTree) {
+    private void publishRouteTree(List<AvailableViewInfo> routeTree, long now) {
+        publishRouteTreeSnapshot(routeTree);
+        completeDiscovery(now);
+    }
+
+    private void publishRouteTreeSnapshot(List<AvailableViewInfo> routeTree) {
         Map<String, AvailableViewInfo> routes = new LinkedHashMap<>();
         Map<String, List<List<AvailableViewInfo>>> chains = new LinkedHashMap<>();
         for (AvailableViewInfo route : routeTree) {
             collectRouteTree("", List.of(), route, routes, chains);
         }
         routeSnapshot = createSnapshot(routes, chains, true);
-        discoveryState = DiscoveryState.COMPLETE;
     }
 
-    private void publishFallback(Map<String, AvailableViewInfo> fallbackRoutes, boolean retryable, long now) {
+    private void handleDiscoveryFailure(Map<String, AvailableViewInfo> fallbackRoutes, long now) {
+        RouteSnapshot currentSnapshot = routeSnapshot;
+        if (currentSnapshot != null && currentSnapshot.hierarchyComplete()) {
+            completeDiscovery(now);
+            return;
+        }
         publishRoutes(fallbackRoutes, false);
-        if (retryable) {
-            retryAfterNanos = now + DISCOVERY_RETRY_NANOS;
-            discoveryState = DiscoveryState.RETRY_PENDING;
+        if (developmentMode) {
+            scheduleRefresh(now);
         } else {
             discoveryState = DiscoveryState.FALLBACK;
         }
+    }
+
+    private void completeDiscovery(long now) {
+        if (developmentMode) {
+            scheduleRefresh(now);
+        } else {
+            discoveryState = DiscoveryState.COMPLETE;
+        }
+    }
+
+    private void scheduleRefresh(long now) {
+        refreshAfterNanos = now + DISCOVERY_REFRESH_NANOS;
+        discoveryState = DiscoveryState.REFRESH_PENDING;
     }
 
     private void publishRoutes(Map<String, AvailableViewInfo> registeredRoutes, boolean hierarchyComplete) {
@@ -483,23 +522,20 @@ public class RouteUtil {
 
     private enum DiscoveryState {
         UNINITIALIZED,
-        RETRY_PENDING,
+        REFRESH_PENDING,
         COMPLETE,
         FALLBACK
     }
 
-    record DiscoveryResult(
-            List<AvailableViewInfo> routeTree, Map<String, AvailableViewInfo> fallbackRoutes, boolean retryable) {
+    record DiscoveryResult(List<AvailableViewInfo> routeTree, Map<String, AvailableViewInfo> fallbackRoutes) {
 
         static DiscoveryResult complete(List<AvailableViewInfo> routeTree) {
-            return new DiscoveryResult(List.copyOf(routeTree), Map.of(), false);
+            return new DiscoveryResult(List.copyOf(routeTree), Map.of());
         }
 
-        static DiscoveryResult fallback(Map<String, AvailableViewInfo> fallbackRoutes, boolean retryable) {
+        static DiscoveryResult fallback(Map<String, AvailableViewInfo> fallbackRoutes) {
             return new DiscoveryResult(
-                    null,
-                    fallbackRoutes == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(fallbackRoutes)),
-                    retryable);
+                    null, fallbackRoutes == null ? Map.of() : Map.copyOf(new LinkedHashMap<>(fallbackRoutes)));
         }
     }
 

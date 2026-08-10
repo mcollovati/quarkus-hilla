@@ -282,14 +282,14 @@ class RouteUtilTest {
     }
 
     @Test
-    void discovery_retryableFallbackUsesBackoffThenPublishesCompleteTree() {
+    void discovery_developmentFallbackUsesBackoffThenPublishesCompleteTree() {
         AtomicInteger discoveries = new AtomicInteger();
         AtomicLong nanoTime = new AtomicLong();
         AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> discoveries.incrementAndGet() == 1
-                        ? RouteUtil.DiscoveryResult.fallback(Map.of("admin", admin), true)
+                        ? RouteUtil.DiscoveryResult.fallback(Map.of("admin", admin))
                         : RouteUtil.DiscoveryResult.complete(List.of(admin)),
                 nanoTime::get);
 
@@ -303,14 +303,15 @@ class RouteUtilTest {
     }
 
     @Test
-    void discovery_terminalFallbackIsNotRepeatedAndDeniesKnownRoutes() {
+    void discovery_productionFallbackIsNotRepeatedAndDeniesKnownRoutes() {
         AtomicInteger discoveries = new AtomicInteger();
         AvailableViewInfo publicView = view("public", new String[0], Map.of());
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
+                false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.DiscoveryResult.fallback(Map.of("public", publicView), false);
+                    return RouteUtil.DiscoveryResult.fallback(Map.of("public", publicView));
                 },
                 System::nanoTime);
 
@@ -345,6 +346,72 @@ class RouteUtilTest {
     }
 
     @Test
+    void discovery_developmentCompleteTreeIsRefreshedAfterBackoff() {
+        AtomicInteger discoveries = new AtomicInteger();
+        AtomicLong nanoTime = new AtomicLong();
+        AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
+        AvailableViewInfo user = view("admin", new String[] {"USER"}, Map.of());
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                () -> RouteUtil.DiscoveryResult.complete(List.of(discoveries.incrementAndGet() == 1 ? admin : user)),
+                nanoTime::get);
+
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(1, discoveries.get());
+
+        nanoTime.set(Duration.ofSeconds(1).toNanos());
+        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("USER")));
+        assertEquals(2, discoveries.get());
+    }
+
+    @Test
+    void discovery_productionCompleteTreeIsNotRefreshed() {
+        AtomicInteger discoveries = new AtomicInteger();
+        AtomicLong nanoTime = new AtomicLong();
+        AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> {
+                    discoveries.incrementAndGet();
+                    return RouteUtil.DiscoveryResult.complete(List.of(admin));
+                },
+                nanoTime::get);
+
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        nanoTime.set(Duration.ofDays(1).toNanos());
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(1, discoveries.get());
+    }
+
+    @Test
+    void discovery_developmentFailureKeepsLastCompleteTreeUntilSuccessfulRefresh() {
+        AtomicInteger discoveries = new AtomicInteger();
+        AtomicLong nanoTime = new AtomicLong();
+        AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
+        AvailableViewInfo user = view("admin", new String[] {"USER"}, Map.of());
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                () -> switch (discoveries.incrementAndGet()) {
+                    case 1 -> RouteUtil.DiscoveryResult.complete(List.of(admin));
+                    case 2 -> RouteUtil.DiscoveryResult.fallback(Map.of());
+                    default -> RouteUtil.DiscoveryResult.complete(List.of(user));
+                },
+                nanoTime::get);
+
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        nanoTime.set(Duration.ofSeconds(1).toNanos());
+        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(2, discoveries.get());
+
+        nanoTime.set(Duration.ofSeconds(2).toNanos());
+        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(3, discoveries.get());
+    }
+
+    @Test
     void checkRouteAccess_anonymousIdentityDeniedForLoginRequiredRoute() {
         RouteUtil routeUtil = routeUtil(Map.of("profile", view("profile", new String[0], Map.of())));
 
@@ -352,13 +419,13 @@ class RouteUtilTest {
     }
 
     private static RouteUtil routeUtil(Map<String, AvailableViewInfo> routes) {
-        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class));
+        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), false, () -> null, System::nanoTime);
         routeUtil.setRoutes(new LinkedHashMap<>(routes));
         return routeUtil;
     }
 
     private static RouteUtil routeUtil(List<AvailableViewInfo> routeTree) {
-        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class));
+        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), false, () -> null, System::nanoTime);
         routeUtil.setRouteTree(routeTree);
         return routeUtil;
     }
