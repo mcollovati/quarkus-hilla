@@ -32,7 +32,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.vaadin.flow.internal.CurrentInstance;
-import com.vaadin.flow.internal.JacksonUtils;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
@@ -42,16 +41,20 @@ import io.vertx.ext.web.RoutingContext;
 import org.jboss.logging.Logger;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
-import tools.jackson.databind.ObjectReader;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 public class RouteUtil {
 
     private static final Logger LOGGER = Logger.getLogger(RouteUtil.class);
-    private static final ObjectReader ROUTE_READER = JacksonUtils.getMapper()
-            .readerFor(new TypeReference<List<AvailableViewInfo>>() {})
-            .without(
+
+    // Keep internal route metadata parsing independent from application-level
+    // Jackson customization, consistent with Vaadin's MenuRegistry.
+    private static final ObjectMapper ROUTE_MAPPER = JsonMapper.builder()
+            .disable(
                     DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                    DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES);
+                    DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .build();
     private static final Pattern DYNAMIC_SEGMENT = Pattern.compile("^:([\\w-]+)(\\?)?(.*)$");
     private static final Pattern OPTIONAL_STATIC_SEGMENT = Pattern.compile("^[\\w-]+\\?$");
     private static final long DISCOVERY_RETRY_NANOS = Duration.ofSeconds(1).toNanos();
@@ -218,7 +221,7 @@ public class RouteUtil {
     }
 
     static List<AvailableViewInfo> readRouteTree(InputStream input) throws IOException {
-        return ROUTE_READER.readValue(input);
+        return ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
     }
 
     private void publishRouteTree(List<AvailableViewInfo> routeTree) {
