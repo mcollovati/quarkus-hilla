@@ -19,22 +19,6 @@
             <groupId>com.vaadin</groupId>
             <artifactId>hilla</artifactId>
         </dependency>
-        <!--
-            vaadin-core-versions.json and vaadin-versions.json have been removed frm Hilla artifacts in
-            unified platform. Since quarkus-hilla currently still focus on Hilla only, for the moment we repack
-            json files in shaded deps module.
-        -->
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-core</artifactId>
-            <version>${vaadin.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin</artifactId>
-            <version>${vaadin.version}</version>
-            <optional>true</optional>
-        </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring</artifactId>
@@ -159,18 +143,6 @@
                                         <include>com/vaadin/flow/spring/data/VaadinSpringDataHelpers.class</include>
                                     </includes>
                                 </filter>
-                                <filter>
-                                    <artifact>com.vaadin:vaadin-core-internal</artifact>
-                                    <includes>
-                                        <include>vaadin-core-versions.json</include>
-                                    </includes>
-                                </filter>
-                                <filter>
-                                    <artifact>com.vaadin:vaadin-internal</artifact>
-                                    <includes>
-                                        <include>vaadin-versions.json</include>
-                                    </includes>
-                                </filter>
                             </filters>
                             <artifactSet>
                                 <includes>
@@ -179,8 +151,6 @@
                                     <include>org.springframework:spring-context</include>
                                     <include>org.springframework:spring-web</include>
                                     <include>org.springframework.data:spring-data-commons</include>
-                                    <include>com.vaadin:vaadin-core-internal</include>
-                                    <include>com.vaadin:vaadin-internal</include>
                                     <include>com.vaadin:vaadin-spring</include>
                                 </includes>
                             </artifactSet>
