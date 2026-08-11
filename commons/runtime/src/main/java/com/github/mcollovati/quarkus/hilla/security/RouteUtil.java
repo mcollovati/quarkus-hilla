@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Marco Collovati, Dario Götze
+ * Copyright 2025-2026 Marco Collovati, Dario Götze
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -178,7 +179,7 @@ public class RouteUtil {
                 LOGGER.warn("Cannot compile Hilla client route tree; route access cannot be evaluated", exception);
             }
         }
-        handleDiscoveryFailure(now);
+        handleDiscoveryFailure(now, result.retryImmediately());
     }
 
     private boolean requiresDiscovery(DiscoveryState state, long now) {
@@ -203,10 +204,14 @@ public class RouteUtil {
                 if (routesResource != null) {
                     return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
                 }
-                // A manifest is optional for applications using a custom
-                // client router. In that case this evaluator does not own any
-                // route, which is different from failing to read a manifest.
-                return DiscoveryResult.complete(List.of());
+                boolean reactEnabled = config.isReactEnabled();
+                boolean customRouter = false;
+                if (developmentMode && reactEnabled) {
+                    var frontendFolder = config.getFrontendFolder().toPath();
+                    customRouter = Files.isRegularFile(frontendFolder.resolve("routes.tsx"))
+                            || Files.isRegularFile(frontendFolder.resolve("routes.ts"));
+                }
+                return missingManifest(developmentMode, reactEnabled, customRouter);
             } catch (IOException | RuntimeException exception) {
                 LOGGER.warn(
                         "Cannot load complete Hilla client route tree; route access cannot be evaluated", exception);
@@ -260,6 +265,10 @@ public class RouteUtil {
     }
 
     private void handleDiscoveryFailure(long now) {
+        handleDiscoveryFailure(now, false);
+    }
+
+    private void handleDiscoveryFailure(long now, boolean retryImmediately) {
         RouteSnapshot currentSnapshot = routeSnapshot;
         if (currentSnapshot != null && currentSnapshot.hierarchyComplete()) {
             completeDiscovery(now);
@@ -267,7 +276,7 @@ public class RouteUtil {
         }
         routeSnapshot = new RouteSnapshot(List.of(), false);
         if (developmentMode) {
-            scheduleRefresh(now);
+            scheduleRefresh(now, retryImmediately ? 0 : DISCOVERY_REFRESH_NANOS);
         } else {
             discoveryState = DiscoveryState.FAILED;
         }
@@ -275,15 +284,26 @@ public class RouteUtil {
 
     private void completeDiscovery(long now) {
         if (developmentMode) {
-            scheduleRefresh(now);
+            scheduleRefresh(now, DISCOVERY_REFRESH_NANOS);
         } else {
             discoveryState = DiscoveryState.COMPLETE;
         }
     }
 
-    private void scheduleRefresh(long now) {
-        refreshAfterNanos = now + DISCOVERY_REFRESH_NANOS;
+    private void scheduleRefresh(long now, long delayNanos) {
+        refreshAfterNanos = now + delayNanos;
         discoveryState = DiscoveryState.REFRESH_PENDING;
+    }
+
+    static DiscoveryResult missingManifest(boolean developmentMode, boolean reactEnabled, boolean customRouter) {
+        // React/Hilla normally produces file-routes.json. During a development
+        // startup it can briefly be unavailable while frontend generation is
+        // still running, so deny and retry instead of publishing an empty tree.
+        // Applications with a custom client router can legitimately have no
+        // manifest, in which case this evaluator owns no routes.
+        return developmentMode && reactEnabled && !customRouter
+                ? DiscoveryResult.retryableFailure()
+                : DiscoveryResult.complete(List.of());
     }
 
     private void publishCompleteRoutes(Map<String, AvailableViewInfo> registeredRoutes) {
@@ -406,22 +426,29 @@ public class RouteUtil {
     }
 
     record DiscoveryResult(
-            List<AvailableViewInfo> routeTree, ResourceFingerprint resourceFingerprint, boolean unchanged) {
+            List<AvailableViewInfo> routeTree,
+            ResourceFingerprint resourceFingerprint,
+            boolean unchanged,
+            boolean retryImmediately) {
 
         static DiscoveryResult complete(List<AvailableViewInfo> routeTree) {
             return complete(routeTree, null);
         }
 
         static DiscoveryResult complete(List<AvailableViewInfo> routeTree, ResourceFingerprint fingerprint) {
-            return new DiscoveryResult(List.copyOf(routeTree), fingerprint, false);
+            return new DiscoveryResult(List.copyOf(routeTree), fingerprint, false, false);
         }
 
         static DiscoveryResult failure() {
-            return new DiscoveryResult(null, null, false);
+            return new DiscoveryResult(null, null, false, false);
+        }
+
+        static DiscoveryResult retryableFailure() {
+            return new DiscoveryResult(null, null, false, true);
         }
 
         static DiscoveryResult unchangedResult() {
-            return new DiscoveryResult(null, null, true);
+            return new DiscoveryResult(null, null, true, false);
         }
     }
 

@@ -348,6 +348,59 @@ class RouteUtilTest {
     }
 
     @Test
+    void discovery_developmentMissingReactManifestIsRetriedImmediatelyAndDeniesUntilComplete() {
+        AtomicInteger discoveries = new AtomicInteger();
+        AtomicLong nanoTime = new AtomicLong();
+        AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                () -> discoveries.incrementAndGet() == 1
+                        ? RouteUtil.missingManifest(true, true, false)
+                        : RouteUtil.DiscoveryResult.complete(List.of(admin)),
+                nanoTime::get);
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(2, discoveries.get());
+    }
+
+    @Test
+    void discovery_productionMissingReactManifestIsNoMatch() {
+        AtomicInteger discoveries = new AtomicInteger();
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> {
+                    discoveries.incrementAndGet();
+                    return RouteUtil.missingManifest(false, true, false);
+                },
+                System::nanoTime);
+
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("ADMIN")));
+        assertEquals(1, discoveries.get());
+    }
+
+    @Test
+    void discovery_missingNonReactManifestIsNoMatch() {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> RouteUtil.missingManifest(true, false, false),
+                System::nanoTime);
+
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
+    }
+
+    @Test
+    void discovery_developmentMissingManifestWithCustomReactRouterIsNoMatch() {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(true, true, true), System::nanoTime);
+
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
+    }
+
+    @Test
     void discovery_productionFailureResultIsNotRepeatedAndDeniesEveryRoute() {
         AtomicInteger discoveries = new AtomicInteger();
         RouteUtil routeUtil = new RouteUtil(
