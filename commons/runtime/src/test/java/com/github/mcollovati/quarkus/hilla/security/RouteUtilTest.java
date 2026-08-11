@@ -466,6 +466,23 @@ class RouteUtilTest {
     }
 
     @Test
+    void discovery_productionAbsentManifestIsNoMatchAndNotRepeated() {
+        AtomicInteger discoveries = new AtomicInteger();
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> {
+                    discoveries.incrementAndGet();
+                    return RouteUtil.DiscoveryResult.complete(List.of());
+                },
+                System::nanoTime);
+
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
+        assertEquals(1, discoveries.get());
+    }
+
+    @Test
     void discovery_developmentFailureKeepsLastCompleteTreeUntilSuccessfulRefresh() {
         AtomicInteger discoveries = new AtomicInteger();
         AtomicLong nanoTime = new AtomicLong();

@@ -203,6 +203,10 @@ public class RouteUtil {
                 if (routesResource != null) {
                     return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
                 }
+                // A manifest is optional for applications using a custom
+                // client router. In that case this evaluator does not own any
+                // route, which is different from failing to read a manifest.
+                return DiscoveryResult.complete(List.of());
             } catch (IOException | RuntimeException exception) {
                 LOGGER.warn(
                         "Cannot load complete Hilla client route tree; route access cannot be evaluated", exception);
