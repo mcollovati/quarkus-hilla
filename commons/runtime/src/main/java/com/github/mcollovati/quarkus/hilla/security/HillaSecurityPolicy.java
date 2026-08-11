@@ -64,6 +64,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private VaadinService vaadinService;
     private RouteUtil routeUtil;
     private WebIconsRequestMatcher webIconsRequestMatcher;
+    private boolean fileRoutesManifestExpected;
 
     public HillaSecurityPolicy(
             NavigationAccessControl accessControl,
@@ -152,6 +153,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(PathUtil.normalizeWildcard(p), true)));
     }
 
+    void setFileRoutesManifestExpected(boolean fileRoutesManifestExpected) {
+        this.fileRoutesManifestExpected = fileRoutesManifestExpected;
+    }
+
     /**
      * Checks whether the request is an internal request.
      *
@@ -172,10 +177,6 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     }
 
     private boolean isAnonymousFlowRoute(NavigationContext navigationContext, String path) {
-        if (vaadinService == null) {
-            getLogger().warn("VaadinService not set. Cannot determine server route for {}", path);
-            return false;
-        }
         boolean productionMode = vaadinService.getDeploymentConfiguration().isProductionMode();
 
         if (!accessControl.isEnabled()) {
@@ -271,7 +272,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
-        routeUtil = new RouteUtil(vaadinService);
+        routeUtil = new RouteUtil(vaadinService, fileRoutesManifestExpected);
         webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
     }
 }

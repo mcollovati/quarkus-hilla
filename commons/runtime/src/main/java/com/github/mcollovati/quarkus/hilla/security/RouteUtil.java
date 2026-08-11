@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -47,8 +46,9 @@ import tools.jackson.databind.json.JsonMapper;
  * <p>Routes declared only in a custom {@code routes.tsx}, including security
  * metadata on custom parent layouts, are not present in that manifest and are
  * therefore outside this evaluator. Callers must apply another authorization
- * source to those routes. Incomplete manifest data never produces an allow or
- * no-match decision.
+ * source to those routes. An expected manifest that is incomplete or cannot be
+ * read never produces an allow or no-match decision: access remains denied. An
+ * absent manifest can instead mean that this evaluator owns no file routes.
  */
 public class RouteUtil {
 
@@ -65,23 +65,30 @@ public class RouteUtil {
 
     private final VaadinService vaadinService;
     private final boolean developmentMode;
+    private final boolean fileRoutesManifestExpected;
     private final Supplier<DiscoveryResult> routeDiscovery;
     private final LongSupplier nanoTime;
 
     private volatile RouteSnapshot routeSnapshot;
     private volatile DiscoveryState discoveryState = DiscoveryState.UNINITIALIZED;
     private volatile long refreshAfterNanos;
+    // Access is guarded by the synchronized discovery monitor.
     private ResourceFingerprint publishedResourceFingerprint;
 
     public RouteUtil(VaadinService vaadinService) {
+        this(vaadinService, true);
+    }
+
+    public RouteUtil(VaadinService vaadinService, boolean fileRoutesManifestExpected) {
         this.vaadinService = vaadinService;
         this.developmentMode = !vaadinService.getDeploymentConfiguration().isProductionMode();
+        this.fileRoutesManifestExpected = fileRoutesManifestExpected;
         this.routeDiscovery = this::discoverClientRoutes;
         this.nanoTime = System::nanoTime;
     }
 
     RouteUtil(VaadinService vaadinService, Supplier<DiscoveryResult> routeDiscovery, LongSupplier nanoTime) {
-        this(vaadinService, true, routeDiscovery, nanoTime);
+        this(vaadinService, true, true, routeDiscovery, nanoTime);
     }
 
     RouteUtil(
@@ -89,8 +96,18 @@ public class RouteUtil {
             boolean developmentMode,
             Supplier<DiscoveryResult> routeDiscovery,
             LongSupplier nanoTime) {
+        this(vaadinService, developmentMode, true, routeDiscovery, nanoTime);
+    }
+
+    RouteUtil(
+            VaadinService vaadinService,
+            boolean developmentMode,
+            boolean fileRoutesManifestExpected,
+            Supplier<DiscoveryResult> routeDiscovery,
+            LongSupplier nanoTime) {
         this.vaadinService = vaadinService;
         this.developmentMode = developmentMode;
+        this.fileRoutesManifestExpected = fileRoutesManifestExpected;
         this.routeDiscovery = routeDiscovery;
         this.nanoTime = nanoTime;
     }
@@ -102,7 +119,7 @@ public class RouteUtil {
     AuthorizationDecision checkRouteAccess(RoutingContext context, SecurityIdentity identity) {
         ensureRoutesDiscovered();
         RouteSnapshot snapshot = routeSnapshot;
-        if (snapshot == null) {
+        if (snapshot == null || !snapshot.hierarchyComplete() || identity == null) {
             return AuthorizationDecision.DENY;
         }
 
@@ -114,9 +131,6 @@ public class RouteUtil {
             return AuthorizationDecision.DENY;
         }
 
-        if (!snapshot.hierarchyComplete() || identity == null) {
-            return AuthorizationDecision.DENY;
-        }
         if (matchedRoutes.isEmpty()) {
             return AuthorizationDecision.NO_MATCH;
         }
@@ -150,12 +164,12 @@ public class RouteUtil {
         try {
             result = routeDiscovery.get();
         } catch (RuntimeException exception) {
-            LOGGER.warn("Cannot discover Hilla client routes; route access cannot be evaluated", exception);
+            logDiscoveryIssue("Cannot discover Hilla client routes; route access cannot be evaluated", exception);
             handleDiscoveryFailure(now);
             return;
         }
         if (result == null) {
-            LOGGER.warn("Hilla client route discovery returned no result; route access cannot be evaluated");
+            logDiscoveryIssue("Hilla client route discovery returned no result; route access cannot be evaluated");
             handleDiscoveryFailure(now);
             return;
         }
@@ -176,7 +190,8 @@ public class RouteUtil {
                 publishedResourceFingerprint = result.resourceFingerprint();
                 return;
             } catch (RuntimeException exception) {
-                LOGGER.warn("Cannot compile Hilla client route tree; route access cannot be evaluated", exception);
+                logDiscoveryIssue(
+                        "Cannot compile Hilla client route tree; route access cannot be evaluated", exception);
             }
         }
         handleDiscoveryFailure(now, result.retryImmediately());
@@ -204,16 +219,9 @@ public class RouteUtil {
                 if (routesResource != null) {
                     return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
                 }
-                boolean reactEnabled = config.isReactEnabled();
-                boolean customRouter = false;
-                if (developmentMode && reactEnabled) {
-                    var frontendFolder = config.getFrontendFolder().toPath();
-                    customRouter = Files.isRegularFile(frontendFolder.resolve("routes.tsx"))
-                            || Files.isRegularFile(frontendFolder.resolve("routes.ts"));
-                }
-                return missingManifest(developmentMode, reactEnabled, customRouter);
+                return missingManifest(developmentMode, fileRoutesManifestExpected);
             } catch (IOException | RuntimeException exception) {
-                LOGGER.warn(
+                logDiscoveryIssue(
                         "Cannot load complete Hilla client route tree; route access cannot be evaluated", exception);
             }
             return DiscoveryResult.failure();
@@ -269,16 +277,30 @@ public class RouteUtil {
     }
 
     private void handleDiscoveryFailure(long now, boolean retryImmediately) {
-        RouteSnapshot currentSnapshot = routeSnapshot;
-        if (currentSnapshot != null && currentSnapshot.hierarchyComplete()) {
-            completeDiscovery(now);
-            return;
-        }
         routeSnapshot = new RouteSnapshot(List.of(), false);
+        publishedResourceFingerprint = null;
         if (developmentMode) {
             scheduleRefresh(now, retryImmediately ? 0 : DISCOVERY_REFRESH_NANOS);
         } else {
             discoveryState = DiscoveryState.FAILED;
+            LOGGER.error(
+                    "Hilla route discovery failed in production because META-INF/VAADIN/file-routes.json is missing, unreadable, or invalid; access to all generated Hilla routes remains denied until restart. Enable DEBUG logging for the underlying cause");
+        }
+    }
+
+    private void logDiscoveryIssue(String message) {
+        if (developmentMode) {
+            LOGGER.warn(message);
+        } else {
+            LOGGER.debug(message);
+        }
+    }
+
+    private void logDiscoveryIssue(String message, Throwable exception) {
+        if (developmentMode) {
+            LOGGER.warn(message, exception);
+        } else {
+            LOGGER.debug(message, exception);
         }
     }
 
@@ -295,15 +317,11 @@ public class RouteUtil {
         discoveryState = DiscoveryState.REFRESH_PENDING;
     }
 
-    static DiscoveryResult missingManifest(boolean developmentMode, boolean reactEnabled, boolean customRouter) {
-        // React/Hilla normally produces file-routes.json. During a development
-        // startup it can briefly be unavailable while frontend generation is
-        // still running, so deny and retry instead of publishing an empty tree.
-        // Applications with a custom client router can legitimately have no
-        // manifest, in which case this evaluator owns no routes.
-        return developmentMode && reactEnabled && !customRouter
-                ? DiscoveryResult.retryableFailure()
-                : DiscoveryResult.complete(List.of());
+    static DiscoveryResult missingManifest(boolean developmentMode, boolean fileRoutesManifestExpected) {
+        if (!fileRoutesManifestExpected) {
+            return DiscoveryResult.complete(List.of());
+        }
+        return developmentMode ? DiscoveryResult.retryableFailure() : DiscoveryResult.failure();
     }
 
     private void publishCompleteRoutes(Map<String, AvailableViewInfo> registeredRoutes) {

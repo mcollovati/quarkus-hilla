@@ -46,6 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class RouteUtilTest {
@@ -355,7 +356,7 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> discoveries.incrementAndGet() == 1
-                        ? RouteUtil.missingManifest(true, true, false)
+                        ? RouteUtil.missingManifest(true, true)
                         : RouteUtil.DiscoveryResult.complete(List.of(admin)),
                 nanoTime::get);
 
@@ -365,29 +366,26 @@ class RouteUtilTest {
     }
 
     @Test
-    void discovery_productionMissingReactManifestIsNoMatch() {
+    void discovery_productionMissingExpectedManifestIsTerminalFailure() {
         AtomicInteger discoveries = new AtomicInteger();
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.missingManifest(false, true, false);
+                    return RouteUtil.missingManifest(false, true);
                 },
                 System::nanoTime);
 
-        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("ADMIN")));
-        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/custom"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/custom"), identity("ADMIN")));
         assertEquals(1, discoveries.get());
     }
 
     @Test
     void discovery_missingNonReactManifestIsNoMatch() {
         RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class),
-                false,
-                () -> RouteUtil.missingManifest(true, false, false),
-                System::nanoTime);
+                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(true, false), System::nanoTime);
 
         assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
     }
@@ -395,7 +393,7 @@ class RouteUtilTest {
     @Test
     void discovery_developmentMissingManifestWithCustomReactRouterIsNoMatch() {
         RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(true, true, true), System::nanoTime);
+                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(true, false), System::nanoTime);
 
         assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
     }
@@ -536,7 +534,7 @@ class RouteUtilTest {
     }
 
     @Test
-    void discovery_developmentFailureKeepsLastCompleteTreeUntilSuccessfulRefresh() {
+    void discovery_developmentRefreshFailureDeniesAllRoutesUntilSuccessfulRefresh() {
         AtomicInteger discoveries = new AtomicInteger();
         AtomicLong nanoTime = new AtomicLong();
         AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
@@ -552,11 +550,13 @@ class RouteUtilTest {
 
         assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         nanoTime.set(Duration.ofSeconds(1).toNanos());
-        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/unknown"), identity("ADMIN")));
         assertEquals(2, discoveries.get());
 
         nanoTime.set(Duration.ofSeconds(2).toNanos());
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("USER")));
         assertEquals(3, discoveries.get());
     }
 
@@ -629,6 +629,15 @@ class RouteUtilTest {
         when(context.normalizedPath()).thenThrow(new IllegalStateException("normalization failed"));
 
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context, identity("ADMIN")));
+    }
+
+    @Test
+    void checkRouteAccess_nullIdentityIsDeniedBeforeRouteMatching() {
+        RouteUtil routeUtil = routeUtil(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
+        RoutingContext context = mock(RoutingContext.class);
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context, null));
+        verifyNoInteractions(context);
     }
 
     private static RouteUtil routeUtil(Map<String, AvailableViewInfo> routes) {
