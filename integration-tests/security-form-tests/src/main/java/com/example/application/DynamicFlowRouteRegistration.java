@@ -25,7 +25,10 @@ import com.vaadin.flow.server.ServiceInitEvent;
 @ApplicationScoped
 class DynamicFlowRouteRegistration {
 
-    void register(@Observes ServiceInitEvent event) {
-        RouteConfiguration.forApplicationScope().setAnnotatedRoute(DynamicFlowAdminView.class);
+    void register(@Observes ServiceInitEvent ignored) {
+        RouteConfiguration routes = RouteConfiguration.forApplicationScope();
+        if (!routes.isRouteRegistered(DynamicFlowAdminView.class)) {
+            routes.setAnnotatedRoute(DynamicFlowAdminView.class);
+        }
     }
 }

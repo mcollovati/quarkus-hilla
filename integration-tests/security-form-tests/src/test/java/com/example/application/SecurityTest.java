@@ -25,6 +25,7 @@ import java.util.Objects;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.example.application.views.DynamicFlowAdminView;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -47,7 +48,6 @@ import static com.example.application.SecurityTest.MenuItem.HILLA_ADMIN;
 import static com.example.application.SecurityTest.MenuItem.HILLA_AUTHENTICATED;
 import static com.example.application.SecurityTest.MenuItem.HILLA_PUBLIC;
 import static com.example.application.SecurityTest.MenuItem.HILLA_USER;
-import static com.example.application.views.DynamicFlowAdminView.TITLE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @QuarkusTest
@@ -163,7 +163,8 @@ class SecurityTest extends AbstractTest {
         login("user", "user");
         appLayout.$("h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
         assertThatMenuHasItems(USER_VIEWS);
-        openProtectedPage("hilla-admin", true);
+        open(getTestUrl() + "hilla-admin");
+        $("body").shouldHave(text("HTTP ERROR 403"));
     }
 
     @Test
@@ -226,7 +227,7 @@ class SecurityTest extends AbstractTest {
         openProtectedPage("flow-protected", true);
         login("admin", "admin");
         openProtectedPage("flow-dynamic-admin", false);
-        appLayout.$("h2").shouldHave(text(TITLE));
+        appLayout.$("h2").shouldHave(text(DynamicFlowAdminView.TITLE));
     }
 
     protected void openPublicPage(String path) {

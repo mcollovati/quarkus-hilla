@@ -68,6 +68,54 @@ class FormAuthenticationProtocolTest {
     }
 
     @Test
+    void authenticatedUser_roleProtectedHillaRoute_returnsForbidden() throws Exception {
+        HttpClient client = newClient();
+        HttpResponse<Void> loginResponse = login(client, "user", "user", true);
+        assertThat(loginResponse.statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = get(client, "hilla-admin");
+
+        assertThat(response.statusCode()).isEqualTo(403);
+    }
+
+    @Test
+    void adminUser_roleProtectedHillaRoute_returnsSuccess() throws Exception {
+        HttpClient client = newClient();
+        assertThat(login(client, "admin", "admin", true).statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = get(client, "hilla-admin");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void anonymousUser_publicHillaRoute_returnsSuccess() throws Exception {
+        HttpResponse<Void> response = get(newClient(), "");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void authenticatedUser_publicChildOfAdminHillaLayout_returnsForbidden() throws Exception {
+        HttpClient client = newClient();
+        assertThat(login(client, "user", "user", true).statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = get(client, "hierarchy/child");
+
+        assertThat(response.statusCode()).isEqualTo(403);
+    }
+
+    @Test
+    void adminUser_publicChildOfAdminHillaLayout_returnsSuccess() throws Exception {
+        HttpClient client = newClient();
+        assertThat(login(client, "admin", "admin", true).statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = get(client, "hierarchy/child");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+    }
+
+    @Test
     void formLogin_validCredentials_redirectsToConfiguredLandingPage() throws Exception {
         HttpResponse<Void> response = login(newClient(), "user", "user", false);
 
@@ -148,6 +196,12 @@ class FormAuthenticationProtocolTest {
             request.header("source", "typescript");
         }
         return client.send(request.build(), HttpResponse.BodyHandlers.discarding());
+    }
+
+    private HttpResponse<Void> get(HttpClient client, String path) throws IOException, InterruptedException {
+        HttpRequest request =
+                HttpRequest.newBuilder(baseUri.resolve(path)).GET().build();
+        return client.send(request, HttpResponse.BodyHandlers.discarding());
     }
 
     private void assertRedirect(HttpResponse<?> response, String expectedPath, String expectedQuery) {

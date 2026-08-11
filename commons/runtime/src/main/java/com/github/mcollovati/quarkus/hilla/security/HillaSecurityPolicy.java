@@ -101,18 +101,33 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
                 || isAnonymousEndpoint(request)
-                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
                 || isCustomWebIcon(request)) {
             return CheckResult.permit();
         }
         return identity.flatMap(secIdentity -> {
-            if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
-            return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+            NavigationContext flowNavigation = tryCreateNavigationContext(request);
+            if (flowNavigation != null) {
+                if (isAnonymousFlowRoute(flowNavigation, request.normalizedPath())) {
+                    return CheckResult.permit();
+                }
+                // Flow performs its role-aware check during navigation. At the
+                // HTTP boundary, preserve existing behavior: non-public Flow
+                // routes require authentication.
+                return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+            }
+            if (routeUtil == null) {
+                getLogger().warn("Hilla routes cannot be evaluated before VaadinService initialization");
+                return CheckResult.deny();
+            }
+            AuthorizationDecision hillaDecision = routeUtil.checkRouteAccess(request, secIdentity);
+            return switch (hillaDecision) {
+                case ALLOW -> CheckResult.permit();
+                case DENY -> CheckResult.deny();
+                // This policy only owns Flow and generated Hilla routes. Other
+                // paths remain available to Quarkus HTTP authorization rules.
+                case NO_MATCH -> CheckResult.permit();
+            };
         });
-    }
-
-    private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
-        return routeUtil.isRouteAllowed(request, secIdentity);
     }
 
     private boolean isCustomWebIcon(RoutingContext request) {
@@ -156,15 +171,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping, request);
     }
 
-    private boolean isAnonymousRoute(NavigationContext navigationContext, String path) {
-
+    private boolean isAnonymousFlowRoute(NavigationContext navigationContext, String path) {
         if (vaadinService == null) {
             getLogger().warn("VaadinService not set. Cannot determine server route for {}", path);
-            return true;
-        }
-        if (navigationContext == null) {
-            getLogger().trace("No route defined for {}", path);
-            return true;
+            return false;
         }
         boolean productionMode = vaadinService.getDeploymentConfiguration().isProductionMode();
 
@@ -176,10 +186,20 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             } else {
                 getLogger().info(message, path);
             }
-            return true;
+            return false;
         }
 
-        AccessCheckResult result = accessControl.checkAccess(navigationContext, productionMode);
+        AccessCheckResult result;
+        try {
+            result = accessControl.checkAccess(navigationContext, productionMode);
+        } catch (RuntimeException exception) {
+            getLogger().warn("Cannot determine whether Flow route {} is public", path, exception);
+            return false;
+        }
+        if (result == null) {
+            getLogger().warn("Flow route access evaluation returned no result for {}", path);
+            return false;
+        }
         boolean isAllowed = result.decision() == AccessCheckDecision.ALLOW;
         if (isAllowed) {
             getLogger().debug("{} refers to a public view", path);

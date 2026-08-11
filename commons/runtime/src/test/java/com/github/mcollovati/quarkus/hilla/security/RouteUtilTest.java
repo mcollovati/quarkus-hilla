@@ -17,11 +17,19 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -31,13 +39,19 @@ import com.vaadin.flow.server.menu.RouteParamType;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class RouteUtilTest {
+
+    @TempDir
+    Path temporaryDirectory;
 
     @Test
     void readRouteTree_deserializesGeneratedFileRouteFormat() throws Exception {
@@ -61,11 +75,31 @@ class RouteUtilTest {
                 RouteUtil.readRouteTree(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
         RouteUtil routeUtil = routeUtil(routes);
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin/42"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin/42"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin/42"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin/42"), identity("ADMIN")));
         assertEquals(
                 RouteParamType.REQUIRED,
                 routes.getFirst().children().getFirst().routeParameters().get(":id"));
+    }
+
+    @Test
+    void readRouteResource_unchangedReliableFingerprintSkipsParsing() throws Exception {
+        Path manifest = temporaryDirectory.resolve("file-routes.json");
+        Files.writeString(manifest, "[]");
+        Files.setLastModifiedTime(manifest, FileTime.fromMillis(System.currentTimeMillis() - 5_000));
+
+        RouteUtil.DiscoveryResult first =
+                RouteUtil.readRouteResource(manifest.toUri().toURL(), null);
+        RouteUtil.DiscoveryResult unchanged =
+                RouteUtil.readRouteResource(manifest.toUri().toURL(), first.resourceFingerprint());
+        Files.writeString(manifest, "[\n]");
+        Files.setLastModifiedTime(manifest, FileTime.fromMillis(System.currentTimeMillis()));
+        RouteUtil.DiscoveryResult changed =
+                RouteUtil.readRouteResource(manifest.toUri().toURL(), first.resourceFingerprint());
+
+        assertFalse(first.unchanged());
+        assertTrue(unchanged.unchanged());
+        assertFalse(changed.unchanged());
     }
 
     @Test
@@ -73,8 +107,8 @@ class RouteUtilTest {
         RouteUtil routeUtil = routeUtil(
                 Map.of("users/:id", view("users/:id", new String[] {"ADMIN"}, Map.of(":id", RouteParamType.REQUIRED))));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/users/42"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/users/42"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/users/42"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/users/42"), identity("ADMIN")));
     }
 
     @Test
@@ -83,21 +117,32 @@ class RouteUtilTest {
                 "reports/:filter?",
                 view("reports/:filter?", new String[] {"ADMIN"}, Map.of(":filter?", RouteParamType.OPTIONAL))));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/reports"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/reports"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/reports/open"), identity("USER")));
+                AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/reports/open"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/reports/open"), identity("ADMIN")));
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/reports/open"), identity("ADMIN")));
     }
 
     @Test
     void checkRouteAccess_optionalStaticSegmentMatchesWithAndWithoutSegment() {
         RouteUtil routeUtil = routeUtil(Map.of("projects?", view("projects?", new String[] {"ADMIN"}, Map.of())));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/projects"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/projects"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/projects"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/projects"), identity("ADMIN")));
+    }
+
+    @Test
+    void checkRouteAccess_indexRouteOutranksRestrictedOmittedOptionalStaticRoute() {
+        Map<String, AvailableViewInfo> routes = new LinkedHashMap<>();
+        routes.put("", view("", new String[0], Map.of()));
+        routes.put("projects?", view("projects?", new String[] {"ADMIN"}, Map.of()));
+        RouteUtil routeUtil = routeUtil(routes);
+
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/projects"), identity("USER")));
     }
 
     @Test
@@ -105,11 +150,11 @@ class RouteUtilTest {
         RouteUtil routeUtil = routeUtil(
                 Map.of("items/:id", view("items/:id", new String[] {"ADMIN"}, Map.of(":id", RouteParamType.REQUIRED))));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/items/a%2Fb"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/items/a%2Fb"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/items/a%2Fb"), identity("ADMIN")));
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/items/a%2Fb"), identity("ADMIN")));
         assertEquals(
-                RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/items/a/b"), identity("ADMIN")));
+                AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/items/a/b"), identity("ADMIN")));
     }
 
     @Test
@@ -119,7 +164,7 @@ class RouteUtilTest {
         routes.put("users/new", view("users/new", new String[] {"USER"}, Map.of()));
         RouteUtil routeUtil = routeUtil(routes);
 
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/users/new"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/users/new"), identity("USER")));
     }
 
     @Test
@@ -129,8 +174,8 @@ class RouteUtilTest {
         routes.put("users/new", view("users/new", new String[] {"ADMIN"}, Map.of()));
         RouteUtil routeUtil = routeUtil(routes);
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/users/new"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/users/new"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/users/new"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/users/new"), identity("ADMIN")));
     }
 
     @Test
@@ -141,8 +186,8 @@ class RouteUtilTest {
                 "items/:slug", view("items/:slug", new String[] {"ADMIN"}, Map.of(":slug", RouteParamType.REQUIRED)));
         RouteUtil routeUtil = routeUtil(routes);
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/items/42"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/items/42"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/items/42"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/items/42"), identity("ADMIN")));
     }
 
     @Test
@@ -152,24 +197,24 @@ class RouteUtilTest {
         routes.put("files/*", view("files/*", new String[] {"ADMIN"}, Map.of("*", RouteParamType.WILDCARD)));
         RouteUtil routeUtil = routeUtil(routes);
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/files/foo"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/files/foo"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/files/foo"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/files/foo"), identity("ADMIN")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/files/foo.json"), identity("USER")));
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/files/foo.json"), identity("USER")));
     }
 
     @Test
-    void checkRouteAccess_parameterSuffixKeepsEqualStaticMatchRestrictive() {
+    void checkRouteAccess_staticRouteOutranksPartialParameterRoute() {
         Map<String, AvailableViewInfo> routes = new LinkedHashMap<>();
         routes.put("files/:id.json", view("files/:id.json", new String[] {"ADMIN"}, Map.of()));
         routes.put("files/public.json", view("files/public.json", new String[0], Map.of()));
         RouteUtil routeUtil = routeUtil(routes);
 
         assertEquals(
-                RouteUtil.RouteAccess.DENY,
+                AuthorizationDecision.ALLOW,
                 routeUtil.checkRouteAccess(context("/files/public.json"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW,
+                AuthorizationDecision.ALLOW,
                 routeUtil.checkRouteAccess(context("/files/public.json"), identity("ADMIN")));
     }
 
@@ -178,10 +223,10 @@ class RouteUtilTest {
         RouteUtil routeUtil =
                 routeUtil(Map.of("files/:id?.json", view("files/:id?.json", new String[] {"ADMIN"}, Map.of())));
 
-        assertEquals(RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/files"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/files/.json"), identity("USER")));
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/files"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/files/.json"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/files/foo.json"), identity("ADMIN")));
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/files/foo.json"), identity("ADMIN")));
     }
 
     @Test
@@ -190,8 +235,8 @@ class RouteUtilTest {
         AvailableViewInfo layout = view("", new String[] {"ADMIN"}, Map.of(), List.of(index));
         RouteUtil routeUtil = routeUtil(List.of(layout));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/"), identity("ADMIN")));
     }
 
     @Test
@@ -200,8 +245,8 @@ class RouteUtilTest {
         AvailableViewInfo layout = view("admin", new String[] {"ADMIN"}, Map.of(), List.of(child));
         RouteUtil routeUtil = routeUtil(List.of(layout));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin/42"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin/42"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin/42"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin/42"), identity("ADMIN")));
     }
 
     @Test
@@ -210,9 +255,9 @@ class RouteUtilTest {
         AvailableViewInfo layout = view("admin", new String[] {"ADMIN"}, Map.of(), List.of(child));
         RouteUtil routeUtil = routeUtil(List.of(layout));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin/users"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin/users"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin/users"), identity("ADMIN")));
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin/users"), identity("ADMIN")));
     }
 
     @Test
@@ -222,13 +267,13 @@ class RouteUtilTest {
         RouteUtil routeUtil = routeUtil(List.of(layout));
 
         assertEquals(
-                RouteUtil.RouteAccess.DENY,
+                AuthorizationDecision.DENY,
                 routeUtil.checkRouteAccess(context("/admin/istrator/users"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW,
+                AuthorizationDecision.ALLOW,
                 routeUtil.checkRouteAccess(context("/admin/istrator/users"), identity("ADMIN")));
         assertEquals(
-                RouteUtil.RouteAccess.NO_MATCH,
+                AuthorizationDecision.NO_MATCH,
                 routeUtil.checkRouteAccess(context("/administrator/users"), identity("ADMIN")));
     }
 
@@ -239,8 +284,8 @@ class RouteUtilTest {
         AvailableViewInfo publicView = view("public", new String[0], Map.of());
         RouteUtil routeUtil = routeUtil(List.of(layout, publicView));
 
-        assertEquals(RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/users"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/users"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
     }
 
     @Test
@@ -248,8 +293,8 @@ class RouteUtilTest {
         RouteUtil routeUtil = routeUtil(
                 Map.of("files/*", view("files/*", new String[] {"ADMIN"}, Map.of("*", RouteParamType.WILDCARD))));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/files/a/b"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/files/a/b"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/files/a/b"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/files/a/b"), identity("ADMIN")));
     }
 
     @Test
@@ -261,8 +306,8 @@ class RouteUtilTest {
                         new String[] {"ADMIN"},
                         Map.of("*", RouteParamType.WILDCARD, ":id?", RouteParamType.OPTIONAL))));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/files/a/b"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/files/a/b"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/files/a/b"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/files/a/b"), identity("ADMIN")));
     }
 
     @Test
@@ -274,55 +319,54 @@ class RouteUtilTest {
                         new String[] {"ADMIN"},
                         Map.of("*", RouteParamType.WILDCARD, ":id", RouteParamType.REQUIRED))));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/files/*/42"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/files/*/42"), identity("USER")));
         assertEquals(
-                RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/files/*/42"), identity("ADMIN")));
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/files/*/42"), identity("ADMIN")));
         assertEquals(
-                RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/files/a/42"), identity("ADMIN")));
+                AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/files/a/42"), identity("ADMIN")));
     }
 
     @Test
-    void discovery_developmentFallbackUsesBackoffThenPublishesCompleteTree() {
+    void discovery_developmentFailureResultUsesBackoffThenPublishesCompleteTree() {
         AtomicInteger discoveries = new AtomicInteger();
         AtomicLong nanoTime = new AtomicLong();
         AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> discoveries.incrementAndGet() == 1
-                        ? RouteUtil.DiscoveryResult.fallback(Map.of("admin", admin))
+                        ? RouteUtil.DiscoveryResult.failure()
                         : RouteUtil.DiscoveryResult.complete(List.of(admin)),
                 nanoTime::get);
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(1, discoveries.get());
 
         nanoTime.set(Duration.ofSeconds(1).toNanos());
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(2, discoveries.get());
     }
 
     @Test
-    void discovery_productionFallbackIsNotRepeatedAndDeniesKnownRoutes() {
+    void discovery_productionFailureResultIsNotRepeatedAndDeniesEveryRoute() {
         AtomicInteger discoveries = new AtomicInteger();
-        AvailableViewInfo publicView = view("public", new String[0], Map.of());
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.DiscoveryResult.fallback(Map.of("public", publicView));
+                    return RouteUtil.DiscoveryResult.failure();
                 },
                 System::nanoTime);
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/unknown"), identity("USER")));
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/unknown"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
         assertEquals(1, discoveries.get());
     }
 
     @Test
-    void discovery_failureIsRetriedAfterBackoff() {
+    void discovery_developmentFailureIsRetriedAfterBackoffAndDeniesUntilComplete() {
         AtomicInteger discoveries = new AtomicInteger();
         AtomicLong nanoTime = new AtomicLong();
         AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
@@ -336,13 +380,30 @@ class RouteUtilTest {
                 },
                 nanoTime::get);
 
-        assertEquals(RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.NO_MATCH, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(1, discoveries.get());
 
         nanoTime.set(Duration.ofSeconds(1).toNanos());
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(2, discoveries.get());
+    }
+
+    @Test
+    void discovery_productionFailureIsNotRetriedAndDeniesEveryRoute() {
+        AtomicInteger discoveries = new AtomicInteger();
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> {
+                    discoveries.incrementAndGet();
+                    throw new IllegalStateException("routes unavailable");
+                },
+                System::nanoTime);
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/unknown"), identity("ADMIN")));
+        assertEquals(1, discoveries.get());
     }
 
     @Test
@@ -356,13 +417,31 @@ class RouteUtilTest {
                 () -> RouteUtil.DiscoveryResult.complete(List.of(discoveries.incrementAndGet() == 1 ? admin : user)),
                 nanoTime::get);
 
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(1, discoveries.get());
 
         nanoTime.set(Duration.ofSeconds(1).toNanos());
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("USER")));
+        assertEquals(2, discoveries.get());
+    }
+
+    @Test
+    void discovery_developmentUnchangedResourceKeepsPublishedTree() {
+        AtomicInteger discoveries = new AtomicInteger();
+        AtomicLong nanoTime = new AtomicLong();
+        AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                () -> discoveries.incrementAndGet() == 1
+                        ? RouteUtil.DiscoveryResult.complete(List.of(admin))
+                        : RouteUtil.DiscoveryResult.unchangedResult(),
+                nanoTime::get);
+
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        nanoTime.set(Duration.ofSeconds(1).toNanos());
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(2, discoveries.get());
     }
 
@@ -380,9 +459,9 @@ class RouteUtilTest {
                 },
                 nanoTime::get);
 
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         nanoTime.set(Duration.ofDays(1).toNanos());
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(1, discoveries.get());
     }
 
@@ -396,37 +475,101 @@ class RouteUtilTest {
                 mock(VaadinService.class),
                 () -> switch (discoveries.incrementAndGet()) {
                     case 1 -> RouteUtil.DiscoveryResult.complete(List.of(admin));
-                    case 2 -> RouteUtil.DiscoveryResult.fallback(Map.of());
+                    case 2 -> RouteUtil.DiscoveryResult.failure();
                     default -> RouteUtil.DiscoveryResult.complete(List.of(user));
                 },
                 nanoTime::get);
 
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         nanoTime.set(Duration.ofSeconds(1).toNanos());
-        assertEquals(RouteUtil.RouteAccess.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(2, discoveries.get());
 
         nanoTime.set(Duration.ofSeconds(2).toNanos());
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
         assertEquals(3, discoveries.get());
+    }
+
+    @Test
+    void discovery_productionRouteTreeCompilationFailureDeniesEveryRoute() {
+        AvailableViewInfo brokenParent =
+                view("admin", new String[] {"ADMIN"}, Map.of(), java.util.Arrays.asList((AvailableViewInfo) null));
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> RouteUtil.DiscoveryResult.complete(List.of(brokenParent)),
+                System::nanoTime);
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/unknown"), identity("ADMIN")));
+    }
+
+    @Test
+    void discovery_concurrentRequestsPublishSingleProductionSnapshot() throws Exception {
+        AtomicInteger discoveries = new AtomicInteger();
+        CountDownLatch discoveryStarted = new CountDownLatch(1);
+        CountDownLatch continueDiscovery = new CountDownLatch(1);
+        AvailableViewInfo admin = view("admin", new String[] {"ADMIN"}, Map.of());
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> {
+                    discoveries.incrementAndGet();
+                    discoveryStarted.countDown();
+                    try {
+                        if (!continueDiscovery.await(5, TimeUnit.SECONDS)) {
+                            throw new IllegalStateException("timed out waiting for concurrent request");
+                        }
+                    } catch (InterruptedException exception) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException(exception);
+                    }
+                    return RouteUtil.DiscoveryResult.complete(List.of(admin));
+                },
+                System::nanoTime);
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+        try {
+            Future<AuthorizationDecision> first =
+                    executor.submit(() -> routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+            assertTrue(discoveryStarted.await(5, TimeUnit.SECONDS));
+            Future<AuthorizationDecision> second =
+                    executor.submit(() -> routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
+            continueDiscovery.countDown();
+
+            assertEquals(AuthorizationDecision.ALLOW, first.get(5, TimeUnit.SECONDS));
+            assertEquals(AuthorizationDecision.ALLOW, second.get(5, TimeUnit.SECONDS));
+            assertEquals(1, discoveries.get());
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
     void checkRouteAccess_anonymousIdentityDeniedForLoginRequiredRoute() {
         RouteUtil routeUtil = routeUtil(Map.of("profile", view("profile", new String[0], Map.of())));
 
-        assertEquals(RouteUtil.RouteAccess.DENY, routeUtil.checkRouteAccess(context("/profile"), anonymousIdentity()));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/profile"), anonymousIdentity()));
+    }
+
+    @Test
+    void checkRouteAccess_normalizedPathFailureIsDenied() {
+        RouteUtil routeUtil = routeUtil(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
+        RoutingContext context = mock(RoutingContext.class);
+        when(context.normalizedPath()).thenThrow(new IllegalStateException("normalization failed"));
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context, identity("ADMIN")));
     }
 
     private static RouteUtil routeUtil(Map<String, AvailableViewInfo> routes) {
         RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), false, () -> null, System::nanoTime);
-        routeUtil.setRoutes(new LinkedHashMap<>(routes));
+        routeUtil.setCompleteRoutesForTesting(new LinkedHashMap<>(routes));
         return routeUtil;
     }
 
     private static RouteUtil routeUtil(List<AvailableViewInfo> routeTree) {
         RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), false, () -> null, System::nanoTime);
-        routeUtil.setRouteTree(routeTree);
+        routeUtil.setCompleteRouteTreeForTesting(routeTree);
         return routeUtil;
     }
 
