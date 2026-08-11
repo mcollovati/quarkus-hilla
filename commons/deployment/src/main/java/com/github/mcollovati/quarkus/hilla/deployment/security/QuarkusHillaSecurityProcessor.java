@@ -15,17 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
-import jakarta.annotation.security.DenyAll;
-import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import com.vaadin.flow.router.Route;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
@@ -37,10 +31,8 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
-import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.eclipse.microprofile.config.ConfigProvider;
-import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.DotName;
 
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
@@ -124,7 +116,6 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     void registerNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
-            CombinedIndexBuildItem index,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
@@ -136,26 +127,13 @@ class QuarkusHillaSecurityProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-            if (hasSecuredRoutes(index)) {
-                accessCheckerProducer.produce(
-                        new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
-            }
+            accessCheckerProducer.produce(
+                    new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
 
             ConfigProvider.getConfig()
                     .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
                     .map(NavigationAccessControlBuildItem::new)
                     .ifPresent(accessControlProducer::produce);
         }
-    }
-
-    private boolean hasSecuredRoutes(CombinedIndexBuildItem indexBuildItem) {
-        Set<DotName> securityAnnotations = Set.of(
-                DotName.createSimple(DenyAll.class.getName()),
-                DotName.createSimple(AnonymousAllowed.class.getName()),
-                DotName.createSimple(RolesAllowed.class.getName()),
-                DotName.createSimple(PermitAll.class.getName()));
-        return indexBuildItem.getComputingIndex().getAnnotations(DotName.createSimple(Route.class.getName())).stream()
-                .flatMap(route -> route.target().annotations().stream().map(AnnotationInstance::name))
-                .anyMatch(securityAnnotations::contains);
     }
 }
