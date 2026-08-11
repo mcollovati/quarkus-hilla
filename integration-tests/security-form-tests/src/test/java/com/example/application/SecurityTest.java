@@ -179,6 +179,17 @@ class SecurityTest extends AbstractTest {
     }
 
     @Test
+    void authenticatedUser_unannotatedFlowView_viewNotDisplayed() {
+        openProtectedPage("flow-protected", true);
+        login("user", "user");
+        openProtectedPage("flow-default-deny", false);
+        $$("div")
+                .filter(Condition.text("Could not navigate to 'flow-default-deny'"))
+                .first()
+                .shouldBe(visible);
+    }
+
+    @Test
     void adminUser_adminHillaView_viewDisplayed() {
         openProtectedPage("flow-protected", true);
         login("admin", "admin");
