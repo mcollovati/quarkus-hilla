@@ -50,7 +50,10 @@ class QuarkusHillaSecurityProcessor {
 
     @BuildStep
     FileRoutesManifestBuildItem fileRoutesManifestExpected(
-            VaadinBuildTimeConfig vaadinConfig, CurateOutcomeBuildItem curateOutcome) {
+            AuthFormBuildItem authForm, VaadinBuildTimeConfig vaadinConfig, CurateOutcomeBuildItem curateOutcome) {
+        if (!authForm.isEnabled()) {
+            return new FileRoutesManifestBuildItem(false);
+        }
         var applicationModule = curateOutcome.getApplicationModel().getApplicationModule();
         if (applicationModule == null) {
             // Vaadin can recover workspace information from its generated

@@ -46,10 +46,18 @@ class QuarkusHillaSecurityProcessorTest {
                 .build();
         CurateOutcomeBuildItem curateOutcome = new CurateOutcomeBuildItem(applicationModel);
 
-        FileRoutesManifestBuildItem result =
-                new QuarkusHillaSecurityProcessor().fileRoutesManifestExpected(null, curateOutcome);
+        FileRoutesManifestBuildItem result = new QuarkusHillaSecurityProcessor()
+                .fileRoutesManifestExpected(new AuthFormBuildItem(true), null, curateOutcome);
 
         assertThat(result.isExpected()).isTrue();
+    }
+
+    @Test
+    void disabledFormAuthenticationSkipsManifestClassification() {
+        FileRoutesManifestBuildItem result = new QuarkusHillaSecurityProcessor()
+                .fileRoutesManifestExpected(new AuthFormBuildItem(false), null, null);
+
+        assertThat(result.isExpected()).isFalse();
     }
 
     @Test
