@@ -157,6 +157,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     void setFileRoutesManifestExpected(boolean fileRoutesManifestExpected) {
         this.fileRoutesManifestExpected = fileRoutesManifestExpected;
+        initializeRouteUtil();
     }
 
     /**
@@ -274,7 +275,13 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
-        routeUtil = new RouteUtil(vaadinService, fileRoutesManifestExpected);
+        initializeRouteUtil();
         webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
+    }
+
+    private void initializeRouteUtil() {
+        if (vaadinService != null) {
+            routeUtil = new RouteUtil(vaadinService, fileRoutesManifestExpected);
+        }
     }
 }
