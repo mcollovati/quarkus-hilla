@@ -216,10 +216,7 @@ public class RouteUtil {
             var config = vaadinService.getDeploymentConfiguration();
             try {
                 URL routesResource = MenuRegistry.getViewsJsonAsResource(config);
-                if (routesResource != null) {
-                    return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
-                }
-                return missingManifest(developmentMode, fileRoutesManifestExpected);
+                return discoverFromResource(routesResource);
             } catch (IOException | RuntimeException exception) {
                 logDiscoveryIssue(
                         "Cannot load complete Hilla client route tree; route access cannot be evaluated", exception);
@@ -229,6 +226,13 @@ public class RouteUtil {
             CurrentInstance.clearAll();
             CurrentInstance.restoreInstances(oldInstances);
         }
+    }
+
+    DiscoveryResult discoverFromResource(URL routesResource) throws IOException {
+        if (routesResource != null) {
+            return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
+        }
+        return missingManifest(developmentMode, fileRoutesManifestExpected);
     }
 
     void setCompleteRoutesForTesting(Map<String, AvailableViewInfo> registeredRoutes) {

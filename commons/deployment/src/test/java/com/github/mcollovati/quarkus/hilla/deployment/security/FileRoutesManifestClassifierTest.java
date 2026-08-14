@@ -47,6 +47,15 @@ class FileRoutesManifestClassifierTest {
     }
 
     @Test
+    void hybridCustomRouterWithWhitespaceBeforeCallExpectsManifest() throws Exception {
+        Files.writeString(
+                frontendDirectory.resolve("routes.tsx"),
+                "export const routes = new RouterConfigurationBuilder().withFileRoutes\n  (fileRoutes).build();");
+
+        assertThat(classify(Optional.of(true))).isTrue();
+    }
+
+    @Test
     void pureCustomReactRouterCompositionDoesNotExpectManifest() throws Exception {
         Files.writeString(
                 frontendDirectory.resolve("routes.tsx"), "export const routes = withReactRoutes(customRoutes);");

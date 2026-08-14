@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import com.vaadin.flow.internal.FrontendUtils;
 import com.vaadin.flow.internal.StringUtil;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 final class FileRoutesManifestClassifier {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FileRoutesManifestClassifier.class);
+    private static final Pattern WITH_FILE_ROUTES_CALL = Pattern.compile("withFileRoutes\\s*\\(");
 
     private FileRoutesManifestClassifier() {}
 
@@ -49,7 +51,7 @@ final class FileRoutesManifestClassifier {
 
         try {
             String routes = StringUtil.removeComments(Files.readString(customRoutes));
-            return routes.contains("withFileRoutes(");
+            return WITH_FILE_ROUTES_CALL.matcher(routes).find();
         } catch (IOException exception) {
             LOGGER.warn(
                     "Cannot inspect custom React router {}; expecting generated file routes", customRoutes, exception);

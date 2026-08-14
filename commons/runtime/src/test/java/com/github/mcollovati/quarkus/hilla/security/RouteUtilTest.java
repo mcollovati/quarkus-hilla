@@ -43,6 +43,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -101,6 +102,28 @@ class RouteUtilTest {
         assertFalse(first.unchanged());
         assertTrue(unchanged.unchanged());
         assertFalse(changed.unchanged());
+    }
+
+    @Test
+    void discoverFromResource_productionMissingUnexpectedManifestReturnsEmptyCompleteTree() throws Exception {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class), false, false, RouteUtil.DiscoveryResult::failure, System::nanoTime);
+
+        RouteUtil.DiscoveryResult result = routeUtil.discoverFromResource(null);
+
+        assertEquals(List.of(), result.routeTree());
+        assertFalse(result.retryImmediately());
+    }
+
+    @Test
+    void discoverFromResource_productionMissingExpectedManifestReturnsFailure() throws Exception {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class), false, true, RouteUtil.DiscoveryResult::failure, System::nanoTime);
+
+        RouteUtil.DiscoveryResult result = routeUtil.discoverFromResource(null);
+
+        assertNull(result.routeTree());
+        assertFalse(result.retryImmediately());
     }
 
     @Test

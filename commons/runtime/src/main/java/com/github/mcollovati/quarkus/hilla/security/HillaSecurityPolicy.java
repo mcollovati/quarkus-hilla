@@ -64,7 +64,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private VaadinService vaadinService;
     private RouteUtil routeUtil;
     private WebIconsRequestMatcher webIconsRequestMatcher;
-    private boolean fileRoutesManifestExpected;
+    // Stay fail-closed until runtime initialization applies the build-time
+    // classification.
+    private boolean fileRoutesManifestExpected = true;
 
     public HillaSecurityPolicy(
             NavigationAccessControl accessControl,
