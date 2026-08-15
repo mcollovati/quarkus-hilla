@@ -23,12 +23,18 @@ package com.github.mcollovati.quarkus.hilla.security;
  * deny decision.
  */
 enum AuthorizationDecision {
-    /** Authorization source does not apply to the evaluated target. */
+    /**
+     * Authorization source does not apply to the evaluated target.
+     */
     NO_MATCH,
 
-    /** Authorization source explicitly allows access. */
+    /**
+     * Authorization source explicitly allows access.
+     */
     ALLOW,
 
-    /** Authorization source explicitly denies access. */
+    /**
+     * Authorization source explicitly denies access.
+     */
     DENY
 }

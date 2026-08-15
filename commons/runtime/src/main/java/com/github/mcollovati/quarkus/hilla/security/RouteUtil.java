@@ -245,7 +245,9 @@ public class RouteUtil {
         }
     }
 
-    /** Must be called while holding the discovery monitor that guards the resource fingerprint. */
+    /**
+     * Must be called while holding the discovery monitor that guards the resource fingerprint.
+     */
     DiscoveryResult discoverFromResource(URL routesResource) throws IOException {
         if (routesResource != null) {
             return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
