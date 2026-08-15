@@ -140,6 +140,15 @@ class RoutePatternMatcherTest {
     }
 
     @Test
+    void bestMatches_trailingQuestionMarksAnySegmentOptional() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("orders/:id.v2?", "optional-suffix"));
+
+        assertEquals(List.of("optional-suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/orders")));
+        assertEquals(List.of("optional-suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/orders/x.v2")));
+    }
+
+    @Test
     void bestMatches_terminalWildcardConsumesRemainingSegments() {
         List<RoutePatternMatcher.CompiledRoute<String>> routes =
                 List.of(RoutePatternMatcher.compile("files/*", "wildcard"));
