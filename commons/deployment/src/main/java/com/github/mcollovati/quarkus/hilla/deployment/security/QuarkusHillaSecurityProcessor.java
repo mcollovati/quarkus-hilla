@@ -36,6 +36,7 @@ import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
+import io.quarkus.vertx.http.deployment.SecurityInformationBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.DotName;
@@ -50,8 +51,10 @@ class QuarkusHillaSecurityProcessor {
 
     @BuildStep
     FileRoutesManifestBuildItem fileRoutesManifestExpected(
-            AuthFormBuildItem authForm, VaadinBuildTimeConfig vaadinConfig, CurateOutcomeBuildItem curateOutcome) {
-        if (!authForm.isEnabled()) {
+            HillaSecurityBuildItem hillaSecurity,
+            VaadinBuildTimeConfig vaadinConfig,
+            CurateOutcomeBuildItem curateOutcome) {
+        if (!hillaSecurity.isEnabled()) {
             return new FileRoutesManifestBuildItem(false);
         }
         var applicationModule = curateOutcome.getApplicationModel().getApplicationModule();
@@ -81,16 +84,25 @@ class QuarkusHillaSecurityProcessor {
     }
 
     @BuildStep
-    AuthFormBuildItem authFormEnabledBuildItem() {
+    HillaSecurityBuildItem hillaSecurityBuildItem(List<SecurityInformationBuildItem> securityInformation) {
         boolean authFormEnabled = ConfigProvider.getConfig()
                 .getOptionalValue("quarkus.http.auth.form.enabled", Boolean.class)
                 .orElse(false);
-        return new AuthFormBuildItem(authFormEnabled);
+        if (authFormEnabled) {
+            return new HillaSecurityBuildItem(HillaSecurityBuildItem.SecurityModel.FORM);
+        }
+        HillaSecurityBuildItem.SecurityModel securityModel = securityInformation.stream()
+                .map(QuarkusHillaSecurityProcessor::toSecurityModel)
+                .filter(model -> model != HillaSecurityBuildItem.SecurityModel.NONE)
+                .findFirst()
+                .orElse(HillaSecurityBuildItem.SecurityModel.NONE);
+        return new HillaSecurityBuildItem(securityModel);
     }
 
     @BuildStep
-    void registerHillaSecurityPolicy(AuthFormBuildItem authFormEnabled, BuildProducer<AdditionalBeanBuildItem> beans) {
-        if (authFormEnabled.isEnabled()) {
+    void registerHillaSecurityPolicy(
+            HillaSecurityBuildItem hillaSecurity, BuildProducer<AdditionalBeanBuildItem> beans) {
+        if (hillaSecurity.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(HillaSecurityPolicy.class, EndpointUtil.class)
                     .setDefaultScope(DotNames.APPLICATION_SCOPED)
@@ -102,10 +114,10 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void registerHillaFormAuthenticationMechanism(
-            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityBuildItem hillaSecurity,
             HillaSecurityRecorder recorder,
             BuildProducer<SyntheticBeanBuildItem> producer) {
-        if (authFormBuildItem.isEnabled()) {
+        if (hillaSecurity.isFormAuthentication()) {
             producer.produce(SyntheticBeanBuildItem.configure(HillaFormAuthenticationMechanism.class)
                     .types(HttpAuthenticationMechanism.class)
                     .setRuntimeInit()
@@ -121,12 +133,13 @@ class QuarkusHillaSecurityProcessor {
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     void configureHillaSecurityComponents(
-            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityBuildItem hillaSecurity,
             FileRoutesManifestBuildItem fileRoutesManifest,
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer) {
-        if (authFormBuildItem.isEnabled()) {
-            recorder.configureHttpSecurityPolicy(beanContainer.getValue(), fileRoutesManifest.isExpected());
+        if (hillaSecurity.isEnabled()) {
+            recorder.configureHttpSecurityPolicy(
+                    beanContainer.getValue(), fileRoutesManifest.isExpected(), hillaSecurity.isFormAuthentication());
         }
     }
 
@@ -155,11 +168,11 @@ class QuarkusHillaSecurityProcessor {
 
     @BuildStep
     void registerNavigationAccessControl(
-            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityBuildItem hillaSecurity,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
-        if (authFormBuildItem.isEnabled()) {
+        if (hillaSecurity.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
                             QuarkusNavigationAccessControl.class,
@@ -170,10 +183,21 @@ class QuarkusHillaSecurityProcessor {
             accessCheckerProducer.produce(
                     new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
 
-            ConfigProvider.getConfig()
-                    .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                    .map(NavigationAccessControlBuildItem::new)
-                    .ifPresent(accessControlProducer::produce);
+            if (hillaSecurity.isFormAuthentication()) {
+                ConfigProvider.getConfig()
+                        .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
+                        .map(NavigationAccessControlBuildItem::new)
+                        .ifPresent(accessControlProducer::produce);
+            }
         }
+    }
+
+    private static HillaSecurityBuildItem.SecurityModel toSecurityModel(
+            SecurityInformationBuildItem securityInformation) {
+        return switch (securityInformation.getSecurityModel()) {
+            case oidc -> HillaSecurityBuildItem.SecurityModel.OIDC;
+            case jwt -> HillaSecurityBuildItem.SecurityModel.JWT;
+            case basic, oauth2 -> HillaSecurityBuildItem.SecurityModel.NONE;
+        };
     }
 }
