@@ -45,6 +45,7 @@ It is also currently the **only Quarkus integration with Vaadin Copilot support*
 - 🏗️ [Auto CRUD, Auto Grid and Auto Form](docs/features.md#auto-crud-auto-grid-and-auto-form) _(React UI, Lit / React services)_
 - 🔄 [Endpoints Live Reload](docs/features.md#endpoints-live-reload)
 - ⚡ [Mutiny Multi Support](docs/features.md#mutiny-multi-support)
+- 🔒 **[Quarkus-native Security](docs/features.md#quarkus-native-security)** _(Flow + Hilla)_
 - 🚀 [Native Image Support](docs/features.md#native-image-support)
 - 🎯 [Custom Endpoint Prefix](docs/features.md#custom-endpoint-prefix)
 - 🔌 [Vaadin Quarkus Alignment](docs/features.md#vaadin-quarkus-alignment)
@@ -53,7 +54,6 @@ It is also currently the **only Quarkus integration with Vaadin Copilot support*
 > [!WARNING]
 > Known limitations:
 > - Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
-> - [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
 
 ---
 
@@ -157,6 +157,7 @@ All settings go in `application.properties`. See the [Configuration Reference](d
 - 📖 [Wiki Documentation](../../wiki)
 - 💎 [Feature Details](docs/features.md)
 - ⚙️ [Configuration Reference](docs/configuration.md)
+- 🔒 [Security](docs/security/README.md)
 - ✨ [Vaadin Copilot Integration](docs/copilot-integration.md)
 - 🔧 [CRUD & Repository Services](../../wiki/Crud-List-repository-service)
 - ⬆️ [v24 → v25 Migration Guide](docs/migration-v24-to-v25.md)
