@@ -75,7 +75,7 @@ class RouteUtilTest {
                 """;
 
         List<AvailableViewInfo> routes =
-                RouteUtil.readRouteTree(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+                RouteManifestDiscovery.readRouteTree(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
         RouteUtil routeUtil = routeUtil(routes);
 
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin/42"), identity("USER")));
@@ -91,14 +91,14 @@ class RouteUtilTest {
         Files.writeString(manifest, "[]");
         Files.setLastModifiedTime(manifest, FileTime.fromMillis(System.currentTimeMillis() - 5_000));
 
-        RouteUtil.DiscoveryResult first =
-                RouteUtil.readRouteResource(manifest.toUri().toURL(), null);
-        RouteUtil.DiscoveryResult unchanged =
-                RouteUtil.readRouteResource(manifest.toUri().toURL(), first.resourceFingerprint());
+        RouteManifestDiscovery.DiscoveryResult first =
+                RouteManifestDiscovery.readRouteResource(manifest.toUri().toURL(), null);
+        RouteManifestDiscovery.DiscoveryResult unchanged =
+                RouteManifestDiscovery.readRouteResource(manifest.toUri().toURL(), first.resourceFingerprint());
         Files.writeString(manifest, "[\n]");
         Files.setLastModifiedTime(manifest, FileTime.fromMillis(System.currentTimeMillis()));
-        RouteUtil.DiscoveryResult changed =
-                RouteUtil.readRouteResource(manifest.toUri().toURL(), first.resourceFingerprint());
+        RouteManifestDiscovery.DiscoveryResult changed =
+                RouteManifestDiscovery.readRouteResource(manifest.toUri().toURL(), first.resourceFingerprint());
 
         assertFalse(first.unchanged());
         assertTrue(unchanged.unchanged());
@@ -107,10 +107,14 @@ class RouteUtilTest {
 
     @Test
     void discoverFromResource_productionMissingUnexpectedManifestReturnsEmptyCompleteTree() throws Exception {
-        RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, false, RouteUtil.DiscoveryResult::failure, System::nanoTime);
+        RouteManifestDiscovery discovery = new RouteManifestDiscovery(
+                mock(VaadinService.class),
+                false,
+                false,
+                RouteManifestDiscovery.DiscoveryResult::failure,
+                System::nanoTime);
 
-        RouteUtil.DiscoveryResult result = routeUtil.discoverFromResource(null);
+        RouteManifestDiscovery.DiscoveryResult result = discovery.discoverFromResource(null);
 
         assertEquals(List.of(), result.routeTree());
         assertFalse(result.retryImmediately());
@@ -118,10 +122,14 @@ class RouteUtilTest {
 
     @Test
     void discoverFromResource_productionMissingExpectedManifestReturnsFailure() throws Exception {
-        RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, true, RouteUtil.DiscoveryResult::failure, System::nanoTime);
+        RouteManifestDiscovery discovery = new RouteManifestDiscovery(
+                mock(VaadinService.class),
+                false,
+                true,
+                RouteManifestDiscovery.DiscoveryResult::failure,
+                System::nanoTime);
 
-        RouteUtil.DiscoveryResult result = routeUtil.discoverFromResource(null);
+        RouteManifestDiscovery.DiscoveryResult result = discovery.discoverFromResource(null);
 
         assertNull(result.routeTree());
         assertFalse(result.retryImmediately());
@@ -132,7 +140,7 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 false,
-                () -> RouteUtil.DiscoveryResult.complete(List.of(view("public", new String[0], Map.of()))),
+                () -> RouteManifestDiscovery.DiscoveryResult.complete(List.of(view("public", new String[0], Map.of()))),
                 System::nanoTime);
 
         routeUtil.initializeProductionSnapshot();
@@ -143,7 +151,10 @@ class RouteUtilTest {
     @Test
     void initializeProductionSnapshot_missingExpectedManifestFailsStartup() {
         RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(false, true), System::nanoTime);
+                mock(VaadinService.class),
+                false,
+                () -> RouteManifestDiscovery.missingManifest(false, true),
+                System::nanoTime);
 
         assertThrows(IllegalStateException.class, routeUtil::initializeProductionSnapshot);
     }
@@ -151,7 +162,10 @@ class RouteUtilTest {
     @Test
     void initializeProductionSnapshot_missingUnexpectedManifestSucceeds() {
         RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(false, false), System::nanoTime);
+                mock(VaadinService.class),
+                false,
+                () -> RouteManifestDiscovery.missingManifest(false, false),
+                System::nanoTime);
 
         routeUtil.initializeProductionSnapshot();
 
@@ -165,7 +179,7 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 false,
-                () -> RouteUtil.DiscoveryResult.complete(List.of(layout)),
+                () -> RouteManifestDiscovery.DiscoveryResult.complete(List.of(layout)),
                 System::nanoTime);
 
         assertThrows(IllegalStateException.class, routeUtil::initializeProductionSnapshot);
@@ -382,7 +396,7 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 false,
-                () -> RouteUtil.DiscoveryResult.complete(List.of(layout, publicView)),
+                () -> RouteManifestDiscovery.DiscoveryResult.complete(List.of(layout, publicView)),
                 System::nanoTime);
 
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/users"), identity("ADMIN")));
@@ -435,8 +449,8 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> discoveries.incrementAndGet() == 1
-                        ? RouteUtil.DiscoveryResult.failure()
-                        : RouteUtil.DiscoveryResult.complete(List.of(admin)),
+                        ? RouteManifestDiscovery.DiscoveryResult.failure()
+                        : RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin)),
                 nanoTime::get);
 
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
@@ -456,8 +470,8 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> discoveries.incrementAndGet() == 1
-                        ? RouteUtil.missingManifest(true, true)
-                        : RouteUtil.DiscoveryResult.complete(List.of(admin)),
+                        ? RouteManifestDiscovery.missingManifest(true, true)
+                        : RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin)),
                 nanoTime::get);
 
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
@@ -473,7 +487,7 @@ class RouteUtilTest {
                 false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.missingManifest(false, true);
+                    return RouteManifestDiscovery.missingManifest(false, true);
                 },
                 System::nanoTime);
 
@@ -485,7 +499,10 @@ class RouteUtilTest {
     @Test
     void discovery_missingNonReactManifestIsNoMatch() {
         RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(true, false), System::nanoTime);
+                mock(VaadinService.class),
+                false,
+                () -> RouteManifestDiscovery.missingManifest(true, false),
+                System::nanoTime);
 
         assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
     }
@@ -493,7 +510,10 @@ class RouteUtilTest {
     @Test
     void discovery_developmentMissingManifestWithCustomReactRouterIsNoMatch() {
         RouteUtil routeUtil = new RouteUtil(
-                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(true, false), System::nanoTime);
+                mock(VaadinService.class),
+                false,
+                () -> RouteManifestDiscovery.missingManifest(true, false),
+                System::nanoTime);
 
         assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
     }
@@ -506,7 +526,7 @@ class RouteUtilTest {
                 false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.DiscoveryResult.failure();
+                    return RouteManifestDiscovery.DiscoveryResult.failure();
                 },
                 System::nanoTime);
 
@@ -527,7 +547,7 @@ class RouteUtilTest {
                     if (discoveries.incrementAndGet() == 1) {
                         throw new IllegalStateException("routes unavailable");
                     }
-                    return RouteUtil.DiscoveryResult.complete(List.of(admin));
+                    return RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin));
                 },
                 nanoTime::get);
 
@@ -565,7 +585,8 @@ class RouteUtilTest {
         AvailableViewInfo user = view("admin", new String[] {"USER"}, Map.of());
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
-                () -> RouteUtil.DiscoveryResult.complete(List.of(discoveries.incrementAndGet() == 1 ? admin : user)),
+                () -> RouteManifestDiscovery.DiscoveryResult.complete(
+                        List.of(discoveries.incrementAndGet() == 1 ? admin : user)),
                 nanoTime::get);
 
         assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
@@ -586,8 +607,8 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> discoveries.incrementAndGet() == 1
-                        ? RouteUtil.DiscoveryResult.complete(List.of(admin))
-                        : RouteUtil.DiscoveryResult.unchangedResult(),
+                        ? RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin))
+                        : RouteManifestDiscovery.DiscoveryResult.unchangedResult(),
                 nanoTime::get);
 
         assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
@@ -606,7 +627,7 @@ class RouteUtilTest {
                 false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.DiscoveryResult.complete(List.of(admin));
+                    return RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin));
                 },
                 nanoTime::get);
 
@@ -624,7 +645,7 @@ class RouteUtilTest {
                 false,
                 () -> {
                     discoveries.incrementAndGet();
-                    return RouteUtil.DiscoveryResult.complete(List.of());
+                    return RouteManifestDiscovery.DiscoveryResult.complete(List.of());
                 },
                 System::nanoTime);
 
@@ -642,9 +663,9 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 () -> switch (discoveries.incrementAndGet()) {
-                    case 1 -> RouteUtil.DiscoveryResult.complete(List.of(admin));
-                    case 2 -> RouteUtil.DiscoveryResult.failure();
-                    default -> RouteUtil.DiscoveryResult.complete(List.of(user));
+                    case 1 -> RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin));
+                    case 2 -> RouteManifestDiscovery.DiscoveryResult.failure();
+                    default -> RouteManifestDiscovery.DiscoveryResult.complete(List.of(user));
                 },
                 nanoTime::get);
 
@@ -667,7 +688,7 @@ class RouteUtilTest {
         RouteUtil routeUtil = new RouteUtil(
                 mock(VaadinService.class),
                 false,
-                () -> RouteUtil.DiscoveryResult.complete(List.of(brokenParent)),
+                () -> RouteManifestDiscovery.DiscoveryResult.complete(List.of(brokenParent)),
                 System::nanoTime);
 
         assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin"), identity("ADMIN")));
@@ -694,7 +715,7 @@ class RouteUtilTest {
                         Thread.currentThread().interrupt();
                         throw new IllegalStateException(exception);
                     }
-                    return RouteUtil.DiscoveryResult.complete(List.of(admin));
+                    return RouteManifestDiscovery.DiscoveryResult.complete(List.of(admin));
                 },
                 System::nanoTime);
 
@@ -748,15 +769,11 @@ class RouteUtilTest {
     }
 
     private static RouteUtil routeUtil(Map<String, AvailableViewInfo> routes) {
-        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), false, () -> null, System::nanoTime);
-        routeUtil.setCompleteRoutesForTesting(new LinkedHashMap<>(routes));
-        return routeUtil;
+        return new RouteUtil(RouteSnapshotCompiler.compileRoutes(new LinkedHashMap<>(routes)));
     }
 
     private static RouteUtil routeUtil(List<AvailableViewInfo> routeTree) {
-        RouteUtil routeUtil = new RouteUtil(mock(VaadinService.class), false, () -> null, System::nanoTime);
-        routeUtil.setCompleteRouteTreeForTesting(routeTree);
-        return routeUtil;
+        return new RouteUtil(RouteSnapshotCompiler.compileTree(routeTree));
     }
 
     private static RoutingContext context(String path) {
