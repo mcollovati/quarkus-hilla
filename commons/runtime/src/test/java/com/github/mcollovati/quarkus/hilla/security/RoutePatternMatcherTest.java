@@ -23,13 +23,55 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RoutePatternMatcherTest {
 
+    /*
+     * Golden winners captured from the public React Router 8.3 matchRoutes API.
+     * ReactRouterCompatibilityTest forces review of these cases when Vaadin's
+     * managed React Router version changes.
+     */
+
     @Test
-    void bestMatches_staticRouteOutranksPartialParameter() {
+    void reactRouter8_staticRouteOutranksPartialParameter() {
         List<RoutePatternMatcher.CompiledRoute<String>> routes = List.of(
                 RoutePatternMatcher.compile("files/:id.json", "parameter"),
                 RoutePatternMatcher.compile("files/public.json", "static"));
 
         assertEquals(List.of("static"), targets(RoutePatternMatcher.bestMatches(routes, "/files/public.json")));
+    }
+
+    @Test
+    void reactRouter8_partialParameterOutranksDynamicParameter() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes = List.of(
+                RoutePatternMatcher.compile("files/:id", "dynamic"),
+                RoutePatternMatcher.compile("files/:id.json", "partial"));
+
+        assertEquals(List.of("partial"), targets(RoutePatternMatcher.bestMatches(routes, "/files/report.json")));
+    }
+
+    @Test
+    void reactRouter8_dynamicParameterOutranksWildcard() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes = List.of(
+                RoutePatternMatcher.compile("files/*", "wildcard"),
+                RoutePatternMatcher.compile("files/:id", "dynamic"));
+
+        assertEquals(List.of("dynamic"), targets(RoutePatternMatcher.bestMatches(routes, "/files/report")));
+    }
+
+    @Test
+    void reactRouter8_optionalStaticOutranksDynamicParameter() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes = List.of(
+                RoutePatternMatcher.compile("docs/:id", "dynamic"),
+                RoutePatternMatcher.compile("docs/edit?", "optional-static"));
+
+        assertEquals(List.of("optional-static"), targets(RoutePatternMatcher.bestMatches(routes, "/docs/edit")));
+    }
+
+    @Test
+    void equalRankReturnsAllRoutesForConservativeAuthorization() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes = List.of(
+                RoutePatternMatcher.compile("projects", "short"),
+                RoutePatternMatcher.compile("projects/:id?", "optional-tail"));
+
+        assertEquals(List.of("short", "optional-tail"), targets(RoutePatternMatcher.bestMatches(routes, "/projects")));
     }
 
     @Test

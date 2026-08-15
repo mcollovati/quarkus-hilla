@@ -26,16 +26,25 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Matches server request paths against Hilla file-router route patterns. */
+/**
+ * Matches server request paths against Hilla file-router route patterns using React Router 8 branch-ranking
+ * semantics.
+ *
+ * <p>This is a versioned compatibility boundary, not a generic URL matcher. React Router 7, used by the 25.1 and
+ * 25.2 branches, ranks partial parameter segments differently. Revalidate the scoring constants and conformance
+ * tests whenever the managed React Router version changes. Unlike React Router, which resolves an equal-ranking
+ * sibling tie by declaration order, this matcher returns all tied routes so authorization remains conservative and
+ * independent of generated route order.
+ */
 final class RoutePatternMatcher {
 
     private static final Pattern DYNAMIC_SEGMENT = Pattern.compile("^:([\\w-]+)(\\?)?(.*)$");
     private static final Pattern OPTIONAL_STATIC_SEGMENT = Pattern.compile("^[\\w-]+\\?$");
 
     /*
-     * Scores are React Router's branch-ranking weights multiplied by two to
-     * represent its 3.5 partial-parameter value as an integer. Each consumed
-     * segment includes the branch base score. Higher scores win.
+     * React Router 8 branch-ranking weights, multiplied by two to represent its
+     * 3.5 partial-parameter value as an integer. Each consumed segment includes
+     * the branch base score. Higher scores win.
      */
     private static final int NO_MATCH_SCORE = Integer.MIN_VALUE;
     private static final int WILDCARD_SCORE = -2;

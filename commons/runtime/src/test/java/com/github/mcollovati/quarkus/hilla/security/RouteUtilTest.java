@@ -44,6 +44,7 @@ import org.junit.jupiter.api.io.TempDir;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -124,6 +125,50 @@ class RouteUtilTest {
 
         assertNull(result.routeTree());
         assertFalse(result.retryImmediately());
+    }
+
+    @Test
+    void initializeProductionSnapshot_completeTreeSucceeds() {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> RouteUtil.DiscoveryResult.complete(List.of(view("public", new String[0], Map.of()))),
+                System::nanoTime);
+
+        routeUtil.initializeProductionSnapshot();
+
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
+    }
+
+    @Test
+    void initializeProductionSnapshot_missingExpectedManifestFailsStartup() {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(false, true), System::nanoTime);
+
+        assertThrows(IllegalStateException.class, routeUtil::initializeProductionSnapshot);
+    }
+
+    @Test
+    void initializeProductionSnapshot_missingUnexpectedManifestSucceeds() {
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class), false, () -> RouteUtil.missingManifest(false, false), System::nanoTime);
+
+        routeUtil.initializeProductionSnapshot();
+
+        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/custom"), identity("USER")));
+    }
+
+    @Test
+    void initializeProductionSnapshot_invalidRouteTreeFailsStartup() {
+        AvailableViewInfo invalidChild = view("/users", new String[0], Map.of());
+        AvailableViewInfo layout = view("admin", new String[] {"ADMIN"}, Map.of(), List.of(invalidChild));
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> RouteUtil.DiscoveryResult.complete(List.of(layout)),
+                System::nanoTime);
+
+        assertThrows(IllegalStateException.class, routeUtil::initializeProductionSnapshot);
     }
 
     @Test
@@ -302,14 +347,18 @@ class RouteUtilTest {
     }
 
     @Test
-    void checkRouteAccess_invalidAbsoluteChildDoesNotDiscardOtherRoutes() {
+    void checkRouteAccess_invalidAbsoluteChildInvalidatesEntireSnapshot() {
         AvailableViewInfo invalidChild = view("/users", new String[0], Map.of());
         AvailableViewInfo layout = view("admin", new String[] {"ADMIN"}, Map.of(), List.of(invalidChild));
         AvailableViewInfo publicView = view("public", new String[0], Map.of());
-        RouteUtil routeUtil = routeUtil(List.of(layout, publicView));
+        RouteUtil routeUtil = new RouteUtil(
+                mock(VaadinService.class),
+                false,
+                () -> RouteUtil.DiscoveryResult.complete(List.of(layout, publicView)),
+                System::nanoTime);
 
-        assertEquals(AuthorizationDecision.NO_MATCH, routeUtil.checkRouteAccess(context("/users"), identity("ADMIN")));
-        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/users"), identity("ADMIN")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/public"), identity("USER")));
     }
 
     @Test
@@ -646,6 +695,13 @@ class RouteUtilTest {
     }
 
     @Test
+    void checkRouteAccess_anonymousIdentityAllowedForPublicRoute() {
+        RouteUtil routeUtil = routeUtil(Map.of("public", view("public", new String[0], false, Map.of(), List.of())));
+
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/public"), anonymousIdentity()));
+    }
+
+    @Test
     void checkRouteAccess_normalizedPathFailureIsDenied() {
         RouteUtil routeUtil = routeUtil(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
         RoutingContext context = mock(RoutingContext.class);
@@ -705,7 +761,16 @@ class RouteUtilTest {
             String[] rolesAllowed,
             Map<String, RouteParamType> routeParameters,
             List<AvailableViewInfo> children) {
+        return view(route, rolesAllowed, true, routeParameters, children);
+    }
+
+    private static AvailableViewInfo view(
+            String route,
+            String[] rolesAllowed,
+            boolean loginRequired,
+            Map<String, RouteParamType> routeParameters,
+            List<AvailableViewInfo> children) {
         return new AvailableViewInfo(
-                route, rolesAllowed, true, route, false, true, null, children, routeParameters, false, null);
+                route, rolesAllowed, loginRequired, route, false, true, null, children, routeParameters, false, null);
     }
 }

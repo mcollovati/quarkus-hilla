@@ -116,6 +116,23 @@ public class RouteUtil {
         return checkRouteAccess(context, identity) == AuthorizationDecision.ALLOW;
     }
 
+    /**
+     * Loads and validates the fixed production route snapshot before this evaluator is published.
+     *
+     * @throws IllegalStateException
+     *             if expected production route metadata cannot be loaded completely
+     */
+    void initializeProductionSnapshot() {
+        if (developmentMode) {
+            return;
+        }
+        ensureRoutesDiscovered();
+        if (discoveryState != DiscoveryState.COMPLETE) {
+            throw new IllegalStateException(
+                    "Cannot initialize Hilla route security because the production file-routes.json manifest is missing, unreadable, invalid, or incomplete");
+        }
+    }
+
     AuthorizationDecision checkRouteAccess(RoutingContext context, SecurityIdentity identity) {
         ensureRoutesDiscovered();
         RouteSnapshot snapshot = routeSnapshot;
@@ -228,9 +245,13 @@ public class RouteUtil {
         }
     }
 
+    /** Must be called while holding the discovery monitor that guards the resource fingerprint. */
     DiscoveryResult discoverFromResource(URL routesResource) throws IOException {
         if (routesResource != null) {
             return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
+        }
+        if (!developmentMode && !fileRoutesManifestExpected) {
+            LOGGER.debug("No Hilla file-route manifest expected; route evaluator owns no client routes");
         }
         return missingManifest(developmentMode, fileRoutesManifestExpected);
     }
@@ -288,7 +309,7 @@ public class RouteUtil {
         } else {
             discoveryState = DiscoveryState.FAILED;
             LOGGER.error(
-                    "Hilla route discovery failed in production because META-INF/VAADIN/file-routes.json is missing, unreadable, or invalid; access to all generated Hilla routes remains denied until restart. Enable DEBUG logging for the underlying cause");
+                    "Hilla route discovery failed in production because META-INF/VAADIN/file-routes.json is missing, unreadable, invalid, or incomplete; production initialization cannot continue. Enable DEBUG logging for the underlying cause");
         }
     }
 
@@ -357,13 +378,7 @@ public class RouteUtil {
             AvailableViewInfo view,
             Map<String, AvailableViewInfo> routes,
             Map<String, List<List<AvailableViewInfo>>> chains) {
-        String routePath;
-        try {
-            routePath = appendRoute(parentPath, view.route());
-        } catch (IllegalArgumentException exception) {
-            LOGGER.error("Ignoring invalid Hilla client route '{}' below '{}'", view.route(), parentPath, exception);
-            return;
-        }
+        String routePath = appendRoute(parentPath, view.route());
         List<AvailableViewInfo> securityChain = new ArrayList<>(ancestors);
         securityChain.add(view);
         routes.putIfAbsent(routePath, view);

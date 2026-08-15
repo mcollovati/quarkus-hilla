@@ -67,6 +67,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     // Stay fail-closed until runtime initialization applies the build-time
     // classification.
     private boolean fileRoutesManifestExpected = true;
+    private boolean fileRoutesManifestClassificationApplied;
 
     public HillaSecurityPolicy(
             NavigationAccessControl accessControl,
@@ -134,7 +135,8 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     }
 
     private boolean isCustomWebIcon(RoutingContext request) {
-        return webIconsRequestMatcher.isWebIconRequest(request.request().path());
+        return webIconsRequestMatcher != null
+                && webIconsRequestMatcher.isWebIconRequest(request.request().path());
     }
 
     private boolean isAnonymousEndpoint(RoutingContext request) {
@@ -157,6 +159,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     void setFileRoutesManifestExpected(boolean fileRoutesManifestExpected) {
         this.fileRoutesManifestExpected = fileRoutesManifestExpected;
+        this.fileRoutesManifestClassificationApplied = true;
         initializeRouteUtil();
     }
 
@@ -276,12 +279,22 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
         initializeRouteUtil();
-        webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
+        webIconsRequestMatcher = createWebIconsRequestMatcher(vaadinService);
     }
 
     private void initializeRouteUtil() {
-        if (vaadinService != null) {
-            routeUtil = new RouteUtil(vaadinService, fileRoutesManifestExpected);
+        if (vaadinService != null && fileRoutesManifestClassificationApplied) {
+            RouteUtil initializedRouteUtil = createRouteUtil(vaadinService, fileRoutesManifestExpected);
+            initializedRouteUtil.initializeProductionSnapshot();
+            routeUtil = initializedRouteUtil;
         }
+    }
+
+    RouteUtil createRouteUtil(VaadinService service, boolean manifestExpected) {
+        return new RouteUtil(service, manifestExpected);
+    }
+
+    WebIconsRequestMatcher createWebIconsRequestMatcher(VaadinService service) {
+        return new WebIconsRequestMatcher(service, getUrlMapping());
     }
 }
