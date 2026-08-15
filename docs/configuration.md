@@ -26,11 +26,53 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 
 ## 🔒 Security
 
-| Property                                    | Type    | Default   | Description                                                     |
-|---------------------------------------------|---------|-----------|-----------------------------------------------------------------|
-| `vaadin.security.logout-path`               | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests. |
-| `vaadin.security.post-logout-redirect-uri`  | String  | -         | URI to redirect to after successful logout.                     |
-| `vaadin.security.logout-invalidate-session` | Boolean | `true`    | Whether HTTP session should be invalidated on logout.           |
+| Property                                                 | Type    | Default   | Description                                                                                    |
+|----------------------------------------------------------|---------|-----------|--------------------------------------------------------------------------------------------------|
+| `vaadin.security.logout-path`                            | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests.                                |
+| `vaadin.security.post-logout-redirect-uri`               | String  | -         | URI to redirect to after successful logout.                                                    |
+| `vaadin.security.logout-invalidate-session`              | Boolean | `true`    | Whether HTTP session should be invalidated on logout.                                          |
+| `vaadin.security.navigation-access-control.enabled`      | Boolean | `true`    | Whether Flow navigation access control is enabled. See [Navigation Access Control](#navigation-access-control). |
+
+<a id="navigation-access-control"></a>
+
+### Navigation Access Control
+
+![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
+
+When an authentication mechanism is configured, the extension installs Vaadin's
+`NavigationAccessControl` with the `AnnotatedViewAccessChecker`. Flow views are then checked
+against their access annotations, including annotations inherited from parent layouts:
+
+- `@AnonymousAllowed`, `@PermitAll`, `@RolesAllowed` grant access
+- `@DenyAll` denies access
+- a view **without** any of these annotations is **denied**, following the Vaadin default
+
+The last point is what applications usually run into. If a Flow view is unexpectedly
+inaccessible, add an explicit annotation to the view or to its layout:
+
+```java
+@Route("dashboard")
+@PermitAll
+public class DashboardView extends VerticalLayout {
+}
+```
+
+Applications without security are unaffected — access control is only installed when an
+authentication mechanism is configured.
+
+#### Opting out
+
+Set the property to `false` to remove navigation access control completely:
+
+```properties
+vaadin.security.navigation-access-control.enabled=false
+```
+
+> [!WARNING]
+> Flow views are then reachable regardless of their access annotations. Only the Quarkus HTTP
+> security policies (`quarkus.http.auth.permission.*`) still apply, and those cannot protect
+> client side navigation within the single page application — they only cover the initial page
+> load. Treat this as a temporary migration aid, not a permanent setting.
 
 <a id="copilot"></a>
 

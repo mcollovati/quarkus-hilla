@@ -40,6 +40,7 @@ import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMecha
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
+import com.github.mcollovati.quarkus.hilla.security.VaadinSecurityConfig;
 
 class QuarkusHillaSecurityProcessor {
 
@@ -116,6 +117,7 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     void registerNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
+            VaadinSecurityConfig securityConfig,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
@@ -127,8 +129,14 @@ class QuarkusHillaSecurityProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-            accessCheckerProducer.produce(
-                    new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
+            // Without any access checker the navigation access control grants
+            // access to every view, which is how the opt-out is implemented.
+            // The control itself stays registered because HillaSecurityPolicy
+            // depends on it.
+            if (securityConfig.navigationAccessControl().enabled()) {
+                accessCheckerProducer.produce(
+                        new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
+            }
 
             ConfigProvider.getConfig()
                     .getOptionalValue("quarkus.http.auth.form.login-page", String.class)

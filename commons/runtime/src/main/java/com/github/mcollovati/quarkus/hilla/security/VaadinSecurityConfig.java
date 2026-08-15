@@ -55,4 +55,43 @@ public interface VaadinSecurityConfig {
      */
     @WithDefault("true")
     boolean logoutInvalidateSession();
+
+    /**
+     * Configuration of the Vaadin navigation access control.
+     *
+     * @return navigation access control configuration.
+     */
+    NavigationAccessControlConfig navigationAccessControl();
+
+    /**
+     * Configuration properties for the Vaadin navigation access control.
+     */
+    interface NavigationAccessControlConfig {
+
+        /**
+         * Whether Flow navigation access control is enabled.
+         * <p></p>
+         * When enabled, Flow views are checked against their access annotations
+         * ({@code @AnonymousAllowed}, {@code @PermitAll}, {@code @RolesAllowed},
+         * {@code @DenyAll}), including annotations inherited from parent layouts.
+         * Following Vaadin defaults, a view without any of these annotations is
+         * denied.
+         * <p></p>
+         * Disabling this setting removes navigation access control completely.
+         * Flow views are then reachable regardless of their access annotations,
+         * and only the Quarkus HTTP security policies apply. Those policies
+         * cannot protect client side navigation within the single page
+         * application, so disabling this setting leaves Flow views unprotected.
+         * <p></p>
+         * Access control is only installed when an authentication mechanism is
+         * configured, so this setting has no effect on applications without
+         * security.
+         * <p></p>
+         * Defaults to {@literal true}.
+         *
+         * @return whether navigation access control is enabled.
+         */
+        @WithDefault("true")
+        boolean enabled();
+    }
 }
