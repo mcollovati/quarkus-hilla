@@ -40,6 +40,7 @@ final class HillaSecurityBuildItem extends SimpleBuildItem {
     enum SecurityModel {
         NONE,
         FORM,
+        BASIC,
         OIDC,
         JWT
     }

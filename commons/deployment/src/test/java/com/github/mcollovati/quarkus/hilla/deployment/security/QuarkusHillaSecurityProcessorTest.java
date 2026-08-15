@@ -110,11 +110,11 @@ class QuarkusHillaSecurityProcessorTest {
     }
 
     @Test
-    void unsupportedSecurityInformation_doesNotActivateHillaSecurity() {
+    void basicSecurityInformation_activatesBasicModel() {
         HillaSecurityBuildItem result = new QuarkusHillaSecurityProcessor()
                 .hillaSecurityBuildItem(List.of(SecurityInformationBuildItem.BASIC()));
 
-        assertThat(result.securityModel()).isEqualTo(HillaSecurityBuildItem.SecurityModel.NONE);
+        assertThat(result.securityModel()).isEqualTo(HillaSecurityBuildItem.SecurityModel.BASIC);
     }
 
     @Test

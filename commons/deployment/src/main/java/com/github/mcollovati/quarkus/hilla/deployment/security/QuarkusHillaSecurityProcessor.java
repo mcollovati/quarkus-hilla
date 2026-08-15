@@ -195,9 +195,10 @@ class QuarkusHillaSecurityProcessor {
     private static HillaSecurityBuildItem.SecurityModel toSecurityModel(
             SecurityInformationBuildItem securityInformation) {
         return switch (securityInformation.getSecurityModel()) {
+            case basic -> HillaSecurityBuildItem.SecurityModel.BASIC;
             case oidc -> HillaSecurityBuildItem.SecurityModel.OIDC;
             case jwt -> HillaSecurityBuildItem.SecurityModel.JWT;
-            case basic, oauth2 -> HillaSecurityBuildItem.SecurityModel.NONE;
+            case oauth2 -> HillaSecurityBuildItem.SecurityModel.NONE;
         };
     }
 }
