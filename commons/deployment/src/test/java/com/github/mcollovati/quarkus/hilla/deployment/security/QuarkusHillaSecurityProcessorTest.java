@@ -25,6 +25,7 @@ import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import io.quarkus.bootstrap.model.ApplicationModelBuilder;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.maven.dependency.ResolvedDependencyBuilder;
+import io.quarkus.vertx.http.deployment.SecurityInformationBuildItem;
 import org.jboss.jandex.DotName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -47,7 +48,7 @@ class QuarkusHillaSecurityProcessorTest {
         CurateOutcomeBuildItem curateOutcome = new CurateOutcomeBuildItem(applicationModel);
 
         FileRoutesManifestBuildItem result = new QuarkusHillaSecurityProcessor()
-                .fileRoutesManifestExpected(new AuthFormBuildItem(true), null, curateOutcome);
+                .fileRoutesManifestExpected(security(HillaSecurityBuildItem.SecurityModel.FORM), null, curateOutcome);
 
         assertThat(result.isExpected()).isTrue();
     }
@@ -55,7 +56,7 @@ class QuarkusHillaSecurityProcessorTest {
     @Test
     void disabledFormAuthenticationSkipsManifestClassification() {
         FileRoutesManifestBuildItem result = new QuarkusHillaSecurityProcessor()
-                .fileRoutesManifestExpected(new AuthFormBuildItem(false), null, null);
+                .fileRoutesManifestExpected(security(HillaSecurityBuildItem.SecurityModel.NONE), null, null);
 
         assertThat(result.isExpected()).isFalse();
     }
@@ -66,11 +67,54 @@ class QuarkusHillaSecurityProcessorTest {
 
         new QuarkusHillaSecurityProcessor()
                 .registerNavigationAccessControl(
-                        new AuthFormBuildItem(true), ignored -> {}, ignored -> {}, accessCheckers::add);
+                        security(HillaSecurityBuildItem.SecurityModel.FORM),
+                        ignored -> {},
+                        ignored -> {},
+                        accessCheckers::add);
 
         assertThat(accessCheckers)
                 .extracting(NavigationAccessCheckerBuildItem::getAccessChecker)
                 .containsExactly(DotName.createSimple(AnnotatedViewAccessChecker.class));
+    }
+
+    @Test
+    void oidcSecurity_registersAnnotatedCheckerForDefaultDeny() {
+        List<NavigationAccessCheckerBuildItem> accessCheckers = new ArrayList<>();
+
+        new QuarkusHillaSecurityProcessor()
+                .registerNavigationAccessControl(
+                        security(HillaSecurityBuildItem.SecurityModel.OIDC),
+                        ignored -> {},
+                        ignored -> {},
+                        accessCheckers::add);
+
+        assertThat(accessCheckers)
+                .extracting(NavigationAccessCheckerBuildItem::getAccessChecker)
+                .containsExactly(DotName.createSimple(AnnotatedViewAccessChecker.class));
+    }
+
+    @Test
+    void oidcSecurityInformation_activatesOidcModel() {
+        HillaSecurityBuildItem result = new QuarkusHillaSecurityProcessor()
+                .hillaSecurityBuildItem(List.of(SecurityInformationBuildItem.OPENIDCONNECT("/q/oidc")));
+
+        assertThat(result.securityModel()).isEqualTo(HillaSecurityBuildItem.SecurityModel.OIDC);
+    }
+
+    @Test
+    void jwtSecurityInformation_activatesJwtModel() {
+        HillaSecurityBuildItem result =
+                new QuarkusHillaSecurityProcessor().hillaSecurityBuildItem(List.of(SecurityInformationBuildItem.JWT()));
+
+        assertThat(result.securityModel()).isEqualTo(HillaSecurityBuildItem.SecurityModel.JWT);
+    }
+
+    @Test
+    void basicSecurityInformation_activatesBasicModel() {
+        HillaSecurityBuildItem result = new QuarkusHillaSecurityProcessor()
+                .hillaSecurityBuildItem(List.of(SecurityInformationBuildItem.BASIC()));
+
+        assertThat(result.securityModel()).isEqualTo(HillaSecurityBuildItem.SecurityModel.BASIC);
     }
 
     @Test
@@ -112,5 +156,9 @@ class QuarkusHillaSecurityProcessorTest {
                 QuarkusHillaSecurityProcessor.resolveFrontendDirectory(moduleDirectory, absoluteFrontend.toFile());
 
         assertThat(resolved.toPath()).isEqualTo(absoluteFrontend);
+    }
+
+    private static HillaSecurityBuildItem security(HillaSecurityBuildItem.SecurityModel model) {
+        return new HillaSecurityBuildItem(model);
     }
 }

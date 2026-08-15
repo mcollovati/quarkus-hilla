@@ -48,17 +48,26 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
     @Override
     protected Principal getPrincipal(VaadinRequest request) {
         if (request == null) {
-            return securityIdentity.getPrincipal();
+            return securityIdentity.isAnonymous() ? null : securityIdentity.getPrincipal();
         }
-        return super.getPrincipal(request);
+        Principal requestPrincipal = super.getPrincipal(request);
+        if (requestPrincipal != null) {
+            return requestPrincipal;
+        }
+        return securityIdentity.isAnonymous() ? null : securityIdentity.getPrincipal();
     }
 
     @Override
     protected Predicate<String> getRolesChecker(VaadinRequest request) {
         if (request == null) {
-            return securityIdentity::hasRole;
+            return this::hasRole;
         }
-        return super.getRolesChecker(request);
+        Predicate<String> requestRolesChecker = super.getRolesChecker(request);
+        return role -> requestRolesChecker.test(role) || hasRole(role);
+    }
+
+    private boolean hasRole(String role) {
+        return role != null && !securityIdentity.isAnonymous() && securityIdentity.hasRole(role);
     }
 
     @Singleton

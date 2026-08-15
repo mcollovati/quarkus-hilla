@@ -361,6 +361,8 @@
         <!--
         -->
         <module>security-form-tests</module>
+        <module>security-basic-tests</module>
+        <module>security-oidc-tests</module>
         <module>codestart-tests</module>
     </modules>
 </project>
