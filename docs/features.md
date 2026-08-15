@@ -43,6 +43,17 @@ The page shows:
 
 Run `mvn quarkus:dev`, then open `http://localhost:8080/q/dev-ui`.
 
+<a id="quarkus-native-security"></a>
+
+## 🔒 Quarkus-native Security
+
+Quarkus-Hilla connects Quarkus authentication and `SecurityIdentity` with
+Vaadin Flow navigation, Hilla generated client routes, and browser-callable
+endpoints. Form, Basic, OIDC, and JWT authentication are supported.
+
+See [Security](security/README.md) for supported annotations, responsibility
+boundaries, route handling, and known limitations.
+
 <a id="auto-crud-auto-grid-and-auto-form"></a>
 
 ## 🏗️ Auto CRUD, Auto Grid and Auto Form
