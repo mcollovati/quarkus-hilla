@@ -35,7 +35,9 @@ import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
-/** Discovers and refreshes Hilla file-route manifests and publishes immutable security snapshots. */
+/**
+ * Discovers and refreshes Hilla file-route manifests and publishes immutable security snapshots.
+ */
 final class RouteManifestDiscovery {
 
     // Preserve the existing category so class-specific logging configuration
@@ -100,7 +102,9 @@ final class RouteManifestDiscovery {
         return routeSnapshot;
     }
 
-    /** Loads and validates fixed production route snapshot before evaluator publication. */
+    /**
+     * Loads and validates fixed production route snapshot before evaluator publication.
+     */
     void initializeProductionSnapshot() {
         if (developmentMode) {
             return;
@@ -197,7 +201,9 @@ final class RouteManifestDiscovery {
         }
     }
 
-    /** Must be called while holding the discovery monitor that guards resource fingerprint. */
+    /**
+     * Must be called while holding the discovery monitor that guards resource fingerprint.
+     */
     DiscoveryResult discoverFromResource(URL routesResource) throws IOException {
         if (routesResource != null) {
             return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);

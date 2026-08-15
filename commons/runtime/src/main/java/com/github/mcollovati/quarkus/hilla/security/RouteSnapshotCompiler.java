@@ -22,7 +22,9 @@ import java.util.Map;
 
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 
-/** Compiles Hilla route metadata into immutable, hierarchy-aware security snapshots. */
+/**
+ * Compiles Hilla route metadata into immutable, hierarchy-aware security snapshots.
+ */
 final class RouteSnapshotCompiler {
 
     private RouteSnapshotCompiler() {}
