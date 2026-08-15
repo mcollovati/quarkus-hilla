@@ -25,6 +25,7 @@ import java.util.Objects;
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
+import com.example.application.views.DynamicFlowAdminView;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -162,7 +163,8 @@ class SecurityTest extends AbstractTest {
         login("user", "user");
         appLayout.$("h2").shouldHave(text(FLOW_AUTHENTICATED.toString()));
         assertThatMenuHasItems(USER_VIEWS);
-        openProtectedPage("hilla-admin", true);
+        open(getTestUrl() + "hilla-admin");
+        $("body").shouldHave(text("HTTP ERROR 403"));
     }
 
     @Test
@@ -174,6 +176,17 @@ class SecurityTest extends AbstractTest {
         openProtectedPage("flow-admin", false);
         $$("div")
                 .filter(Condition.text("Could not navigate to 'flow-admin'"))
+                .first()
+                .shouldBe(visible);
+    }
+
+    @Test
+    void authenticatedUser_dynamicallyRegisteredFlowView_viewNotDisplayed() {
+        openProtectedPage("flow-protected", true);
+        login("user", "user");
+        openProtectedPage("flow-dynamic-admin", false);
+        $$("div")
+                .filter(Condition.text("Could not navigate to 'flow-dynamic-admin'"))
                 .first()
                 .shouldBe(visible);
     }
@@ -207,6 +220,14 @@ class SecurityTest extends AbstractTest {
         assertThatMenuHasItems(ADMIN_VIEWS);
         openProtectedPage("flow-admin", false);
         appLayout.$("h2").shouldHave(text(FLOW_ADMIN.toString()));
+    }
+
+    @Test
+    void adminUser_dynamicallyRegisteredFlowView_viewDisplayed() {
+        openProtectedPage("flow-protected", true);
+        login("admin", "admin");
+        openProtectedPage("flow-dynamic-admin", false);
+        appLayout.$("h2").shouldHave(text(DynamicFlowAdminView.TITLE));
     }
 
     protected void openPublicPage(String path) {

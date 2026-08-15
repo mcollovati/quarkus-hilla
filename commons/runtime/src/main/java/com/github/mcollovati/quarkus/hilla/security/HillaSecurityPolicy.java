@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -41,6 +42,7 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
+import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils;
 import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
@@ -64,6 +66,10 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     private VaadinService vaadinService;
     private RouteUtil routeUtil;
     private WebIconsRequestMatcher webIconsRequestMatcher;
+    // Stay fail-closed until runtime initialization applies the build-time
+    // classification.
+    private boolean fileRoutesManifestExpected = true;
+    private boolean fileRoutesManifestClassificationApplied;
 
     public HillaSecurityPolicy(
             NavigationAccessControl accessControl,
@@ -97,26 +103,76 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     @Override
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
-        Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
+        String routerPath;
+        String normalizedPath;
+        String servletRouterPath;
+        String servletNormalizedPath;
+        try {
+            routerPath = request.normalizedPath();
+            normalizedPath = HttpSecurityUtils.normalizePath(routerPath);
+            servletRouterPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
+            servletNormalizedPath = HttpSecurityUtils.normalizePath(servletRouterPath);
+        } catch (RuntimeException exception) {
+            getLogger().warn("Cannot normalize request path; denying access", exception);
+            return CheckResult.deny();
+        }
+        Boolean permittedPath = permitAllMatcher.match(normalizedPath).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
                 || isAnonymousEndpoint(request)
-                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
-                || isCustomWebIcon(request)) {
+                || isCustomWebIcon(normalizedPath)) {
             return CheckResult.permit();
         }
         return identity.flatMap(secIdentity -> {
-            if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
-            return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+            FlowRouteAccess flowAccess =
+                    checkFlowRouteAccess(request, normalizedPath, routerPath, servletNormalizedPath, servletRouterPath);
+            if (flowAccess == FlowRouteAccess.ANONYMOUS) {
+                return CheckResult.permit();
+            }
+            if (flowAccess == FlowRouteAccess.AUTHENTICATION_REQUIRED) {
+                // Flow performs its role-aware check during navigation. At the
+                // HTTP boundary, preserve existing behavior: non-public Flow
+                // routes require authentication.
+                return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+            }
+            if (routeUtil == null) {
+                getLogger().warn("Hilla routes cannot be evaluated before VaadinService initialization");
+                return CheckResult.deny();
+            }
+            AuthorizationDecision hillaDecision = routeUtil.checkRouteAccess(normalizedPath, routerPath, secIdentity);
+            return switch (hillaDecision) {
+                case ALLOW -> CheckResult.permit();
+                case DENY -> CheckResult.deny();
+                // This policy only owns Flow and generated Hilla routes. Other
+                // paths remain available to Quarkus HTTP authorization rules.
+                case NO_MATCH -> CheckResult.permit();
+            };
         });
     }
 
-    private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
-        return routeUtil.isRouteAllowed(request, secIdentity);
+    private FlowRouteAccess checkFlowRouteAccess(RoutingContext request, String... candidatePaths) {
+        Set<String> distinctPaths = new LinkedHashSet<>();
+        for (String candidatePath : candidatePaths) {
+            if (candidatePath != null) {
+                distinctPaths.add(candidatePath);
+            }
+        }
+
+        boolean matched = false;
+        for (String candidatePath : distinctPaths) {
+            NavigationContext navigationContext = tryCreateNavigationContext(request, candidatePath);
+            if (navigationContext != null) {
+                matched = true;
+                if (!isAnonymousFlowRoute(navigationContext, candidatePath)) {
+                    return FlowRouteAccess.AUTHENTICATION_REQUIRED;
+                }
+            }
+        }
+        return matched ? FlowRouteAccess.ANONYMOUS : FlowRouteAccess.NO_MATCH;
     }
 
-    private boolean isCustomWebIcon(RoutingContext request) {
-        return webIconsRequestMatcher.isWebIconRequest(request.request().path());
+    private boolean isCustomWebIcon(String normalizedPath) {
+        return webIconsRequestMatcher != null && webIconsRequestMatcher.isWebIconRequest(normalizedPath);
     }
 
     private boolean isAnonymousEndpoint(RoutingContext request) {
@@ -135,6 +191,12 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 .ifPresent(paths::add);
         paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
         buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(PathUtil.normalizeWildcard(p), true)));
+    }
+
+    void setFileRoutesManifestExpected(boolean fileRoutesManifestExpected) {
+        this.fileRoutesManifestExpected = fileRoutesManifestExpected;
+        this.fileRoutesManifestClassificationApplied = true;
+        initializeRouteUtil();
     }
 
     /**
@@ -156,16 +218,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return QuarkusHandlerHelper.isFrameworkInternalRequest(vaadinMapping, request);
     }
 
-    private boolean isAnonymousRoute(NavigationContext navigationContext, String path) {
-
-        if (vaadinService == null) {
-            getLogger().warn("VaadinService not set. Cannot determine server route for {}", path);
-            return true;
-        }
-        if (navigationContext == null) {
-            getLogger().trace("No route defined for {}", path);
-            return true;
-        }
+    private boolean isAnonymousFlowRoute(NavigationContext navigationContext, String path) {
         boolean productionMode = vaadinService.getDeploymentConfiguration().isProductionMode();
 
         if (!accessControl.isEnabled()) {
@@ -176,10 +229,20 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             } else {
                 getLogger().info(message, path);
             }
-            return true;
+            return false;
         }
 
-        AccessCheckResult result = accessControl.checkAccess(navigationContext, productionMode);
+        AccessCheckResult result;
+        try {
+            result = accessControl.checkAccess(navigationContext, productionMode);
+        } catch (RuntimeException exception) {
+            getLogger().warn("Cannot determine whether Flow route {} is public", path, exception);
+            return false;
+        }
+        if (result == null) {
+            getLogger().warn("Flow route access evaluation returned no result for {}", path);
+            return false;
+        }
         boolean isAllowed = result.decision() == AccessCheckDecision.ALLOW;
         if (isAllowed) {
             getLogger().debug("{} refers to a public view", path);
@@ -189,10 +252,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return isAllowed;
     }
 
-    private NavigationContext tryCreateNavigationContext(RoutingContext request) {
+    private NavigationContext tryCreateNavigationContext(RoutingContext request, String requestedPath) {
 
         String vaadinMapping = getUrlMapping();
-        String requestedPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
         if (vaadinService == null) {
             return null;
         }
@@ -251,7 +313,29 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     void onVaadinServiceInit(@Observes ServiceInitEvent serviceInitEvent) {
         vaadinService = serviceInitEvent.getSource();
-        routeUtil = new RouteUtil(vaadinService);
-        webIconsRequestMatcher = new WebIconsRequestMatcher(vaadinService, getUrlMapping());
+        initializeRouteUtil();
+        webIconsRequestMatcher = createWebIconsRequestMatcher(vaadinService);
+    }
+
+    private void initializeRouteUtil() {
+        if (vaadinService != null && fileRoutesManifestClassificationApplied) {
+            RouteUtil initializedRouteUtil = createRouteUtil(vaadinService, fileRoutesManifestExpected);
+            initializedRouteUtil.initializeProductionSnapshot();
+            routeUtil = initializedRouteUtil;
+        }
+    }
+
+    RouteUtil createRouteUtil(VaadinService service, boolean manifestExpected) {
+        return new RouteUtil(service, manifestExpected);
+    }
+
+    WebIconsRequestMatcher createWebIconsRequestMatcher(VaadinService service) {
+        return new WebIconsRequestMatcher(service, getUrlMapping());
+    }
+
+    private enum FlowRouteAccess {
+        NO_MATCH,
+        ANONYMOUS,
+        AUTHENTICATION_REQUIRED
     }
 }

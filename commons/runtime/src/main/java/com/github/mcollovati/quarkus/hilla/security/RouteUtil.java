@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Marco Collovati, Dario Götze
+ * Copyright 2025-2026 Marco Collovati, Dario Götze
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,109 +15,531 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Predicate;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
-import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
+import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils;
 import io.vertx.ext.web.RoutingContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Evaluates routes generated in Hilla's {@code file-routes.json} manifest.
+ *
+ * <p>Routes declared only in a custom {@code routes.tsx}, including security
+ * metadata on custom parent layouts, are not present in that manifest and are
+ * therefore outside this evaluator. Callers must apply another authorization
+ * source to those routes. An expected manifest that is incomplete or cannot be
+ * read never produces an allow or no-match decision: access remains denied. An
+ * absent manifest can instead mean that this evaluator owns no file routes.
+ */
 public class RouteUtil {
 
-    private Map<String, AvailableViewInfo> registeredRoutes = null;
+    private static final Logger LOGGER = LoggerFactory.getLogger(RouteUtil.class);
+
+    // Keep internal route metadata parsing independent from application-level
+    // Jackson customization, consistent with Vaadin's MenuRegistry.
+    private static final ObjectMapper ROUTE_MAPPER = JsonMapper.builder()
+            .disable(
+                    DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                    DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .build();
+    private static final long DISCOVERY_REFRESH_NANOS = Duration.ofSeconds(1).toNanos();
+
     private final VaadinService vaadinService;
+    private final boolean developmentMode;
+    private final boolean fileRoutesManifestExpected;
+    private final Supplier<DiscoveryResult> routeDiscovery;
+    private final LongSupplier nanoTime;
+
+    private volatile RouteSnapshot routeSnapshot;
+    private volatile DiscoveryState discoveryState = DiscoveryState.UNINITIALIZED;
+    private volatile long refreshAfterNanos;
+    // Access is guarded by the synchronized discovery monitor.
+    private ResourceFingerprint publishedResourceFingerprint;
 
     public RouteUtil(VaadinService vaadinService) {
+        this(vaadinService, true);
+    }
+
+    public RouteUtil(VaadinService vaadinService, boolean fileRoutesManifestExpected) {
         this.vaadinService = vaadinService;
+        this.developmentMode = !vaadinService.getDeploymentConfiguration().isProductionMode();
+        this.fileRoutesManifestExpected = fileRoutesManifestExpected;
+        this.routeDiscovery = this::discoverClientRoutes;
+        this.nanoTime = System::nanoTime;
+    }
+
+    RouteUtil(VaadinService vaadinService, Supplier<DiscoveryResult> routeDiscovery, LongSupplier nanoTime) {
+        this(vaadinService, true, true, routeDiscovery, nanoTime);
+    }
+
+    RouteUtil(
+            VaadinService vaadinService,
+            boolean developmentMode,
+            Supplier<DiscoveryResult> routeDiscovery,
+            LongSupplier nanoTime) {
+        this(vaadinService, developmentMode, true, routeDiscovery, nanoTime);
+    }
+
+    RouteUtil(
+            VaadinService vaadinService,
+            boolean developmentMode,
+            boolean fileRoutesManifestExpected,
+            Supplier<DiscoveryResult> routeDiscovery,
+            LongSupplier nanoTime) {
+        this.vaadinService = vaadinService;
+        this.developmentMode = developmentMode;
+        this.fileRoutesManifestExpected = fileRoutesManifestExpected;
+        this.routeDiscovery = routeDiscovery;
+        this.nanoTime = nanoTime;
     }
 
     public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
-        // Ensure that the VaadinService is set for the current thread, so that collectClientRoutes can access it.
-        // The current instances should always be null, but for safety, we restore them after the operation.
+        return checkRouteAccess(context, identity) == AuthorizationDecision.ALLOW;
+    }
+
+    /**
+     * Loads and validates the fixed production route snapshot before this evaluator is published.
+     *
+     * @throws IllegalStateException
+     *             if expected production route metadata cannot be loaded completely
+     */
+    void initializeProductionSnapshot() {
+        if (developmentMode) {
+            return;
+        }
+        ensureRoutesDiscovered();
+        if (discoveryState != DiscoveryState.COMPLETE) {
+            throw new IllegalStateException(
+                    "Cannot initialize Hilla route security because the production file-routes.json manifest is missing, unreadable, invalid, or incomplete");
+        }
+    }
+
+    AuthorizationDecision checkRouteAccess(RoutingContext context, SecurityIdentity identity) {
+        if (identity == null) {
+            return AuthorizationDecision.DENY;
+        }
+        String routerPath;
+        String normalizedPath;
+        try {
+            routerPath = context.normalizedPath();
+            normalizedPath = HttpSecurityUtils.normalizePath(routerPath);
+        } catch (RuntimeException exception) {
+            LOGGER.debug("Cannot normalize Hilla client route path; denying access", exception);
+            return AuthorizationDecision.DENY;
+        }
+        return checkRouteAccess(normalizedPath, routerPath, identity);
+    }
+
+    AuthorizationDecision checkRouteAccess(String normalizedPath, SecurityIdentity identity) {
+        return checkRouteAccess(normalizedPath, normalizedPath, identity);
+    }
+
+    AuthorizationDecision checkRouteAccess(String normalizedPath, String routerPath, SecurityIdentity identity) {
+        ensureRoutesDiscovered();
+        RouteSnapshot snapshot = routeSnapshot;
+        if (snapshot == null || !snapshot.hierarchyComplete() || identity == null) {
+            return AuthorizationDecision.DENY;
+        }
+
+        try {
+            AuthorizationDecision normalizedDecision = checkRouteMatches(snapshot.routes(), normalizedPath, identity);
+            if (normalizedPath.equals(routerPath)) {
+                return normalizedDecision;
+            }
+            AuthorizationDecision routerDecision = checkRouteMatches(snapshot.routes(), routerPath, identity);
+            if (normalizedDecision == AuthorizationDecision.DENY || routerDecision == AuthorizationDecision.DENY) {
+                return AuthorizationDecision.DENY;
+            }
+            return normalizedDecision == AuthorizationDecision.ALLOW || routerDecision == AuthorizationDecision.ALLOW
+                    ? AuthorizationDecision.ALLOW
+                    : AuthorizationDecision.NO_MATCH;
+        } catch (RuntimeException exception) {
+            LOGGER.debug("Cannot match Hilla client route path; denying access", exception);
+            return AuthorizationDecision.DENY;
+        }
+    }
+
+    private static AuthorizationDecision checkRouteMatches(
+            List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> routes,
+            String path,
+            SecurityIdentity identity) {
+        List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> matchedRoutes =
+                RoutePatternMatcher.bestMatches(routes, path);
+        if (matchedRoutes.isEmpty()) {
+            return AuthorizationDecision.NO_MATCH;
+        }
+        for (RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>> route : matchedRoutes) {
+            if (!isRouteAccessible(route, identity)) {
+                return AuthorizationDecision.DENY;
+            }
+        }
+        return AuthorizationDecision.ALLOW;
+    }
+
+    private void ensureRoutesDiscovered() {
+        DiscoveryState state = discoveryState;
+        if (isTerminal(state)) {
+            return;
+        }
+        long now = nanoTime.getAsLong();
+        if (!requiresDiscovery(state, now)) {
+            return;
+        }
+        discoverRoutes(now);
+    }
+
+    private synchronized void discoverRoutes(long now) {
+        DiscoveryState state = discoveryState;
+        if (isTerminal(state) || !requiresDiscovery(state, now)) {
+            return;
+        }
+
+        DiscoveryResult result;
+        try {
+            result = routeDiscovery.get();
+        } catch (RuntimeException exception) {
+            logDiscoveryIssue("Cannot discover Hilla client routes; route access cannot be evaluated", exception);
+            handleDiscoveryFailure(now);
+            return;
+        }
+        if (result == null) {
+            logDiscoveryIssue("Hilla client route discovery returned no result; route access cannot be evaluated");
+            handleDiscoveryFailure(now);
+            return;
+        }
+
+        if (result.unchanged()) {
+            RouteSnapshot currentSnapshot = routeSnapshot;
+            if (currentSnapshot != null && currentSnapshot.hierarchyComplete()) {
+                completeDiscovery(now);
+            } else {
+                handleDiscoveryFailure(now);
+            }
+            return;
+        }
+
+        if (result.routeTree() != null) {
+            try {
+                publishRouteTree(result.routeTree(), now);
+                publishedResourceFingerprint = result.resourceFingerprint();
+                return;
+            } catch (RuntimeException exception) {
+                logDiscoveryIssue(
+                        "Cannot compile Hilla client route tree; route access cannot be evaluated", exception);
+            }
+        }
+        handleDiscoveryFailure(now, result.retryImmediately());
+    }
+
+    private boolean requiresDiscovery(DiscoveryState state, long now) {
+        return state == DiscoveryState.UNINITIALIZED
+                || (state == DiscoveryState.REFRESH_PENDING && now - refreshAfterNanos >= 0);
+    }
+
+    private static boolean isTerminal(DiscoveryState state) {
+        return state == DiscoveryState.COMPLETE || state == DiscoveryState.FAILED;
+    }
+
+    private DiscoveryResult discoverClientRoutes() {
+        // Route discovery needs a current VaadinService. Matching an already
+        // published snapshot does not, so keep thread-local manipulation out of
+        // the per-request hot path.
         final var oldInstances = CurrentInstance.getInstances();
         VaadinService.setCurrent(vaadinService);
         try {
-            return isRouteAllowedSafe(context, identity);
+            var config = vaadinService.getDeploymentConfiguration();
+            try {
+                URL routesResource = MenuRegistry.getViewsJsonAsResource(config);
+                return discoverFromResource(routesResource);
+            } catch (IOException | RuntimeException exception) {
+                logDiscoveryIssue(
+                        "Cannot load complete Hilla client route tree; route access cannot be evaluated", exception);
+            }
+            return DiscoveryResult.failure();
         } finally {
             CurrentInstance.clearAll();
             CurrentInstance.restoreInstances(oldInstances);
         }
     }
 
-    private boolean isRouteAllowedSafe(RoutingContext context, SecurityIdentity identity) {
-        if (registeredRoutes == null) {
-            collectClientRoutes();
+    /**
+     * Must be called while holding the discovery monitor that guards the resource fingerprint.
+     */
+    DiscoveryResult discoverFromResource(URL routesResource) throws IOException {
+        if (routesResource != null) {
+            return readRouteResource(routesResource, developmentMode ? publishedResourceFingerprint : null);
         }
-        var viewConfig = getRouteData(context.normalizedPath(), identity);
-        return viewConfig.isPresent();
+        if (!developmentMode && !fileRoutesManifestExpected) {
+            LOGGER.debug("No Hilla file-route manifest expected; route evaluator owns no client routes");
+        }
+        return missingManifest(developmentMode, fileRoutesManifestExpected);
     }
 
-    private void collectClientRoutes() {
-        ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
-        setRoutes(MenuRegistry.collectClientMenuItems(false, config, null));
+    void setCompleteRoutesForTesting(Map<String, AvailableViewInfo> registeredRoutes) {
+        publishCompleteRoutes(registeredRoutes);
+        discoveryState = DiscoveryState.COMPLETE;
     }
 
-    private void setRoutes(final Map<String, AvailableViewInfo> registeredRoutes) {
-        if (registeredRoutes == null) {
-            this.registeredRoutes = null;
+    void setCompleteRouteTreeForTesting(List<AvailableViewInfo> routeTree) {
+        publishRouteTreeSnapshot(routeTree);
+        discoveryState = DiscoveryState.COMPLETE;
+    }
+
+    static List<AvailableViewInfo> readRouteTree(InputStream input) throws IOException {
+        return ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
+    }
+
+    static DiscoveryResult readRouteResource(URL resource, ResourceFingerprint publishedFingerprint)
+            throws IOException {
+        URLConnection connection = resource.openConnection();
+        connection.setUseCaches(false);
+        ResourceFingerprint fingerprint = ResourceFingerprint.from(resource, connection);
+        if (fingerprint.reliable() && fingerprint.equals(publishedFingerprint)) {
+            return DiscoveryResult.unchangedResult();
+        }
+        try (InputStream input = connection.getInputStream()) {
+            return DiscoveryResult.complete(readRouteTree(input), fingerprint);
+        }
+    }
+
+    private void publishRouteTree(List<AvailableViewInfo> routeTree, long now) {
+        publishRouteTreeSnapshot(routeTree);
+        completeDiscovery(now);
+    }
+
+    private void publishRouteTreeSnapshot(List<AvailableViewInfo> routeTree) {
+        Map<String, AvailableViewInfo> routes = new LinkedHashMap<>();
+        Map<String, List<List<AvailableViewInfo>>> chains = new LinkedHashMap<>();
+        for (AvailableViewInfo route : routeTree) {
+            collectRouteTree("", List.of(), route, routes, chains);
+        }
+        routeSnapshot = createSnapshot(routes, chains, true);
+    }
+
+    private void handleDiscoveryFailure(long now) {
+        handleDiscoveryFailure(now, false);
+    }
+
+    private void handleDiscoveryFailure(long now, boolean retryImmediately) {
+        routeSnapshot = new RouteSnapshot(List.of(), false);
+        publishedResourceFingerprint = null;
+        if (developmentMode) {
+            scheduleRefresh(now, retryImmediately ? 0 : DISCOVERY_REFRESH_NANOS);
         } else {
-            this.registeredRoutes = new HashMap<>(registeredRoutes);
+            discoveryState = DiscoveryState.FAILED;
+            LOGGER.error(
+                    "Hilla route discovery failed in production because META-INF/VAADIN/file-routes.json is missing, unreadable, invalid, or incomplete; production initialization cannot continue. Enable DEBUG logging for the underlying cause");
         }
     }
 
-    private Optional<AvailableViewInfo> getRouteData(String path, SecurityIdentity identity) {
-        Map<String, AvailableViewInfo> availableRoutes = new HashMap<>(registeredRoutes);
-        filterClientViews(availableRoutes, identity);
-        return Optional.ofNullable(getRouteByPath(availableRoutes, path));
+    private void logDiscoveryIssue(String message) {
+        if (developmentMode) {
+            LOGGER.warn(message);
+        } else {
+            LOGGER.debug(message);
+        }
     }
 
-    private static void filterClientViews(Map<String, AvailableViewInfo> configurations, SecurityIdentity identity) {
-        final boolean isUserAuthenticated = !identity.isAnonymous();
-        Set<String> clientEntries = new HashSet<>(configurations.keySet());
-        // configurations::containsKey is used to avoid ConcurrentModificationException
-        clientEntries.stream().filter(configurations::containsKey).forEach(path -> {
-            final AvailableViewInfo viewInfo = configurations.get(path);
-            final boolean routeValid = validateViewAccessible(viewInfo, isUserAuthenticated, identity::hasRole);
-            if (!routeValid) {
-                removePathRecursive(configurations, viewInfo, path);
+    private void logDiscoveryIssue(String message, Throwable exception) {
+        if (developmentMode) {
+            LOGGER.warn(message, exception);
+        } else {
+            LOGGER.debug(message, exception);
+        }
+    }
+
+    private void completeDiscovery(long now) {
+        if (developmentMode) {
+            scheduleRefresh(now, DISCOVERY_REFRESH_NANOS);
+        } else {
+            discoveryState = DiscoveryState.COMPLETE;
+        }
+    }
+
+    private void scheduleRefresh(long now, long delayNanos) {
+        refreshAfterNanos = now + delayNanos;
+        discoveryState = DiscoveryState.REFRESH_PENDING;
+    }
+
+    static DiscoveryResult missingManifest(boolean developmentMode, boolean fileRoutesManifestExpected) {
+        if (!fileRoutesManifestExpected) {
+            return DiscoveryResult.complete(List.of());
+        }
+        return developmentMode ? DiscoveryResult.retryableFailure() : DiscoveryResult.failure();
+    }
+
+    private void publishCompleteRoutes(Map<String, AvailableViewInfo> registeredRoutes) {
+        Map<String, AvailableViewInfo> routes =
+                registeredRoutes == null ? Map.of() : new LinkedHashMap<>(registeredRoutes);
+        Map<String, List<List<AvailableViewInfo>>> chains = new LinkedHashMap<>();
+        routes.forEach((route, view) -> chains.put(route, List.of(List.of(view))));
+        routeSnapshot = createSnapshot(routes, chains, true);
+    }
+
+    private static RouteSnapshot createSnapshot(
+            Map<String, AvailableViewInfo> routes,
+            Map<String, List<List<AvailableViewInfo>>> securityChains,
+            boolean hierarchyComplete) {
+        List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> compiledRoutes =
+                new ArrayList<>(routes.size());
+        for (String route : routes.keySet()) {
+            List<List<AvailableViewInfo>> chains = securityChains.get(route);
+            List<List<AvailableViewInfo>> immutableChains = chains == null ? List.of() : List.copyOf(chains);
+            compiledRoutes.add(
+                    RoutePatternMatcher.compile(route, containsIndexRoute(immutableChains), immutableChains));
+        }
+        return new RouteSnapshot(List.copyOf(compiledRoutes), hierarchyComplete);
+    }
+
+    private static void collectRouteTree(
+            String parentPath,
+            List<AvailableViewInfo> ancestors,
+            AvailableViewInfo view,
+            Map<String, AvailableViewInfo> routes,
+            Map<String, List<List<AvailableViewInfo>>> chains) {
+        String routePath = appendRoute(parentPath, view.route());
+        List<AvailableViewInfo> securityChain = new ArrayList<>(ancestors);
+        securityChain.add(view);
+        routes.putIfAbsent(routePath, view);
+        chains.computeIfAbsent(routePath, ignored -> new ArrayList<>()).add(List.copyOf(securityChain));
+        if (view.children() != null) {
+            for (AvailableViewInfo child : view.children()) {
+                collectRouteTree(routePath, securityChain, child, routes, chains);
             }
-        });
+        }
     }
 
-    private static boolean validateViewAccessible(
-            AvailableViewInfo viewInfo, boolean isUserAuthenticated, Predicate<? super String> roleAuthentication) {
-        if (viewInfo.loginRequired() && !isUserAuthenticated) {
+    private static String appendRoute(String parentPath, String route) {
+        if (route == null || route.isEmpty()) {
+            return parentPath;
+        }
+        if (route.startsWith("/")) {
+            String absoluteRoute = normalizeRoutePath(route);
+            if (!parentPath.isEmpty() && !absoluteRoute.startsWith(parentPath)) {
+                throw new IllegalArgumentException(
+                        "Absolute child route '" + route + "' must start with parent path '" + parentPath + "'");
+            }
+            return normalizeRoutePath(parentPath + "/" + absoluteRoute.substring(parentPath.length()));
+        }
+        return normalizeRoutePath(parentPath + "/" + route);
+    }
+
+    private static String normalizeRoutePath(String route) {
+        return route.replaceAll("/+", "/");
+    }
+
+    private static boolean isRouteAccessible(
+            RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>> route, SecurityIdentity identity) {
+        List<List<AvailableViewInfo>> chains = route.target();
+        return chains != null && !chains.isEmpty() && allChainsAccessible(chains, identity);
+    }
+
+    private static boolean containsIndexRoute(List<List<AvailableViewInfo>> chains) {
+        for (List<AvailableViewInfo> chain : chains) {
+            if (!chain.isEmpty()) {
+                AvailableViewInfo target = chain.getLast();
+                if ((target.route() == null || target.route().isEmpty())
+                        && (target.children() == null || target.children().isEmpty())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean allChainsAccessible(List<List<AvailableViewInfo>> chains, SecurityIdentity identity) {
+        for (List<AvailableViewInfo> chain : chains) {
+            for (AvailableViewInfo view : chain) {
+                if (!validateViewAccessible(view, identity)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean validateViewAccessible(AvailableViewInfo viewInfo, SecurityIdentity identity) {
+        if (viewInfo.loginRequired() && identity.isAnonymous()) {
             return false;
         }
         String[] roles = viewInfo.rolesAllowed();
-        return roles == null || roles.length == 0 || Arrays.stream(roles).anyMatch(roleAuthentication);
+        if (roles == null || roles.length == 0) {
+            return true;
+        }
+        for (String role : roles) {
+            if (identity.hasRole(role)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static void removePathRecursive(
-            Map<String, AvailableViewInfo> configurations, AvailableViewInfo viewInfo, String parentPath) {
-        configurations.remove(parentPath);
-        if (viewInfo.children() == null) return;
-        for (AvailableViewInfo child : viewInfo.children()) {
-            String childRoute = (parentPath + "/" + child.route()).replace("//", "/");
-            removePathRecursive(configurations, child, childRoute);
+    private enum DiscoveryState {
+        UNINITIALIZED,
+        REFRESH_PENDING,
+        COMPLETE,
+        FAILED
+    }
+
+    record DiscoveryResult(
+            List<AvailableViewInfo> routeTree,
+            ResourceFingerprint resourceFingerprint,
+            boolean unchanged,
+            boolean retryImmediately) {
+
+        static DiscoveryResult complete(List<AvailableViewInfo> routeTree) {
+            return complete(routeTree, null);
+        }
+
+        static DiscoveryResult complete(List<AvailableViewInfo> routeTree, ResourceFingerprint fingerprint) {
+            return new DiscoveryResult(List.copyOf(routeTree), fingerprint, false, false);
+        }
+
+        static DiscoveryResult failure() {
+            return new DiscoveryResult(null, null, false, false);
+        }
+
+        static DiscoveryResult retryableFailure() {
+            return new DiscoveryResult(null, null, false, true);
+        }
+
+        static DiscoveryResult unchangedResult() {
+            return new DiscoveryResult(null, null, true, false);
         }
     }
 
-    private AvailableViewInfo getRouteByPath(Map<String, AvailableViewInfo> availableRoutes, String path) {
-        final var matcherBuilder = ImmutablePathMatcher.<AvailableViewInfo>builder();
-        availableRoutes.forEach((route, info) -> {
-            matcherBuilder.addPath(PathUtil.ensureSlashBegin(route), info);
-        });
-        return matcherBuilder.build().match(path).getValue();
+    record ResourceFingerprint(String resource, long lastModified, long contentLength) {
+
+        static ResourceFingerprint from(URL resource, URLConnection connection) {
+            return new ResourceFingerprint(
+                    resource.toExternalForm(), connection.getLastModified(), connection.getContentLengthLong());
+        }
+
+        boolean reliable() {
+            return lastModified > 0;
+        }
     }
+
+    private record RouteSnapshot(
+            List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> routes, boolean hierarchyComplete) {}
 }
