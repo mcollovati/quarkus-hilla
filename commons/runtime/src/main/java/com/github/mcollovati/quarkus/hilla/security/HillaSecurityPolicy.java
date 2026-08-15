@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -41,6 +42,7 @@ import io.quarkus.runtime.Startup;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.AuthenticatedHttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
+import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils;
 import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
@@ -101,7 +103,19 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     @Override
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
-        String normalizedPath = request.normalizedPath();
+        String routerPath;
+        String normalizedPath;
+        String servletRouterPath;
+        String servletNormalizedPath;
+        try {
+            routerPath = request.normalizedPath();
+            normalizedPath = HttpSecurityUtils.normalizePath(routerPath);
+            servletRouterPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
+            servletNormalizedPath = HttpSecurityUtils.normalizePath(servletRouterPath);
+        } catch (RuntimeException exception) {
+            getLogger().warn("Cannot normalize request path; denying access", exception);
+            return CheckResult.deny();
+        }
         Boolean permittedPath = permitAllMatcher.match(normalizedPath).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
@@ -110,11 +124,12 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             return CheckResult.permit();
         }
         return identity.flatMap(secIdentity -> {
-            NavigationContext flowNavigation = tryCreateNavigationContext(request);
-            if (flowNavigation != null) {
-                if (isAnonymousFlowRoute(flowNavigation, normalizedPath)) {
-                    return CheckResult.permit();
-                }
+            FlowRouteAccess flowAccess =
+                    checkFlowRouteAccess(request, normalizedPath, routerPath, servletNormalizedPath, servletRouterPath);
+            if (flowAccess == FlowRouteAccess.ANONYMOUS) {
+                return CheckResult.permit();
+            }
+            if (flowAccess == FlowRouteAccess.AUTHENTICATION_REQUIRED) {
                 // Flow performs its role-aware check during navigation. At the
                 // HTTP boundary, preserve existing behavior: non-public Flow
                 // routes require authentication.
@@ -124,7 +139,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 getLogger().warn("Hilla routes cannot be evaluated before VaadinService initialization");
                 return CheckResult.deny();
             }
-            AuthorizationDecision hillaDecision = routeUtil.checkRouteAccess(request, secIdentity);
+            AuthorizationDecision hillaDecision = routeUtil.checkRouteAccess(normalizedPath, routerPath, secIdentity);
             return switch (hillaDecision) {
                 case ALLOW -> CheckResult.permit();
                 case DENY -> CheckResult.deny();
@@ -133,6 +148,27 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
                 case NO_MATCH -> CheckResult.permit();
             };
         });
+    }
+
+    private FlowRouteAccess checkFlowRouteAccess(RoutingContext request, String... candidatePaths) {
+        Set<String> distinctPaths = new LinkedHashSet<>();
+        for (String candidatePath : candidatePaths) {
+            if (candidatePath != null) {
+                distinctPaths.add(candidatePath);
+            }
+        }
+
+        boolean matched = false;
+        for (String candidatePath : distinctPaths) {
+            NavigationContext navigationContext = tryCreateNavigationContext(request, candidatePath);
+            if (navigationContext != null) {
+                matched = true;
+                if (!isAnonymousFlowRoute(navigationContext, candidatePath)) {
+                    return FlowRouteAccess.AUTHENTICATION_REQUIRED;
+                }
+            }
+        }
+        return matched ? FlowRouteAccess.ANONYMOUS : FlowRouteAccess.NO_MATCH;
     }
 
     private boolean isCustomWebIcon(String normalizedPath) {
@@ -216,10 +252,9 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return isAllowed;
     }
 
-    private NavigationContext tryCreateNavigationContext(RoutingContext request) {
+    private NavigationContext tryCreateNavigationContext(RoutingContext request, String requestedPath) {
 
         String vaadinMapping = getUrlMapping();
-        String requestedPath = QuarkusHandlerHelper.getRequestPathInsideContext(request);
         if (vaadinService == null) {
             return null;
         }
@@ -296,5 +331,11 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
 
     WebIconsRequestMatcher createWebIconsRequestMatcher(VaadinService service) {
         return new WebIconsRequestMatcher(service, getUrlMapping());
+    }
+
+    private enum FlowRouteAccess {
+        NO_MATCH,
+        ANONYMOUS,
+        AUTHENTICATION_REQUIRED
     }
 }

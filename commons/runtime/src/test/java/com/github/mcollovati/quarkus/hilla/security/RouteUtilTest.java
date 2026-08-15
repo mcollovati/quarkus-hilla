@@ -248,6 +248,34 @@ class RouteUtilTest {
     }
 
     @Test
+    void checkRouteAccess_optionalSuffixRouteDoesNotFallThroughToNoMatch() {
+        RouteUtil routeUtil =
+                routeUtil(Map.of("orders/:id.v2?", view("orders/:id.v2?", new String[] {"ADMIN"}, Map.of())));
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/orders/x.v2"), identity("USER")));
+        assertEquals(
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/orders/x.v2"), identity("ADMIN")));
+    }
+
+    @Test
+    void checkRouteAccess_canonicalizesMatrixParametersBeforeMatching() {
+        RouteUtil routeUtil = routeUtil(Map.of("admin", view("admin", new String[] {"ADMIN"}, Map.of())));
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin;a=b"), identity("USER")));
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/admin%3Ba=b"), identity("USER")));
+        assertEquals(AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/admin;a=b"), identity("ADMIN")));
+    }
+
+    @Test
+    void checkRouteAccess_preservesEncodedSlashInsideReactRouterParameter() {
+        RouteUtil routeUtil = routeUtil(Map.of("items/:id", view("items/:id", new String[] {"ADMIN"}, Map.of())));
+
+        assertEquals(AuthorizationDecision.DENY, routeUtil.checkRouteAccess(context("/items/a%2Fb"), identity("USER")));
+        assertEquals(
+                AuthorizationDecision.ALLOW, routeUtil.checkRouteAccess(context("/items/a%2Fb"), identity("ADMIN")));
+    }
+
+    @Test
     void checkRouteAccess_equalScoreMatchesMustAllPermit() {
         Map<String, AvailableViewInfo> routes = new LinkedHashMap<>();
         routes.put("items/:id", view("items/:id", new String[0], Map.of(":id", RouteParamType.REQUIRED)));

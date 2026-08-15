@@ -96,6 +96,34 @@ class FormAuthenticationProtocolTest {
     }
 
     @Test
+    void authenticatedUser_roleProtectedHillaRouteWithMatrixParameter_returnsForbidden() throws Exception {
+        HttpClient client = newClient();
+        assertThat(login(client, "user", "user", true).statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = get(client, "hilla-admin;a=b");
+
+        assertThat(response.statusCode()).isEqualTo(403);
+    }
+
+    @Test
+    void adminUser_roleProtectedHillaRouteWithMatrixParameter_returnsSuccess() throws Exception {
+        HttpClient client = newClient();
+        assertThat(login(client, "admin", "admin", true).statusCode()).isEqualTo(200);
+
+        HttpResponse<Void> response = get(client, "hilla-admin;a=b");
+
+        assertThat(response.statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void anonymousUser_roleProtectedFlowParameterWithEncodedSlash_requiresLogin() throws Exception {
+        HttpResponse<Void> response = get(newClient(), "flow-parameter-admin/a%2Fb");
+
+        assertThat(response.statusCode()).isEqualTo(302);
+        assertRedirect(response, "/login", null);
+    }
+
+    @Test
     void adminUser_roleProtectedHillaRoute_returnsSuccess() throws Exception {
         HttpClient client = newClient();
         assertThat(login(client, "admin", "admin", true).statusCode()).isEqualTo(200);

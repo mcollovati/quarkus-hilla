@@ -32,6 +32,7 @@ import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.vertx.http.runtime.security.HttpSecurityUtils;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,20 +135,56 @@ public class RouteUtil {
     }
 
     AuthorizationDecision checkRouteAccess(RoutingContext context, SecurityIdentity identity) {
+        if (identity == null) {
+            return AuthorizationDecision.DENY;
+        }
+        String routerPath;
+        String normalizedPath;
+        try {
+            routerPath = context.normalizedPath();
+            normalizedPath = HttpSecurityUtils.normalizePath(routerPath);
+        } catch (RuntimeException exception) {
+            LOGGER.debug("Cannot normalize Hilla client route path; denying access", exception);
+            return AuthorizationDecision.DENY;
+        }
+        return checkRouteAccess(normalizedPath, routerPath, identity);
+    }
+
+    AuthorizationDecision checkRouteAccess(String normalizedPath, SecurityIdentity identity) {
+        return checkRouteAccess(normalizedPath, normalizedPath, identity);
+    }
+
+    AuthorizationDecision checkRouteAccess(String normalizedPath, String routerPath, SecurityIdentity identity) {
         ensureRoutesDiscovered();
         RouteSnapshot snapshot = routeSnapshot;
         if (snapshot == null || !snapshot.hierarchyComplete() || identity == null) {
             return AuthorizationDecision.DENY;
         }
 
-        List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> matchedRoutes;
         try {
-            matchedRoutes = RoutePatternMatcher.bestMatches(snapshot.routes(), context.normalizedPath());
+            AuthorizationDecision normalizedDecision = checkRouteMatches(snapshot.routes(), normalizedPath, identity);
+            if (normalizedPath.equals(routerPath)) {
+                return normalizedDecision;
+            }
+            AuthorizationDecision routerDecision = checkRouteMatches(snapshot.routes(), routerPath, identity);
+            if (normalizedDecision == AuthorizationDecision.DENY || routerDecision == AuthorizationDecision.DENY) {
+                return AuthorizationDecision.DENY;
+            }
+            return normalizedDecision == AuthorizationDecision.ALLOW || routerDecision == AuthorizationDecision.ALLOW
+                    ? AuthorizationDecision.ALLOW
+                    : AuthorizationDecision.NO_MATCH;
         } catch (RuntimeException exception) {
-            LOGGER.debug("Cannot normalize Hilla client route path; denying access", exception);
+            LOGGER.debug("Cannot match Hilla client route path; denying access", exception);
             return AuthorizationDecision.DENY;
         }
+    }
 
+    private static AuthorizationDecision checkRouteMatches(
+            List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> routes,
+            String path,
+            SecurityIdentity identity) {
+        List<RoutePatternMatcher.CompiledRoute<List<List<AvailableViewInfo>>>> matchedRoutes =
+                RoutePatternMatcher.bestMatches(routes, path);
         if (matchedRoutes.isEmpty()) {
             return AuthorizationDecision.NO_MATCH;
         }

@@ -15,10 +15,17 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import java.util.Map;
+
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.router.Router;
+import com.vaadin.flow.router.internal.NavigationRouteTarget;
+import com.vaadin.flow.router.internal.RouteTarget;
 import com.vaadin.flow.server.RouteRegistry;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.auth.AccessCheckResult;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy.CheckResult;
 import io.smallrye.mutiny.Uni;
@@ -33,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -67,8 +75,51 @@ class HillaSecurityPolicyTest {
 
         assertFalse(check(policy, context("/VAADIN/../hilla-admin", "/hilla-admin"), mock(SecurityIdentity.class))
                 .isPermitted());
+        assertFalse(check(policy, context("/VAADIN%2F..%2Fhilla-admin"), mock(SecurityIdentity.class))
+                .isPermitted());
         assertTrue(check(policy, context("/VAADIN/client.js"), mock(SecurityIdentity.class))
                 .isPermitted());
+    }
+
+    @Test
+    void checkPermission_usesQuarkusCanonicalPathForPermitAndRouteMatching() {
+        TestPolicy policy = policy();
+        policy.setFileRoutesManifestExpected(true);
+        policy.onVaadinServiceInit(new ServiceInitEvent(service()));
+        SecurityIdentity identity = mock(SecurityIdentity.class);
+        RoutingContext matrixPath = context("/hilla-admin;a=b");
+        RoutingContext encodedMatrixPath = context("/hilla-admin%3Ba=b");
+        when(policy.routeUtil.checkRouteAccess("/hilla-admin", "/hilla-admin;a=b", identity))
+                .thenReturn(AuthorizationDecision.DENY);
+        when(policy.routeUtil.checkRouteAccess("/hilla-admin", "/hilla-admin%3Ba=b", identity))
+                .thenReturn(AuthorizationDecision.DENY);
+
+        assertFalse(check(policy, matrixPath, identity).isPermitted());
+        assertFalse(check(policy, encodedMatrixPath, identity).isPermitted());
+        verify(policy.routeUtil).checkRouteAccess("/hilla-admin", "/hilla-admin;a=b", identity);
+        verify(policy.routeUtil).checkRouteAccess("/hilla-admin", "/hilla-admin%3Ba=b", identity);
+    }
+
+    @Test
+    void checkPermission_preservesEncodedSlashWhenResolvingFlowRoutes() {
+        NavigationAccessControl accessControl = mock(NavigationAccessControl.class);
+        when(accessControl.isEnabled()).thenReturn(true);
+        when(accessControl.checkAccess(any(), anyBoolean())).thenReturn(AccessCheckResult.deny("admin only"));
+        QuarkusEndpointConfiguration endpointConfiguration = mock(QuarkusEndpointConfiguration.class);
+        when(endpointConfiguration.getNormalizedEndpointPrefix()).thenReturn("/connect");
+        TestPolicy policy = new TestPolicy(accessControl, endpointConfiguration, mock(EndpointUtil.class));
+        policy.setFileRoutesManifestExpected(true);
+
+        RouteRegistry registry = mock(RouteRegistry.class);
+        NavigationRouteTarget target =
+                new NavigationRouteTarget("items/:id", new RouteTarget(ProtectedFlowView.class), Map.of("id", "a/b"));
+        when(registry.getNavigationRouteTarget("items/a%2Fb")).thenReturn(target);
+        policy.onVaadinServiceInit(new ServiceInitEvent(service(registry)));
+        SecurityIdentity identity = mock(SecurityIdentity.class);
+        when(identity.isAnonymous()).thenReturn(true);
+
+        assertFalse(check(policy, context("/items/a%2Fb"), identity).isPermitted());
+        verify(accessControl).checkAccess(any(), anyBoolean());
     }
 
     @Test
@@ -80,7 +131,8 @@ class HillaSecurityPolicyTest {
         SecurityIdentity identity = mock(SecurityIdentity.class);
         when(policy.webIconsRequestMatcher.isWebIconRequest("/icons/../hilla-admin"))
                 .thenReturn(true);
-        when(policy.routeUtil.checkRouteAccess(context, identity)).thenReturn(AuthorizationDecision.DENY);
+        when(policy.routeUtil.checkRouteAccess("/hilla-admin", "/hilla-admin", identity))
+                .thenReturn(AuthorizationDecision.DENY);
 
         assertFalse(check(policy, context, identity).isPermitted());
         verify(policy.webIconsRequestMatcher).isWebIconRequest("/hilla-admin");
@@ -138,13 +190,16 @@ class HillaSecurityPolicyTest {
         RoutingContext context = context("/client-route");
         SecurityIdentity identity = mock(SecurityIdentity.class);
 
-        when(policy.routeUtil.checkRouteAccess(context, identity)).thenReturn(AuthorizationDecision.ALLOW);
+        when(policy.routeUtil.checkRouteAccess("/client-route", "/client-route", identity))
+                .thenReturn(AuthorizationDecision.ALLOW);
         assertTrue(check(policy, context, identity).isPermitted());
 
-        when(policy.routeUtil.checkRouteAccess(context, identity)).thenReturn(AuthorizationDecision.DENY);
+        when(policy.routeUtil.checkRouteAccess("/client-route", "/client-route", identity))
+                .thenReturn(AuthorizationDecision.DENY);
         assertFalse(check(policy, context, identity).isPermitted());
 
-        when(policy.routeUtil.checkRouteAccess(context, identity)).thenReturn(AuthorizationDecision.NO_MATCH);
+        when(policy.routeUtil.checkRouteAccess("/client-route", "/client-route", identity))
+                .thenReturn(AuthorizationDecision.NO_MATCH);
         assertTrue(check(policy, context, identity).isPermitted());
     }
 
@@ -169,12 +224,18 @@ class HillaSecurityPolicyTest {
     }
 
     private static VaadinService service() {
+        RouteRegistry registry = mock(RouteRegistry.class);
+        when(registry.getNavigationRouteTarget(any())).thenReturn(null);
+        return service(registry);
+    }
+
+    private static VaadinService service(RouteRegistry registry) {
         VaadinService service = mock(VaadinService.class);
         Router router = mock(Router.class);
-        RouteRegistry registry = mock(RouteRegistry.class);
         when(service.getRouter()).thenReturn(router);
         when(router.getRegistry()).thenReturn(registry);
-        when(registry.getNavigationRouteTarget(any())).thenReturn(null);
+        when(service.getDeploymentConfiguration())
+                .thenReturn(mock(com.vaadin.flow.function.DeploymentConfiguration.class));
         return service;
     }
 
@@ -187,6 +248,7 @@ class HillaSecurityPolicyTest {
         HttpServerRequest request = mock(HttpServerRequest.class);
         when(context.request()).thenReturn(request);
         when(request.path()).thenReturn(rawPath);
+        when(request.params()).thenReturn(io.vertx.core.MultiMap.caseInsensitiveMultiMap());
         when(context.normalizedPath()).thenReturn(normalizedPath);
         return context;
     }
@@ -215,4 +277,6 @@ class HillaSecurityPolicyTest {
             return webIconsRequestMatcher;
         }
     }
+
+    private static final class ProtectedFlowView extends Div {}
 }

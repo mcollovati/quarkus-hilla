@@ -39,7 +39,6 @@ import java.util.regex.Pattern;
 final class RoutePatternMatcher {
 
     private static final Pattern DYNAMIC_SEGMENT = Pattern.compile("^:([\\w-]+)(\\?)?(.*)$");
-    private static final Pattern OPTIONAL_STATIC_SEGMENT = Pattern.compile("^[\\w-]+\\?$");
 
     /*
      * React Router 8 branch-ranking weights, multiplied by two to represent its
@@ -130,7 +129,7 @@ final class RoutePatternMatcher {
             return matched;
         }
 
-        int skipped = segmentPattern.optional() && segmentPattern.canBeOmitted()
+        int skipped = segmentPattern.optional()
                 ? matchScore(routeSegments, pathSegments, routeIndex + 1, pathIndex)
                 : NO_MATCH_SCORE;
         if (pathIndex == pathSegments.size()) {
@@ -159,7 +158,7 @@ final class RoutePatternMatcher {
     private static boolean remainingSegmentsCanBeOmitted(List<SegmentPattern> routeSegments, int routeIndex) {
         for (int index = routeIndex; index < routeSegments.size(); index++) {
             SegmentPattern remaining = routeSegments.get(index);
-            if (!remaining.optional() || !remaining.canBeOmitted()) {
+            if (!remaining.optional()) {
                 return false;
             }
         }
@@ -186,16 +185,15 @@ final class RoutePatternMatcher {
 
     private static SegmentPattern segmentPattern(String routeSegment) {
         if ("*".equals(routeSegment)) {
-            return new SegmentPattern(SegmentType.WILDCARD, "", false);
+            return new SegmentPattern(SegmentType.WILDCARD, "", false, false);
         }
-        Matcher dynamic = DYNAMIC_SEGMENT.matcher(routeSegment);
+        boolean optionalSegment = routeSegment.endsWith("?");
+        String segment = optionalSegment ? routeSegment.substring(0, routeSegment.length() - 1) : routeSegment;
+        Matcher dynamic = DYNAMIC_SEGMENT.matcher(segment);
         if (dynamic.matches()) {
-            return new SegmentPattern(SegmentType.DYNAMIC, dynamic.group(3), dynamic.group(2) != null);
+            return new SegmentPattern(SegmentType.DYNAMIC, dynamic.group(3), optionalSegment, dynamic.group(2) != null);
         }
-        if (OPTIONAL_STATIC_SEGMENT.matcher(routeSegment).matches()) {
-            return new SegmentPattern(SegmentType.STATIC, routeSegment.substring(0, routeSegment.length() - 1), true);
-        }
-        return new SegmentPattern(SegmentType.STATIC, routeSegment, false);
+        return new SegmentPattern(SegmentType.STATIC, segment, optionalSegment, false);
     }
 
     private static List<String> segments(String path) {
@@ -243,18 +241,14 @@ final class RoutePatternMatcher {
         WILDCARD
     }
 
-    private record SegmentPattern(SegmentType type, String value, boolean optional) {
-
-        boolean canBeOmitted() {
-            return type == SegmentType.STATIC || value.isEmpty();
-        }
+    private record SegmentPattern(SegmentType type, String value, boolean optional, boolean parameterOptional) {
 
         boolean matchesDynamic(String pathSegment) {
             if (!endsWithIgnoreCase(pathSegment, value)) {
                 return false;
             }
             int parameterLength = pathSegment.length() - value.length();
-            return optional ? parameterLength >= 0 : parameterLength > 0;
+            return parameterOptional ? parameterLength >= 0 : parameterLength > 0;
         }
 
         private static boolean endsWithIgnoreCase(String value, String suffix) {
