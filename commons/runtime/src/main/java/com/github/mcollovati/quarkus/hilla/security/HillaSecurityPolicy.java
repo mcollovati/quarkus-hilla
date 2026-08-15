@@ -101,17 +101,18 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
     @Override
     public Uni<CheckResult> checkPermission(
             RoutingContext request, Uni<SecurityIdentity> identity, AuthorizationRequestContext requestContext) {
-        Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
+        String normalizedPath = request.normalizedPath();
+        Boolean permittedPath = permitAllMatcher.match(normalizedPath).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
                 || isAnonymousEndpoint(request)
-                || isCustomWebIcon(request)) {
+                || isCustomWebIcon(normalizedPath)) {
             return CheckResult.permit();
         }
         return identity.flatMap(secIdentity -> {
             NavigationContext flowNavigation = tryCreateNavigationContext(request);
             if (flowNavigation != null) {
-                if (isAnonymousFlowRoute(flowNavigation, request.normalizedPath())) {
+                if (isAnonymousFlowRoute(flowNavigation, normalizedPath)) {
                     return CheckResult.permit();
                 }
                 // Flow performs its role-aware check during navigation. At the
@@ -134,9 +135,8 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         });
     }
 
-    private boolean isCustomWebIcon(RoutingContext request) {
-        return webIconsRequestMatcher != null
-                && webIconsRequestMatcher.isWebIconRequest(request.request().path());
+    private boolean isCustomWebIcon(String normalizedPath) {
+        return webIconsRequestMatcher != null && webIconsRequestMatcher.isWebIconRequest(normalizedPath);
     }
 
     private boolean isAnonymousEndpoint(RoutingContext request) {

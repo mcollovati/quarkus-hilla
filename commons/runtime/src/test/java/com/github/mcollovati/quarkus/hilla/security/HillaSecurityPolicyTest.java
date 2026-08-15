@@ -62,6 +62,45 @@ class HillaSecurityPolicyTest {
     }
 
     @Test
+    void checkPermission_matchesPermitAllPathsAgainstNormalizedPath() {
+        HillaSecurityPolicy policy = policy();
+
+        assertFalse(check(policy, context("/VAADIN/../hilla-admin", "/hilla-admin"), mock(SecurityIdentity.class))
+                .isPermitted());
+        assertTrue(check(policy, context("/VAADIN/client.js"), mock(SecurityIdentity.class))
+                .isPermitted());
+    }
+
+    @Test
+    void checkPermission_matchesWebIconsAgainstNormalizedPath() {
+        TestPolicy policy = policy();
+        policy.setFileRoutesManifestExpected(true);
+        policy.onVaadinServiceInit(new ServiceInitEvent(service()));
+        RoutingContext context = context("/icons/../hilla-admin", "/hilla-admin");
+        SecurityIdentity identity = mock(SecurityIdentity.class);
+        when(policy.webIconsRequestMatcher.isWebIconRequest("/icons/../hilla-admin"))
+                .thenReturn(true);
+        when(policy.routeUtil.checkRouteAccess(context, identity)).thenReturn(AuthorizationDecision.DENY);
+
+        assertFalse(check(policy, context, identity).isPermitted());
+        verify(policy.webIconsRequestMatcher).isWebIconRequest("/hilla-admin");
+    }
+
+    @Test
+    void checkPermission_keepsNormalizedWebIconRequestsPermitted() {
+        TestPolicy policy = policy();
+        policy.onVaadinServiceInit(new ServiceInitEvent(service()));
+        when(policy.webIconsRequestMatcher.isWebIconRequest("/icons/favicon.svg"))
+                .thenReturn(true);
+
+        assertTrue(check(
+                        policy,
+                        context("/icons/../icons/favicon.svg", "/icons/favicon.svg"),
+                        mock(SecurityIdentity.class))
+                .isPermitted());
+    }
+
+    @Test
     void routeUtilInitialization_waitsForServiceAndClassificationInEitherOrder() {
         TestPolicy classificationFirst = policy();
         classificationFirst.setFileRoutesManifestExpected(false);
@@ -140,11 +179,15 @@ class HillaSecurityPolicyTest {
     }
 
     private static RoutingContext context(String path) {
+        return context(path, path);
+    }
+
+    private static RoutingContext context(String rawPath, String normalizedPath) {
         RoutingContext context = mock(RoutingContext.class);
         HttpServerRequest request = mock(HttpServerRequest.class);
         when(context.request()).thenReturn(request);
-        when(request.path()).thenReturn(path);
-        when(context.normalizedPath()).thenReturn(path);
+        when(request.path()).thenReturn(rawPath);
+        when(context.normalizedPath()).thenReturn(normalizedPath);
         return context;
     }
 
