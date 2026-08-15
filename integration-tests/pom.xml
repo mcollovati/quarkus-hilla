@@ -24,7 +24,7 @@
             downgraded selenium-java does not bring in the selenium-devtools-latest artifact
             Selenide uses for screenshots. Align Selenium with the version Selenide expects.
         -->
-        <selenium.version>4.46.0</selenium.version>
+        <selenium.version>4.47.0</selenium.version>
         <selenide.browser>chrome</selenide.browser>
         <vaadin.copilot.enable>false</vaadin.copilot.enable>
 
