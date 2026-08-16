@@ -39,10 +39,10 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 
 ![Since 25.1.5](https://flat.badgen.net/static/Since/25.1.5/007bff?scale=1.1)
 
-Also available in 25.2.2 and 25.3.0 or later.
+Also in 25.2.2 and 25.3.0 or later.
 
-In a secured application, every Flow view has to say who may see it. Add one of these
-annotations to the view, or to a layout it uses:
+In a secured application, each Flow view needs an annotation that says who may open it. Put it
+on the view, or on a layout the view uses:
 
 | Annotation          | Who gets in            |
 |---------------------|------------------------|
@@ -58,26 +58,24 @@ public class DashboardView extends VerticalLayout {
 }
 ```
 
-**A view without any of these annotations is not shown.** This is the Vaadin default: a view
-that never says who may see it is treated as not ready to be public, rather than open to
-everyone. So if a view is unexpectedly unreachable, the usual cause is a missing annotation.
+**A view with no annotation is not shown.** That is the Vaadin default. If a view is suddenly
+unreachable, a missing annotation is the most likely cause.
 
-Applications without an authentication mechanism are not affected — nothing is checked there.
+Applications without authentication are not affected. Nothing is checked there.
 
 #### Turning the check off
 
-If adding the annotations takes time, the check can be turned off for the whole application:
+Set the property to `false` to skip the check for all views:
 
 ```properties
 vaadin.security.navigation-access-control.enabled=false
 ```
 
 > [!WARNING]
-> With this setting, every Flow view is reachable by anyone who can reach the application, and
-> `@RolesAllowed` and friends stop having any effect. The `quarkus.http.auth.permission.*`
-> rules still apply, but they only cover the initial page load — once the application is open in
-> the browser, users move between views without them. Use this to buy time for a migration, not
-> as a permanent setting.
+> Then anyone who can open the application can open every Flow view, and `@RolesAllowed` and the
+> other annotations do nothing. The `quarkus.http.auth.permission.*` rules still work, but they
+> only cover the first page load. After that the browser switches views on its own. Use this
+> while you add the missing annotations, not as a permanent setting.
 
 <a id="copilot"></a>
 
