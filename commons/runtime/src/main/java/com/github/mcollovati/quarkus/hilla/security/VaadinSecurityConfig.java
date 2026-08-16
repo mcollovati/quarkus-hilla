@@ -57,30 +57,33 @@ public interface VaadinSecurityConfig {
     boolean logoutInvalidateSession();
 
     /**
-     * Configuration of the Vaadin navigation access control.
+     * Settings for the access check on Flow views.
      *
-     * @return navigation access control configuration.
+     * @return the navigation access control settings.
      */
     NavigationAccessControlConfig navigationAccessControl();
 
     /**
-     * Configuration properties for the Vaadin navigation access control.
+     * Settings for the access check on Flow views.
      */
     interface NavigationAccessControlConfig {
 
         /**
          * Whether access to Flow views is checked.
          * <p></p>
-         * A view is shown when it, or a layout it uses, carries
-         * {@code @AnonymousAllowed}, {@code @PermitAll} or {@code @RolesAllowed}
-         * and the current user matches. A view without any access annotation is
-         * not shown, which is the Vaadin default.
+         * Each view needs an annotation that says who may open it, either on
+         * the view or on a layout the view uses: {@code @AnonymousAllowed} for
+         * everyone, {@code @PermitAll} for logged-in users,
+         * {@code @RolesAllowed} for the given roles, {@code @DenyAll} for
+         * nobody. A view with no annotation is not shown, which is the Vaadin
+         * default.
          * <p></p>
-         * When set to {@literal false}, every Flow view becomes reachable and
-         * the access annotations stop having any effect. Only use this to buy
-         * time for adding the missing annotations.
+         * Set to {@literal false} to skip the check for all views. Then anyone
+         * who can open the application can open every Flow view, and the
+         * annotations do nothing. Use this while adding the missing
+         * annotations, not as a permanent setting.
          * <p></p>
-         * Applications without an authentication mechanism are not affected.
+         * Applications without authentication are not affected.
          * <p></p>
          * Defaults to {@literal true}.
          *
