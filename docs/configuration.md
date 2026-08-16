@@ -38,8 +38,8 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 ### Route Security
 
 ![Since 25.1.5](https://flat.badgen.net/static/Since/25.1.5/007bff?scale=1.1)
-
-Also in 25.2.2 and 25.3.0 or later.
+![Since 25.2.2](https://flat.badgen.net/static/Since/25.2.2/007bff?scale=1.1)
+![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
 
 In a secured application, each Flow view needs an annotation that says who may open it. Put it
 on the view, or on a layout the view uses:
