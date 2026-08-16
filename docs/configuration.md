@@ -31,24 +31,25 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 | `vaadin.security.logout-path`                            | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests.                                |
 | `vaadin.security.post-logout-redirect-uri`               | String  | -         | URI to redirect to after successful logout.                                                    |
 | `vaadin.security.logout-invalidate-session`              | Boolean | `true`    | Whether HTTP session should be invalidated on logout.                                          |
-| `vaadin.security.navigation-access-control.enabled`      | Boolean | `true`    | Whether Flow navigation access control is enabled. See [Navigation Access Control](#navigation-access-control). |
+| `vaadin.security.navigation-access-control.enabled`      | Boolean | `true`    | Whether access to Flow views is checked. See [Route Security](#route-security).                |
 
-<a id="navigation-access-control"></a>
+<a id="route-security"></a>
 
-### Navigation Access Control
+### Route Security
 
-![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
+![Since 25.1.5](https://flat.badgen.net/static/Since/25.1.5/007bff?scale=1.1)
 
-When an authentication mechanism is configured, the extension installs Vaadin's
-`NavigationAccessControl` with the `AnnotatedViewAccessChecker`. Flow views are then checked
-against their access annotations, including annotations inherited from parent layouts:
+Also available in 25.2.2 and 25.3.0 or later.
 
-- `@AnonymousAllowed`, `@PermitAll`, `@RolesAllowed` grant access
-- `@DenyAll` denies access
-- a view **without** any of these annotations is **denied**, following the Vaadin default
+In a secured application, every Flow view has to say who may see it. Add one of these
+annotations to the view, or to a layout it uses:
 
-The last point is what applications usually run into. If a Flow view is unexpectedly
-inaccessible, add an explicit annotation to the view or to its layout:
+| Annotation          | Who gets in            |
+|---------------------|------------------------|
+| `@AnonymousAllowed` | everyone, no login     |
+| `@PermitAll`        | any logged-in user     |
+| `@RolesAllowed`     | users with those roles |
+| `@DenyAll`          | nobody                 |
 
 ```java
 @Route("dashboard")
@@ -57,22 +58,26 @@ public class DashboardView extends VerticalLayout {
 }
 ```
 
-Applications without security are unaffected — access control is only installed when an
-authentication mechanism is configured.
+**A view without any of these annotations is not shown.** This is the Vaadin default: a view
+that never says who may see it is treated as not ready to be public, rather than open to
+everyone. So if a view is unexpectedly unreachable, the usual cause is a missing annotation.
 
-#### Opting out
+Applications without an authentication mechanism are not affected — nothing is checked there.
 
-Set the property to `false` to remove navigation access control completely:
+#### Turning the check off
+
+If adding the annotations takes time, the check can be turned off for the whole application:
 
 ```properties
 vaadin.security.navigation-access-control.enabled=false
 ```
 
 > [!WARNING]
-> Flow views are then reachable regardless of their access annotations. Only the Quarkus HTTP
-> security policies (`quarkus.http.auth.permission.*`) still apply, and those cannot protect
-> client side navigation within the single page application — they only cover the initial page
-> load. Treat this as a temporary migration aid, not a permanent setting.
+> With this setting, every Flow view is reachable by anyone who can reach the application, and
+> `@RolesAllowed` and friends stop having any effect. The `quarkus.http.auth.permission.*`
+> rules still apply, but they only cover the initial page load — once the application is open in
+> the browser, users move between views without them. Use this to buy time for a migration, not
+> as a permanent setting.
 
 <a id="copilot"></a>
 

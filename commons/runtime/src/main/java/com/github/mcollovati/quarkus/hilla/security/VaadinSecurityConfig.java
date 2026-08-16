@@ -69,27 +69,22 @@ public interface VaadinSecurityConfig {
     interface NavigationAccessControlConfig {
 
         /**
-         * Whether Flow navigation access control is enabled.
+         * Whether access to Flow views is checked.
          * <p></p>
-         * When enabled, Flow views are checked against their access annotations
-         * ({@code @AnonymousAllowed}, {@code @PermitAll}, {@code @RolesAllowed},
-         * {@code @DenyAll}), including annotations inherited from parent layouts.
-         * Following Vaadin defaults, a view without any of these annotations is
-         * denied.
+         * A view is shown when it, or a layout it uses, carries
+         * {@code @AnonymousAllowed}, {@code @PermitAll} or {@code @RolesAllowed}
+         * and the current user matches. A view without any access annotation is
+         * not shown, which is the Vaadin default.
          * <p></p>
-         * Disabling this setting removes navigation access control completely.
-         * Flow views are then reachable regardless of their access annotations,
-         * and only the Quarkus HTTP security policies apply. Those policies
-         * cannot protect client side navigation within the single page
-         * application, so disabling this setting leaves Flow views unprotected.
+         * When set to {@literal false}, every Flow view becomes reachable and
+         * the access annotations stop having any effect. Only use this to buy
+         * time for adding the missing annotations.
          * <p></p>
-         * Access control is only installed when an authentication mechanism is
-         * configured, so this setting has no effect on applications without
-         * security.
+         * Applications without an authentication mechanism are not affected.
          * <p></p>
          * Defaults to {@literal true}.
          *
-         * @return whether navigation access control is enabled.
+         * @return whether access to Flow views is checked.
          */
         @WithDefault("true")
         boolean enabled();

@@ -129,10 +129,9 @@ class QuarkusHillaSecurityProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-            // Without any access checker the navigation access control grants
-            // access to every view, which is how the opt-out is implemented.
-            // The control itself stays registered because HillaSecurityPolicy
-            // depends on it.
+            // The access control is registered unconditionally because
+            // HillaSecurityPolicy injects it. Without a checker it grants
+            // access to every view.
             if (securityConfig.navigationAccessControl().enabled()) {
                 accessCheckerProducer.produce(
                         new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));

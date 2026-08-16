@@ -35,6 +35,7 @@ class NavigationAccessControlEnabledTest {
             .withConfigurationResource(
                     TestUtils.class.getPackageName().replace('.', '/') + "/test-application.properties")
             .overrideConfigKey("quarkus.http.auth.form.enabled", "true")
+            .overrideConfigKey("quarkus.http.test-port", "0")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class));
 
     @Test
