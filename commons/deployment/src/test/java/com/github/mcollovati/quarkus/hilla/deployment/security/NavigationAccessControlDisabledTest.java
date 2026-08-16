@@ -40,12 +40,14 @@ class NavigationAccessControlDisabledTest {
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class));
 
     @Test
-    void navigationAccessControlDisabled_noAnnotatedViewAccessChecker() {
+    void navigationAccessControlDisabled_accessControlTurnedOff() {
         QuarkusNavigationAccessControl accessControl =
                 Arc.container().instance(QuarkusNavigationAccessControl.class).get();
 
         assertThat(accessControl).isNotNull();
+        assertThat(accessControl.isEnabled()).isFalse();
+        // The checker stays registered, only the access control is turned off.
         assertThat(accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class))
-                .isFalse();
+                .isTrue();
     }
 }

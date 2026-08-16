@@ -15,8 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
-import java.util.logging.Level;
-
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
@@ -39,18 +37,14 @@ class NavigationAccessControlCustomBeanTest {
             .overrideConfigKey("vaadin.security.navigation-access-control.enabled", "false")
             .overrideConfigKey("quarkus.http.test-port", "0")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(TestUtils.class, CustomNavigationAccessControl.class))
-            .setLogRecordPredicate(record -> record.getLevel().intValue() >= Level.WARNING.intValue())
-            .assertLogRecords(records -> assertThat(records)
-                    .as("expected a warning about the checker the setting cannot reach")
-                    .anySatisfy(record -> assertThat(record.getMessage())
-                            .contains("provides an AnnotatedViewAccessChecker of its own")));
+                    .addClasses(TestUtils.class, CustomNavigationAccessControl.class));
 
     @Test
-    void customAccessControl_replacesTheDefaultBean() {
+    void customAccessControl_turnedOffAsWell() {
         NavigationAccessControl accessControl =
                 Arc.container().instance(NavigationAccessControl.class).get();
 
         assertThat(accessControl).isInstanceOf(CustomNavigationAccessControl.class);
+        assertThat(accessControl.isEnabled()).isFalse();
     }
 }

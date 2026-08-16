@@ -39,11 +39,12 @@ class NavigationAccessControlEnabledTest {
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class));
 
     @Test
-    void formAuthentication_annotatedViewAccessCheckerInstalledByDefault() {
+    void formAuthentication_accessControlEnabledByDefault() {
         QuarkusNavigationAccessControl accessControl =
                 Arc.container().instance(QuarkusNavigationAccessControl.class).get();
 
         assertThat(accessControl).isNotNull();
+        assertThat(accessControl.isEnabled()).isTrue();
         assertThat(accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class))
                 .isTrue();
     }

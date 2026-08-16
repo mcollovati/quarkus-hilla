@@ -25,6 +25,8 @@ import com.vaadin.flow.server.auth.NavigationAccessControl;
 /**
  * Replaces the extension provided access control and builds its checker
  * itself, so that the checker is out of reach of the configuration.
+ * <p></p>
+ * Turning the access control off has to work for this bean as well.
  */
 @Singleton
 public class CustomNavigationAccessControl extends NavigationAccessControl {

@@ -25,14 +25,11 @@ import java.util.function.Predicate;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinRequest;
 import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
-import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.security.identity.SecurityIdentity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Singleton
 @DefaultBean
@@ -77,28 +74,14 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
         }
 
         void installViewAccessChecker(@Observes ServiceInitEvent event) {
-            warnIfAccessCheckCannotBeTurnedOff();
+            // Only ever turns the access control off, so that an application
+            // providing its own NavigationAccessControl keeps whatever it
+            // configured on it.
+            if (!securityConfig.navigationAccessControl().enabled()) {
+                accessControl.setEnabled(false);
+            }
             event.getSource()
                     .addUIInitListener(uiInitEvent -> uiInitEvent.getUI().addBeforeEnterListener(accessControl));
-        }
-
-        private void warnIfAccessCheckCannotBeTurnedOff() {
-            // The setting removes the checker this extension registers. An
-            // application bringing its own NavigationAccessControl may hold a
-            // checker the setting cannot reach.
-            if (!securityConfig.navigationAccessControl().enabled()
-                    && accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class)) {
-                getLogger()
-                        .warn(
-                                "vaadin.security.navigation-access-control.enabled is false, but {} provides an "
-                                        + "AnnotatedViewAccessChecker of its own. Flow views are still checked "
-                                        + "against their access annotations.",
-                                accessControl.getClass().getName());
-            }
-        }
-
-        private Logger getLogger() {
-            return LoggerFactory.getLogger(getClass());
         }
     }
 }

@@ -40,7 +40,6 @@ import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMecha
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
-import com.github.mcollovati.quarkus.hilla.security.VaadinSecurityConfig;
 
 class QuarkusHillaSecurityProcessor {
 
@@ -117,7 +116,6 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     void registerNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
-            VaadinSecurityConfig securityConfig,
             BuildProducer<AdditionalBeanBuildItem> beans,
             BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
@@ -129,13 +127,8 @@ class QuarkusHillaSecurityProcessor {
                             DefaultAccessCheckDecisionResolver.class)
                     .setUnremovable()
                     .build());
-            // The access control is registered unconditionally because
-            // HillaSecurityPolicy injects it. Without a checker it grants
-            // access to every view.
-            if (securityConfig.navigationAccessControl().enabled()) {
-                accessCheckerProducer.produce(
-                        new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
-            }
+            accessCheckerProducer.produce(
+                    new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
 
             ConfigProvider.getConfig()
                     .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
