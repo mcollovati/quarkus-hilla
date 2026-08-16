@@ -40,6 +40,7 @@ import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMecha
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
+import com.github.mcollovati.quarkus.hilla.security.VaadinSecurityConfig;
 
 class QuarkusHillaSecurityProcessor {
 
@@ -93,12 +94,19 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void configureNavigationAccessControl(
+            AuthFormBuildItem authFormBuildItem,
+            VaadinSecurityConfig securityConfig,
             HillaSecurityRecorder recorder,
             BeanContainerBuildItem beanContainer,
             Optional<NavigationAccessControlBuildItem> navigationAccessControlBuildItem) {
-        navigationAccessControlBuildItem
-                .map(NavigationAccessControlBuildItem::getLoginPath)
-                .ifPresent(loginPath -> recorder.configureNavigationAccessControl(beanContainer.getValue(), loginPath));
+        if (authFormBuildItem.isEnabled()) {
+            recorder.configureNavigationAccessControl(
+                    beanContainer.getValue(),
+                    navigationAccessControlBuildItem
+                            .map(NavigationAccessControlBuildItem::getLoginPath)
+                            .orElse(null),
+                    securityConfig.navigationAccessControl().enabled());
+        }
     }
 
     @BuildStep

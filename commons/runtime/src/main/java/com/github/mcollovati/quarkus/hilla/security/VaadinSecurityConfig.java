@@ -55,4 +55,41 @@ public interface VaadinSecurityConfig {
      */
     @WithDefault("true")
     boolean logoutInvalidateSession();
+
+    /**
+     * Settings for the access check on Flow views.
+     *
+     * @return the navigation access control settings.
+     */
+    NavigationAccessControlConfig navigationAccessControl();
+
+    /**
+     * Settings for the access check on Flow views.
+     */
+    interface NavigationAccessControlConfig {
+
+        /**
+         * Whether access to Flow views is checked.
+         * <p></p>
+         * Each view needs an annotation that says who may open it, either on
+         * the view or on a layout the view uses: {@code @AnonymousAllowed} for
+         * everyone, {@code @PermitAll} for logged-in users,
+         * {@code @RolesAllowed} for the given roles, {@code @DenyAll} for
+         * nobody. A view with no annotation is not shown, which is the Vaadin
+         * default.
+         * <p></p>
+         * Set to {@literal false} to skip the check for all views. Then anyone
+         * who can open the application can open every Flow view, and the
+         * annotations do nothing. Use this while adding the missing
+         * annotations, not as a permanent setting.
+         * <p></p>
+         * Applications without authentication are not affected.
+         * <p></p>
+         * Defaults to {@literal true}.
+         *
+         * @return whether access to Flow views is checked.
+         */
+        @WithDefault("true")
+        boolean enabled();
+    }
 }

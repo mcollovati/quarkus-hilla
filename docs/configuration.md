@@ -2,6 +2,11 @@
 
 All Quarkus-Hilla settings go in `application.properties`.
 
+> [!NOTE]
+> Every setting on this page is **fixed at build time**. Changing one means rebuilding the
+> application — setting it as a system property or environment variable on an existing build has
+> no effect. Quarkus keeps the value that was in place when the application was built.
+
 <a id="live-reload"></a>
 
 ## 🔄 Live Reload
@@ -26,11 +31,66 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 
 ## 🔒 Security
 
-| Property                                    | Type    | Default   | Description                                                     |
-|---------------------------------------------|---------|-----------|-----------------------------------------------------------------|
-| `vaadin.security.logout-path`               | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests. |
-| `vaadin.security.post-logout-redirect-uri`  | String  | -         | URI to redirect to after successful logout.                     |
-| `vaadin.security.logout-invalidate-session` | Boolean | `true`    | Whether HTTP session should be invalidated on logout.           |
+| Property                                                 | Type    | Default   | Description                                                                                    |
+|----------------------------------------------------------|---------|-----------|--------------------------------------------------------------------------------------------------|
+| `vaadin.security.logout-path`                            | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests.                                |
+| `vaadin.security.post-logout-redirect-uri`               | String  | -         | URI to redirect to after successful logout.                                                    |
+| `vaadin.security.logout-invalidate-session`              | Boolean | `true`    | Whether HTTP session should be invalidated on logout.                                          |
+| `vaadin.security.navigation-access-control.enabled`      | Boolean | `true`    | Whether access to Flow views is checked. See [Route Security](#route-security).                |
+
+<a id="route-security"></a>
+
+### Route Security
+
+![Since 25.1.5](https://flat.badgen.net/static/Since/25.1.5/007bff?scale=1.1)
+![Since 25.2.2](https://flat.badgen.net/static/Since/25.2.2/007bff?scale=1.1)
+![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
+
+In a secured application, each Flow view needs an annotation that says who may open it. Put it
+on the view, or on a layout the view uses:
+
+| Annotation          | Who gets in            |
+|---------------------|------------------------|
+| `@AnonymousAllowed` | everyone, no login     |
+| `@PermitAll`        | any logged-in user     |
+| `@RolesAllowed`     | users with those roles |
+| `@DenyAll`          | nobody                 |
+
+```java
+@Route("dashboard")
+@PermitAll
+public class DashboardView extends VerticalLayout {
+}
+```
+
+**A view with no annotation is not shown.** That is the Vaadin default. If a view is suddenly
+unreachable, a missing annotation is the most likely cause.
+
+Applications without authentication are not affected. Nothing is checked there.
+
+#### Turning the check off
+
+> [!IMPORTANT]
+> **Views became unreachable after an upgrade to 25.1.4 or 25.2.1?** Those releases started
+> checking views that were never checked before, so an application that has no access
+> annotations at all loses every view at once. Turn the check off to get back to the old
+> behavior, then add the annotations and turn it on again.
+
+Set the property to `false` to skip the check for all views, then rebuild:
+
+```properties
+vaadin.security.navigation-access-control.enabled=false
+```
+
+> [!WARNING]
+> Then anyone who can open the application can open every Flow view, and `@RolesAllowed` and the
+> other annotations do nothing. The `quarkus.http.auth.permission.*` rules still work, but they
+> only cover the first page load. After that the browser switches views on its own. Use this
+> while you add the missing annotations, not as a permanent setting.
+
+The setting turns off the `NavigationAccessControl` at startup, so it also applies to an
+application that provides its own bean. Nothing is turned on: when the setting is `true`, an
+access control that the application disabled itself stays disabled.
 
 <a id="copilot"></a>
 
