@@ -65,21 +65,13 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
     public static class Installer {
 
         private final NavigationAccessControl accessControl;
-        private final VaadinSecurityConfig securityConfig;
 
         @Inject
-        public Installer(NavigationAccessControl accessControl, VaadinSecurityConfig securityConfig) {
+        public Installer(NavigationAccessControl accessControl) {
             this.accessControl = accessControl;
-            this.securityConfig = securityConfig;
         }
 
         void installViewAccessChecker(@Observes ServiceInitEvent event) {
-            // Only ever turns the access control off, so that an application
-            // providing its own NavigationAccessControl keeps whatever it
-            // configured on it.
-            if (!securityConfig.navigationAccessControl().enabled()) {
-                accessControl.setEnabled(false);
-            }
             event.getSource()
                     .addUIInitListener(uiInitEvent -> uiInitEvent.getUI().addBeforeEnterListener(accessControl));
         }

@@ -15,6 +15,8 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
+import java.util.logging.Level;
+
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
@@ -37,7 +39,12 @@ class NavigationAccessControlDisabledTest {
             .overrideConfigKey("quarkus.http.auth.form.enabled", "true")
             .overrideConfigKey("vaadin.security.navigation-access-control.enabled", "false")
             .overrideConfigKey("quarkus.http.test-port", "0")
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class));
+            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class))
+            .setLogRecordPredicate(record -> record.getLevel().intValue() >= Level.WARNING.intValue())
+            .assertLogRecords(records -> assertThat(records)
+                    .as("expected a warning that view access checking is off")
+                    .anySatisfy(record ->
+                            assertThat(record.getMessage()).contains("Flow view access checking is turned off")));
 
     @Test
     void navigationAccessControlDisabled_accessControlTurnedOff() {
