@@ -62,7 +62,18 @@ public class HillaSecurityRecorder {
         // Resolved by base type, an application may provide its own bean.
         NavigationAccessControl accessControl = container.beanInstance(NavigationAccessControl.class);
         if (loginPath != null) {
-            accessControl.setLoginView(loginPath);
+            // The login view can be set only once and an application bean is
+            // free to set its own, so only ours is configured from the Quarkus
+            // form login settings.
+            if (accessControl instanceof QuarkusNavigationAccessControl) {
+                accessControl.setLoginView(loginPath);
+            } else {
+                LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                        .debug(
+                                "quarkus.http.auth.form.login-page is not applied to {}, an application provided "
+                                        + "navigation access control configures its login view itself.",
+                                accessControl.getClass().getName());
+            }
         }
         if (!enabled) {
             // Never turns the access control on, an application disabling its

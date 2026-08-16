@@ -33,5 +33,8 @@ public class CustomNavigationAccessControl extends NavigationAccessControl {
 
     public CustomNavigationAccessControl() {
         super(List.of(new AnnotatedViewAccessChecker()), new DefaultAccessCheckDecisionResolver());
+        // NavigationAccessControl.setLoginView refuses a second call, so the
+        // extension must not apply the Quarkus form login page on top of this.
+        setLoginView("/custom-login");
     }
 }

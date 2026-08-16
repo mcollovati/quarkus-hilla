@@ -34,6 +34,7 @@ class NavigationAccessControlCustomBeanTest {
             .withConfigurationResource(
                     TestUtils.class.getPackageName().replace('.', '/') + "/test-application.properties")
             .overrideConfigKey("quarkus.http.auth.form.enabled", "true")
+            .overrideConfigKey("quarkus.http.auth.form.login-page", "/login")
             .overrideConfigKey("vaadin.security.navigation-access-control.enabled", "false")
             .overrideConfigKey("quarkus.http.test-port", "0")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
