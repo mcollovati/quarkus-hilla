@@ -76,9 +76,7 @@ Applications without authentication are not affected. Nothing is checked there.
 > annotations at all loses every view at once. Turn the check off to get back to the old
 > behavior, then add the annotations and turn it on again.
 
-Set the property to `false` to skip the check for all views, then rebuild — like every setting
-here, this one is read at build time and cannot be flipped on an application that is already
-built:
+Set the property to `false` to skip the check for all views, then rebuild:
 
 ```properties
 vaadin.security.navigation-access-control.enabled=false
