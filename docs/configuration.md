@@ -2,6 +2,11 @@
 
 All Quarkus-Hilla settings go in `application.properties`.
 
+> [!NOTE]
+> Every setting on this page is **fixed at build time**. Changing one means rebuilding the
+> application — setting it as a system property or environment variable on an existing build has
+> no effect. Quarkus keeps the value that was in place when the application was built.
+
 <a id="live-reload"></a>
 
 ## 🔄 Live Reload
@@ -71,7 +76,9 @@ Applications without authentication are not affected. Nothing is checked there.
 > annotations at all loses every view at once. Turn the check off to get back to the old
 > behavior, then add the annotations and turn it on again.
 
-Set the property to `false` to skip the check for all views:
+Set the property to `false` to skip the check for all views, then rebuild — like every setting
+here, this one is read at build time and cannot be flipped on an application that is already
+built:
 
 ```properties
 vaadin.security.navigation-access-control.enabled=false
