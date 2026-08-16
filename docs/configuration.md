@@ -88,6 +88,10 @@ vaadin.security.navigation-access-control.enabled=false
 > only cover the first page load. After that the browser switches views on its own. Use this
 > while you add the missing annotations, not as a permanent setting.
 
+The setting removes the access checker that this extension registers. An application that
+provides its own `NavigationAccessControl` bean and builds the checker itself keeps checking
+views; a warning is logged at startup when that happens.
+
 <a id="copilot"></a>
 
 ## ✨ Copilot
