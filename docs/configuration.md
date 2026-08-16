@@ -65,6 +65,11 @@ Applications without authentication are not affected. Nothing is checked there.
 
 #### Turning the check off
 
+Views became unreachable after an upgrade to 25.1.4 or 25.2.1? Those releases started checking
+views that were never checked before, so an application that has no access annotations at all
+loses every view at once. Turn the check off to get back to the old behavior, then add the
+annotations and turn it on again.
+
 Set the property to `false` to skip the check for all views:
 
 ```properties
