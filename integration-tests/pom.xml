@@ -18,7 +18,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.3.0</awaitility.version>
-        <selenide.version>7.18.0</selenide.version>
+        <selenide.version>7.18.1</selenide.version>
         <!--
             Vaadin BOM pins an older Selenium than the one required by Selenide, and the
             downgraded selenium-java does not bring in the selenium-devtools-latest artifact
