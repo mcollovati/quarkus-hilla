@@ -42,7 +42,11 @@ public class HillaSecurityRecorder {
                             .orElse("/"),
                     securityConfig.logoutPath(),
                     securityConfig.postLogoutRedirectUri().orElse(null),
-                    securityConfig.logoutInvalidateSession());
+                    securityConfig.logoutInvalidateSession(),
+                    config.getOptionalValue("quarkus.http.auth.form.cookie-path", String.class)
+                            .orElse("/"),
+                    config.getOptionalValue("quarkus.http.auth.form.cookie-domain", String.class)
+                            .orElse(null));
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
             return new HillaFormAuthenticationMechanism(delegate, authConfig);

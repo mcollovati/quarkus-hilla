@@ -93,14 +93,13 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
     }
 
     private void logout(RoutingContext ctx) {
-        // Vert.x sends back a set-cookie with max-age and expiry but no path,
-        // so we have to set it first,
-        // otherwise web clients don't clear it
-        Cookie cookie = ctx.request().getCookie(config.cookieName());
-        if (cookie != null) {
-            cookie.setPath("/");
-        }
-        ctx.response().removeCookie(config.cookieName());
+        // Request cookies do not include path or domain and may be absent when logout is outside the cookie path.
+        // Expire the configured scope explicitly so clients clear the authentication cookie in either case.
+        Cookie cookie = Cookie.cookie(config.cookieName(), "")
+                .setMaxAge(0)
+                .setPath(config.cookiePath())
+                .setDomain(config.cookieDomain());
+        ctx.response().addCookie(cookie);
         if (config.invalidateSessions() && ctx.session() != null) {
             ctx.session().destroy();
         }
@@ -114,5 +113,30 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
             String landingPage,
             String logoutPath,
             String postLogoutRedirect,
-            boolean invalidateSessions) {}
+            boolean invalidateSessions,
+            String cookiePath,
+            String cookieDomain) {
+
+        public Config {
+            cookiePath = cookiePath == null || cookiePath.isEmpty() ? "/" : cookiePath;
+        }
+
+        /**
+         * Creates configuration using the default authentication cookie scope.
+         *
+         * @param cookieName authentication cookie name
+         * @param landingPage landing page after login
+         * @param logoutPath logout request path
+         * @param postLogoutRedirect optional redirect after logout
+         * @param invalidateSessions whether logout destroys the session
+         */
+        public Config(
+                String cookieName,
+                String landingPage,
+                String logoutPath,
+                String postLogoutRedirect,
+                boolean invalidateSessions) {
+            this(cookieName, landingPage, logoutPath, postLogoutRedirect, invalidateSessions, "/", null);
+        }
+    }
 }
