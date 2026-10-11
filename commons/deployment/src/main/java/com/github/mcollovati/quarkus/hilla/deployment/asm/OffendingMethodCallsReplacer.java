@@ -100,6 +100,9 @@ public class OffendingMethodCallsReplacer {
         producer.produce(transform(EndpointInvoker.class, "checkAccess", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "invokeVaadinEndpointMethod", ClassUtils_getUserClass));
         producer.produce(transform(EndpointInvoker.class, "<init>", EndpointInvoker_createDefaultEndpointMapper));
+        producer.produce(new BytecodeTransformerBuildItem(
+                EndpointInvoker.class.getName(),
+                (className, classVisitor) -> new EndpointInvokerAuthorizationEventsVisitor(classVisitor)));
         producer.produce(transform(
                 SecureSignalsRegistry.class,
                 "register",
