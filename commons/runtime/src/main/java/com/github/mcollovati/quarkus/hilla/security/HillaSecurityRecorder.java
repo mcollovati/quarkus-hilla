@@ -21,8 +21,10 @@ import com.vaadin.flow.internal.UsageStatistics;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
+import io.quarkus.vertx.http.runtime.VertxHttpConfig;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.smallrye.config.SmallRyeConfig;
+import io.vertx.core.http.CookieSameSite;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
 
@@ -36,13 +38,20 @@ public class HillaSecurityRecorder {
             Config config = ConfigProvider.getConfig();
             VaadinSecurityConfig securityConfig =
                     config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
+            var formConfig = config.unwrap(SmallRyeConfig.class)
+                    .getConfigMapping(VertxHttpConfig.class)
+                    .auth()
+                    .form();
             var authConfig = new HillaFormAuthenticationMechanism.Config(
-                    config.getValue("quarkus.http.auth.form.cookie-name", String.class),
-                    config.getOptionalValue("quarkus.http.auth.form.landing-page", String.class)
-                            .orElse("/"),
+                    formConfig.cookieName(),
+                    formConfig.landingPage().orElse("/"),
                     securityConfig.logoutPath(),
                     securityConfig.postLogoutRedirectUri().orElse(null),
-                    securityConfig.logoutInvalidateSession());
+                    securityConfig.logoutInvalidateSession(),
+                    formConfig.cookiePath().orElse("/"),
+                    formConfig.cookieDomain().orElse(null),
+                    formConfig.httpOnlyCookie(),
+                    CookieSameSite.valueOf(formConfig.cookieSameSite().name()));
             FormAuthenticationMechanism delegate =
                     Arc.container().instance(FormAuthenticationMechanism.class).get();
             return new HillaFormAuthenticationMechanism(delegate, authConfig);
