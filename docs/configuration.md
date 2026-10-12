@@ -65,3 +65,21 @@ See [Vaadin Copilot Integration](copilot-integration.md) for service discovery m
 ## 🏗️ Vaadin Build
 
 Vaadin build properties such as `vaadin.build.enabled` and `vaadin.build.*` are provided by the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/), not by Quarkus-Hilla. See [Vaadin Quarkus Production Mode](https://vaadin.com/docs/latest/flow/integrations/quarkus#production-mode) for current behavior. Legacy Quarkus-Hilla build plugin behavior before Vaadin 25.0 is documented in [v24 Docs](v24-docs.md#vaadin-247-249-embedded-build-plugin--workaround).
+
+### Hilla dev-mode route generation
+
+Hilla's file router can report a spurious `TS2307` for
+`Frontend/generated/file-routes` on a cold dev-server start with the TypeScript 7
+checker. Routing itself and production bundles are unaffected. This does not
+require excluding older Hilla versions from the compatibility matrix.
+
+The React codestart includes `hilla-vite-compat.ts`, enabled in `vite.config.ts`,
+which runs the legacy router's generation hook before the dev checker starts.
+This keeps type checking enabled and leaves the upstream asynchronous
+implementation unchanged. Existing applications with the same symptom can copy
+this helper and add `generateHillaRoutesBeforeTypeCheck()` to their custom Vite
+plugins.
+
+The published `@vaadin/hilla-file-router` 25.3.2 package still uses the legacy
+hook. The upstream fix is [Hilla #6485](https://github.com/vaadin/hilla/pull/6485);
+remove the helper after upgrading to a published router that contains it.
