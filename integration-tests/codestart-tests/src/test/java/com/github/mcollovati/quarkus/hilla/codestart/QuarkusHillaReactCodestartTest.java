@@ -60,6 +60,7 @@ public class QuarkusHillaReactCodestartTest {
                 .doesNotContain("@vaadin/router"));
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "vite.config.ts").exists();
+        codestartTest.assertThatGeneratedFile(JAVA, "hilla-vite-compat.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "types.d.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "tsconfig.json").exists();
     }
