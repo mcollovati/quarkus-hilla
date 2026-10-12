@@ -126,3 +126,22 @@ Quarkus-Hilla creates a custom `connect-client.ts` in the frontend folder and co
 ## 🔌 Vaadin Quarkus Alignment
 
 Since 24.5, `quarkus-hilla` depends on the official [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/). This reduces duplicated integration code and keeps Quarkus-Hilla closer to Vaadin's Quarkus runtime behavior.
+
+## Troubleshooting cold frontend startup
+
+With Hilla file-router 25.3.0, 25.3.1 or 25.3.2, the development TypeScript checker
+can report `TS2307` for `Frontend/generated/file-routes` before that file has
+been generated. Production bundles are unaffected.
+
+Generated React applications include `hilla-vite-compat.ts` in their Vite plugins.
+Existing applications on those three releases can copy that helper and add
+`generateHillaRoutesBeforeTypeCheck()` to their custom Vite plugins. It generates
+routes before the checker starts, while leaving type checking enabled.
+
+The helper applies only to those affected releases. Other package versions are
+left unchanged. If the router package cannot be resolved from the project root,
+a warning is logged and the normal Vite lifecycle continues.
+
+After upgrading to a router release that fixes the generation order, remove the
+helper and its Vite plugin entry. The upstream issue is tracked in
+[Hilla #6040](https://github.com/vaadin/hilla/issues/6040).
