@@ -94,27 +94,24 @@ class AutoGridTest extends AbstractTest {
     void autoGrid_sort() {
         openAndWait(() -> $("vaadin-grid"));
         SelenideElement nameSorter = unsort();
-        collectColumnCells(1).shouldHave(CollectionCondition.sizeGreaterThan(0));
-        List<String> items = collectColumnTexts(1);
-        assertThat(items).containsExactlyElementsOf(TestData.NAMES_UNSORTED.subList(0, items.size()));
+        collectColumnCells(1).shouldHave(CollectionCondition.sizeGreaterThan(2));
+        int renderedRows = Math.max(3, collectColumnTexts(1).size());
+        awaitColumnTexts(1, TestData.NAMES_UNSORTED, renderedRows);
 
         // Sort by name ascending
         nameSorter.click();
         assertThat(nameSorter.getAttribute("direction")).isEqualTo("asc");
-        items = collectColumnTexts(1);
-        assertThat(items).containsExactlyElementsOf(TestData.NAMES_ASC.subList(0, items.size()));
+        awaitColumnTexts(1, TestData.NAMES_ASC, renderedRows);
 
-        // Sort by name ascending
+        // Sort by name descending
         nameSorter.click();
         assertThat(nameSorter.getAttribute("direction")).isEqualTo("desc");
-        items = collectColumnTexts(1);
-        assertThat(items).containsExactlyElementsOf(TestData.NAMES_DESC.subList(0, items.size()));
+        awaitColumnTexts(1, TestData.NAMES_DESC, renderedRows);
 
         // Unsorted
         nameSorter.click();
         assertThat(nameSorter.getAttribute("direction")).isNull();
-        items = collectColumnTexts(1);
-        assertThat(items).containsExactlyElementsOf(TestData.NAMES_UNSORTED.subList(0, items.size()));
+        awaitColumnTexts(1, TestData.NAMES_UNSORTED, renderedRows);
     }
 
     private static @NotNull SelenideElement unsort() {
@@ -138,6 +135,18 @@ class AutoGridTest extends AbstractTest {
 
     private static List<String> collectColumnTexts(int column) {
         return collectColumnCells(column).texts();
+    }
+
+    private static List<String> awaitColumnTexts(int column, List<String> expected, int minimumRows) {
+        return Wait().until(driver -> {
+            List<String> texts = collectColumnTexts(column);
+            if (texts.size() < Math.max(1, minimumRows)
+                    || texts.size() > expected.size()
+                    || !texts.equals(expected.subList(0, texts.size()))) {
+                return null;
+            }
+            return texts;
+        });
     }
 
     private static void columnShouldHaveTexts(int column, String... texts) {
