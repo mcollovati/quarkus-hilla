@@ -15,11 +15,15 @@
  */
 package com.github.mcollovati.quarkus.hilla.codestart;
 
+import java.nio.file.Files;
+
 import io.quarkus.devtools.testing.codestarts.QuarkusCodestartTest;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static io.quarkus.devtools.codestarts.quarkus.QuarkusCodestartCatalog.Language.JAVA;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuarkusHillaLitCodestartTest {
 
@@ -49,12 +53,13 @@ public class QuarkusHillaLitCodestartTest {
                 .exists()
                 .content()
                 .contains("<artifactId>vaadin-bom</artifactId>");
-        codestartTest
-                .assertThatGeneratedFile(JAVA, "package.json")
-                .exists()
-                .content()
+        codestartTest.assertThatGeneratedFile(JAVA, "package.json").exists().satisfies(path -> assertThat(
+                        new JsonObject(Files.readString(path))
+                                .getJsonObject("dependencies")
+                                .fieldNames())
                 .contains("@vaadin/router")
-                .doesNotContain("@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals");
+                .doesNotContain(
+                        "@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals"));
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "vite.config.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "types.d.ts").exists();
