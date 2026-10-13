@@ -165,3 +165,20 @@ After a successful release:
 - [JReleaser Documentation](https://jreleaser.org/)
 - [Maven Central Publishing Guide](https://central.sonatype.org/publish/)
 - [GitHub Releases Documentation](https://docs.github.com/en/repositories/releasing-projects-on-github)
+
+## Final maintenance release for 25.1
+
+The 25.1 line no longer receives ongoing development. Scheduled snapshot validation and Dependabot updates target
+main, 25.3 and 25.2. Historical compatibility rows remain in the README.
+
+Keep 25.1 available in the manual release and NPM synchronization workflows until its final maintenance release.
+Existing dependency pull requests and selected bug backports can still run pull request validation and NPM synchronization
+for that release. Remove the remaining 25.1 manual targets and NPM synchronization trigger after publication.
+
+Limit the final release to verified bug fixes and compatible patch updates. Do not backport new authentication modes,
+security configuration features or adaptations specific to newer Hilla APIs. Verify the complete 25.1 release candidate
+before publication.
+
+Candidate backports are the form-logout cookie-scope fix (#2311) and the generated Hilla route authorization fix (#2261).
+The latter requires a dedicated React Router 7 adaptation for 25.1, rather than an unchanged cherry-pick of the main
+matcher. Existing Flow access-checker and resolved-version-catalog fixes are already present on 25.1.
