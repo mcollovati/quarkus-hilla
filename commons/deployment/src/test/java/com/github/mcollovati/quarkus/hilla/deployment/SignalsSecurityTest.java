@@ -100,8 +100,9 @@ class SignalsSecurityTest {
     @Test
     @ActivateRequestContext
     void subscribeSecuredSignal_permitAll_authenticatedUsersAllowed() {
-        Stream.of(ADMIN, USER, GUEST).forEach(user -> subscribeSignal(user, "userCounter")
-                .accept(msg -> msg.satisfies(json -> assertSnapshotReceived(json, 20))));
+        Stream.of(ADMIN, USER, GUEST)
+                .forEach(user -> subscribeSignal(user, "userCounter")
+                        .accept(msg -> msg.satisfies(json -> assertSnapshotReceived(json, 20))));
         subscribeSignal(ANONYMOUS, "userCounter").accept(assertAccessDenied("userCounter"));
     }
 
@@ -121,16 +122,18 @@ class SignalsSecurityTest {
                 .accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, value.get())));
         updateSignalValueNotAuthenticated(ANONYMOUS, "adminCounter", value.addAndGet(7))
                 .accept(assertAccessDenied("adminCounter"));
-        Stream.of(USER, GUEST).forEach(user -> updateSignalValueNotAllowed(user, "adminCounter", value.addAndGet(7))
-                .accept(assertAccessDenied("adminCounter")));
+        Stream.of(USER, GUEST)
+                .forEach(user -> updateSignalValueNotAllowed(user, "adminCounter", value.addAndGet(7))
+                        .accept(assertAccessDenied("adminCounter")));
     }
 
     @Test
     @ActivateRequestContext
     void updateSecuredSignal_permitAll_authenticatedUsersAllowed() {
         AtomicInteger value = new AtomicInteger(0);
-        Stream.of(ADMIN, USER, GUEST).forEach(user -> updateSignalValue(user, "userCounter", value.addAndGet(7))
-                .accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, value.get()))));
+        Stream.of(ADMIN, USER, GUEST)
+                .forEach(user -> updateSignalValue(user, "userCounter", value.addAndGet(7))
+                        .accept(msg -> msg.satisfies(json -> assertUpdateReceived(json, value.get()))));
         updateSignalValueNotAuthenticated(ANONYMOUS, "userCounter", 70).accept(assertAccessDenied("userCounter"));
     }
 

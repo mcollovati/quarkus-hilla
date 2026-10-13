@@ -82,7 +82,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install
       - name: Native Test
         run: |
           set -x -e -o pipefail

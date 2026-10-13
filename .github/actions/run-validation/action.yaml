@@ -60,7 +60,7 @@ runs:
 
           echo "Running Validation for Hilla $hilla_version and Vaadin $vaadin_version ">> "$GITHUB_STEP_SUMMARY"
         fi
-        mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+        mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install
     - name: Test
       shell: bash
       run: |
