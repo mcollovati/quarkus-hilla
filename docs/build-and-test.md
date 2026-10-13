@@ -9,7 +9,7 @@
 Build the extension and its required dependencies:
 
 ```bash
-mvn -DskipTests install
+mvn -DskipTests -DskipITs=true install
 ```
 
 ## Testing

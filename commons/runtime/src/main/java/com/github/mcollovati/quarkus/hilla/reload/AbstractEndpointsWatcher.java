@@ -230,8 +230,8 @@ abstract class AbstractEndpointsWatcher implements Runnable {
                                 affectedPath.startsWith(dir.toAbsolutePath().toString()))
                         .findFirst()
                         .filter(dir -> isWatchedPath(dir, affectedPath))
-                        .ifPresent(
-                                classPath -> changedClasses.computeIfAbsent(classPath.resolve(affectedPath), file -> {
+                        .ifPresent(classPath ->
+                                changedClasses.computeIfAbsent(classPath.resolve(affectedPath), file -> {
                                     String className = deriveClassName(classPath.relativize(file))
                                             .orElse("");
                                     if (!className.isEmpty()) {

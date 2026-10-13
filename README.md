@@ -525,7 +525,7 @@ As discussed in [Hilla issue #211](https://github.com/vaadin/hilla/issues/211), 
 
 |                                                                  Quarkus-Hilla                                                                  |                                                                Quarkus                                                                |                                                         Vaadin / Hilla                                                         |
 |:-----------------------------------------------------------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------------------------------------------------:|:------------------------------------------------------------------------------------------------------------------------------:|
-| <picture><img alt="Development 25.1-SNAPSHOT" src="https://img.shields.io/badge/25.1--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.30+" src="https://img.shields.io/badge/Quarkus-3.27%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.1" src="https://img.shields.io/badge/Vaadin-25.1-blue?style=for-the-badge&logo=Vaadin"></picture> |
+| <picture><img alt="Development 25.1-SNAPSHOT" src="https://img.shields.io/badge/25.1--SNAPSHOT-blue?style=for-the-badge&logo=github"></picture> | <picture><img alt="Quarkus 3.40+" src="https://img.shields.io/badge/Quarkus-3.40%2B-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 25.1" src="https://img.shields.io/badge/Vaadin-25.1-blue?style=for-the-badge&logo=Vaadin"></picture> |
 
 ---
 
