@@ -29,7 +29,9 @@ class FrontendVersionCatalogTest {
 
     @Test
     void shouldUseOnlyResolvedVaadinVersionCatalog() throws IOException {
-        assertCatalogCount("vaadin-core-versions.json", 1);
+        assertCatalogCount("META-INF/VAADIN/versions/vaadin-core-versions.json", 1);
+        assertCatalogCount("META-INF/VAADIN/versions/vaadin-versions.json", 0);
+        assertCatalogCount("vaadin-core-versions.json", 0);
         assertCatalogCount("vaadin-versions.json", 0);
     }
 

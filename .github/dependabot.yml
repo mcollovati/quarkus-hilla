@@ -14,7 +14,7 @@ updates:
       - dependency-name: "com.vaadin:*"
   - package-ecosystem: "maven"
     directory: "/"
-    target-branch: "25.2"
+    target-branch: "25.3"
     schedule:
       interval: "daily"
     ignore:
@@ -28,7 +28,7 @@ updates:
           - "version-update:semver-minor"
   - package-ecosystem: "maven"
     directory: "/"
-    target-branch: "25.1"
+    target-branch: "25.2"
     schedule:
       interval: "daily"
     ignore:
@@ -40,4 +40,3 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
-
