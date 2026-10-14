@@ -9,8 +9,10 @@
 Build the extension and its required dependencies:
 
 ```bash
-mvn -DskipTests install
+mvn -DskipTests -DskipITs=true install
 ```
+
+Surefire skips unit tests with `-DskipTests`; Failsafe 3.6 requires `-DskipITs=true` separately.
 
 ## Testing
 

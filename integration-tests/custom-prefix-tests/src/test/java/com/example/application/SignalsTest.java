@@ -41,8 +41,9 @@ public class SignalsTest extends AbstractTest {
 
     @BeforeEach
     void openTestPage() {
-        openAndWait(getTestUrl() + "SharedNumberSignal", () -> $("h2[slot=\"navbar\"]")
-                .shouldHave(text("Shared Number Signal")));
+        openAndWait(
+                getTestUrl() + "SharedNumberSignal",
+                () -> $("h2[slot=\"navbar\"]").shouldHave(text("Shared Number Signal")));
     }
 
     @Test

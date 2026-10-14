@@ -91,13 +91,14 @@ class EndpointSecurityTest {
                 .and()
                 .body(equalTo("\"ADMIN\""));
 
-        Stream.of(USER, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "adminOnly", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(403)
-                .and()
-                .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied")));
+        Stream.of(USER, GUEST)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "adminOnly", authenticate(user))
+                        .then()
+                        .assertThat()
+                        .statusCode(403)
+                        .and()
+                        .body("message", containsString(SECURE_ENDPOINT))
+                        .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "adminOnly")
                 .then()
@@ -117,13 +118,14 @@ class EndpointSecurityTest {
                 .and()
                 .body(equalTo("\"USER\""));
 
-        Stream.of(ADMIN, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userOnly", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(403)
-                .and()
-                .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied")));
+        Stream.of(ADMIN, GUEST)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userOnly", authenticate(user))
+                        .then()
+                        .assertThat()
+                        .statusCode(403)
+                        .and()
+                        .body("message", containsString(SECURE_ENDPOINT))
+                        .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "userOnly")
                 .then()
@@ -136,12 +138,13 @@ class EndpointSecurityTest {
 
     @Test
     void securedEndpoint_adminAndUserOnly_onlyAdminAndUserAllowed() {
-        Stream.of(ADMIN, USER).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(200)
-                .and()
-                .body(equalTo("\"USER AND ADMIN\"")));
+        Stream.of(ADMIN, USER)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(user))
+                        .then()
+                        .assertThat()
+                        .statusCode(200)
+                        .and()
+                        .body(equalTo("\"USER AND ADMIN\"")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "userAndAdmin", authenticate(GUEST))
                 .then()
@@ -162,13 +165,14 @@ class EndpointSecurityTest {
 
     @Test
     void securedEndpoint_deny_notAllowed() {
-        Stream.of(ADMIN, USER, GUEST).forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "deny", authenticate(user))
-                .then()
-                .assertThat()
-                .statusCode(403)
-                .and()
-                .body("message", containsString(SECURE_ENDPOINT))
-                .body("message", containsString("reason: 'Access denied")));
+        Stream.of(ADMIN, USER, GUEST)
+                .forEach(user -> givenEndpointRequest(SECURE_ENDPOINT, "deny", authenticate(user))
+                        .then()
+                        .assertThat()
+                        .statusCode(403)
+                        .and()
+                        .body("message", containsString(SECURE_ENDPOINT))
+                        .body("message", containsString("reason: 'Access denied")));
 
         givenEndpointRequest(SECURE_ENDPOINT, "deny")
                 .then()
