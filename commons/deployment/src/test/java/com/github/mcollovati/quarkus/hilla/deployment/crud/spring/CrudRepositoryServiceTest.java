@@ -115,8 +115,9 @@ class CrudRepositoryServiceTest {
         entityManager.clear();
         allEntities =
                 entityManager.createQuery("from TestEntity", TestEntity.class).getResultList();
-        Assertions.assertThat(allEntities).hasSize(initialSize - 1).noneMatch(e -> e.getId()
-                .equals(existingEntity.getId()));
+        Assertions.assertThat(allEntities)
+                .hasSize(initialSize - 1)
+                .noneMatch(e -> e.getId().equals(existingEntity.getId()));
     }
 
     private static String testResource(String name) {

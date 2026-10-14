@@ -120,8 +120,11 @@ abstract class AbstractReactiveEndpointTest {
     }
 
     private void assertThatPushUpdateHasBeenReceived(HillaPushClient client, int i) throws InterruptedException {
-        client.assertMessageReceived(3, TimeUnit.SECONDS, message -> message.as("Message %d", i)
-                .isEqualTo("{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}", client.id, i));
+        client.assertMessageReceived(
+                3,
+                TimeUnit.SECONDS,
+                message -> message.as("Message %d", i)
+                        .isEqualTo("{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}", client.id, i));
     }
 
     private void assertCounterValue(String counterName, int expected) {

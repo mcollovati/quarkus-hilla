@@ -52,12 +52,15 @@ public class QuarkusHillaReactCodestartTest {
                 .exists()
                 .content()
                 .contains("<artifactId>vaadin-bom</artifactId>");
-        codestartTest.assertThatGeneratedFile(JAVA, "package.json").exists().satisfies(path -> assertThat(
-                        new JsonObject(Files.readString(path))
+        codestartTest
+                .assertThatGeneratedFile(JAVA, "package.json")
+                .exists()
+                .satisfies(path -> assertThat(new JsonObject(Files.readString(path))
                                 .getJsonObject("dependencies")
                                 .fieldNames())
-                .contains("@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals")
-                .doesNotContain("@vaadin/router"));
+                        .contains(
+                                "@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals")
+                        .doesNotContain("@vaadin/router"));
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "vite.config.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "hilla-vite-compat.ts").exists();

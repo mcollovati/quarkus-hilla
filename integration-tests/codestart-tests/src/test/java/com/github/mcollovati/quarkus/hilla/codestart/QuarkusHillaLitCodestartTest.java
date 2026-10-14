@@ -53,19 +53,26 @@ public class QuarkusHillaLitCodestartTest {
                 .exists()
                 .content()
                 .contains("<artifactId>vaadin-bom</artifactId>");
-        codestartTest.assertThatGeneratedFile(JAVA, "package.json").exists().satisfies(path -> assertThat(
-                        new JsonObject(Files.readString(path))
+        codestartTest
+                .assertThatGeneratedFile(JAVA, "package.json")
+                .exists()
+                .satisfies(path -> assertThat(new JsonObject(Files.readString(path))
                                 .getJsonObject("dependencies")
                                 .fieldNames())
-                .contains("@vaadin/router")
-                .doesNotContain(
-                        "@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals"));
-        codestartTest.assertThatGeneratedFile(JAVA, "package.json").satisfies(path -> assertThat(
-                        new JsonObject(Files.readString(path))
+                        .contains("@vaadin/router")
+                        .doesNotContain(
+                                "@vaadin/hilla-file-router",
+                                "@vaadin/react-components",
+                                "@vaadin/hilla-react-signals"));
+        codestartTest
+                .assertThatGeneratedFile(JAVA, "package.json")
+                .satisfies(path -> assertThat(new JsonObject(Files.readString(path))
                                 .getJsonObject("devDependencies")
                                 .fieldNames())
-                .doesNotContain(
-                        "@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals"));
+                        .doesNotContain(
+                                "@vaadin/hilla-file-router",
+                                "@vaadin/react-components",
+                                "@vaadin/hilla-react-signals"));
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "vite.config.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "types.d.ts").exists();

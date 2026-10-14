@@ -37,7 +37,7 @@ The following environment variables must be set before running the release:
 mvn clean
 
 # Build and deploy to staging
-mvn -Pdistribution -Drevision=<version> -DskipTests \
+mvn -Pdistribution -Drevision=<version> -DskipTests -DskipITs=true \
     -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
 
 # Publish the release
@@ -53,7 +53,7 @@ To test the release process without actually publishing:
 ```bash
 mvn clean
 
-mvn -Pdistribution -Drevision=<version> -DskipTests \
+mvn -Pdistribution -Drevision=<version> -DskipTests -DskipITs=true \
     -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
 
 mvn -N -Pdistribution -Drevision=<version> \
@@ -100,7 +100,7 @@ The version format depends on the type of release:
 3. **Run a dry run** (optional but recommended)
    ```bash
    mvn clean
-   mvn -Pdistribution -Drevision=<version> -DskipTests \
+   mvn -Pdistribution -Drevision=<version> -DskipTests -DskipITs=true \
        -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
    mvn -N -Pdistribution -Drevision=<version> \
        -Djreleaser.dry.run=true jreleaser:full-release
@@ -109,7 +109,7 @@ The version format depends on the type of release:
 4. **Execute the release**
    ```bash
    mvn clean
-   mvn -Pdistribution -Drevision=<version> -DskipTests \
+   mvn -Pdistribution -Drevision=<version> -DskipTests -DskipITs=true \
        -DaltDeploymentRepository=local::file:./target/staging-deploy deploy
    mvn -N -Pdistribution -Drevision=<version> jreleaser:full-release
    ```
