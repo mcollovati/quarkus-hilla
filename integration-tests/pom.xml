@@ -18,7 +18,9 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.3.0</awaitility.version>
-        <selenide.version>7.18.0</selenide.version>
+        <selenide.version>7.19.0</selenide.version>
+        <!-- Align Selenium with the version required by Selenide. -->
+        <selenium.version>4.51.0</selenium.version>
         <selenide.browser>chrome</selenide.browser>
         <vaadin.copilot.enable>false</vaadin.copilot.enable>
 
@@ -31,6 +33,17 @@
         <vaadin-maven-plugin.phase>none</vaadin-maven-plugin.phase>
         <vaadin.build.enabled>false</vaadin.build.enabled>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-bom</artifactId>
+                <version>${selenium.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>

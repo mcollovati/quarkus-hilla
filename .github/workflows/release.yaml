@@ -191,7 +191,7 @@ jobs:
       - name: Staging artifacts
         env:
           CMD_REVISION: ${{ inputs.version }}
-          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests' || '' }}
+          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests -DskipITs=true' || '' }}
         run: |
           mvn -V -ntp -Pdistribution,default-modules -Drevision=$CMD_REVISION -DaltDeploymentRepository=local::file:./target/staging-deploy $CMD_SKIP_TESTS deploy
       - name: Run JReleaser
@@ -203,7 +203,7 @@ jobs:
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
           CMD_DRY_RUN: ${{ github.event.inputs.dry-run }}
-          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests' || '' }}
+          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests -DskipITs=true' || '' }}
         run: |
           mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="$CMD_DRY_RUN" $CMD_SKIP_TESTS jreleaser:full-release
       - name: JReleaser release output

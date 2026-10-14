@@ -471,8 +471,9 @@ class AbstractEndpointsWatcherTest {
         }
 
         void waitUntilScanInvoked(int invocations) {
-            await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> verify(hotReplacementContext, atLeast(invocations))
-                    .doScan(anyBoolean()));
+            await().atMost(10, TimeUnit.SECONDS)
+                    .untilAsserted(() ->
+                            verify(hotReplacementContext, atLeast(invocations)).doScan(anyBoolean()));
         }
 
         void waitUntilHotswapInvoked(int invocations) {

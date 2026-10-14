@@ -41,12 +41,15 @@ class BootstrapTest {
     @Test
     void devMode_applicationStart_endpointsGenerated() {
         assertThat(frontendGeneratedFolder).isDirectory().exists();
-        Awaitility.await().atMost(5, TimeUnit.MINUTES).untilAsserted(() -> assertThat(frontendGeneratedFolder)
-                .isDirectoryContaining(fileWithName("endpoints.ts"))
-                .isDirectoryContaining(fileWithName("vaadin.ts"))
-                .isDirectoryContaining(fileWithName("UserInfoEndpoint.ts"))
-                .isDirectoryContaining(fileWithName("HelloWorldEndpoint.ts"))
-                .isDirectoryRecursivelyContaining("glob:**/entities/User*.ts"));
+        Awaitility.await().atMost(5, TimeUnit.MINUTES).untilAsserted(() -> {
+            assertThat(frontendGeneratedFolder)
+                    .isDirectoryContaining(fileWithName("endpoints.ts"))
+                    .isDirectoryContaining(fileWithName("vaadin.ts"))
+                    .isDirectoryContaining(fileWithName("UserInfoEndpoint.ts"))
+                    .isDirectoryContaining(fileWithName("HelloWorldEndpoint.ts"));
+            assertThat(frontendGeneratedFolder.resolve("com/example/application/entities/UserInfo.ts"))
+                    .isRegularFile();
+        });
     }
 
     private static Predicate<Path> fileWithName(String expectedFileName) {

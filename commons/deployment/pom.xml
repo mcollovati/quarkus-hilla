@@ -154,6 +154,7 @@
                         <vaadin.project.frontend.generated>${project.build.directory}/frontend/generated
                         </vaadin.project.frontend.generated>
                         <vaadin.version>${vaadin.version}</vaadin.version>
+                        <copilot.version>${copilot.version}</copilot.version>
                     </systemPropertyVariables>
                     <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
                 </configuration>
