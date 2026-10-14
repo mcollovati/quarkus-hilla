@@ -20,6 +20,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RoutePatternMatcherTest {
 
@@ -83,12 +84,93 @@ class RoutePatternMatcherTest {
     }
 
     @Test
+    void bestMatches_requiredParameterConsumesOneSegment() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("users/:id", "required"));
+
+        assertEquals(List.of("required"), targets(RoutePatternMatcher.bestMatches(routes, "/users/42")));
+        assertTrue(RoutePatternMatcher.bestMatches(routes, "/users").isEmpty());
+    }
+
+    @Test
+    void bestMatches_optionalParameterMatchesWithAndWithoutValue() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("reports/:filter?", "optional"));
+
+        assertEquals(List.of("optional"), targets(RoutePatternMatcher.bestMatches(routes, "/reports")));
+        assertEquals(List.of("optional"), targets(RoutePatternMatcher.bestMatches(routes, "/reports/open")));
+    }
+
+    @Test
+    void bestMatches_optionalStaticSegmentMatchesWithAndWithoutSegment() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("projects?", "optional-static"));
+
+        assertEquals(List.of("optional-static"), targets(RoutePatternMatcher.bestMatches(routes, "/")));
+        assertEquals(List.of("optional-static"), targets(RoutePatternMatcher.bestMatches(routes, "/projects")));
+    }
+
+    @Test
+    void bestMatches_preservesEncodedSlashInsideParameter() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("items/:id", "parameter"));
+
+        assertEquals(List.of("parameter"), targets(RoutePatternMatcher.bestMatches(routes, "/items/a%2Fb")));
+        assertTrue(RoutePatternMatcher.bestMatches(routes, "/items/a/b").isEmpty());
+    }
+
+    @Test
+    void bestMatches_parameterSuffixMustMatchBeforeOutrankingWildcard() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes = List.of(
+                RoutePatternMatcher.compile("files/:id.json", "suffix"),
+                RoutePatternMatcher.compile("files/*", "wildcard"));
+
+        assertEquals(List.of("wildcard"), targets(RoutePatternMatcher.bestMatches(routes, "/files/foo")));
+        assertEquals(List.of("suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/files/foo.json")));
+    }
+
+    @Test
+    void bestMatches_optionalParameterWithSuffixKeepsSegmentRequired() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("files/:id?.json", "suffix"));
+
+        assertTrue(RoutePatternMatcher.bestMatches(routes, "/files").isEmpty());
+        assertEquals(List.of("suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/files/.json")));
+        assertEquals(List.of("suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/files/foo.json")));
+    }
+
+    @Test
     void bestMatches_trailingQuestionMarksAnySegmentOptional() {
         List<RoutePatternMatcher.CompiledRoute<String>> routes =
                 List.of(RoutePatternMatcher.compile("orders/:id.v2?", "optional-suffix"));
 
         assertEquals(List.of("optional-suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/orders")));
         assertEquals(List.of("optional-suffix"), targets(RoutePatternMatcher.bestMatches(routes, "/orders/x.v2")));
+    }
+
+    @Test
+    void bestMatches_terminalWildcardConsumesRemainingSegments() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("files/*", "wildcard"));
+
+        assertEquals(List.of("wildcard"), targets(RoutePatternMatcher.bestMatches(routes, "/files/a/b")));
+    }
+
+    @Test
+    void bestMatches_wildcardBeforeOptionalParameterUsesOptionalExpansion() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("files/*/:id?", "wildcard-optional"));
+
+        assertEquals(List.of("wildcard-optional"), targets(RoutePatternMatcher.bestMatches(routes, "/files/a/b")));
+    }
+
+    @Test
+    void bestMatches_nonTerminalWildcardUsesLiteralBranch() {
+        List<RoutePatternMatcher.CompiledRoute<String>> routes =
+                List.of(RoutePatternMatcher.compile("files/*/:id", "literal-wildcard"));
+
+        assertEquals(List.of("literal-wildcard"), targets(RoutePatternMatcher.bestMatches(routes, "/files/*/42")));
+        assertTrue(RoutePatternMatcher.bestMatches(routes, "/files/a/42").isEmpty());
     }
 
     @Test
