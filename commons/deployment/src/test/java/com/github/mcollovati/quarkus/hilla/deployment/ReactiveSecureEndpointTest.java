@@ -79,8 +79,9 @@ class ReactiveSecureEndpointTest {
     @Test
     @ActivateRequestContext
     void securedEndpoint_permitAll_authenticatedUsersAllowed() {
-        Stream.of(ADMIN, USER, GUEST).forEach(user -> pushConnection(user, "authenticated")
-                .accept(msg -> msg.contains("\"item\":\"AUTHENTICATED\"")));
+        Stream.of(ADMIN, USER, GUEST)
+                .forEach(user -> pushConnection(user, "authenticated")
+                        .accept(msg -> msg.contains("\"item\":\"AUTHENTICATED\"")));
         pushConnection(ANONYMOUS, "authenticated").accept(assertAccessDenied("authenticated"));
     }
 
@@ -103,8 +104,9 @@ class ReactiveSecureEndpointTest {
     @Test
     @ActivateRequestContext
     void securedEndpoint_adminAndUserOnly_onlyAdminAndUserAllowed() {
-        Stream.of(ADMIN, USER).forEach(user -> pushConnection(user, "userAndAdmin")
-                .accept(msg -> msg.contains("\"item\":\"USER AND ADMIN\"")));
+        Stream.of(ADMIN, USER)
+                .forEach(user -> pushConnection(user, "userAndAdmin")
+                        .accept(msg -> msg.contains("\"item\":\"USER AND ADMIN\"")));
         Stream.of(ANONYMOUS, GUEST)
                 .forEach(user -> pushConnection(user, "userAndAdmin").accept(assertAccessDenied("userAndAdmin")));
     }

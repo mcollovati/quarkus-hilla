@@ -78,8 +78,9 @@ public class MutinyClockService {
 
     @RolesAllowed("ADMIN")
     public MutinyEndpointSubscription<@Nonnull String> getClockCancellable() {
-        return MutinyEndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
-                .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
+        return MutinyEndpointSubscription.of(
+                getClock(),
+                () -> System.getLogger("TESTME").log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
 
     @AnonymousAllowed
