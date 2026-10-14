@@ -70,8 +70,9 @@ public class ClockService {
 
     @RolesAllowed("ADMIN")
     public EndpointSubscription<@Nonnull String> getClockCancellable() {
-        return EndpointSubscription.of(getClock(), () -> System.getLogger("TESTME")
-                .log(System.Logger.Level.INFO, "Subscription has been cancelled"));
+        return EndpointSubscription.of(
+                getClock(),
+                () -> System.getLogger("TESTME").log(System.Logger.Level.INFO, "Subscription has been cancelled"));
     }
 
     @AnonymousAllowed

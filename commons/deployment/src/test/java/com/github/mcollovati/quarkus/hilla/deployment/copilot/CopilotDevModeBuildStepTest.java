@@ -34,13 +34,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CopilotDevModeBuildStepTest {
 
     @RegisterExtension
-    static final QuarkusDevModeTest config = new QuarkusDevModeTest().withApplicationRoot(jar -> jar.addClasses(
-                    CopilotDevModeProbeServlet.class,
-                    CopilotTestBeans.class,
-                    CopilotTestBeans.AAlphabeticallyFirstHelper.class,
-                    CopilotTestBeans.ZzzAppShell.class,
-                    CopilotTestBeans.ApplicationScopedFlowService.class)
-            .addAsResource(new StringAsset("quarkus.http.port=0\n"), "application.properties"));
+    static final QuarkusDevModeTest config = new QuarkusDevModeTest()
+            .withApplicationRoot(jar -> jar.addClasses(
+                            CopilotDevModeProbeServlet.class,
+                            CopilotTestBeans.class,
+                            CopilotTestBeans.AAlphabeticallyFirstHelper.class,
+                            CopilotTestBeans.ZzzAppShell.class,
+                            CopilotTestBeans.ApplicationScopedFlowService.class)
+                    .addAsResource(new StringAsset("quarkus.http.port=0\n"), "application.properties"));
 
     private static final RuntimeKey<URI> LOCAL_BASE_URI = RuntimeKey.key("quarkus.http.local-base-uri");
 
