@@ -92,6 +92,17 @@ The setting turns off the `NavigationAccessControl` at startup, so it also appli
 application that provides its own bean. Nothing is turned on: when the setting is `true`, an
 access control that the application disabled itself stays disabled.
 
+### Form logout cookie scope
+
+Form logout expires the authentication cookie using Quarkus's configured path,
+domain, HttpOnly and SameSite settings. On HTTPS it also sets Secure, including
+for `__Host-` and `__Secure-` cookie names.
+
+For reliable logout, configure an explicit `quarkus.http.auth.form.cookie-path`;
+the default is `/`. An empty value lets browsers derive cookie paths from login
+and renewal request URLs. Logout cannot reconstruct all those previous scopes.
+The existing root fallback covers root-level login.
+
 <a id="copilot"></a>
 
 ## ✨ Copilot

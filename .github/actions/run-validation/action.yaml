@@ -45,9 +45,14 @@ runs:
       shell: bash
       run: |
         set -x -e -o pipefail
-        if [[ "${{ inputs.hilla_version }}" != "main-SNAPSHOT" ]]; then
-          mvn -B -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion=${{ inputs.hilla_version }} -DgenerateBackupPoms=false
+        hilla_version="${{ inputs.hilla_version }}"
+        if [[ "$hilla_version" == "main-SNAPSHOT" ]]; then
+          hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=revision -DforceStdout)
         fi
+        # Maintenance branches pin releases; nightly validation replaces the complete baseline.
+        mvn -B -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
+        mvn -B -N -ntp versions:set-property -Dproperty=flow.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
+        mvn -B -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
         if [[ "${{ inputs.skip_vaadin_version_detection }}" == "false" ]]; then
           vaadin_version=$(mvn -ntp -N -Pdetect-vaadin-platform -q)-SNAPSHOT
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
@@ -60,7 +65,7 @@ runs:
 
           echo "Running Validation for Hilla $hilla_version and Vaadin $vaadin_version ">> "$GITHUB_STEP_SUMMARY"
         fi
-        mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+        mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install
     - name: Test
       shell: bash
       run: |

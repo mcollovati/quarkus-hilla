@@ -2,7 +2,7 @@ name: Prepare Vaadin NPM dependency sync
 
 on:
   pull_request_target:
-    branches: ["25.2", "25.1"]
+    branches: ["25.3", "25.2", "25.1"]
     types: [opened, reopened, synchronize]
 
 permissions:
@@ -69,7 +69,7 @@ jobs:
           distribution: temurin
       - name: Generate frontend dependencies
         if: needs.classify.outputs.relevant == 'true'
-        run: mvn -V -e -ntp install -Pall-modules -Dflatten.skip=true -DskipTests
+        run: mvn -V -e -ntp install -Pall-modules -Dflatten.skip=true -DskipTests -DskipITs=true
       - name: Create restricted patch
         if: needs.classify.outputs.relevant == 'true'
         id: patch

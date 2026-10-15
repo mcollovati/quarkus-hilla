@@ -10,6 +10,7 @@ on:
         default: 'main'
         options:
           - main
+          - "25.3"
           - "25.2"
           - "25.1"
       version:
@@ -47,7 +48,7 @@ jobs:
           echo "🚫 **$CMD_ACTOR** is an external contributor, only **$CMD_REPO** team members can perform a release" \
             | tee -a $GITHUB_STEP_SUMMARY && exit 1
       - name: Validate Workflow branch
-        if: ${{ !github.event.inputs.dry-run }}
+        if: ${{ !inputs.dry-run }}
         run: |
           BRANCH_NAME=${GITHUB_REF##*/}
           if [[ "main" != "${BRANCH_NAME}" ]]; then
@@ -65,7 +66,7 @@ jobs:
         env:
           CMD_VERSION: ${{ inputs.version }}
           CMD_TARGET_BRANCH: ${{ inputs.target-branch }}
-          CMD_DRY_RUN: ${{ github.event.inputs.dry-run }}
+          CMD_DRY_RUN: ${{ inputs.dry-run }}
         run: |
           VERSION_REGEX='^[0-9]+\.[0-9]+\.[0-9]+(-(alpha|beta|rc)[0-9]+)?$'
           if [[ ! "$CMD_VERSION" =~ $VERSION_REGEX ]]; then
@@ -144,7 +145,7 @@ jobs:
       - name: Staging artifacts
         env:
           CMD_REVISION: ${{ inputs.version }}
-          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests' || '' }}
+          CMD_SKIP_TESTS: ${{ inputs.dry-run && '-DskipTests -DskipITs=true' || '' }}
         run: |
           mvn -V -ntp -Pdistribution,default-modules -Drevision=$CMD_REVISION -DaltDeploymentRepository=local::file:./target/staging-deploy $CMD_SKIP_TESTS deploy
       - name: Run JReleaser
@@ -155,8 +156,8 @@ jobs:
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
-          CMD_DRY_RUN: ${{ github.event.inputs.dry-run }}
-          CMD_SKIP_TESTS: ${{ github.event.inputs.dry-run && '-DskipTests' || '' }}
+          CMD_DRY_RUN: ${{ inputs.dry-run }}
+          CMD_SKIP_TESTS: ${{ inputs.dry-run && '-DskipTests -DskipITs=true' || '' }}
         run: |
           mvn -N -V -ntp -Pdistribution -Drevision=${{ inputs.version }} -Djreleaser.dry.run="$CMD_DRY_RUN" $CMD_SKIP_TESTS jreleaser:full-release
       - name: JReleaser release output

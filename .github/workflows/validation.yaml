@@ -1,7 +1,7 @@
 name: Quarkus Hilla Validation
 on:
   push:
-    branches: [main, "25.2", "25.1"]
+    branches: [main, "25.3", "25.2"]
   workflow_dispatch:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
@@ -59,7 +59,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install
       - name: Test
         run: |
           set -x -e -o pipefail
@@ -97,7 +97,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install -Dquarkus-hilla.test-mode=development
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install -Dquarkus-hilla.test-mode=development
       - name: End-to-end Test (Development mode)
         run: |
           set -x -e -o pipefail
@@ -135,7 +135,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install -Dquarkus-hilla.test-mode=production
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install -Dquarkus-hilla.test-mode=production
       - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
@@ -173,7 +173,7 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install
       - name: End-to-end Test (Production mode)
         run: |
           set -x -e -o pipefail
