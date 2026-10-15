@@ -32,6 +32,17 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 | `vaadin.security.post-logout-redirect-uri`  | String  | -         | URI to redirect to after successful logout.                     |
 | `vaadin.security.logout-invalidate-session` | Boolean | `true`    | Whether HTTP session should be invalidated on logout.           |
 
+### Form logout cookie scope
+
+Form logout expires the authentication cookie using Quarkus's configured path,
+domain, HttpOnly and SameSite settings. On HTTPS it also sets Secure, including
+for `__Host-` and `__Secure-` cookie names.
+
+For reliable logout, configure an explicit `quarkus.http.auth.form.cookie-path`;
+the default is `/`. An empty value lets browsers derive cookie paths from login
+and renewal request URLs. Logout cannot reconstruct all those previous scopes.
+The existing root fallback covers root-level login.
+
 <a id="copilot"></a>
 
 ## ✨ Copilot
