@@ -71,12 +71,13 @@ public interface VaadinSecurityConfig {
         /**
          * Whether access to Flow views is checked.
          * <p></p>
-         * Each view needs an annotation that says who may open it, either on
-         * the view or on a layout the view uses: {@code @AnonymousAllowed} for
-         * everyone, {@code @PermitAll} for logged-in users,
-         * {@code @RolesAllowed} for the given roles, {@code @DenyAll} for
-         * nobody. A view with no annotation is not shown, which is the Vaadin
-         * default.
+         * Each view needs an annotation that says who may open it, on the view
+         * class or a superclass of it: {@code @AnonymousAllowed} for everyone,
+         * {@code @PermitAll} for logged-in users, {@code @RolesAllowed} for the
+         * given roles, {@code @DenyAll} for nobody. A view with no annotation
+         * is not shown, which is the Vaadin default. An annotation on a router
+         * layout does not count for the views inside it; it is checked in
+         * addition.
          * <p></p>
          * Set to {@literal false} to skip the check for all views. Then anyone
          * who can open the application can open every Flow view, and the

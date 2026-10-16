@@ -47,7 +47,7 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 ![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
 
 In a secured application, each Flow view needs an annotation that says who may open it. Put it
-on the view, or on a layout the view uses:
+on the view class or a superclass of it:
 
 | Annotation          | Who gets in            |
 |---------------------|------------------------|
@@ -65,6 +65,9 @@ public class DashboardView extends VerticalLayout {
 
 **A view with no annotation is not shown.** That is the Vaadin default. If a view is suddenly
 unreachable, a missing annotation is the most likely cause.
+
+An annotation on a router layout does not count for the views inside it. If a layout carries
+one, it is checked in addition, so the user has to pass both.
 
 Applications without authentication are not affected. Nothing is checked there.
 
