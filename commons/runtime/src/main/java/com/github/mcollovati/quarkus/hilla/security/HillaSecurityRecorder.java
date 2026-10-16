@@ -18,6 +18,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
@@ -27,6 +28,7 @@ import io.smallrye.config.SmallRyeConfig;
 import io.vertx.core.http.CookieSameSite;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.slf4j.LoggerFactory;
 
 import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 
@@ -65,9 +67,32 @@ public class HillaSecurityRecorder {
         markSecurityPolicyUsed();
     }
 
-    public void configureNavigationAccessControl(BeanContainer container, String loginPath) {
-        QuarkusNavigationAccessControl accessChecker = container.beanInstance(QuarkusNavigationAccessControl.class);
-        accessChecker.setLoginView(loginPath);
+    public void configureNavigationAccessControl(BeanContainer container, String loginPath, boolean enabled) {
+        // Resolved by base type, an application may provide its own bean.
+        NavigationAccessControl accessControl = container.beanInstance(NavigationAccessControl.class);
+        if (loginPath != null) {
+            // The login view can be set only once and an application bean is
+            // free to set its own, so only ours is configured from the Quarkus
+            // form login settings.
+            if (accessControl instanceof QuarkusNavigationAccessControl) {
+                accessControl.setLoginView(loginPath);
+            } else {
+                LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                        .debug(
+                                "quarkus.http.auth.form.login-page is not applied to {}, an application provided "
+                                        + "navigation access control configures its login view itself.",
+                                accessControl.getClass().getName());
+            }
+        }
+        if (!enabled) {
+            // Never turns the access control on, an application disabling its
+            // own bean keeps that state.
+            accessControl.setEnabled(false);
+            LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                    .warn("Flow view access checking is turned off by "
+                            + "vaadin.security.navigation-access-control.enabled=false. Every Flow view is "
+                            + "reachable regardless of its access annotations.");
+        }
     }
 
     /**
