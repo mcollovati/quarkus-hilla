@@ -28,6 +28,7 @@ import io.smallrye.config.SmallRyeConfig;
 import io.vertx.core.http.CookieSameSite;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.slf4j.LoggerFactory;
 
 import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 
@@ -83,16 +84,41 @@ public class HillaSecurityRecorder {
     }
 
     private static void applyLoginView(NavigationAccessControl accessControl, String loginPage) {
+        if (accessControl instanceof QuarkusNavigationAccessControl ours) {
+            Class<?> loginViewClass = ours.currentLoginViewClass();
+            String loginUrl = ours.currentLoginUrl();
+            if (loginViewClass != null) {
+                // The route of a login view class cannot be compared reliably
+                // at startup, so it is kept rather than reported as a conflict.
+                logKeptLoginView(accessControl, loginViewClass.getName(), loginPage);
+            } else if (loginUrl != null && !loginUrl.equals(loginPage)) {
+                throw new IllegalStateException(accessControl.getClass().getName() + " sets the login view "
+                        + loginUrl + ", which conflicts with " + FORM_LOGIN_PAGE + "=" + loginPage
+                        + ". The login view is taken from that property: remove the setLoginView call from the "
+                        + "bean, or set the property to the same view.");
+            } else {
+                // A no-op if the same login view is already set.
+                accessControl.setLoginView(loginPage);
+            }
+            return;
+        }
         try {
-            // A no-op if the same login view is already set.
             accessControl.setLoginView(loginPage);
         } catch (IllegalStateException alreadySet) {
-            throw new IllegalStateException(
-                    accessControl.getClass().getName() + " already has a login view, which conflicts with "
-                            + FORM_LOGIN_PAGE + "=" + loginPage + ". The login view is taken from that property: "
-                            + "remove the setLoginView call from the bean, or set the property to the same view.",
-                    alreadySet);
+            // A bean not extending QuarkusNavigationAccessControl cannot be
+            // inspected, so its own login view is kept.
+            logKeptLoginView(accessControl, alreadySet.getMessage(), loginPage);
         }
+    }
+
+    private static void logKeptLoginView(NavigationAccessControl accessControl, String kept, String loginPage) {
+        LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                .info(
+                        "Keeping the login view of {} ({}). {}={} is not applied to navigation within the application.",
+                        accessControl.getClass().getName(),
+                        kept,
+                        FORM_LOGIN_PAGE,
+                        loginPage);
     }
 
     /**

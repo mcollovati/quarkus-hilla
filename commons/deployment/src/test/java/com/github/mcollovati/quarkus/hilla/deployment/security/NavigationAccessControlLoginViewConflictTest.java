@@ -45,8 +45,8 @@ class NavigationAccessControlLoginViewConflictTest {
             .setArchiveProducer(() ->
                     ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class, ConflictingAccessControl.class))
             .assertException(throwable -> assertThat(throwable)
-                    .hasStackTraceContaining(ConflictingAccessControl.class.getName() + " already has a login view")
-                    .hasStackTraceContaining("quarkus.http.auth.form.login-page=/login"));
+                    .hasStackTraceContaining(ConflictingAccessControl.class.getName() + " sets the login view "
+                            + "/custom-login, which conflicts with quarkus.http.auth.form.login-page=/login"));
 
     @Test
     void differentLoginView_startupFails() {

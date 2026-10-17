@@ -61,6 +61,22 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
         return super.getRolesChecker(request);
     }
 
+    /**
+     * Gets the login URL already set on this access control, if any. Exposes
+     * the protected getter to the extension.
+     */
+    String currentLoginUrl() {
+        return getLoginUrl();
+    }
+
+    /**
+     * Gets the Flow login view class already set on this access control, if
+     * any. Exposes the protected getter to the extension.
+     */
+    Class<?> currentLoginViewClass() {
+        return getLoginView();
+    }
+
     @Singleton
     public static class Installer {
 

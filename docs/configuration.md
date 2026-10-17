@@ -79,9 +79,12 @@ When an anonymous user navigates to a view they may not open, they are sent to t
 The extension takes it from `quarkus.http.auth.form.login-page`, the same page Quarkus uses for
 its own login redirect, so both always agree.
 
-A custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl`. It must
-not set a login view of its own, unless it is the same as `quarkus.http.auth.form.login-page`.
-A different one makes the application fail at startup, naming both values.
+A custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl` and leave
+the login view to the extension. If such a bean sets a login URL that differs from
+`quarkus.http.auth.form.login-page`, the application fails at startup, naming both values.
+A Flow login view class set by the bean, and the login view of a bean that does not extend
+`QuarkusNavigationAccessControl`, are kept instead. The startup log names both, because the two
+login pages may then differ.
 
 #### Turning the check off
 
@@ -104,14 +107,17 @@ vaadin.security.navigation-access-control.enabled=false
 > other annotations do nothing. Use this while you add the missing annotations, not as a
 > permanent setting.
 
-Quarkus HTTP permissions still apply. To keep requiring a login, add a rule like this:
+Quarkus HTTP permissions still apply. To keep requiring a login for some views, add a rule for
+their paths:
 
 ```properties
-quarkus.http.auth.permission.app.paths=/*
+quarkus.http.auth.permission.app.paths=/dashboard,/admin/*
 quarkus.http.auth.permission.app.policy=authenticated
 ```
 
-Such rules only cover the first page load, though. After that the browser switches views on its
+Keep such rules to the paths you want to protect. A rule for all paths (`/*`) also locks out the
+login page and the resources Vaadin needs to show it. Such rules only cover the first page load,
+though. After that the browser switches views on its
 own, and only the access check sees those navigations.
 
 The setting turns off the `NavigationAccessControl` at startup, so it also applies to an
