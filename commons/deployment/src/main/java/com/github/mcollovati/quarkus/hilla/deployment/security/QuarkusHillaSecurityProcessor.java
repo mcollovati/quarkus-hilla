@@ -19,7 +19,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
-import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -34,6 +33,7 @@ import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.jboss.jandex.DotName;
 
+import com.github.mcollovati.quarkus.hilla.security.AccessCheckDecisionResolverProducer;
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
@@ -127,7 +127,7 @@ class QuarkusHillaSecurityProcessor {
                     .addBeanClasses(
                             QuarkusNavigationAccessControl.class,
                             QuarkusNavigationAccessControl.Installer.class,
-                            DefaultAccessCheckDecisionResolver.class)
+                            AccessCheckDecisionResolverProducer.class)
                     .setUnremovable()
                     .build());
             accessCheckerProducer.produce(
