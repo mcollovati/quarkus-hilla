@@ -143,9 +143,10 @@ class HillaFormLogoutTest {
                 assertNull(loginManager.restore(context));
                 context.response().end();
             });
-            router.get("/app/protected").handler(context -> context.response()
-                    .setStatusCode(loginManager.restore(context) == null ? 401 : 200)
-                    .end());
+            router.get("/app/protected")
+                    .handler(context -> context.response()
+                            .setStatusCode(loginManager.restore(context) == null ? 401 : 200)
+                            .end());
             var server = vertx.createHttpServer()
                     .requestHandler(router)
                     .listen(0, "localhost")
