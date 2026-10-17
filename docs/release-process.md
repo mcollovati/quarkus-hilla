@@ -183,6 +183,7 @@ Candidate backports are the form-logout cookie-scope fix (#2311) and the generat
 The latter requires a dedicated React Router 7 adaptation for 25.1, rather than an unchanged cherry-pick of the main
 matcher. Existing Flow access-checker and resolved-version-catalog fixes are already present on 25.1.
 
-One security configuration feature is an exception: the navigation access control opt-out (#2279) is backported,
-because 25.1.4 shipped the default-deny change (#2264) that it lets applications postpone. Nothing else of that
-configuration area is backported, including customization of the navigation access control.
+Two security configuration changes are exceptions. The navigation access control opt-out (#2279) is backported,
+because 25.1.4 shipped the default-deny change (#2264) that it lets applications postpone. The replaceable access
+check decision resolver (#2335) is backported too, as a small extension point without behavior change. Nothing else of
+that configuration area is backported, including the customization model for the navigation access control (#2331).
