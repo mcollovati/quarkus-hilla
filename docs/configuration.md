@@ -3,9 +3,10 @@
 All Quarkus-Hilla settings go in `application.properties`.
 
 > [!NOTE]
-> Every setting on this page is **fixed at build time**. Changing one means rebuilding the
-> application — setting it as a system property or environment variable on an existing build has
-> no effect. Quarkus keeps the value that was in place when the application was built.
+> Every `vaadin.*` setting on this page is **fixed at build time**. Changing one means rebuilding
+> the application — setting it as a system property or environment variable on an existing build
+> has no effect. Quarkus keeps the value that was in place when the application was built.
+> The `quarkus.*` properties mentioned here follow the Quarkus rules for each property.
 
 <a id="live-reload"></a>
 
@@ -69,7 +70,18 @@ unreachable, a missing annotation is the most likely cause.
 An annotation on a router layout does not count for the views inside it. If a layout carries
 one, it is checked in addition, so the user has to pass both.
 
-Applications without authentication are not affected. Nothing is checked there.
+Views are only checked when Quarkus form authentication is enabled
+(`quarkus.http.auth.form.enabled=true`).
+
+#### Login view
+
+When an anonymous user navigates to a view they may not open, they are sent to the login view.
+The extension takes it from `quarkus.http.auth.form.login-page`, the same page Quarkus uses for
+its own login redirect, so both always agree.
+
+A custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl`. It must
+not set a login view of its own, unless it is the same as `quarkus.http.auth.form.login-page`.
+A different one makes the application fail at startup, naming both values.
 
 #### Turning the check off
 
@@ -79,7 +91,9 @@ Applications without authentication are not affected. Nothing is checked there.
 > annotations at all loses every view at once. Turn the check off to get back to the old
 > behavior, then add the annotations and turn it on again.
 
-Set the property to `false` to skip the check for all views, then rebuild:
+Set the property to `false` to skip the check for all views, then rebuild. Requiring a rebuild
+is deliberate: an environment variable cannot turn off the access checks of an application that
+is already deployed.
 
 ```properties
 vaadin.security.navigation-access-control.enabled=false
@@ -87,13 +101,27 @@ vaadin.security.navigation-access-control.enabled=false
 
 > [!WARNING]
 > Then anyone who can open the application can open every Flow view, and `@RolesAllowed` and the
-> other annotations do nothing. The `quarkus.http.auth.permission.*` rules still work, but they
-> only cover the first page load. After that the browser switches views on its own. Use this
-> while you add the missing annotations, not as a permanent setting.
+> other annotations do nothing. Use this while you add the missing annotations, not as a
+> permanent setting.
+
+Quarkus HTTP permissions still apply. To keep requiring a login, add a rule like this:
+
+```properties
+quarkus.http.auth.permission.app.paths=/*
+quarkus.http.auth.permission.app.policy=authenticated
+```
+
+Such rules only cover the first page load, though. After that the browser switches views on its
+own, and only the access check sees those navigations.
 
 The setting turns off the `NavigationAccessControl` at startup, so it also applies to an
 application that provides its own bean. Nothing is turned on: when the setting is `true`, an
 access control that the application disabled itself stays disabled.
+
+This opt-out restores the behavior before 25.1.4 and is meant as an intermediate step. Vaadin's
+Spring integration requires a login for every Flow view when the access control is off.
+Quarkus-Hilla does not, because a Quarkus permission rule could not make a single view public
+again. Evaluating Quarkus permissions for views is planned, after which this may change.
 
 ### Form logout cookie scope
 

@@ -35,8 +35,7 @@ class QuarkusHillaSecurityProcessorTest {
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
 
         new QuarkusHillaSecurityProcessor()
-                .registerNavigationAccessControl(
-                        new AuthFormBuildItem(true), beans::add, ignored -> {}, accessCheckers::add);
+                .registerNavigationAccessControl(new AuthFormBuildItem(true), beans::add, accessCheckers::add);
 
         assertThat(accessCheckers)
                 .extracting(NavigationAccessCheckerBuildItem::getAccessChecker)
@@ -52,8 +51,7 @@ class QuarkusHillaSecurityProcessorTest {
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
 
         new QuarkusHillaSecurityProcessor()
-                .registerNavigationAccessControl(
-                        new AuthFormBuildItem(false), beans::add, ignored -> {}, accessCheckers::add);
+                .registerNavigationAccessControl(new AuthFormBuildItem(false), beans::add, accessCheckers::add);
 
         assertThat(accessCheckers).isEmpty();
         assertThat(beans).isEmpty();

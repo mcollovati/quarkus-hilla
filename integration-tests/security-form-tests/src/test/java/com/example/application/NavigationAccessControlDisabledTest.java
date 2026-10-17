@@ -18,6 +18,7 @@ package com.example.application;
 import java.util.Map;
 
 import com.codeborne.selenide.WebDriverRunner;
+import com.example.application.views.FlowProtectedView;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.QuarkusTestProfile;
 import io.quarkus.test.junit.TestProfile;
@@ -63,6 +64,7 @@ class NavigationAccessControlDisabledTest extends AbstractTest {
     void accessControlDisabled_protectedFlowView_viewDisplayedWithoutLogin() {
         openAndWait(getTestUrl() + "flow-protected", () -> $("vaadin-app-layout"));
 
+        $("vaadin-app-layout").$("h2").shouldHave(text(FlowProtectedView.TITLE)).shouldBe(visible);
         $("vaadin-login-overlay").shouldNot(exist);
     }
 }

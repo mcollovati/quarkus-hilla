@@ -41,11 +41,12 @@ class NavigationAccessControlCustomBeanTest {
                     .addClasses(TestUtils.class, CustomNavigationAccessControl.class));
 
     @Test
-    void customAccessControl_turnedOffAsWell() {
+    void customAccessControl_settingsApplied() {
         NavigationAccessControl accessControl =
                 Arc.container().instance(NavigationAccessControl.class).get();
 
         assertThat(accessControl).isInstanceOf(CustomNavigationAccessControl.class);
         assertThat(accessControl.isEnabled()).isFalse();
+        assertThat(((CustomNavigationAccessControl) accessControl).loginUrl()).isEqualTo("/login");
     }
 }

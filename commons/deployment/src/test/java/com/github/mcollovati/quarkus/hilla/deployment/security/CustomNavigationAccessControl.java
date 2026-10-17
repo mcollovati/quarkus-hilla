@@ -23,18 +23,19 @@ import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 
 /**
- * Replaces the extension provided access control and builds its checker
- * itself, so that the checker is out of reach of the configuration.
+ * Replaces the extension provided access control with one that does not extend
+ * {@code QuarkusNavigationAccessControl} and builds its checker itself.
  * <p></p>
- * Turning the access control off has to work for this bean as well.
+ * The extension settings have to reach this bean as well.
  */
 @Singleton
 public class CustomNavigationAccessControl extends NavigationAccessControl {
 
     public CustomNavigationAccessControl() {
         super(List.of(new AnnotatedViewAccessChecker()), new DefaultAccessCheckDecisionResolver());
-        // NavigationAccessControl.setLoginView refuses a second call, so the
-        // extension must not apply the Quarkus form login page on top of this.
-        setLoginView("/custom-login");
+    }
+
+    String loginUrl() {
+        return getLoginUrl();
     }
 }

@@ -84,7 +84,7 @@ public interface VaadinSecurityConfig {
          * annotations do nothing. Use this while adding the missing
          * annotations, not as a permanent setting.
          * <p></p>
-         * Applications without authentication are not affected.
+         * Views are only checked when Quarkus form authentication is enabled.
          * <p></p>
          * Defaults to {@literal true}.
          *
