@@ -432,6 +432,17 @@ Quarkus-Hilla provides various configuration parameters to customize the behavio
 | `vaadin.security.post-logout-redirect-uri`  | String  | -         | 24.7  | URI to redirect to after successful logout.                     |
 | `vaadin.security.logout-invalidate-session` | Boolean | `true`    | 24.7  | Whether HTTP session should be invalidated on logout.           |
 
+#### Form logout cookie scope
+
+Form logout expires the authentication cookie using Quarkus's configured path,
+domain, HttpOnly and SameSite settings. On HTTPS it also sets Secure, including
+for `__Host-` and `__Secure-` cookie names.
+
+For reliable logout, configure an explicit `quarkus.http.auth.form.cookie-path`;
+the default is `/`. An empty value lets browsers derive cookie paths from login
+and renewal request URLs. Logout cannot reconstruct all those previous scopes.
+The existing root fallback covers root-level login.
+
 ### Copilot Configuration
 
 > [!NOTE]
