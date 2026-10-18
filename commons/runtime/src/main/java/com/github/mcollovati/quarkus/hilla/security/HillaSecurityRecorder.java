@@ -58,10 +58,11 @@ public class HillaSecurityRecorder {
         };
     }
 
-    public void configureHttpSecurityPolicy(BeanContainer container) {
+    public void configureHttpSecurityPolicy(BeanContainer container, boolean fileRoutesManifestExpected) {
         Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
         policy.withFormLogin(config);
+        policy.setFileRoutesManifestExpected(fileRoutesManifestExpected);
         markSecurityPolicyUsed();
     }
 
