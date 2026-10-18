@@ -221,7 +221,7 @@ public class QuarkusHillaNativeProcessor {
             BuildProducer<ReflectiveClassBuildItem> reflectiveClass) {
 
         nativeImageResource.produce(NativeImageResourcePatternsBuildItem.builder()
-                .includeGlobs("hilla-openapi.json", "hilla-engine-configuration.json", "file-routes.json")
+                .includeGlobs("hilla-engine-configuration.json", "file-routes.json")
                 .includeGlobs("META-INF/microprofile-config.properties")
                 .includeGlobs("META-INF/maven/com.github.mcollovati/quarkus-hilla-commons/pom.properties")
                 .build());
