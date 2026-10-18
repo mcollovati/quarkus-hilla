@@ -79,7 +79,7 @@ When an anonymous user navigates to a view they may not open, they are sent to t
 The extension takes it from `quarkus.http.auth.form.login-page`, the same page Quarkus uses for
 its own login redirect, so both always agree.
 
-A custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl` and leave
+A legacy custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl` and leave
 the login view to the extension. If such a bean sets a login URL that differs from
 `quarkus.http.auth.form.login-page`, the application fails at startup, naming both values.
 A Flow login view class set by the bean, and the login view of a bean that does not extend
@@ -128,6 +128,65 @@ This opt-out restores the behavior before 25.1.4 and is meant as an intermediate
 Spring integration requires a login for every Flow view when the access control is off.
 Quarkus-Hilla does not, because a Quarkus permission rule could not make a single view public
 again. Evaluating Quarkus permissions for views is planned, after which this may change.
+
+#### Customizing the access control
+
+![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
+
+Provide a `NavigationAccessControlConfigurer` bean to choose checkers and a decision resolver.
+Like the access check itself, it only takes effect with Quarkus form authentication:
+
+```java
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
+
+import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlConfigurer;
+
+class NavigationSecurity {
+
+    @Produces
+    @Singleton
+    NavigationAccessControlConfigurer navigationAccessControlConfigurer(MyAccessChecker checker) {
+        return new NavigationAccessControlConfigurer()
+                .withAnnotatedViewAccessChecker()
+                .withNavigationAccessChecker(checker);
+    }
+}
+```
+
+The default configurer uses all `NavigationAccessChecker` CDI beans, including application
+checkers. An application configurer selects only the checkers it requests. Add instances with
+`withNavigationAccessChecker(...)` or `withNavigationAccessCheckers(...)`, or select available
+CDI beans with `withAvailableNavigationAccessCheckers(MyAccessChecker.class::isInstance)`.
+`withAnnotatedViewAccessChecker()` selects the available annotation checker, including subclasses
+and CDI proxies, and fails if none exists. An enabled access control with no selected checkers
+fails at startup; select a checker or disable it.
+
+`withDecisionResolver(...)` takes precedence over the CDI `AccessCheckDecisionResolver` bean.
+Without an explicit resolver, the application's resolver bean or the extension's default is used.
+`disabled()` turns checks off. The build-time property
+`vaadin.security.navigation-access-control.enabled=false` always wins and never turns checks on.
+
+Without `withLoginView(...)`, the extension uses
+`quarkus.http.auth.form.login-page`. A configured URL must match that property; different URLs
+fail at startup, naming both values. A login view class is kept, and both values are logged at
+INFO because its route cannot be compared reliably at startup. Setting different login views
+on one configurer fails immediately.
+
+Replacing the `NavigationAccessControl` bean is deprecated and logs a startup warning. To migrate,
+remove that bean and provide a configurer instead. A custom checker bean needs no configurer:
+the default already uses it. With your own configurer, select that checker explicitly, as above.
+Providing both an application access control bean and an application configurer fails at startup.
+Legacy access control beans still receive the form login settings and the opt-out property.
+
+> [!IMPORTANT]
+> **Breaking change in 25.3.0:** the access control is only available as `NavigationAccessControl`.
+> Code that injects `QuarkusNavigationAccessControl` fails at build time with an unsatisfied
+> dependency. Inject `NavigationAccessControl` instead. Extending `QuarkusNavigationAccessControl`
+> for a legacy bean still works.
+
+Configurer producers, checkers and resolvers must not use runtime-init synthetic beans while
+being constructed. Startup ordering is tracked in [#2329](https://github.com/mcollovati/quarkus-hilla/issues/2329).
 
 ### Form logout cookie scope
 

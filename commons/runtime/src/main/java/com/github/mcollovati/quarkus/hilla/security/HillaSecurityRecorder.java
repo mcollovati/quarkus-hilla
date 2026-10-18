@@ -69,13 +69,38 @@ public class HillaSecurityRecorder {
         markSecurityPolicyUsed();
     }
 
+    /**
+     * Applies startup login and opt-out settings to the contextual access control,
+     * validating legacy replacements and configurer login settings first.
+     *
+     * @param container the CDI bean container
+     * @param enabled whether navigation access control is permitted by the build-time configuration
+     */
     public void configureNavigationAccessControl(BeanContainer container, boolean enabled) {
+        boolean extensionAccessControl = isExtensionBean(NavigationAccessControl.class);
+        if (!extensionAccessControl) {
+            if (!isExtensionBean(NavigationAccessControlConfigurer.class)) {
+                throw new IllegalStateException("An application NavigationAccessControl bean and an application "
+                        + "NavigationAccessControlConfigurer bean cannot be used together. Keep only the configurer.");
+            }
+            LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                    .warn("Replacing the NavigationAccessControl bean is deprecated. "
+                            + "Provide a NavigationAccessControlConfigurer bean instead.");
+        }
         // Resolved by base type, an application may provide its own bean.
         NavigationAccessControl accessControl = container.beanInstance(NavigationAccessControl.class);
         // Read at startup, as Quarkus does for its own form login redirect.
-        ConfigProvider.getConfig()
-                .getOptionalValue(FORM_LOGIN_PAGE, String.class)
-                .ifPresent(loginPage -> applyLoginView(accessControl, loginPage));
+        var loginPage = ConfigProvider.getConfig().getOptionalValue(FORM_LOGIN_PAGE, String.class);
+        if (extensionAccessControl) {
+            container
+                    .beanInstance(NavigationAccessControlConfigurer.class)
+                    .configureLoginView(accessControl, loginPage.orElse(null));
+        }
+        // Names what set the login view in log and error messages.
+        String owner = extensionAccessControl
+                ? NavigationAccessControlConfigurer.class.getSimpleName()
+                : accessControl.getClass().getName();
+        loginPage.ifPresent(page -> applyLoginView(accessControl, owner, page));
         if (!enabled) {
             // Never turns the access control on, an application disabling its
             // own bean keeps that state.
@@ -83,16 +108,22 @@ public class HillaSecurityRecorder {
         }
     }
 
-    private static void applyLoginView(NavigationAccessControl accessControl, String loginPage) {
+    // Checks the producer, not isDefaultBean(): an application may declare
+    // its own default bean with a priority.
+    private static boolean isExtensionBean(Class<?> type) {
+        return Arc.container().instance(type).getBean().getBeanClass() == NavigationAccessControlProducer.class;
+    }
+
+    private static void applyLoginView(NavigationAccessControl accessControl, String owner, String loginPage) {
         if (accessControl instanceof QuarkusNavigationAccessControl ours) {
             Class<?> loginViewClass = ours.currentLoginViewClass();
             String loginUrl = ours.currentLoginUrl();
             if (loginViewClass != null) {
                 // The route of a login view class cannot be compared reliably
                 // at startup, so it is kept rather than reported as a conflict.
-                logKeptLoginView(accessControl, loginViewClass.getName(), loginPage);
+                logKeptLoginView(owner, loginViewClass.getName(), loginPage);
             } else if (loginUrl != null && !loginUrl.equals(loginPage)) {
-                throw new IllegalStateException(accessControl.getClass().getName() + " sets the login view "
+                throw new IllegalStateException(owner + " sets the login view "
                         + loginUrl + ", which conflicts with " + FORM_LOGIN_PAGE + "=" + loginPage
                         + ". The login view is taken from that property: remove the setLoginView call from the "
                         + "bean, or set the property to the same view.");
@@ -107,15 +138,15 @@ public class HillaSecurityRecorder {
         } catch (IllegalStateException alreadySet) {
             // A bean not extending QuarkusNavigationAccessControl cannot be
             // inspected, so its own login view is kept.
-            logKeptLoginView(accessControl, alreadySet.getMessage(), loginPage);
+            logKeptLoginView(owner, alreadySet.getMessage(), loginPage);
         }
     }
 
-    private static void logKeptLoginView(NavigationAccessControl accessControl, String kept, String loginPage) {
+    private static void logKeptLoginView(String owner, String kept, String loginPage) {
         LoggerFactory.getLogger(HillaSecurityRecorder.class)
                 .info(
                         "Keeping the login view of {} ({}). {}={} is not applied to navigation within the application.",
-                        accessControl.getClass().getName(),
+                        owner,
                         kept,
                         FORM_LOGIN_PAGE,
                         loginPage);

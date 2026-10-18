@@ -28,15 +28,26 @@ import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
-import io.quarkus.arc.DefaultBean;
 import io.quarkus.security.identity.SecurityIdentity;
 
-@Singleton
-@DefaultBean
+/**
+ * Navigation access control with a Quarkus security identity fallback.
+ * Applications should customize it through {@link NavigationAccessControlConfigurer}.
+ * <p>
+ * Since 25.3.0 the bean is only available as {@link NavigationAccessControl};
+ * inject that type instead of this class.
+ */
 public class QuarkusNavigationAccessControl extends NavigationAccessControl {
 
     private final SecurityIdentity securityIdentity;
 
+    /**
+     * Creates access control using the supplied checkers and resolver.
+     *
+     * @param checkerList navigation access checkers
+     * @param decisionResolver access check decision resolver
+     * @param securityIdentity identity used when there is no Vaadin request
+     */
     public QuarkusNavigationAccessControl(
             @All List<NavigationAccessChecker> checkerList,
             AccessCheckDecisionResolver decisionResolver,
@@ -77,11 +88,19 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
         return getLoginView();
     }
 
+    /**
+     * Installs the contextual access control on each UI.
+     */
     @Singleton
     public static class Installer {
 
         private final NavigationAccessControl accessControl;
 
+        /**
+         * Creates the service listener.
+         *
+         * @param accessControl the contextual navigation access control
+         */
         @Inject
         public Installer(NavigationAccessControl accessControl) {
             this.accessControl = accessControl;
