@@ -178,7 +178,9 @@ abstract class AbstractEndpointsWatcher implements Runnable {
     // Visible for test
     Set<String> collectClassesUsedInEndpoints() {
         try {
-            return EndpointCodeGenerator.getInstance().getClassesUsedInEndpoints().orElse(Set.of());
+            return EndpointCodeGenerator.getInstance()
+                    .getClassesUsedInEndpoints()
+                    .orElse(Set.of());
         } catch (Exception ex) {
             LOGGER.debug("Cannot get the classes used in endpoints. Force scan for changes", ex);
         }
