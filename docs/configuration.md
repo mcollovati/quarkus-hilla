@@ -199,6 +199,36 @@ the default is `/`. An empty value lets browsers derive cookie paths from login
 and renewal request URLs. Logout cannot reconstruct all those previous scopes.
 The existing root fallback covers root-level login.
 
+### Coming from Vaadin's Spring integration
+
+Spring applications set up security with `VaadinSecurityConfigurer`. Quarkus-Hilla has no such
+class: it applies the Vaadin specific parts itself once form authentication is enabled, and the
+rest is regular Quarkus configuration.
+
+| Spring (`VaadinSecurityConfigurer`)                     | Quarkus-Hilla                                                                                                                                      |
+|---------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `vaadin()` applied to `HttpSecurity`                    | Nothing to apply. Enabling `quarkus.http.auth.form.enabled` activates the extension's security setup.                                             |
+| `loginView(String)`                                     | `quarkus.http.auth.form.login-page`. The extension uses it as the Flow login view too, see [Login view](#login-view).                              |
+| `loginView(Class)`                                      | `withLoginView(Class)` on a [configurer](#customizing-the-access-control), plus `quarkus.http.auth.form.login-page` for the HTTP redirect.         |
+| `loginView(..., logoutSuccessUrl)`                      | `vaadin.security.post-logout-redirect-uri`                                                                                                         |
+| `oauth2LoginPage(...)`                                  | Not available yet, see [#2276](https://github.com/mcollovati/quarkus-hilla/pull/2276).                                                             |
+| `defaultSuccessUrl(...)`                                | `quarkus.http.auth.form.landing-page`                                                                                                              |
+| `logoutSuccessHandler(...)`, `addLogoutHandler(...)`    | `vaadin.security.logout-path`, `vaadin.security.post-logout-redirect-uri` and `vaadin.security.logout-invalidate-session`. No custom handlers.    |
+| `anyRequest(...)`, `enableAuthorizedRequestsConfiguration(...)` | Vaadin's internal requests, public resources and anonymous endpoints and views are permitted, everything else requires a login. Add rules with `quarkus.http.auth.permission.*`; they combine with the extension's policy and cannot make a path public again. |
+| `defaultPermitMatcher()`                                | Applied internally, not exposed.                                                                                                                   |
+| `enableNavigationAccessControl(false)`                  | `vaadin.security.navigation-access-control.enabled=false`, see [Turning the check off](#turning-the-check-off), or `disabled()` on a configurer.  |
+| `NavigationAccessControlConfigurer` bean                | `NavigationAccessControlConfigurer` bean with the same method names, except `withRoutePathAccessChecker()` (since 25.3.0).                         |
+| `enableCsrfConfiguration(...)`, `enableRequestCacheConfiguration(...)`, `enableExceptionHandlingConfiguration(...)`, `enableLogoutConfiguration(...)` | No equivalent. The extension does not change Quarkus CSRF handling, Quarkus form authentication remembers the requested page itself, and logout is always handled at `vaadin.security.logout-path`. |
+
+The navigation access control is on by default with form authentication. In Spring it is only
+turned on through `VaadinSecurityConfigurer`.
+
+Quarkus also offers a programmatic `HttpSecurity` API, comparable to Spring's `HttpSecurity`.
+Configure form login through the `quarkus.http.auth.form.*` properties for now: the extension
+does not pick up a form mechanism set up in code yet
+([#2338](https://github.com/mcollovati/quarkus-hilla/issues/2338),
+[#2339](https://github.com/mcollovati/quarkus-hilla/issues/2339)).
+
 <a id="copilot"></a>
 
 ## ✨ Copilot
