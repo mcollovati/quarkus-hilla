@@ -79,8 +79,9 @@ When an anonymous user navigates to a view they may not open, they are sent to t
 The extension takes it from `quarkus.http.auth.form.login-page`, the same page Quarkus uses for
 its own login redirect, so both always agree.
 
-A custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl` and leave
-the login view to the extension. If such a bean sets a login URL that differs from
+A custom `NavigationAccessControl` bean replaces the extension's and should leave the login view
+to the extension. `QuarkusNavigationAccessControl` is internal API: extending it still works, but
+it may change in any release. If a bean extending it sets a login URL that differs from
 `quarkus.http.auth.form.login-page`, the application fails at startup, naming both values.
 A Flow login view class set by the bean, and the login view of a bean that does not extend
 `QuarkusNavigationAccessControl`, are kept instead. The startup log names both, because the two

@@ -31,6 +31,11 @@ import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.security.identity.SecurityIdentity;
 
+/**
+ * Navigation access control with a Quarkus security identity fallback.
+ * <p>
+ * Internal API: extending this class still works, but it may change in any release.
+ */
 @Singleton
 @DefaultBean
 public class QuarkusNavigationAccessControl extends NavigationAccessControl {
