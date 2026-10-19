@@ -79,8 +79,10 @@ When an anonymous user navigates to a view they may not open, they are sent to t
 The extension takes it from `quarkus.http.auth.form.login-page`, the same page Quarkus uses for
 its own login redirect, so both always agree.
 
-A legacy custom `NavigationAccessControl` bean should extend `QuarkusNavigationAccessControl` and leave
-the login view to the extension. If such a bean sets a login URL that differs from
+A custom `NavigationAccessControl` bean replaces the extension's and should leave the login view
+to the extension. Since 25.3.0, use a [configurer](#customizing-the-access-control) instead.
+`QuarkusNavigationAccessControl` is internal API: extending it still works, but it may change in
+any release. If a bean extending it sets a login URL that differs from
 `quarkus.http.auth.form.login-page`, the application fails at startup, naming both values.
 A Flow login view class set by the bean, and the login view of a bean that does not extend
 `QuarkusNavigationAccessControl`, are kept instead. The startup log names both, because the two
@@ -178,12 +180,13 @@ remove that bean and provide a configurer instead. A custom checker bean needs n
 the default already uses it. With your own configurer, select that checker explicitly, as above.
 Providing both an application access control bean and an application configurer fails at startup.
 Legacy access control beans still receive the form login settings and the opt-out property.
+`QuarkusNavigationAccessControl` is internal API: a legacy bean may still extend it, but it can
+change in any release.
 
 > [!IMPORTANT]
 > **Breaking change in 25.3.0:** the access control is only available as `NavigationAccessControl`.
 > Code that injects `QuarkusNavigationAccessControl` fails at build time with an unsatisfied
-> dependency. Inject `NavigationAccessControl` instead. Extending `QuarkusNavigationAccessControl`
-> for a legacy bean still works.
+> dependency. Inject `NavigationAccessControl` instead.
 
 Configurer producers, checkers and resolvers must not use runtime-init synthetic beans while
 being constructed. Startup ordering is tracked in [#2329](https://github.com/mcollovati/quarkus-hilla/issues/2329).

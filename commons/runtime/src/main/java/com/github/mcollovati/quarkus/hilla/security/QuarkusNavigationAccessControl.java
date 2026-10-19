@@ -32,8 +32,9 @@ import io.quarkus.security.identity.SecurityIdentity;
 
 /**
  * Navigation access control with a Quarkus security identity fallback.
- * Applications should customize it through {@link NavigationAccessControlConfigurer}.
  * <p>
+ * Internal API: extending this class still works, but it may change in any release.
+ * Customize the access control through {@link NavigationAccessControlConfigurer} instead.
  * Since 25.3.0 the bean is only available as {@link NavigationAccessControl};
  * inject that type instead of this class.
  */
