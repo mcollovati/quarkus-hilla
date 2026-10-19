@@ -15,11 +15,13 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import jakarta.enterprise.context.Dependent;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.InjectableBean;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
 import io.quarkus.vertx.http.runtime.VertxHttpConfig;
@@ -83,9 +85,30 @@ public class HillaSecurityRecorder {
                 throw new IllegalStateException("An application NavigationAccessControl bean and an application "
                         + "NavigationAccessControlConfigurer bean cannot be used together. Keep only the configurer.");
             }
+            InjectableBean<NavigationAccessControl> bean = Arc.container()
+                    .select(NavigationAccessControl.class)
+                    .getHandle()
+                    .getBean();
+            if (bean.getScope() == Dependent.class) {
+                // Every injection point gets its own instance, so settings applied
+                // here would not reach the instances that check navigation.
+                String message = "The NavigationAccessControl bean "
+                        + bean.getBeanClass().getName()
+                        + " is @Dependent, so the extension cannot configure the instances in use. "
+                        + "Declare it @Singleton or @ApplicationScoped.";
+                if (!enabled) {
+                    throw new IllegalStateException(message + " Otherwise vaadin.security.navigation-access-control"
+                            + ".enabled=false has no effect.");
+                }
+                LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                        .warn("{} Otherwise {} is not applied as its login view.", message, FORM_LOGIN_PAGE);
+                return;
+            }
             LoggerFactory.getLogger(HillaSecurityRecorder.class)
                     .warn("Replacing the NavigationAccessControl bean is deprecated. "
-                            + "Provide a NavigationAccessControlConfigurer bean instead.");
+                            + "Provide a NavigationAccessControlConfigurer bean instead. "
+                            + "If the configurer does not cover your use case, please describe it in an issue at "
+                            + "https://github.com/mcollovati/quarkus-hilla/issues");
         }
         // Resolved by base type, an application may provide its own bean.
         NavigationAccessControl accessControl = container.beanInstance(NavigationAccessControl.class);

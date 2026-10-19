@@ -71,20 +71,18 @@ public interface VaadinSecurityConfig {
         /**
          * Whether access to Flow views is checked.
          * <p></p>
-         * Each view needs an annotation that says who may open it, on the view
-         * class or a superclass of it: {@code @AnonymousAllowed} for everyone,
-         * {@code @PermitAll} for logged-in users, {@code @RolesAllowed} for the
-         * given roles, {@code @DenyAll} for nobody. A view with no annotation
-         * is not shown, which is the Vaadin default. An annotation on a router
-         * layout does not count for the views inside it; it is checked in
-         * addition.
+         * Access is declared with an annotation on the view class or one of
+         * its superclasses: {@code @AnonymousAllowed}, {@code @PermitAll},
+         * {@code @RolesAllowed} or {@code @DenyAll}. Views without an
+         * annotation are denied. An annotation on a router layout does not
+         * apply to the views it contains; it is checked in addition.
          * <p></p>
-         * Set to {@literal false} to skip the check for all views. Then anyone
-         * who can open the application can open every Flow view, and the
-         * annotations do nothing. Use this while adding the missing
-         * annotations, not as a permanent setting.
+         * Set to {@literal false} to disable the check. Every Flow view is then
+         * accessible to anyone who can reach the application, and the
+         * annotations are not evaluated. Intended as a transitional measure
+         * while annotations are added.
          * <p></p>
-         * Views are only checked when Quarkus form authentication is enabled.
+         * Only applies when Quarkus form authentication is enabled.
          * <p></p>
          * Defaults to {@literal true}.
          *
