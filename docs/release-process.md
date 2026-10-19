@@ -62,6 +62,25 @@ mvn -N -Pdistribution -Drevision=<version> \
 
 The dry run will show you what would happen without making any actual changes.
 
+## Release Notes
+
+JReleaser builds the GitHub release notes from the commits between the previous tag and `HEAD`. When the new tag does
+not exist yet and no previous tag is configured, JReleaser takes the highest version tag of the whole repository. For a
+maintenance branch that is a tag of a newer release line (for example `25.2.0` when releasing `25.1.4`), so the notes
+would list every commit since the branch was forked, including changes already shipped in earlier patch releases.
+
+The release workflow therefore passes the latest tag of the same release line that is reachable from the release
+branch as `JRELEASER_PREVIOUS_TAG_NAME`. The first release of a line (for example `25.3.0-beta1`, or `25.3.0` without
+a prerelease) has no such tag and keeps the JReleaser default, which starts after the newest release of the previous
+line. When releasing a maintenance branch locally, set the variable yourself:
+
+```bash
+export JRELEASER_PREVIOUS_TAG_NAME=25.1.4
+```
+
+A dry run writes the generated notes to `target/jreleaser/release/CHANGELOG.md`, which the workflow uploads as the
+`jreleaser-release` artifact, so you can check them before the real release.
+
 ## Version Format
 
 The version format depends on the type of release:
