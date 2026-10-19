@@ -90,10 +90,7 @@ public class HillaSecurityRecorder {
                             + "Provide a NavigationAccessControlConfigurer bean instead. "
                             + "If the configurer does not cover your use case, please describe it in an issue at "
                             + "https://github.com/mcollovati/quarkus-hilla/issues");
-            InjectableBean<NavigationAccessControl> bean = Arc.container()
-                    .select(NavigationAccessControl.class)
-                    .getHandle()
-                    .getBean();
+            InjectableBean<NavigationAccessControl> bean = resolvedBean(NavigationAccessControl.class);
             if (bean.getScope() == Dependent.class) {
                 // Every injection point gets its own instance, so settings applied
                 // here would not reach the instances that check navigation.
@@ -134,7 +131,12 @@ public class HillaSecurityRecorder {
     // Checks the producer, not isDefaultBean(): an application may declare
     // its own default bean with a priority.
     private static boolean isExtensionBean(Class<?> type) {
-        return Arc.container().instance(type).getBean().getBeanClass() == NavigationAccessControlProducer.class;
+        return resolvedBean(type).getBeanClass() == NavigationAccessControlProducer.class;
+    }
+
+    // Resolves the bean without creating an instance.
+    private static <T> InjectableBean<T> resolvedBean(Class<T> type) {
+        return Arc.container().select(type).getHandle().getBean();
     }
 
     private static void applyLoginView(NavigationAccessControl accessControl, String owner, String loginPage) {
