@@ -55,7 +55,7 @@ public final class CopilotQuarkusIntegrationTestSupport {
     public static QuarkusExtensionTest copilotExtensionTest() {
         return new QuarkusExtensionTest()
                 .setForcedDependencies(
-                        List.of(Dependency.of("com.vaadin", "copilot", System.getProperty("vaadin.version"))))
+                        List.of(Dependency.of("com.vaadin", "copilot", System.getProperty("copilot.version"))))
                 .overrideConfigKey("quarkus.arc.remove-unused-beans", "false")
                 .overrideConfigKey("quarkus.http.test-port", "0")
                 .overrideConfigKey("quarkus.class-loading.removed-artifacts", REMOVED_OPTIONAL_ARTIFACTS);

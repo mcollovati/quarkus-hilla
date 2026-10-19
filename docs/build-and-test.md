@@ -12,6 +12,25 @@ Build the extension and its required dependencies:
 mvn -DskipTests -DskipITs=true install
 ```
 
+<a id="vaadin-versions-on-main"></a>
+
+### Vaadin versions on main
+
+`main` builds against the latest Vaadin pre-release (`hilla.version`, for example
+`25.4.0-alpha3`), not against snapshots. A change in a Vaadin snapshot then cannot turn pull
+requests red that did not cause it. Copilot is not released with every pre-release, so
+`copilot.version` follows the version `vaadin-dev` depends on.
+
+The nightly Snapshots Validation still builds `main` against the current snapshots and replaces
+these versions itself. When it fails because Vaadin changed an API:
+
+1. Adapt the extension in a pull request. Verify it locally against the snapshots:
+   ```bash
+   mvn -Dhilla.version=25.4-SNAPSHOT -Dcopilot.version=25.4-SNAPSHOT verify
+   ```
+2. Merge it together with raising `hilla.version` (and `copilot.version`) to the first
+   pre-release that contains the change.
+
 ## Testing
 
 ### Run unit tests
