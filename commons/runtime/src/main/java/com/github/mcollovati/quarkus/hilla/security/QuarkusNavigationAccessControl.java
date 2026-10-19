@@ -31,6 +31,11 @@ import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
 import io.quarkus.security.identity.SecurityIdentity;
 
+/**
+ * Navigation access control with a Quarkus security identity fallback.
+ * <p>
+ * Internal API: extending this class still works, but it may change in any release.
+ */
 @Singleton
 @DefaultBean
 public class QuarkusNavigationAccessControl extends NavigationAccessControl {
@@ -59,6 +64,22 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
             return securityIdentity::hasRole;
         }
         return super.getRolesChecker(request);
+    }
+
+    /**
+     * Gets the login URL already set on this access control, if any. Exposes
+     * the protected getter to the extension.
+     */
+    String currentLoginUrl() {
+        return getLoginUrl();
+    }
+
+    /**
+     * Gets the Flow login view class already set on this access control, if
+     * any. Exposes the protected getter to the extension.
+     */
+    Class<?> currentLoginViewClass() {
+        return getLoginView();
     }
 
     @Singleton
