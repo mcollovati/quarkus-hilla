@@ -20,9 +20,10 @@ customize the access control, the extension has to define which one is
 supported, how they interact, and what happens to applications that already
 replace the bean.
 
-Vaadin's Spring integration supports only the configurer: its
-`navigationAccessControl` bean has no `@ConditionalOnMissingBean`, while the
-`NavigationAccessControlConfigurer` bean has.
+Vaadin's Spring integration (vaadin-spring 25.2.6) provides the configurer as
+the replaceable part: in `SpringSecurityAutoConfiguration`, the
+`NavigationAccessControlConfigurer` bean is declared with
+`@ConditionalOnMissingBean`, the `navigationAccessControl` bean without it.
 
 ## Considered Options
 
@@ -37,25 +38,27 @@ Option 1.
 
 * The extension builds the `NavigationAccessControl` from the configurer and
   exposes it only as `NavigationAccessControl`.
-* An application `NavigationAccessControl` bean still replaces the extension's
-  and still receives the login page and the opt-out. The extension logs a
-  warning that replacing the bean is deprecated, asking to describe uncovered
-  use cases in an issue.
+* An application `NavigationAccessControl` bean still replaces the extension's.
+  The extension logs a warning that replacing the bean is deprecated, asking
+  to describe uncovered use cases in an issue. It applies the login page and
+  the opt-out to the bean; a `@Dependent` bean cannot be configured and fails
+  the startup when the opt-out is set.
 * An application bean together with an application configurer fails the
   startup, because the configurer would otherwise be ignored silently.
 * `QuarkusNavigationAccessControl` is internal API. Extending it works, but it
   may change in any release.
 
-Option 2 stays open: if issues show use cases the configurer cannot cover,
-for example an access control with its own `checkAccess` logic, removing the
-warning and documenting the bean as an alternative is enough.
+Option 2 stays open. If reported use cases need behavior the configurer cannot
+provide, for example an access control with its own `checkAccess` logic, the
+warning can be removed and replacing the bean documented as a supported
+alternative.
 
 ## Consequences
 
 * Good, because applications have one documented way to customize the access
   control, as in Vaadin's Spring integration.
-* Good, because the extension controls construction and can validate the
-  configuration (checkers, resolver, login view) before anything is built.
+* Good, because the extension controls construction: it validates the checker
+  selection before building the access control and the login view at startup.
 * Good, because existing applications that replace the bean keep working and
   are pointed to the configurer.
 * Bad, because the extension still has to support replaced beans, including

@@ -172,11 +172,12 @@ class NavigationSecurity {
 Without an application configurer, the extension uses all `NavigationAccessChecker` beans,
 including those of the application. An application configurer uses only the checkers it selects:
 
-- `withAnnotatedViewAccessChecker()` selects the annotation checker provided by the extension and
-  fails the startup if none is available.
+- `withAnnotatedViewAccessChecker()` selects the available `AnnotatedViewAccessChecker` bean,
+  including subclasses and CDI client proxies. The startup fails if none is available.
 - `withNavigationAccessChecker(...)` and `withNavigationAccessCheckers(...)` add checker instances.
-- `withAvailableNavigationAccessCheckers(...)` selects checker beans matching a predicate, for
-  example `MyAccessChecker.class::isInstance`. Subclasses and CDI client proxies match.
+- `withAvailableNavigationAccessCheckers(...)` selects checker beans matching a predicate; a later
+  call replaces the predicate. `MyAccessChecker.class::isInstance` also matches subclasses and CDI
+  client proxies.
 
 An enabled access control without checkers fails the startup.
 
@@ -185,13 +186,14 @@ it, the application's resolver bean is used, or the extension's default.
 
 `withLoginView(...)` is optional. Without it, the extension uses
 `quarkus.http.auth.form.login-page`. A login URL set on the configurer must match that property;
-a different URL fails the startup, and the error names both values. A login view class is kept,
+a different URL fails the startup, also with the access check disabled, and the error names both
+values. A login view class is kept,
 and the startup log names both values, as its route cannot be compared with the property.
 Setting two different login views on one configurer fails immediately.
 
-`disabled()` disables the access control. The build-time property
-`vaadin.security.navigation-access-control.enabled=false` takes precedence over the configurer and
-never enables an access control.
+`disabled()` disables the access control. Setting the build-time property
+`vaadin.security.navigation-access-control.enabled` to `false` disables it as well; setting it to
+`true` does not override `disabled()`.
 
 Replacing the `NavigationAccessControl` bean is deprecated and logs a warning at startup. To
 migrate, remove the bean and produce a configurer instead. Checker beans need no change: the

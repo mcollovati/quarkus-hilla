@@ -85,6 +85,11 @@ public class HillaSecurityRecorder {
                 throw new IllegalStateException("An application NavigationAccessControl bean and an application "
                         + "NavigationAccessControlConfigurer bean cannot be used together. Keep only the configurer.");
             }
+            LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                    .warn("Replacing the NavigationAccessControl bean is deprecated. "
+                            + "Provide a NavigationAccessControlConfigurer bean instead. "
+                            + "If the configurer does not cover your use case, please describe it in an issue at "
+                            + "https://github.com/mcollovati/quarkus-hilla/issues");
             InjectableBean<NavigationAccessControl> bean = Arc.container()
                     .select(NavigationAccessControl.class)
                     .getHandle()
@@ -104,11 +109,6 @@ public class HillaSecurityRecorder {
                         .warn("{} Otherwise {} is not applied as its login view.", message, FORM_LOGIN_PAGE);
                 return;
             }
-            LoggerFactory.getLogger(HillaSecurityRecorder.class)
-                    .warn("Replacing the NavigationAccessControl bean is deprecated. "
-                            + "Provide a NavigationAccessControlConfigurer bean instead. "
-                            + "If the configurer does not cover your use case, please describe it in an issue at "
-                            + "https://github.com/mcollovati/quarkus-hilla/issues");
         }
         // Resolved by base type, an application may provide its own bean.
         NavigationAccessControl accessControl = container.beanInstance(NavigationAccessControl.class);
