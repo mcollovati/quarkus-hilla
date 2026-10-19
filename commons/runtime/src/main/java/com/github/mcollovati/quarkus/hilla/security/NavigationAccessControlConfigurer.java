@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -33,8 +34,9 @@ import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
- * Configures navigation access control. Applications can provide a singleton
- * producer of this class to replace the default configuration.
+ * Configures navigation access control. Applications can provide a
+ * {@code @Singleton} producer of this class to replace the default
+ * configuration; other scopes fail the startup.
  * <p>
  * An application configurer selects checkers explicitly. The extension's default
  * configurer selects all available CDI checkers. For example:
@@ -196,14 +198,17 @@ public final class NavigationAccessControlConfigurer {
             SecurityIdentity securityIdentity,
             boolean propertyEnabled) {
         List<NavigationAccessChecker> selected = new ArrayList<>();
+        boolean enabled = !disabled && propertyEnabled;
         if (annotatedViewAccessChecker) {
-            NavigationAccessChecker checker = availableCheckers.stream()
+            Optional<NavigationAccessChecker> checker = availableCheckers.stream()
                     .filter(AnnotatedViewAccessChecker.class::isInstance)
-                    .findFirst()
-                    .orElseThrow(
-                            () -> new IllegalStateException("No AnnotatedViewAccessChecker CDI bean is available for "
-                                    + "withAnnotatedViewAccessChecker()"));
-            selected.add(checker);
+                    .findFirst();
+            if (checker.isPresent()) {
+                selected.add(checker.get());
+            } else if (enabled) {
+                throw new IllegalStateException(
+                        "No AnnotatedViewAccessChecker CDI bean is available for withAnnotatedViewAccessChecker()");
+            }
         }
         selected.addAll(additionalCheckers);
         if (availableCheckersFilter != null) {
@@ -211,7 +216,7 @@ public final class NavigationAccessControlConfigurer {
         }
         Set<NavigationAccessChecker> seen = Collections.newSetFromMap(new IdentityHashMap<>());
         selected.removeIf(checker -> !seen.add(checker));
-        if (!disabled && propertyEnabled && selected.isEmpty()) {
+        if (enabled && selected.isEmpty()) {
             throw new IllegalStateException("Navigation access control has no selected checkers. Select at least one "
                     + "checker, call disabled(), or set vaadin.security.navigation-access-control.enabled=false.");
         }

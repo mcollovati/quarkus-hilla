@@ -16,11 +16,13 @@
 package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.context.Dependent;
+import jakarta.inject.Singleton;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.InjectableBean;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
@@ -80,7 +82,16 @@ public class HillaSecurityRecorder {
      */
     public void configureNavigationAccessControl(BeanContainer container, boolean enabled) {
         boolean extensionAccessControl = isExtensionBean(NavigationAccessControl.class);
-        if (!extensionAccessControl) {
+        if (extensionAccessControl) {
+            InjectableBean<NavigationAccessControlConfigurer> configurerBean =
+                    resolvedBean(NavigationAccessControlConfigurer.class);
+            if (configurerBean.getScope() != Singleton.class) {
+                // The access control is built from one configurer instance;
+                // the login view has to be validated against the same one.
+                throw new IllegalStateException("The NavigationAccessControlConfigurer bean "
+                        + configurerBean.getBeanClass().getName() + " must be @Singleton.");
+            }
+        } else {
             if (!isExtensionBean(NavigationAccessControlConfigurer.class)) {
                 throw new IllegalStateException("An application NavigationAccessControl bean and an application "
                         + "NavigationAccessControlConfigurer bean cannot be used together. Keep only the configurer.");
@@ -108,7 +119,9 @@ public class HillaSecurityRecorder {
             }
         }
         // Resolved by base type, an application may provide its own bean.
-        NavigationAccessControl accessControl = container.beanInstance(NavigationAccessControl.class);
+        // Unwrapped, so that a normal-scoped bean can be inspected.
+        NavigationAccessControl accessControl =
+                ClientProxy.unwrap(container.beanInstance(NavigationAccessControl.class));
         // Read at startup, as Quarkus does for its own form login redirect.
         var loginPage = ConfigProvider.getConfig().getOptionalValue(FORM_LOGIN_PAGE, String.class);
         if (extensionAccessControl) {

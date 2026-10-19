@@ -77,8 +77,9 @@ the application and the Quarkus form login redirect lead to the same page.
 
 Since 25.3.0, the access control is customized with a
 [configurer](#customizing-the-access-control). An application can still replace it with its own
-`NavigationAccessControl` bean, declared `@Singleton` or `@ApplicationScoped`. The extension applies the login page to that bean
-as well, unless the bean defines its own login view:
+`NavigationAccessControl` bean, declared `@Singleton` or `@ApplicationScoped`; a bean extending
+`QuarkusNavigationAccessControl` has to be `@Singleton`. The extension applies the login page to
+that bean as well, unless the bean defines its own login view:
 
 - A bean extending `QuarkusNavigationAccessControl` with a login URL that differs from
   `quarkus.http.auth.form.login-page` fails the application startup, also when the access check is
@@ -147,9 +148,9 @@ Quarkus HTTP permissions for views is planned
 ![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
 
 An application customizes the access control by producing a `NavigationAccessControlConfigurer`
-bean. It selects the access checkers, the decision resolver and the login view, or disables the
-access control. Like the access check itself, the configurer applies only with Quarkus form
-authentication.
+bean with `@Singleton` scope; other scopes fail the startup. The configurer selects the access
+checkers, the decision resolver and the login view, or disables the access control. Like the
+access check itself, it applies only with Quarkus form authentication.
 
 ```java
 import jakarta.enterprise.inject.Produces;

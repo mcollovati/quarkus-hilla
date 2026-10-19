@@ -71,6 +71,20 @@ class NavigationAccessControlConfigurerTest {
     }
 
     @Test
+    void annotatedChecker_unavailableAcceptedWhenDisabled() {
+        assertThat(new NavigationAccessControlConfigurer()
+                        .withAnnotatedViewAccessChecker()
+                        .disabled()
+                        .build(List.of(), DefaultAccessCheckDecisionResolver::new, null, true)
+                        .isEnabled())
+                .isFalse();
+        assertThat(new NavigationAccessControlConfigurer()
+                        .withAnnotatedViewAccessChecker()
+                        .build(List.of(), DefaultAccessCheckDecisionResolver::new, null, false))
+                .isNotNull();
+    }
+
+    @Test
     void annotatedChecker_unavailableFailsClearly() {
         assertThatIllegalStateException()
                 .isThrownBy(() -> new NavigationAccessControlConfigurer()
