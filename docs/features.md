@@ -132,10 +132,14 @@ Since 24.5, `quarkus-hilla` depends on the official [Vaadin Quarkus extension](h
 With Hilla file-router 25.3.0, 25.3.1 or 25.3.2, the development TypeScript checker
 can report `TS2307` for `Frontend/generated/file-routes` before that file has
 been generated ([Hilla #6040](https://github.com/vaadin/hilla/issues/6040)).
-Hilla 25.3.3 fixes this. If your build manages Hilla to an older 25.3 release,
-for example through `vaadin-bom` 25.3.2, manage `com.vaadin:hilla-bom` 25.3.3 or newer.
+Production bundles are unaffected. Hilla 25.3.3 fixes this.
 
-Applications generated with earlier Quarkus-Hilla 25.3 releases contain a
-`hilla-vite-compat.ts` helper for this. Once Hilla 25.3.3 or newer is used,
-remove the file and the `generateHillaRoutesBeforeTypeCheck()` entry from
-`vite.config.ts`.
+`vaadin-bom` 25.3.2 still manages Hilla 25.3.2, so generated React applications
+include a `hilla-vite-compat.ts` helper in their Vite plugins. It generates the
+routes before the checker starts and does nothing on other Hilla versions.
+Existing applications on an affected release can copy the helper and add
+`generateHillaRoutesBeforeTypeCheck()` to their Vite plugins, or manage
+`com.vaadin:hilla-bom` 25.3.3 before `vaadin-bom`.
+
+Once the application uses Hilla 25.3.3 or newer, remove the helper and its
+Vite plugin entry.
