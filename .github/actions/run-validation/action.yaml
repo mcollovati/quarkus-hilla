@@ -53,6 +53,7 @@ runs:
         mvn -B -N -ntp versions:set-property -Dproperty=hilla.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
         mvn -B -N -ntp versions:set-property -Dproperty=flow.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
         mvn -B -N -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
+        mvn -B -N -ntp versions:set-property -Dproperty=copilot.version -DnewVersion="$hilla_version" -DgenerateBackupPoms=false
         if [[ "${{ inputs.skip_vaadin_version_detection }}" == "false" ]]; then
           vaadin_version=$(mvn -ntp -N -Pdetect-vaadin-platform -q)-SNAPSHOT
           hilla_version=$(mvn -ntp -N -q help:evaluate -Dexpression=hilla.version -DforceStdout)
@@ -62,6 +63,7 @@ runs:
             mvn -B -ntp versions:set-property -Dproperty=vaadin.quarkus.version -DnewVersion=$vaadin_quarkus_version -DgenerateBackupPoms=false -Pit-tests
           fi
           mvn -B -ntp versions:set-property -Dproperty=vaadin.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false -Pit-tests
+          mvn -B -N -ntp versions:set-property -Dproperty=copilot.version -DnewVersion=$vaadin_version -DgenerateBackupPoms=false
 
           echo "Running Validation for Hilla $hilla_version and Vaadin $vaadin_version ">> "$GITHUB_STEP_SUMMARY"
         fi
