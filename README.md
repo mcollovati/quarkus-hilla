@@ -138,9 +138,9 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 
 ### Known issues with Vaadin versions
 
-| Hilla version | Status | Details |
-| --- | --- | --- |
-| `25.3.0` – `25.3.2` | Workaround | In dev mode, the TypeScript checker can report `TS2307` for `Frontend/generated/file-routes`. Fixed in Hilla `25.3.3`. `vaadin-bom` `25.3.2` still manages Hilla `25.3.2`: manage `com.vaadin:hilla-bom` `25.3.3` before it, or use the helper described in [Troubleshooting cold frontend startup](docs/features.md#troubleshooting-cold-frontend-startup). See [vaadin/hilla#6040](https://github.com/vaadin/hilla/issues/6040). |
+| Vaadin (`vaadin-bom`) | Hilla | Status | Details |
+| --- | --- | --- | --- |
+| `25.3.0` – `25.3.2` | `25.3.0` – `25.3.2` | Workaround | Dev mode only: the TypeScript checker can report `TS2307` for `Frontend/generated/file-routes`, and the error overlay does not clear. Fixed in Hilla `25.3.3`. Until a Vaadin release brings it, import `com.vaadin:hilla-bom` `25.3.3` before `vaadin-bom`, or use the helper described in [Troubleshooting cold frontend startup](docs/features.md#troubleshooting-cold-frontend-startup). See [vaadin/hilla#6040](https://github.com/vaadin/hilla/issues/6040). |
 
 ---
 
