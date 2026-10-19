@@ -83,12 +83,16 @@ as well, unless the bean defines its own login view:
 - A bean extending `QuarkusNavigationAccessControl` with a login URL that differs from
   `quarkus.http.auth.form.login-page` fails the application startup, also when the access check is
   disabled. The error names both values.
-- A login view class set by the bean, and the login view of a bean that does not extend
-  `QuarkusNavigationAccessControl`, are kept. The startup log names the kept login view and the
-  configured login page.
+- A login view class set by a bean extending `QuarkusNavigationAccessControl` is kept.
+- A bean that does not extend `QuarkusNavigationAccessControl` keeps its login view if it rejects
+  the login page.
 
-A `@Dependent` bean gives every injection point its own instance, which the extension cannot
-configure. Such a bean logs a warning at startup and fails it when the access check is disabled.
+In both cases, the startup log names the kept login view and the configured login page.
+
+A `@Dependent` bean gives every injection point its own instance, so the extension cannot
+configure the instances that check navigation. Such a bean fails the startup when
+`vaadin.security.navigation-access-control.enabled=false`; otherwise the startup logs a warning and
+the login page is not applied.
 
 `QuarkusNavigationAccessControl` is internal API. Extending it still works, but the class may
 change in any release.
