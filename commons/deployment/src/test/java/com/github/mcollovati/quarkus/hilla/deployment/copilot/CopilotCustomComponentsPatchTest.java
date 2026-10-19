@@ -165,7 +165,7 @@ class CopilotCustomComponentsPatchTest {
     private static Path copilotJar() throws Exception {
         return MavenArtifactResolver.builder()
                 .build()
-                .resolve(new DefaultArtifact("com.vaadin", "copilot", "jar", System.getProperty("vaadin.version")))
+                .resolve(new DefaultArtifact("com.vaadin", "copilot", "jar", System.getProperty("copilot.version")))
                 .getArtifact()
                 .getFile()
                 .toPath();
