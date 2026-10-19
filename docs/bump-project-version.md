@@ -13,7 +13,7 @@ The `etc/UpdateProjectVersion.java` [JBang](https://www.jbang.dev) script automa
 - JDK 21 or later
 - Maven 3.8 or later
 - [JBang](https://www.jbang.dev/download) installed
-- The `pom.xml` `<revision>` and `<hilla.version>` properties must end with `-SNAPSHOT`
+- The `pom.xml` `<revision>` property must end with `-SNAPSHOT`; `<hilla.version>` may be a snapshot or a pinned pre-release
 
 ## Usage
 
@@ -47,7 +47,7 @@ Given a current version `C` (read from the `<revision>` property in `pom.xml`) a
 The Maven properties are bumped via `mvn versions:set-property`:
 
 - `<revision>` → `<N>-SNAPSHOT`
-- `<hilla.version>` → `<N>-SNAPSHOT`
+- `<hilla.version>` → `<N>-SNAPSHOT`; pin it to the first `<N>.0-alphaN` once released, see [Build and Test](build-and-test.md#vaadin-versions-on-main)
 
 ### `.github/workflows/`
 
