@@ -16,6 +16,7 @@
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
@@ -24,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.TestUtils;
-import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,8 +41,8 @@ class NavigationAccessControlDisabledTest {
 
     @Test
     void navigationAccessControlDisabled_accessControlTurnedOff() {
-        QuarkusNavigationAccessControl accessControl =
-                Arc.container().instance(QuarkusNavigationAccessControl.class).get();
+        NavigationAccessControl accessControl =
+                Arc.container().instance(NavigationAccessControl.class).get();
 
         assertThat(accessControl).isNotNull();
         assertThat(accessControl.isEnabled()).isFalse();
