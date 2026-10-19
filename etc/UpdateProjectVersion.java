@@ -51,7 +51,7 @@ class UpdateProjectVersion implements Runnable {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("^[0-9]+\\.[0-9]+$");
     private static final Pattern REVISION_PATTERN = Pattern.compile("<revision>(.*?)-SNAPSHOT</revision>");
-    private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)-SNAPSHOT</hilla\\.version>");
+    private static final Pattern HILLA_VERSION_PATTERN = Pattern.compile("<hilla\\.version>(.*?)</hilla\\.version>");
     private static final Pattern README_QUICK_START_PATTERN = Pattern.compile("<version>\\d+\\.\\d+\\.x</version>");
     private static final Pattern README_SNAPSHOT_ROW_PATTERN = Pattern.compile("(?m)^\\|.*--SNAPSHOT.*$");
     private static final Pattern README_MATRIX_TOP_ROW_PATTERN = Pattern.compile(
