@@ -188,8 +188,8 @@ it, the application's resolver bean is used, or the extension's default.
 `withLoginView(...)` is optional. Without it, the extension uses
 `quarkus.http.auth.form.login-page`. A login URL set on the configurer must match that property;
 a different URL fails the startup, also with the access check disabled, and the error names both
-values. A login view class is kept,
-and the startup log names both values, as its route cannot be compared with the property.
+values. A login view class is kept, and the startup log names both values, as its route cannot be
+compared with the property.
 Setting two different login views on one configurer fails immediately.
 
 `disabled()` disables the access control. Setting the build-time property
