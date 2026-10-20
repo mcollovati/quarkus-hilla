@@ -81,10 +81,9 @@ public class RouteUtil {
         }
     }
 
-    private synchronized void collectClientRoutes() {
-        if (routeMatcher != null) {
-            return;
-        }
+    // Not synchronized: it runs on event loop threads, and concurrent first calls
+    // only build the same immutable matcher twice; the volatile field publishes it.
+    private void collectClientRoutes() {
         ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
         Map<String, List<AvailableViewInfo>> routes = new HashMap<>();
         var resource = MenuRegistry.getViewsJsonAsResource(config);
