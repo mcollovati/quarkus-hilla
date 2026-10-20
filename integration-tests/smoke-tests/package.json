@@ -88,7 +88,7 @@
     "@rolldown/plugin-babel": "0.2.4",
     "@rollup/plugin-replace": "6.0.3",
     "@rollup/pluginutils": "5.4.0",
-    "@types/node": "26.6.4",
+    "@types/node": "26.6.5",
     "@typescript/native": "npm:typescript@7.0.2",
     "@vaadin/hilla-generator-cli": "25.3.3",
     "@vaadin/hilla-generator-core": "25.3.3",
@@ -101,14 +101,14 @@
     "@vaadin/hilla-generator-plugin-subtypes": "25.3.3",
     "@vaadin/hilla-generator-plugin-transfertypes": "25.3.3",
     "@vaadin/hilla-generator-utils": "25.3.3",
-    "@vitejs/plugin-react": "6.1.1",
-    "magic-string": "1.4.2",
+    "@vitejs/plugin-react": "6.1.2",
+    "magic-string": "1.4.3",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "7.1.1",
     "strip-css-comments": "5.0.0",
     "transform-ast": "2.4.4",
     "typescript": "npm:@typescript/typescript6@6.0.2",
-    "vite": "8.3.2",
+    "vite": "8.3.4",
     "vite-plugin-checker": "0.14.5"
   },
   "overrides": {
@@ -275,7 +275,7 @@
       "@rolldown/plugin-babel": "0.2.4",
       "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.4.0",
-      "@types/node": "26.6.4",
+      "@types/node": "26.6.5",
       "@typescript/native": "npm:typescript@7.0.2",
       "@vaadin/hilla-generator-cli": "25.3.3",
       "@vaadin/hilla-generator-core": "25.3.3",
@@ -288,17 +288,17 @@
       "@vaadin/hilla-generator-plugin-subtypes": "25.3.3",
       "@vaadin/hilla-generator-plugin-transfertypes": "25.3.3",
       "@vaadin/hilla-generator-utils": "25.3.3",
-      "@vitejs/plugin-react": "6.1.1",
-      "magic-string": "1.4.2",
+      "@vitejs/plugin-react": "6.1.2",
+      "magic-string": "1.4.3",
       "rollup-plugin-brotli": "3.1.0",
       "rollup-plugin-visualizer": "7.1.1",
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "npm:@typescript/typescript6@6.0.2",
-      "vite": "8.3.2",
+      "vite": "8.3.4",
       "vite-plugin-checker": "0.14.5"
     },
-    "hash": "4a55ce39358f91640875cecf9d7796475b10c9f4352e889177a1e816e20d03fb"
+    "hash": "7e801667c944c1ba7afacda4b1ad2018c0605586508b650c8e6a50dd30589199"
   },
   "type": "module"
 }
