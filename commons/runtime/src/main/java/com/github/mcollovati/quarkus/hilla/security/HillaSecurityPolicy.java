@@ -101,8 +101,20 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
                 || isAnonymousEndpoint(request)
-                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
                 || isCustomWebIcon(request)) {
+            return CheckResult.permit();
+        }
+        NavigationContext navigationContext = tryCreateNavigationContext(request);
+        if (navigationContext == null && routeUtil != null && routeUtil.hasRoute(request)) {
+            // A known Hilla route is checked against its complete layout chain. If that
+            // denies, only authentication is required here; roles are left to the client
+            // router, as in Vaadin's Spring integration.
+            return identity.flatMap(secIdentity -> {
+                if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
+                return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+            });
+        }
+        if (isAnonymousRoute(navigationContext, request.normalizedPath())) {
             return CheckResult.permit();
         }
         return identity.flatMap(secIdentity -> {
