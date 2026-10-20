@@ -34,6 +34,8 @@ import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -185,6 +187,20 @@ class HillaRouteHierarchyTest {
         assertTrue(permitted(policy, "/another", identity(true)));
     }
 
+    @Test
+    void policy_wildcardRouteDoesNotCaptureNonPageRequests() throws Exception {
+        manifest("""
+                [{"route":"", "loginRequired":true, "children":[{"route":"*"}]}]
+                """);
+        HillaSecurityPolicy policy = policy();
+
+        // A browser page load is checked against the protected wildcard route.
+        assertFalse(permitted(policy, "/anything", identity(true)));
+        // REST or health requests on the same path are not Hilla pages.
+        assertTrue(permitted(policy, request("/api/hello", "application/json"), identity(true)));
+        assertTrue(permitted(policy, request("/q/health", "*/*"), identity(true)));
+    }
+
     private void hierarchy() throws Exception {
         manifest("""
                 [{"route":"hierarchy", "loginRequired":true, "rolesAllowed":["ADMIN"], "children":[
@@ -209,7 +225,11 @@ class HillaRouteHierarchyTest {
     }
 
     private static boolean permitted(HillaSecurityPolicy policy, String path, SecurityIdentity identity) {
-        return policy.checkPermission(request(path), Uni.createFrom().item(identity), null)
+        return permitted(policy, request(path), identity);
+    }
+
+    private static boolean permitted(HillaSecurityPolicy policy, RoutingContext request, SecurityIdentity identity) {
+        return policy.checkPermission(request, Uni.createFrom().item(identity), null)
                 .await()
                 .indefinitely()
                 .isPermitted();
@@ -224,11 +244,17 @@ class HillaRouteHierarchyTest {
     }
 
     private static RoutingContext request(String path) {
+        return request(path, "text/html,application/xhtml+xml,*/*;q=0.8");
+    }
+
+    private static RoutingContext request(String path, String accept) {
         RoutingContext context = mock(RoutingContext.class);
         HttpServerRequest request = mock(HttpServerRequest.class);
         when(context.request()).thenReturn(request);
         when(context.normalizedPath()).thenReturn(path);
         when(request.path()).thenReturn(path);
+        when(request.method()).thenReturn(HttpMethod.GET);
+        when(request.getHeader(HttpHeaders.ACCEPT)).thenReturn(accept);
         when(request.params()).thenReturn(MultiMap.caseInsensitiveMultiMap());
         return context;
     }
