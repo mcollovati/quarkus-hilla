@@ -1,9 +1,7 @@
 import { UserConfigFn } from 'vite';
-import { overrideVaadinConfig } from './vite.generated';
-import { generateHillaRoutesBeforeTypeCheck } from '../../react/runtime/src/main/codestarts/quarkus/quakus-hilla-maven-codestart/base/hilla-vite-compat.ts';
+import { overrideVaadinConfig } from './vite.generated.ts';
 
 const customConfig: UserConfigFn = (env) => ({
-  plugins: [generateHillaRoutesBeforeTypeCheck()],
   // Here you can add custom Vite parameters
   // https://vitejs.dev/config/
 });
