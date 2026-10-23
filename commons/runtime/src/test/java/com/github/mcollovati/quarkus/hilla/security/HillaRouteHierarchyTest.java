@@ -188,6 +188,40 @@ class HillaRouteHierarchyTest {
     }
 
     @Test
+    void routeUtil_skipLayoutsViewIsNotProtectedByLayoutsAroundIt() throws Exception {
+        manifest("""
+                [{"route":"", "loginRequired":true, "children":[
+                  {"route":"", "skipLayouts":true},
+                  {"route":"landing", "skipLayouts":true},
+                  {"route":"dashboard"},
+                  {"route":"admin", "rolesAllowed":["ADMIN"], "children":[
+                    {"route":"public", "skipLayouts":true}, {"route":"report"}]}
+                ]}]
+                """);
+        RouteUtil routes = new RouteUtil(service);
+
+        // Hilla renders skipLayouts views without the layouts around them.
+        assertTrue(routes.isRouteAllowed(request("/"), identity(true)));
+        assertTrue(routes.isRouteAllowed(request("/landing"), identity(true)));
+        assertTrue(routes.isRouteAllowed(request("/admin/public"), identity(true)));
+        assertFalse(routes.isRouteAllowed(request("/dashboard"), identity(true)));
+        assertFalse(routes.isRouteAllowed(request("/admin/report"), identity(false, "USER")));
+        assertTrue(routes.isRouteAllowed(request("/admin/report"), identity(false, "ADMIN")));
+    }
+
+    @Test
+    void routeUtil_layoutWithoutIndexProtectsItsOwnUrl() throws Exception {
+        manifest("""
+                [{"route":"plain", "loginRequired":true, "children":[{"route":"child"}]}]
+                """);
+        RouteUtil routes = new RouteUtil(service);
+
+        assertFalse(routes.isRouteAllowed(request("/plain"), identity(true)));
+        assertFalse(routes.isRouteAllowed(request("/plain/child"), identity(true)));
+        assertTrue(routes.isRouteAllowed(request("/plain/child"), identity(false)));
+    }
+
+    @Test
     void policy_wildcardRouteDoesNotCaptureNonPageRequests() throws Exception {
         manifest("""
                 [{"route":"", "loginRequired":true, "children":[{"route":"*"}]}]

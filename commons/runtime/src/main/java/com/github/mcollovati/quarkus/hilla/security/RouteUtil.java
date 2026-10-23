@@ -26,7 +26,6 @@ import java.util.function.Predicate;
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
-import com.vaadin.flow.server.menu.AvailableViewInfo;
 import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
@@ -47,7 +46,32 @@ public class RouteUtil {
                     DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
             .build();
 
-    private volatile ImmutablePathMatcher<List<AvailableViewInfo>> routeMatcher;
+    private volatile ImmutablePathMatcher<List<RouteEntry>> routeMatcher;
+
+    /**
+     * A node of {@code file-routes.json}. Unlike {@link com.vaadin.flow.server.menu.AvailableViewInfo}
+     * it keeps {@code skipLayouts}, which decides whether the layouts around a view protect it.
+     */
+    record RouteEntry(
+            String route,
+            boolean loginRequired,
+            String[] rolesAllowed,
+            boolean skipLayouts,
+            List<RouteEntry> children) {
+
+        boolean hasChildren() {
+            return children != null && !children.isEmpty();
+        }
+
+        boolean hasPath() {
+            return route != null && !route.isEmpty();
+        }
+
+        boolean isIndex() {
+            return !hasPath() && !hasChildren();
+        }
+    }
+
     private final VaadinService vaadinService;
 
     public RouteUtil(VaadinService vaadinService) {
@@ -55,7 +79,7 @@ public class RouteUtil {
     }
 
     public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
-        List<AvailableViewInfo> requirements = getRouteData(context);
+        List<RouteEntry> requirements = getRouteData(context);
         return requirements != null
                 && requirements.stream()
                         .allMatch(view -> validateViewAccessible(view, !identity.isAnonymous(), identity::hasRole));
@@ -65,7 +89,7 @@ public class RouteUtil {
         return getRouteData(context) != null;
     }
 
-    private List<AvailableViewInfo> getRouteData(RoutingContext context) {
+    private List<RouteEntry> getRouteData(RoutingContext context) {
         // Ensure that discovery can access the current service and restore any previous instances.
         final var oldInstances = CurrentInstance.getInstances();
         VaadinService.setCurrent(vaadinService);
@@ -85,14 +109,13 @@ public class RouteUtil {
     // only build the same immutable matcher twice; the volatile field publishes it.
     private void collectClientRoutes() {
         ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
-        Map<String, List<AvailableViewInfo>> routes = new HashMap<>();
+        Map<String, List<RouteEntry>> routes = new HashMap<>();
         var resource = MenuRegistry.getViewsJsonAsResource(config);
         if (resource != null) {
             try (var input = resource.openStream()) {
-                List<AvailableViewInfo> tree =
-                        ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
+                List<RouteEntry> tree = ROUTE_MAPPER.readValue(input, new TypeReference<List<RouteEntry>>() {});
                 if (tree != null) {
-                    for (AvailableViewInfo view : tree) {
+                    for (RouteEntry view : tree) {
                         collectRouteRequirements("", List.of(), view, routes);
                     }
                 }
@@ -100,33 +123,39 @@ public class RouteUtil {
                 LoggerFactory.getLogger(RouteUtil.class).warn("Cannot load Hilla client route metadata", exception);
             }
         }
-        final var matcherBuilder = ImmutablePathMatcher.<List<AvailableViewInfo>>builder();
+        final var matcherBuilder = ImmutablePathMatcher.<List<RouteEntry>>builder();
         routes.forEach((route, requirements) -> matcherBuilder.addPath(route, List.copyOf(requirements)));
         routeMatcher = matcherBuilder.build();
     }
 
+    // Registers the views the client router renders for a URL, each with the
+    // requirements of the layouts around it, following React Router and Hilla:
+    // - a layout without a path is not a route of its own;
+    // - a layout with a path is rendered for its URL only if it has no index view;
+    // - a view with skipLayouts is rendered without the layouts around it, so
+    //   their requirements do not apply (Hilla's mergeSkipLayouts).
     private static void collectRouteRequirements(
-            String parentPath,
-            List<AvailableViewInfo> ancestors,
-            AvailableViewInfo view,
-            Map<String, List<AvailableViewInfo>> routes) {
-        String path = view.route() == null || view.route().isEmpty()
-                ? parentPath
-                : (parentPath + "/" + view.route()).replace("//", "/");
+            String parentPath, List<RouteEntry> ancestors, RouteEntry view, Map<String, List<RouteEntry>> routes) {
+        String path = view.hasPath() ? (parentPath + "/" + view.route()).replace("//", "/") : parentPath;
         path = PathUtil.ensureSlashBegin(path);
-        List<AvailableViewInfo> requirements = new ArrayList<>(ancestors);
+        List<RouteEntry> requirements = new ArrayList<>(view.skipLayouts() ? List.of() : ancestors);
         requirements.add(view);
-        // Index views and pathless layouts share a URL: retain all their requirements.
-        routes.computeIfAbsent(path, ignored -> new ArrayList<>()).addAll(requirements);
-        if (view.children() != null) {
-            for (AvailableViewInfo child : view.children()) {
+        boolean rendered = view.isIndex()
+                || !view.hasChildren()
+                || (view.hasPath() && view.children().stream().noneMatch(RouteEntry::isIndex));
+        if (rendered) {
+            // Several views can share a URL, e.g. in sibling pathless layouts: require all of them.
+            routes.computeIfAbsent(path, ignored -> new ArrayList<>()).addAll(requirements);
+        }
+        if (view.hasChildren()) {
+            for (RouteEntry child : view.children()) {
                 collectRouteRequirements(path, requirements, child, routes);
             }
         }
     }
 
     private static boolean validateViewAccessible(
-            AvailableViewInfo viewInfo, boolean isUserAuthenticated, Predicate<? super String> roleAuthentication) {
+            RouteEntry viewInfo, boolean isUserAuthenticated, Predicate<? super String> roleAuthentication) {
         if (viewInfo.loginRequired() && !isUserAuthenticated) {
             return false;
         }
