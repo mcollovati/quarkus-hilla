@@ -137,6 +137,12 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 | --- | --- | --- |
 | `3.37.0`, `3.37.1` | Avoid | These versions can drop `ObjectNode` request body fields in Quarkus REST Jackson when reflection-free serializers are enabled. Upgrade to Quarkus `3.37.2` or newer. If upgrading is not possible, set `quarkus.rest.jackson.optimization.enable-reflection-free-serializers=false`. See [quarkusio/quarkus#55254](https://github.com/quarkusio/quarkus/issues/55254). |
 
+### Known issues with Vaadin versions
+
+| Vaadin (`vaadin-bom`) | Hilla | Status | Details |
+| --- | --- | --- | --- |
+| `25.3.0` – `25.3.2` | `25.3.0` – `25.3.2` | Workaround | Dev mode only: the TypeScript checker can report `TS2307` for `Frontend/generated/file-routes`, and the error overlay does not clear. Fixed in Hilla `25.3.3`. Until a Vaadin release brings it, import `com.vaadin:hilla-bom` `25.3.3` before `vaadin-bom`, or use the helper described in [Troubleshooting cold frontend startup](https://github.com/mcollovati/quarkus-hilla/blob/25.3/docs/features.md#troubleshooting-cold-frontend-startup). See [vaadin/hilla#6040](https://github.com/vaadin/hilla/issues/6040). |
+
 ---
 
 ## ⚙️ Configuration

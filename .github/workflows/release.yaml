@@ -148,9 +148,27 @@ jobs:
           CMD_SKIP_TESTS: ${{ inputs.dry-run && '-DskipTests -DskipITs=true' || '' }}
         run: |
           mvn -V -ntp -Pdistribution,default-modules -Drevision=$CMD_REVISION -DaltDeploymentRepository=local::file:./target/staging-deploy $CMD_SKIP_TESTS deploy
+      - name: Detect previous release
+        id: previousRelease
+        env:
+          CMD_VERSION: ${{ inputs.version }}
+        run: |
+          # Without a previous tag, JReleaser starts the changelog at the highest version tag of the whole repository.
+          # For a maintenance branch that is a tag of a newer release line, so the release notes would list every
+          # commit since the branch was forked. Use the latest release of the same line reachable from the branch.
+          release_line="${CMD_VERSION%.*}"
+          previous_tag=$(git -c versionsort.suffix=-alpha -c versionsort.suffix=-beta -c versionsort.suffix=-rc \
+            tag --merged HEAD --list "${release_line}.*" --sort=v:refname | tail -n 1)
+          if [[ -n "$previous_tag" ]]; then
+            echo "Release notes list the changes since '$previous_tag'." | tee -a $GITHUB_STEP_SUMMARY
+          else
+            echo "No previous ${release_line} release found, JReleaser picks the previous tag." | tee -a $GITHUB_STEP_SUMMARY
+          fi
+          echo "tag=$previous_tag" >> "$GITHUB_OUTPUT"
       - name: Run JReleaser
         env:
           JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          JRELEASER_PREVIOUS_TAG_NAME: ${{ steps.previousRelease.outputs.tag }}
           JRELEASER_MAVENCENTRAL_RELEASE_USERNAME: ${{ secrets.JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME }}
           JRELEASER_MAVENCENTRAL_RELEASE_TOKEN: ${{ secrets.JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD }}
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
