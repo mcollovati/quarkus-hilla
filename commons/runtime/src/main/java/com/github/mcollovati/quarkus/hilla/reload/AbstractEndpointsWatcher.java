@@ -178,9 +178,11 @@ abstract class AbstractEndpointsWatcher implements Runnable {
     // Visible for test
     Set<String> collectClassesUsedInEndpoints() {
         try {
-            return EndpointCodeGenerator.getInstance().getClassesUsedInOpenApi().orElse(Set.of());
+            return EndpointCodeGenerator.getInstance()
+                    .getClassesUsedInEndpoints()
+                    .orElse(Set.of());
         } catch (Exception ex) {
-            LOGGER.debug("Cannot get used classes from Open API. Force scan for changes", ex);
+            LOGGER.debug("Cannot get the classes used in endpoints. Force scan for changes", ex);
         }
         return null;
     }
