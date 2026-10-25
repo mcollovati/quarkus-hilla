@@ -15,6 +15,7 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import jakarta.servlet.ServletContext;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -29,6 +30,7 @@ import com.vaadin.flow.server.RouteRegistry;
 import com.vaadin.flow.server.ServiceInitEvent;
 import com.vaadin.flow.server.VaadinContext;
 import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -44,6 +46,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.github.mcollovati.quarkus.hilla.QuarkusEndpointConfiguration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -60,11 +63,12 @@ class HillaRouteHierarchyTest {
 
     private VaadinService service;
     private RouteRegistry registry;
+    private ApplicationConfiguration configuration;
 
     @BeforeEach
     void setUp() throws Exception {
         Files.createDirectories(frontend.resolve("generated"));
-        ApplicationConfiguration configuration = mock(ApplicationConfiguration.class);
+        configuration = mock(ApplicationConfiguration.class);
         when(configuration.getFrontendFolder()).thenReturn(frontend.toFile());
         VaadinContext context = mock(VaadinContext.class);
         when(context.getAttribute(eq(ApplicationConfiguration.class), any())).thenReturn(configuration);
@@ -199,6 +203,81 @@ class HillaRouteHierarchyTest {
         // REST or health requests on the same path are not Hilla pages.
         assertTrue(permitted(policy, request("/api/hello", "application/json"), identity(true)));
         assertTrue(permitted(policy, request("/q/health", "*/*"), identity(true)));
+    }
+
+    @Test
+    void policy_layoutLoginRequiredProtectsParameterizedChild() throws Exception {
+        manifest("""
+                [{"route":"orders", "loginRequired":true, "children":[{"route":":id"}, {"route":"/orders/:id/edit"}]},
+                 {"route":"*"}]
+                """);
+        HillaSecurityPolicy policy = policy();
+
+        assertFalse(permitted(policy, "/orders/42", identity(true)));
+        assertFalse(permitted(policy, "/Orders/42/", identity(true)));
+        assertFalse(permitted(policy, "/orders/%34%32", identity(true)));
+        assertFalse(permitted(policy, "/orders/42/edit", identity(true)));
+        assertTrue(permitted(policy, "/orders/42", identity(false)));
+        assertTrue(permitted(policy, "/somewhere", identity(true)));
+    }
+
+    @Test
+    void routeUtil_staticChildIsNotRestrictedByParameterizedSibling() throws Exception {
+        manifest("""
+                [{"route":"users", "children":[
+                  {"route":"me", "loginRequired":true}, {"route":":id", "rolesAllowed":["ADMIN"]}
+                ]}]
+                """);
+        RouteUtil routes = new RouteUtil(service);
+
+        assertTrue(routes.isRouteAllowed(request("/users/me"), identity(false, "USER")));
+        assertFalse(routes.isRouteAllowed(request("/users/me"), identity(true)));
+        assertFalse(routes.isRouteAllowed(request("/users/42"), identity(false, "USER")));
+        assertTrue(routes.isRouteAllowed(request("/users/42"), identity(false, "ADMIN")));
+    }
+
+    @Test
+    void policy_publicLoginNextToProtectedWildcard() throws Exception {
+        manifest("""
+                [{"route":"login"}, {"route":"*", "loginRequired":true}]
+                """);
+        HillaSecurityPolicy policy = policy();
+
+        assertTrue(permitted(policy, "/login", identity(true)));
+        assertTrue(permitted(policy, "/LOGIN/", identity(true)));
+        assertFalse(permitted(policy, "/other", identity(true)));
+    }
+
+    @Test
+    void policy_pathWithoutHillaViewBelowProtectedRootLayoutIsLeftToFlow() throws Exception {
+        manifest("""
+                [{"route":"", "loginRequired":true, "children":[{"route":""}, {"route":"orders"}]}]
+                """);
+        HillaSecurityPolicy policy = policy();
+
+        assertFalse(permitted(policy, "/", identity(true)));
+        assertFalse(permitted(policy, "/orders", identity(true)));
+        // The client renders the Flow fallback; the path may belong to a REST resource or a static file.
+        assertTrue(permitted(policy, "/api/orders", identity(true)));
+    }
+
+    @Test
+    void routeUtil_matchesBelowContextPathOfVaadinServlet() throws Exception {
+        manifest("""
+                [{"route":"orders", "loginRequired":true, "children":[{"route":":id"}]}]
+                """);
+        ServletContext servletContext = mock(ServletContext.class);
+        when(servletContext.getContextPath()).thenReturn("/app");
+        VaadinServletContext context = mock(VaadinServletContext.class);
+        when(context.getContext()).thenReturn(servletContext);
+        when(context.getAttribute(eq(ApplicationConfiguration.class), any())).thenReturn(configuration);
+        when(service.getContext()).thenReturn(context);
+        RouteUtil routes = new RouteUtil(service);
+
+        assertEquals("/app/", RouteUtil.basename(service));
+        assertFalse(routes.isRouteAllowed(request("/app/orders/42"), identity(true)));
+        assertTrue(routes.isRouteAllowed(request("/APP/orders/42"), identity(false)));
+        assertFalse(routes.hasRoute(request("/orders/42")));
     }
 
     private void hierarchy() throws Exception {

@@ -16,20 +16,18 @@
 package com.github.mcollovati.quarkus.hilla.security;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.vertx.ext.web.RoutingContext;
 import org.slf4j.LoggerFactory;
 import tools.jackson.core.JacksonException;
@@ -47,7 +45,7 @@ public class RouteUtil {
                     DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
             .build();
 
-    private volatile ImmutablePathMatcher<List<AvailableViewInfo>> routeMatcher;
+    private volatile ClientRouteMatcher routeMatcher;
     private final VaadinService vaadinService;
 
     public RouteUtil(VaadinService vaadinService) {
@@ -55,17 +53,17 @@ public class RouteUtil {
     }
 
     public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
-        List<AvailableViewInfo> requirements = getRouteData(context);
-        return requirements != null
-                && requirements.stream()
-                        .allMatch(view -> validateViewAccessible(view, !identity.isAnonymous(), identity::hasRole));
+        return getRouteData(context)
+                .map(requirements -> requirements.stream()
+                        .allMatch(view -> validateViewAccessible(view, !identity.isAnonymous(), identity::hasRole)))
+                .orElse(false);
     }
 
     boolean hasRoute(RoutingContext context) {
-        return getRouteData(context) != null;
+        return getRouteData(context).isPresent();
     }
 
-    private List<AvailableViewInfo> getRouteData(RoutingContext context) {
+    private Optional<List<AvailableViewInfo>> getRouteData(RoutingContext context) {
         // Ensure that discovery can access the current service and restore any previous instances.
         final var oldInstances = CurrentInstance.getInstances();
         VaadinService.setCurrent(vaadinService);
@@ -73,8 +71,9 @@ public class RouteUtil {
             if (routeMatcher == null) {
                 collectClientRoutes();
             }
-            // Match before checking access, so a denied route cannot fall back to a public wildcard.
-            return routeMatcher.match(context.normalizedPath()).getValue();
+            // Match before checking access, so a denied route cannot fall back to a public wildcard: the route is
+            // the one React Router renders, with the requirements of all its ancestors.
+            return routeMatcher.requirements(context.normalizedPath());
         } finally {
             CurrentInstance.clearAll();
             CurrentInstance.restoreInstances(oldInstances);
@@ -85,44 +84,37 @@ public class RouteUtil {
     // only build the same immutable matcher twice; the volatile field publishes it.
     private void collectClientRoutes() {
         ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
-        Map<String, List<AvailableViewInfo>> routes = new HashMap<>();
+        List<AvailableViewInfo> tree = List.of();
         var resource = MenuRegistry.getViewsJsonAsResource(config);
         if (resource != null) {
             try (var input = resource.openStream()) {
-                List<AvailableViewInfo> tree =
+                List<AvailableViewInfo> routes =
                         ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
-                if (tree != null) {
-                    for (AvailableViewInfo view : tree) {
-                        collectRouteRequirements("", List.of(), view, routes);
-                    }
+                if (routes != null) {
+                    tree = routes;
                 }
             } catch (IOException | JacksonException exception) {
                 LoggerFactory.getLogger(RouteUtil.class).warn("Cannot load Hilla client route metadata", exception);
             }
         }
-        final var matcherBuilder = ImmutablePathMatcher.<List<AvailableViewInfo>>builder();
-        routes.forEach((route, requirements) -> matcherBuilder.addPath(route, List.copyOf(requirements)));
-        routeMatcher = matcherBuilder.build();
+        routeMatcher = ClientRouteMatcher.forFileRoutes(tree, basename(vaadinService));
     }
 
-    private static void collectRouteRequirements(
-            String parentPath,
-            List<AvailableViewInfo> ancestors,
-            AvailableViewInfo view,
-            Map<String, List<AvailableViewInfo>> routes) {
-        String path = view.route() == null || view.route().isEmpty()
-                ? parentPath
-                : (parentPath + "/" + view.route()).replace("//", "/");
-        path = PathUtil.ensureSlashBegin(path);
-        List<AvailableViewInfo> requirements = new ArrayList<>(ancestors);
-        requirements.add(view);
-        // Index views and pathless layouts share a URL: retain all their requirements.
-        routes.computeIfAbsent(path, ignored -> new ArrayList<>()).addAll(requirements);
-        if (view.children() != null) {
-            for (AvailableViewInfo child : view.children()) {
-                collectRouteRequirements(path, requirements, child, routes);
-            }
+    /**
+     * Returns the basename of the client router, the path of the document base URI, which Vaadin sets to the
+     * context root of the Vaadin servlet. The request path that the HTTP layer checks includes it.
+     *
+     * @param vaadinService the Vaadin service
+     * @return the basename, ending with a slash
+     */
+    static String basename(VaadinService vaadinService) {
+        String contextPath = "";
+        if (vaadinService.getContext() instanceof VaadinServletContext servletContext
+                && servletContext.getContext() != null
+                && servletContext.getContext().getContextPath() != null) {
+            contextPath = servletContext.getContext().getContextPath().replaceFirst("/+$", "");
         }
+        return contextPath + "/";
     }
 
     private static boolean validateViewAccessible(
