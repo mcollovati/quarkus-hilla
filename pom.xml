@@ -51,11 +51,11 @@
             Pinned to the latest pre-release, so that changes in Vaadin snapshots do not break
             pull requests. The nightly snapshot validation replaces these versions with snapshots.
         -->
-        <hilla.version>25.4.0-alpha3</hilla.version>
+        <hilla.version>25.4.0-alpha4</hilla.version>
         <flow.version>${hilla.version}</flow.version>
         <vaadin.version>${hilla.version}</vaadin.version>
         <!-- Copilot is not released with every pre-release; use the version vaadin-dev depends on -->
-        <copilot.version>25.4.0-alpha2</copilot.version>
+        <copilot.version>25.4.0-alpha3</copilot.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
