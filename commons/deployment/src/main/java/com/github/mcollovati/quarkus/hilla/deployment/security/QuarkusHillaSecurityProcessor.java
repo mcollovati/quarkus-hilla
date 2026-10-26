@@ -17,7 +17,6 @@ package com.github.mcollovati.quarkus.hilla.deployment.security;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
-import java.util.Optional;
 
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
@@ -40,6 +39,7 @@ import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMecha
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
+import com.github.mcollovati.quarkus.hilla.security.VaadinSecurityConfig;
 
 class QuarkusHillaSecurityProcessor {
 
@@ -92,13 +92,17 @@ class QuarkusHillaSecurityProcessor {
 
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
+    @Consume(SyntheticBeansRuntimeInitBuildItem.class)
     void configureNavigationAccessControl(
+            AuthFormBuildItem authFormBuildItem,
+            VaadinSecurityConfig securityConfig,
             HillaSecurityRecorder recorder,
-            BeanContainerBuildItem beanContainer,
-            Optional<NavigationAccessControlBuildItem> navigationAccessControlBuildItem) {
-        navigationAccessControlBuildItem
-                .map(NavigationAccessControlBuildItem::getLoginPath)
-                .ifPresent(loginPath -> recorder.configureNavigationAccessControl(beanContainer.getValue(), loginPath));
+            BeanContainerBuildItem beanContainer) {
+        if (authFormBuildItem.isEnabled()) {
+            recorder.configureNavigationAccessControl(
+                    beanContainer.getValue(),
+                    securityConfig.navigationAccessControl().enabled());
+        }
     }
 
     @BuildStep
@@ -117,7 +121,6 @@ class QuarkusHillaSecurityProcessor {
     void registerNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
             BuildProducer<AdditionalBeanBuildItem> beans,
-            BuildProducer<NavigationAccessControlBuildItem> accessControlProducer,
             BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
         if (authFormBuildItem.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
@@ -129,11 +132,6 @@ class QuarkusHillaSecurityProcessor {
                     .build());
             accessCheckerProducer.produce(
                     new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
-
-            ConfigProvider.getConfig()
-                    .getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                    .map(NavigationAccessControlBuildItem::new)
-                    .ifPresent(accessControlProducer::produce);
         }
     }
 }

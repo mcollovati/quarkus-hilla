@@ -169,13 +169,13 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         boolean productionMode = vaadinService.getDeploymentConfiguration().isProductionMode();
 
         if (!accessControl.isEnabled()) {
-            String message =
-                    "Navigation Access Control is disabled. Cannot determine if {} refers to a public view, thus access is denied. Please add an explicit request matcher rule for this URL.";
-            if (productionMode) {
-                getLogger().debug(message, path);
-            } else {
-                getLogger().info(message, path);
-            }
+            // Adds no restriction of its own; Quarkus HTTP permissions still
+            // apply, as all security policies have to permit the request.
+            getLogger()
+                    .debug(
+                            "Navigation access control is disabled, {} is treated as a public view. "
+                                    + "Quarkus HTTP permissions still apply.",
+                            path);
             return true;
         }
 

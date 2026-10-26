@@ -55,4 +55,40 @@ public interface VaadinSecurityConfig {
      */
     @WithDefault("true")
     boolean logoutInvalidateSession();
+
+    /**
+     * Settings for the access check on Flow views.
+     *
+     * @return the navigation access control settings.
+     */
+    NavigationAccessControlConfig navigationAccessControl();
+
+    /**
+     * Settings for the access check on Flow views.
+     */
+    interface NavigationAccessControlConfig {
+
+        /**
+         * Whether access to Flow views is checked.
+         * <p></p>
+         * Access is declared with an annotation on the view class or one of
+         * its superclasses: {@code @AnonymousAllowed}, {@code @PermitAll},
+         * {@code @RolesAllowed} or {@code @DenyAll}. Views without an
+         * annotation are denied. An annotation on a router layout does not
+         * apply to the views it contains; it is checked in addition.
+         * <p></p>
+         * Set to {@literal false} to disable the check. Every Flow view is then
+         * accessible to anyone who can reach the application, and the
+         * annotations are not evaluated. Intended as a transitional measure
+         * while annotations are added.
+         * <p></p>
+         * Only applies when Quarkus form authentication is enabled.
+         * <p></p>
+         * Defaults to {@literal true}.
+         *
+         * @return whether access to Flow views is checked.
+         */
+        @WithDefault("true")
+        boolean enabled();
+    }
 }
