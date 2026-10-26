@@ -17,10 +17,9 @@ package com.github.mcollovati.quarkus.hilla.deployment.security;
 
 import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -36,13 +35,18 @@ class AccessCheckDecisionResolverDefaultTest {
                     TestUtils.class.getPackageName().replace('.', '/') + "/test-application.properties")
             .overrideConfigKey("quarkus.http.auth.form.enabled", "true")
             .overrideConfigKey("quarkus.http.test-port", "0")
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class));
+            .setArchiveProducer(() -> NavigationAccessControlTestSupport.archive());
 
     @Test
-    void formAuthentication_usesDefaultDecisionResolver() {
+    void formAuthentication_usesDefaultDecisionResolver() throws ReflectiveOperationException {
         AccessCheckDecisionResolver resolver =
                 Arc.container().instance(AccessCheckDecisionResolver.class).get();
 
+        assertThat(NavigationAccessControlTestSupport.field(
+                        NavigationAccessControlTestSupport.accessControl(),
+                        NavigationAccessControl.class,
+                        "decisionResolver"))
+                .isSameAs(resolver);
         assertThat(resolver).isInstanceOf(DefaultAccessCheckDecisionResolver.class);
     }
 }

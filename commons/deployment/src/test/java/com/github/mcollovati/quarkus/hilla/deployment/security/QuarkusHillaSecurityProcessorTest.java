@@ -23,7 +23,7 @@ import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import org.jboss.jandex.DotName;
 import org.junit.jupiter.api.Test;
 
-import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
+import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlProducer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,7 +42,7 @@ class QuarkusHillaSecurityProcessorTest {
                 .containsExactly(DotName.createSimple(AnnotatedViewAccessChecker.class));
         assertThat(beans)
                 .flatExtracting(AdditionalBeanBuildItem::getBeanClasses)
-                .contains(QuarkusNavigationAccessControl.class.getName());
+                .contains(NavigationAccessControlProducer.class.getName());
     }
 
     @Test

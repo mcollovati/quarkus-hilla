@@ -15,15 +15,23 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
+import com.vaadin.flow.server.auth.AccessCheckResult;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
+import com.vaadin.flow.server.auth.NavigationAccessChecker;
+import com.vaadin.flow.server.auth.NavigationAccessControl;
+import com.vaadin.flow.server.auth.NavigationContext;
+import com.vaadin.hilla.startup.RouteUnifyingServiceInitListener;
+import com.vaadin.quarkus.annotation.VaadinServiceEnabled;
 import io.quarkus.arc.Arc;
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.test.QuarkusExtensionTest;
-import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import com.github.mcollovati.quarkus.hilla.deployment.TestUtils;
+import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,16 +44,63 @@ class NavigationAccessControlEnabledTest {
                     TestUtils.class.getPackageName().replace('.', '/') + "/test-application.properties")
             .overrideConfigKey("quarkus.http.auth.form.enabled", "true")
             .overrideConfigKey("quarkus.http.test-port", "0")
-            .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class).addClasses(TestUtils.class));
+            .setArchiveProducer(() -> NavigationAccessControlTestSupport.archive(ExtraChecker.class));
 
     @Test
     void formAuthentication_accessControlEnabledByDefault() {
-        QuarkusNavigationAccessControl accessControl =
-                Arc.container().instance(QuarkusNavigationAccessControl.class).get();
+        NavigationAccessControl accessControl =
+                Arc.container().instance(NavigationAccessControl.class).get();
 
         assertThat(accessControl).isNotNull();
         assertThat(accessControl.isEnabled()).isTrue();
         assertThat(accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class))
                 .isTrue();
+        assertThat(accessControl.hasAccessChecker(ExtraChecker.class)).isTrue();
+        accessControl.checkAccess(NavigationAccessControlTestSupport.context(), false);
+        assertThat(Arc.container().instance(ExtraChecker.class).get().calls()).isEqualTo(1);
+    }
+
+    @Test
+    void consumers_shareContextualInstance() throws ReflectiveOperationException {
+        NavigationAccessControl accessControl = NavigationAccessControlTestSupport.accessControl();
+        Object installer = Arc.container()
+                .instance(QuarkusNavigationAccessControl.Installer.class)
+                .get();
+        Object policy = ClientProxy.unwrap(
+                Arc.container().instance(HillaSecurityPolicy.class).get());
+        Object routeListener = Arc.container()
+                .instance(RouteUnifyingServiceInitListener.class, VaadinServiceEnabled.Literal.INSTANCE)
+                .get();
+        assertThat(NavigationAccessControlTestSupport.field(
+                        installer, QuarkusNavigationAccessControl.Installer.class, "accessControl"))
+                .isSameAs(accessControl);
+        assertThat(NavigationAccessControlTestSupport.field(policy, HillaSecurityPolicy.class, "accessControl"))
+                .isSameAs(accessControl);
+        assertThat(NavigationAccessControlTestSupport.field(
+                        routeListener, RouteUnifyingServiceInitListener.class, "accessControl"))
+                .isSameAs(accessControl);
+        // The recorder resolved this very instance and applied the form login page.
+        assertThat(NavigationAccessControlTestSupport.field(accessControl, NavigationAccessControl.class, "loginUrl"))
+                .isEqualTo("/login.html");
+        // Only the Flow type is a bean type, so no second instance can exist.
+        assertThat(Arc.container()
+                        .instance(QuarkusNavigationAccessControl.class)
+                        .isAvailable())
+                .isFalse();
+    }
+
+    @ApplicationScoped
+    static class ExtraChecker implements NavigationAccessChecker {
+        private int calls;
+
+        @Override
+        public AccessCheckResult check(NavigationContext context) {
+            calls++;
+            return context.neutral();
+        }
+
+        int calls() {
+            return calls;
+        }
     }
 }
