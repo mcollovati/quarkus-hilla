@@ -26,6 +26,14 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+    groups:
+      # Vaadin, Flow and Hilla are released as one platform: update them in a
+      # single pull request so hilla.version and flow.version stay aligned with
+      # the versions vaadin-bom manages.
+      vaadin:
+        patterns:
+          - "com.vaadin:*"
+          - "com.vaadin.hilla:*"
   - package-ecosystem: "maven"
     directory: "/"
     target-branch: "25.2"
@@ -40,3 +48,11 @@ updates:
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"
+    groups:
+      # Vaadin, Flow and Hilla are released as one platform: update them in a
+      # single pull request so hilla.version and flow.version stay aligned with
+      # the versions vaadin-bom manages.
+      vaadin:
+        patterns:
+          - "com.vaadin:*"
+          - "com.vaadin.hilla:*"
