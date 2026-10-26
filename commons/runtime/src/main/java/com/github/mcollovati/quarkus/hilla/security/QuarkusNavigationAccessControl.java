@@ -28,6 +28,8 @@ import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.ManagedContext;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
@@ -57,20 +59,46 @@ public class QuarkusNavigationAccessControl extends NavigationAccessControl {
         this.securityIdentity = securityIdentity;
     }
 
+    /**
+     * Gets the principal of the Vaadin request, falling back to the current
+     * Quarkus security identity. An anonymous identity has no principal.
+     */
     @Override
     protected Principal getPrincipal(VaadinRequest request) {
-        if (request == null) {
-            return securityIdentity.getPrincipal();
+        Principal requestPrincipal = request != null ? super.getPrincipal(request) : null;
+        if (requestPrincipal != null) {
+            return requestPrincipal;
         }
-        return super.getPrincipal(request);
+        SecurityIdentity identity = currentIdentity();
+        return identity != null ? identity.getPrincipal() : null;
     }
 
+    /**
+     * Checks roles of the Vaadin request and of the current Quarkus security
+     * identity.
+     */
     @Override
     protected Predicate<String> getRolesChecker(VaadinRequest request) {
         if (request == null) {
-            return securityIdentity::hasRole;
+            return this::hasIdentityRole;
         }
-        return super.getRolesChecker(request);
+        Predicate<String> requestRolesChecker = super.getRolesChecker(request);
+        return role -> requestRolesChecker.test(role) || hasIdentityRole(role);
+    }
+
+    private boolean hasIdentityRole(String role) {
+        SecurityIdentity identity = currentIdentity();
+        return role != null && identity != null && identity.hasRole(role);
+    }
+
+    // The identity is request scoped; outside an active request context, for
+    // example in some push connections, there is no identity to fall back to.
+    private SecurityIdentity currentIdentity() {
+        ManagedContext requestContext = Arc.container().requestContext();
+        if (!requestContext.isActive() || securityIdentity.isAnonymous()) {
+            return null;
+        }
+        return securityIdentity;
     }
 
     /**

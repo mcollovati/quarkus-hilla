@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Singleton;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
@@ -66,10 +67,17 @@ public class HillaSecurityRecorder {
         };
     }
 
-    public void configureHttpSecurityPolicy(BeanContainer container) {
-        Config config = ConfigProvider.getConfig();
+    /**
+     * Configures the HTTP security policy.
+     *
+     * @param container the CDI bean container
+     * @param formAuthentication whether form authentication is used, which permits the form login paths
+     */
+    public void configureHttpSecurityPolicy(BeanContainer container, boolean formAuthentication) {
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
-        policy.withFormLogin(config);
+        if (formAuthentication) {
+            policy.withFormLogin(ConfigProvider.getConfig());
+        }
         markSecurityPolicyUsed();
     }
 
@@ -79,8 +87,10 @@ public class HillaSecurityRecorder {
      *
      * @param container the CDI bean container
      * @param enabled whether navigation access control is permitted by the build-time configuration
+     * @param formAuthentication whether form authentication is used; only then the form login page is
+     *     applied as login view
      */
-    public void configureNavigationAccessControl(BeanContainer container, boolean enabled) {
+    public void configureNavigationAccessControl(BeanContainer container, boolean enabled, boolean formAuthentication) {
         boolean extensionAccessControl = isExtensionBean(NavigationAccessControl.class);
         if (extensionAccessControl) {
             InjectableBean<NavigationAccessControlConfigurer> configurerBean =
@@ -113,8 +123,10 @@ public class HillaSecurityRecorder {
                     throw new IllegalStateException(message + " Otherwise vaadin.security.navigation-access-control"
                             + ".enabled=false has no effect.");
                 }
-                LoggerFactory.getLogger(HillaSecurityRecorder.class)
-                        .warn("{} Otherwise {} is not applied as its login view.", message, FORM_LOGIN_PAGE);
+                if (formAuthentication) {
+                    LoggerFactory.getLogger(HillaSecurityRecorder.class)
+                            .warn("{} Otherwise {} is not applied as its login view.", message, FORM_LOGIN_PAGE);
+                }
                 return;
             }
         }
@@ -123,7 +135,11 @@ public class HillaSecurityRecorder {
         NavigationAccessControl accessControl =
                 ClientProxy.unwrap(container.beanInstance(NavigationAccessControl.class));
         // Read at startup, as Quarkus does for its own form login redirect.
-        var loginPage = ConfigProvider.getConfig().getOptionalValue(FORM_LOGIN_PAGE, String.class);
+        // Other mechanisms get no default login view: the property has a
+        // default value even if form authentication is not used.
+        Optional<String> loginPage = formAuthentication
+                ? ConfigProvider.getConfig().getOptionalValue(FORM_LOGIN_PAGE, String.class)
+                : Optional.empty();
         if (extensionAccessControl) {
             container
                     .beanInstance(NavigationAccessControlConfigurer.class)
