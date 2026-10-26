@@ -62,7 +62,7 @@ alternative.
 * Good, because existing applications that replace the bean keep working and
   are pointed to the configurer.
 * Bad, because the extension still has to support replaced beans, including
-  their login view handling, until the deprecation ends.
+  their login view handling, until its removal in 26.0.
 * Bad, because injecting `QuarkusNavigationAccessControl` no longer works
   (breaking change in 25.3.0).
 

@@ -331,6 +331,7 @@ When bumping the baseline to a new major (e.g. 25.x → 26.0):
 2. Create a new `docs/v25-docs.md` documenting the *outgoing* major's (25.x) setup/workarounds — the existing `docs/v24-docs.md` stays untouched as the archive for 24.x-and-earlier. The Compatibility Matrix rows themselves stay in `README.md`; do not move them out.
 3. Write `docs/migration-v25-to-v26.md` covering Quarkus-Hilla-specific changes only (build plugin, config defaults, dependency changes).
 4. Update the single `[!IMPORTANT]` callout near the top of `README.md` and the Documentation list to point at the new `vNN-docs.md` / migration doc.
-5. Keep that top callout as the **only** prominent "on an older version?" pointer. Topical mentions elsewhere (e.g. Configuration Reference, Compatibility Matrix) may link to a specific anchor, but don't re-add generic duplicate call-outs — that's the clutter this structure replaced.
+5. Remove the deprecated behavior listed under [Planned Removals for the Next Major](docs/release-process.md#planned-removals) and document each removal in the migration doc.
+6. Keep that top callout as the **only** prominent "on an older version?" pointer. Topical mentions elsewhere (e.g. Configuration Reference, Compatibility Matrix) may link to a specific anchor, but don't re-add generic duplicate call-outs — that's the clutter this structure replaced.
 
 This file serves as the authoritative guide for development practices in the Quarkus-Hilla project. All agents should reference these guidelines when making changes to the codebase.
