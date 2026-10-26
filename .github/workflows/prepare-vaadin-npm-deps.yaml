@@ -2,7 +2,7 @@ name: Prepare Vaadin NPM dependency sync
 
 on:
   pull_request_target:
-    branches: ["25.3", "25.2", "25.1"]
+    branches: ["25.3", "25.2"]
     types: [opened, reopened, synchronize]
 
 permissions:
