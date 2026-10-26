@@ -258,7 +258,7 @@ class QuarkusEndpointControllerConfiguration {
                 new RouteUnifyingConfigurationProperties();
         routeUnifyingConfigurationProperties.setExposeServerRoutesToClient(exposeServerRoutesToClient);
         NavigationAccessControl navigationAccessControl =
-                navigationAccessControlInstance.isResolvable() ? navigationAccessControlInstance.get() : null;
+                navigationAccessControlInstance.isUnsatisfied() ? null : navigationAccessControlInstance.get();
         return new RouteUnifyingServiceInitListener(
                 routeUtil, routeUnifyingConfigurationProperties, navigationAccessControl);
     }

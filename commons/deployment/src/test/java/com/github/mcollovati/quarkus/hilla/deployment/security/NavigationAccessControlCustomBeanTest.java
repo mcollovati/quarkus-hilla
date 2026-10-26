@@ -15,6 +15,8 @@
  */
 package com.github.mcollovati.quarkus.hilla.deployment.security;
 
+import java.util.logging.Level;
+
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.Arc;
 import io.quarkus.test.QuarkusExtensionTest;
@@ -38,7 +40,12 @@ class NavigationAccessControlCustomBeanTest {
             .overrideConfigKey("vaadin.security.navigation-access-control.enabled", "false")
             .overrideConfigKey("quarkus.http.test-port", "0")
             .setArchiveProducer(() -> ShrinkWrap.create(JavaArchive.class)
-                    .addClasses(TestUtils.class, CustomNavigationAccessControl.class));
+                    .addClasses(TestUtils.class, CustomNavigationAccessControl.class))
+            .setLogRecordPredicate(record -> record.getLevel().intValue() >= Level.WARNING.intValue())
+            .assertLogRecords(records -> assertThat(records)
+                    .filteredOn(record ->
+                            record.getMessage().contains("Replacing the NavigationAccessControl bean is deprecated"))
+                    .hasSize(1));
 
     @Test
     void customAccessControl_settingsApplied() {
