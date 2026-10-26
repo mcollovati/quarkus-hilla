@@ -189,17 +189,26 @@ class QuarkusEndpointControllerConfiguration {
         return new Factory();
     }
 
+    /**
+     * Registers the Quarkus-backed {@link ApplicationContext}.
+     * <p>
+     * The context is handed to {@link ApplicationContextProvider} by {@link ApplicationContextProviderInitializer},
+     * not here: doing it while this bean is being created runs Hilla's pending actions re-entrantly.
+     *
+     * @param beanManager the CDI bean manager
+     * @return the application context
+     */
     @Produces
     @Singleton
-    ApplicationContext applicationContext(BeanManager beanManager, ApplicationContextProvider appCtxProvider) {
-        QuarkusApplicationContext applicationContext = new QuarkusApplicationContext(beanManager);
-        appCtxProvider.setApplicationContext(applicationContext);
-        return applicationContext;
+    @Unremovable
+    ApplicationContext applicationContext(BeanManager beanManager) {
+        return new QuarkusApplicationContext(beanManager);
     }
 
     @Produces
     @Singleton
     @DefaultBean
+    @Unremovable
     ApplicationContextProvider applicationContextProvider() {
         return new ApplicationContextProvider();
     }

@@ -59,6 +59,7 @@ import io.quarkus.deployment.builditem.LiveReloadBuildItem;
 import io.quarkus.deployment.pkg.NativeConfig;
 import io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem;
 import io.quarkus.undertow.deployment.IgnoredServletContainerInitializerBuildItem;
+import io.quarkus.undertow.deployment.ListenerBuildItem;
 import io.quarkus.undertow.deployment.ServletBuildItem;
 import io.quarkus.vertx.http.deployment.BodyHandlerBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
@@ -73,6 +74,7 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.IndexView;
 
+import com.github.mcollovati.quarkus.hilla.ApplicationContextProviderInitializer;
 import com.github.mcollovati.quarkus.hilla.BodyHandlerRecorder;
 import com.github.mcollovati.quarkus.hilla.CopilotApplicationMetadata;
 import com.github.mcollovati.quarkus.hilla.CopilotConfiguration;
@@ -302,6 +304,11 @@ class QuarkusHillaExtensionProcessor {
                 DotName.createSimple(Endpoint.class.getName()), BuiltinScope.APPLICATION.getName()));
         additionalBeanDefiningAnnotationRegistry.produce(new BeanDefiningAnnotationBuildItem(
                 DotName.createSimple(BrowserCallable.class.getName()), BuiltinScope.APPLICATION.getName()));
+    }
+
+    @BuildStep
+    ListenerBuildItem registerApplicationContextProviderInitializer() {
+        return new ListenerBuildItem(ApplicationContextProviderInitializer.class.getName());
     }
 
     @BuildStep
