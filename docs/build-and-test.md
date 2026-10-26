@@ -17,7 +17,7 @@ mvn -DskipTests -DskipITs=true install
 ### Vaadin versions on main
 
 `main` builds against the latest Vaadin pre-release (`hilla.version`, for example
-`25.4.0-alpha3`), not against snapshots. A change in a Vaadin snapshot then cannot turn pull
+`25.4.0-alpha4`), not against snapshots. A change in a Vaadin snapshot then cannot turn pull
 requests red that did not cause it. Copilot is not released with every pre-release, so
 `copilot.version` follows the version `vaadin-dev` depends on.
 
