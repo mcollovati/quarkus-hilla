@@ -182,7 +182,34 @@ class QuarkusApplicationContext implements ApplicationContext {
 
     @Override
     public <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType) {
-        return throwUnsupported();
+        // Resolved lazily on each access. Hilla's TaskGenerateTypeScriptImpl uses
+        // getIfAvailable() to find the EndpointCodeGenerator in development mode.
+        return new ObjectProvider<>() {
+            @Override
+            public T getObject() throws BeansException {
+                return getBean(beanManager, requiredType);
+            }
+
+            @Override
+            public T getIfAvailable() throws BeansException {
+                try {
+                    return getObject();
+                } catch (NoUniqueBeanDefinitionException ex) {
+                    throw ex;
+                } catch (NoSuchBeanDefinitionException ex) {
+                    return null;
+                }
+            }
+
+            @Override
+            public T getIfUnique() throws BeansException {
+                try {
+                    return getObject();
+                } catch (NoSuchBeanDefinitionException ex) {
+                    return null;
+                }
+            }
+        };
     }
 
     @Override
