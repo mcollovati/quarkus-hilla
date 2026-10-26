@@ -38,6 +38,7 @@ import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityRecorder;
+import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlProducer;
 import com.github.mcollovati.quarkus.hilla.security.QuarkusNavigationAccessControl;
 import com.github.mcollovati.quarkus.hilla.security.VaadinSecurityConfig;
 
@@ -125,7 +126,7 @@ class QuarkusHillaSecurityProcessor {
         if (authFormBuildItem.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
-                            QuarkusNavigationAccessControl.class,
+                            NavigationAccessControlProducer.class,
                             QuarkusNavigationAccessControl.Installer.class,
                             AccessCheckDecisionResolverProducer.class)
                     .setUnremovable()
