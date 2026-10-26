@@ -50,7 +50,7 @@
         <hilla.version>25.2.13</hilla.version>
         <flow.version>25.2.15</flow.version>
         <vaadin.version>25.2.12</vaadin.version>
-        <copilot.version>25.2.10</copilot.version>
+        <copilot.version>25.2.11</copilot.version>
 
         <!--
         <jackson.version>2.18.1</jackson.version>
