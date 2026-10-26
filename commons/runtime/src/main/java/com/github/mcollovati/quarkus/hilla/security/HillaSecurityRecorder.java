@@ -97,7 +97,7 @@ public class HillaSecurityRecorder {
                         + "NavigationAccessControlConfigurer bean cannot be used together. Keep only the configurer.");
             }
             LoggerFactory.getLogger(HillaSecurityRecorder.class)
-                    .warn("Replacing the NavigationAccessControl bean is deprecated. "
+                    .warn("Replacing the NavigationAccessControl bean is deprecated and will be removed in 26.0. "
                             + "Provide a NavigationAccessControlConfigurer bean instead. "
                             + "If the configurer does not cover your use case, please describe it in an issue at "
                             + "https://github.com/mcollovati/quarkus-hilla/issues");
