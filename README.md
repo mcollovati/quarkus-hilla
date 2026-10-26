@@ -126,9 +126,7 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 | <picture><img alt="Maven Central 1.x" src="https://img.shields.io/maven-central/v/com.github.mcollovati/quarkus-hilla?style=for-the-badge&logo=apache-maven&versionPrefix=1"></picture>          | <picture><img alt="Quarkus 2.16" src="https://img.shields.io/badge/QUARKUS-v2.16-blue?style=for-the-badge&logo=Quarkus"></picture> | <picture><img alt="Vaadin 23.3" src="https://img.shields.io/badge/VAADIN-v23.3-blue?style=for-the-badge&logo=Vaadin"></picture> |
 
 > [!NOTE]
-> Quarkus-Hilla's major/minor version matches Vaadin/Hilla, but the Quarkus baseline can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from `3.27` to `3.32` after Flow moved to Jackson `3.1.x`, which is why Quarkus-Hilla `25.0.2` needs the newer Quarkus.
-> The Quarkus column shows the minimum required by the bundled Vaadin Quarkus extension, not the Quarkus version Quarkus-Hilla itself is built with.
-> The Vaadin column can name a minimum patch release as well: Quarkus-Hilla `25.3` needs Vaadin `25.3.3` or newer. With `vaadin-bom` `25.3.0`–`25.3.2`, which manage Hilla `25.3.0`–`25.3.2`, the development-mode TypeScript checker can report `TS2307` for `Frontend/generated/file-routes` ([vaadin/hilla#6040](https://github.com/vaadin/hilla/issues/6040)).
+> Quarkus-Hilla's major/minor version matches Vaadin/Hilla. The Quarkus and Vaadin columns show minimum versions, which can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from Quarkus `3.27` to `3.32`, so Quarkus-Hilla `25.0.2` needs the newer Quarkus. The Quarkus column is what the bundled Vaadin Quarkus extension requires, not the version Quarkus-Hilla is built with.
 >
 > On v24 or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
@@ -137,6 +135,12 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 | Quarkus version | Status | Details |
 | --- | --- | --- |
 | `3.37.0`, `3.37.1` | Avoid | These versions can drop `ObjectNode` request body fields in Quarkus REST Jackson when reflection-free serializers are enabled. Upgrade to Quarkus `3.37.2` or newer. If upgrading is not possible, set `quarkus.rest.jackson.optimization.enable-reflection-free-serializers=false`. See [quarkusio/quarkus#55254](https://github.com/quarkusio/quarkus/issues/55254). |
+
+### Known incompatible Vaadin versions
+
+| Vaadin version | Status | Details |
+| --- | --- | --- |
+| `25.3.0` – `25.3.2` | Avoid with Quarkus-Hilla `25.3` | They manage Hilla `25.3.0` – `25.3.2`: in development mode, the TypeScript checker can report `TS2307` for `Frontend/generated/file-routes`. Use Vaadin `25.3.3` or newer. See [vaadin/hilla#6040](https://github.com/vaadin/hilla/issues/6040). |
 
 ---
 
