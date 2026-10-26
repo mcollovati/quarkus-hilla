@@ -161,6 +161,18 @@ If the GitHub release fails:
 - Check that the repository URL is correct
 - Ensure the version tag doesn't already exist
 
+<a id="planned-removals"></a>
+
+## Planned Removals for the Next Major
+
+Deprecated behavior that is kept for compatibility within 25.x and removed with 26.0. When a
+deprecation is added, list it here; when preparing 26.0, remove each item, describe it in the
+migration guide, and delete it from this list.
+
+| Deprecated since | Removal | Item |
+|------------------|---------|------|
+| 25.3.0 | 26.0 | Replacing the `NavigationAccessControl` bean; applications use a `NavigationAccessControlConfigurer` instead. Remove the bean replacement support and its startup warning in `HillaSecurityRecorder`. See [ADR 0001](decisions/0001-customize-navigation-access-control-through-a-configurer.md). |
+
 ## Post-Release Tasks
 
 After a successful release:
