@@ -32,6 +32,7 @@ import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.ClientProxy;
+import io.quarkus.arc.InjectableBean;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
@@ -73,8 +74,9 @@ public final class NavigationAccessControlConfigurer {
      * Selects the built-in {@link AnnotatedViewAccessChecker}, also behind a CDI
      * client proxy. As in Vaadin's Spring integration, subclasses are not
      * selected; add them with {@link #withNavigationAccessChecker} or
-     * {@link #withAvailableNavigationAccessCheckers}. Fails at startup if the
-     * built-in checker is not available.
+     * {@link #withAvailableNavigationAccessCheckers}. Behind a client proxy, only
+     * a class bean is selected, since a producer may return a subclass. Fails at
+     * startup if the built-in checker is not available.
      *
      * @return this configurer
      */
@@ -179,10 +181,17 @@ public final class NavigationAccessControlConfigurer {
         return this;
     }
 
-    // Reads the class of a client proxy from the bean metadata, so checkers in an
-    // inactive context, e.g. request scoped ones at startup, are not activated.
-    private static Class<?> implementationClass(NavigationAccessChecker checker) {
-        return checker instanceof ClientProxy proxy ? proxy.arc_bean().getImplementationClass() : checker.getClass();
+    // Reads a client proxy from the bean metadata, so checkers in an inactive
+    // context, e.g. request scoped ones at startup, are not activated. Only a class
+    // bean has a known runtime class there; a producer or synthetic bean may return
+    // a subclass of its declared type.
+    private static boolean isBuiltInAnnotatedChecker(NavigationAccessChecker checker) {
+        if (checker instanceof ClientProxy proxy) {
+            InjectableBean<?> bean = proxy.arc_bean();
+            return bean.getKind() == InjectableBean.Kind.CLASS
+                    && bean.getBeanClass() == AnnotatedViewAccessChecker.class;
+        }
+        return checker.getClass() == AnnotatedViewAccessChecker.class;
     }
 
     private String configuredLoginView() {
@@ -211,7 +220,7 @@ public final class NavigationAccessControlConfigurer {
         boolean enabled = !disabled && propertyEnabled;
         if (annotatedViewAccessChecker) {
             Optional<NavigationAccessChecker> checker = availableCheckers.stream()
-                    .filter(available -> implementationClass(available) == AnnotatedViewAccessChecker.class)
+                    .filter(NavigationAccessControlConfigurer::isBuiltInAnnotatedChecker)
                     .findFirst();
             if (checker.isPresent()) {
                 selected.add(checker.get());
