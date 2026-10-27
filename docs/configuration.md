@@ -173,14 +173,21 @@ class NavigationSecurity {
 Without an application configurer, the extension uses all `NavigationAccessChecker` beans,
 including those of the application. An application configurer uses only the checkers it selects:
 
-- `withAnnotatedViewAccessChecker()` selects the available `AnnotatedViewAccessChecker` bean,
-  including subclasses and CDI client proxies. The startup fails if none is available.
+- `withAnnotatedViewAccessChecker()` selects the built-in `AnnotatedViewAccessChecker`. As in
+  Vaadin's Spring integration, a subclass is not selected by it; add the subclass with
+  `withNavigationAccessChecker(...)` or `withAvailableNavigationAccessCheckers(...)`. The startup
+  fails if the built-in checker is not available.
 - `withNavigationAccessChecker(...)` and `withNavigationAccessCheckers(...)` add checker instances.
 - `withAvailableNavigationAccessCheckers(...)` selects checker beans matching a predicate; a later
   call replaces the predicate. `MyAccessChecker.class::isInstance` also matches subclasses and CDI
   client proxies.
 
 An enabled access control without checkers fails the startup.
+
+The built-in `AnnotatedViewAccessChecker` evaluates the view access annotations with the
+`AccessAnnotationChecker` bean (since 25.3.0). As in Vaadin's Spring integration, an application
+`AccessAnnotationChecker` bean replaces the extension's default; the endpoint access check uses it
+as well.
 
 `withDecisionResolver(...)` takes precedence over the `AccessCheckDecisionResolver` bean. Without
 it, the application's resolver bean is used, or the extension's default.
@@ -235,13 +242,14 @@ rest is regular Quarkus configuration.
 | `loginView(String)`                                     | `quarkus.http.auth.form.login-page`. The extension uses it as the Flow login view too, see [Login view](#login-view).                              |
 | `loginView(Class)`                                      | `withLoginView(Class)` on a [configurer](#customizing-the-access-control), plus `quarkus.http.auth.form.login-page` for the HTTP redirect.         |
 | `loginView(..., logoutSuccessUrl)`                      | `vaadin.security.post-logout-redirect-uri`                                                                                                         |
-| `oauth2LoginPage(...)`                                  | Not available yet, see [#2276](https://github.com/mcollovati/quarkus-hilla/pull/2276).                                                             |
+| `oauth2LoginPage(...)`                                  | Not available yet, see [#2382](https://github.com/mcollovati/quarkus-hilla/pull/2382).                                                             |
 | `defaultSuccessUrl(...)`                                | `quarkus.http.auth.form.landing-page`                                                                                                              |
 | `logoutSuccessHandler(...)`, `addLogoutHandler(...)`    | `vaadin.security.logout-path`, `vaadin.security.post-logout-redirect-uri` and `vaadin.security.logout-invalidate-session`. No custom handlers.    |
 | `anyRequest(...)`, `enableAuthorizedRequestsConfiguration(...)` | Vaadin's internal requests, public resources and anonymous endpoints and views are permitted, everything else requires a login. Add rules with `quarkus.http.auth.permission.*`; they combine with the extension's policy and cannot make a path public again. |
 | `defaultPermitMatcher()`                                | Applied internally, not exposed.                                                                                                                   |
 | `enableNavigationAccessControl(false)`                  | `vaadin.security.navigation-access-control.enabled=false`, see [Disabling the access check](#disabling-the-access-check), or `disabled()` on a configurer.  |
 | `NavigationAccessControlConfigurer` bean                | `NavigationAccessControlConfigurer` bean with the same method names, except `withRoutePathAccessChecker()` (since 25.3.0).                         |
+| `AccessAnnotationChecker` bean                          | `AccessAnnotationChecker` bean, used by the built-in `AnnotatedViewAccessChecker` (since 25.3.0) and the endpoint access check.                    |
 | `enableCsrfConfiguration(...)`, `enableRequestCacheConfiguration(...)`, `enableExceptionHandlingConfiguration(...)`, `enableLogoutConfiguration(...)` | No equivalent. The extension does not change Quarkus CSRF handling, Quarkus form authentication remembers the requested page itself, and logout is always handled at `vaadin.security.logout-path`. |
 
 The navigation access control is on by default with form authentication. In Spring it is only
