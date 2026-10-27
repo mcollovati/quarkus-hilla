@@ -33,10 +33,10 @@ import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlConfi
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * An application subclass of {@link AnnotatedViewAccessChecker} next to the
- * built-in checker. {@code withAnnotatedViewAccessChecker()} must select both,
- * so the restrictions of the subclass always apply. The low priority places the
- * subclass after the built-in checker in the list of available checkers.
+ * An application subclass of {@link AnnotatedViewAccessChecker} replaces the
+ * built-in checker, so {@code withAnnotatedViewAccessChecker()} selects the
+ * subclass and its restrictions apply. The low priority would place the subclass
+ * after a built-in checker in the list of available checkers.
  */
 class NavigationAccessControlConfigurerAnnotatedSubclassTest {
 
@@ -45,9 +45,13 @@ class NavigationAccessControlConfigurerAnnotatedSubclassTest {
             NavigationAccessControlTestSupport.extension(Configuration.class, StricterChecker.class);
 
     @Test
-    void annotatedViewAccessChecker_subclassNextToBuiltIn_bothSelected() {
+    void annotatedViewAccessChecker_subclassReplacesBuiltIn() {
         var accessControl = NavigationAccessControlTestSupport.accessControl();
         var checker = Arc.container().instance(StricterChecker.class).get();
+
+        assertThat(Arc.container().select(AnnotatedViewAccessChecker.class).stream())
+                .singleElement()
+                .isSameAs(checker);
 
         assertThat(accessControl
                         .checkAccess(NavigationAccessControlTestSupport.context(), false)

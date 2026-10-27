@@ -18,9 +18,14 @@ package com.github.mcollovati.quarkus.hilla.security;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Set;
 
 import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
+import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
@@ -48,13 +53,33 @@ public class NavigationAccessControlProducer {
     NavigationAccessControl navigationAccessControl(
             NavigationAccessControlConfigurer configurer,
             @All List<NavigationAccessChecker> availableCheckers,
+            @All List<AnnotatedViewAccessChecker> annotatedCheckers,
             Instance<AccessCheckDecisionResolver> decisionResolver,
             SecurityIdentity securityIdentity,
             VaadinSecurityConfig securityConfig) {
         return configurer.build(
-                availableCheckers,
+                withAnnotatedCheckers(availableCheckers, annotatedCheckers),
                 decisionResolver::get,
                 securityIdentity,
                 securityConfig.navigationAccessControl().enabled());
+    }
+
+    // The built-in annotated checker is a default bean of its own type only, so it
+    // is not part of the checkers resolved as NavigationAccessChecker.
+    private static List<NavigationAccessChecker> withAnnotatedCheckers(
+            List<NavigationAccessChecker> availableCheckers, List<AnnotatedViewAccessChecker> annotatedCheckers) {
+        Set<NavigationAccessChecker> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        List<NavigationAccessChecker> checkers = new ArrayList<>();
+        for (NavigationAccessChecker checker : annotatedCheckers) {
+            if (seen.add(checker)) {
+                checkers.add(checker);
+            }
+        }
+        for (NavigationAccessChecker checker : availableCheckers) {
+            if (seen.add(checker)) {
+                checkers.add(checker);
+            }
+        }
+        return checkers;
     }
 }

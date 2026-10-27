@@ -30,6 +30,7 @@ import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
@@ -68,9 +69,10 @@ public final class NavigationAccessControlConfigurer {
     public NavigationAccessControlConfigurer() {}
 
     /**
-     * Selects the available annotated view access checkers, including subclasses
-     * and CDI client proxies. If an application subclass is available next to the
-     * built-in checker, both are selected. Fails at startup if none is available.
+     * Selects the available annotated view access checker, including subclasses
+     * and CDI client proxies. An application bean of type
+     * {@link AnnotatedViewAccessChecker} replaces the built-in checker. Fails at
+     * startup if none or more than one is available.
      *
      * @return this configurer
      */
@@ -203,8 +205,17 @@ public final class NavigationAccessControlConfigurer {
             List<NavigationAccessChecker> checkers = availableCheckers.stream()
                     .filter(AnnotatedViewAccessChecker.class::isInstance)
                     .toList();
+            if (checkers.size() > 1 && enabled) {
+                throw new IllegalStateException("withAnnotatedViewAccessChecker() found more than one "
+                        + "AnnotatedViewAccessChecker CDI bean: "
+                        + checkers.stream()
+                                .map(checker ->
+                                        ClientProxy.unwrap(checker).getClass().getName())
+                                .toList()
+                        + ". Keep one or select the checkers with withAvailableNavigationAccessCheckers().");
+            }
             if (!checkers.isEmpty()) {
-                selected.addAll(checkers);
+                selected.add(checkers.get(0));
             } else if (enabled) {
                 throw new IllegalStateException(
                         "No AnnotatedViewAccessChecker CDI bean is available for withAnnotatedViewAccessChecker()");
