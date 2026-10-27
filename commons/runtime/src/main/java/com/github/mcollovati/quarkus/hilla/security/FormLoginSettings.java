@@ -24,6 +24,8 @@ import java.util.Set;
 import io.quarkus.vertx.http.runtime.FormAuthConfig;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpCredentialTransport;
+import io.quarkus.vertx.http.runtime.security.PersistentLoginManager;
+import io.vertx.core.http.CookieSameSite;
 import org.slf4j.LoggerFactory;
 
 /**
@@ -81,6 +83,37 @@ record FormLoginSettings(
     }
 
     /**
+     * Reads the authentication cookie scope of the effective form mechanism, which writes its cookie
+     * with a {@link PersistentLoginManager}.
+     * <p>
+     * Quarkus has no public API for these settings, so they are read from the fields of the
+     * mechanism and its login manager. If that fails, a warning is logged and logout expires only the
+     * cookie of the {@code quarkus.http.auth.form.*} properties.
+     *
+     * @param mechanism the form mechanism Quarkus uses
+     * @return the cookie scope, or empty if it cannot be read
+     */
+    static Optional<FormLogoutHandler.CookieScope> cookieScope(FormAuthenticationMechanism mechanism) {
+        try {
+            Object loginManager = field(FormAuthenticationMechanism.class, mechanism, "loginManager");
+            String path = (String) field(PersistentLoginManager.class, loginManager, "cookiePath");
+            return Optional.of(new FormLogoutHandler.CookieScope(
+                    (String) field(PersistentLoginManager.class, loginManager, "cookieName"),
+                    path == null || path.isEmpty() ? "/" : path,
+                    (String) field(PersistentLoginManager.class, loginManager, "cookieDomain"),
+                    (Boolean) field(PersistentLoginManager.class, loginManager, "httpOnlyCookie"),
+                    (CookieSameSite) field(PersistentLoginManager.class, loginManager, "cookieSameSite")));
+        } catch (ReflectiveOperationException | RuntimeException unreadable) {
+            LoggerFactory.getLogger(FormLoginSettings.class)
+                    .warn(
+                            "Cannot read the cookie settings of the form authentication mechanism. Logout expires "
+                                    + "only the cookie of the quarkus.http.auth.form.* properties.",
+                            unreadable);
+            return Optional.empty();
+        }
+    }
+
+    /**
      * Names the login page and where it is configured, for log and error messages.
      *
      * @return for example {@code quarkus.http.auth.form.login-page=/login}
@@ -117,9 +150,13 @@ record FormLoginSettings(
     // Quarkus has no getters for the pages; the field names have been stable since Quarkus 1.x.
     // FormAuthenticationMechanism is registered for reflection in native mode.
     private static String page(FormAuthenticationMechanism mechanism, String name) throws ReflectiveOperationException {
-        Field field = FormAuthenticationMechanism.class.getDeclaredField(name);
+        return (String) field(FormAuthenticationMechanism.class, mechanism, name);
+    }
+
+    private static Object field(Class<?> type, Object instance, String name) throws ReflectiveOperationException {
+        Field field = type.getDeclaredField(name);
         field.setAccessible(true);
-        return (String) field.get(mechanism);
+        return field.get(instance);
     }
 
     // FormAuthenticationMechanism prefixes the configured pages with a slash.

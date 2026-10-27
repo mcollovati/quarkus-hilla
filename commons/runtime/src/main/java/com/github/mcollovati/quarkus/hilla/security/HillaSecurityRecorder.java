@@ -55,7 +55,9 @@ public class HillaSecurityRecorder {
      * @return the logout filter
      */
     public Handler<RoutingContext> formLogoutHandler() {
-        return new FormLogoutHandler(logoutConfig(formConfig().landingPage().orElse("/")));
+        return new FormLogoutHandler(
+                logoutConfig(formConfig().landingPage().orElse("/")),
+                () -> FormLoginSettings.cookieScope(formAuthenticationMechanism()));
     }
 
     public void configureHttpSecurityPolicy(BeanContainer container) {

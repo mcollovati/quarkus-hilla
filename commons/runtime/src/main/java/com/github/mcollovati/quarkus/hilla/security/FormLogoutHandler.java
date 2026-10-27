@@ -16,7 +16,9 @@
 package com.github.mcollovati.quarkus.hilla.security;
 
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import io.quarkus.arc.ClientProxy;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
@@ -42,9 +44,20 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
     private static final String AUTHENTICATION_MECHANISM_KEY = HttpAuthenticationMechanism.class.getName();
 
     private final HillaFormAuthenticationMechanism.Config config;
+    private final Supplier<Optional<CookieScope>> mechanismCookie;
+    private volatile Set<CookieScope> cookieScopes;
 
     FormLogoutHandler(HillaFormAuthenticationMechanism.Config config) {
+        this(config, Optional::empty);
+    }
+
+    /**
+     * @param config the logout settings and the cookie of the {@code quarkus.http.auth.form.*} properties
+     * @param mechanismCookie the cookie of the effective form mechanism, read on the first logout
+     */
+    FormLogoutHandler(HillaFormAuthenticationMechanism.Config config, Supplier<Optional<CookieScope>> mechanismCookie) {
         this.config = config;
+        this.mechanismCookie = mechanismCookie;
     }
 
     @Override
@@ -71,11 +84,17 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
     /**
      * The cookie scopes to expire.
      *
-     * @return the scope configured by the {@code quarkus.http.auth.form.*} properties
+     * @return the scope configured by the {@code quarkus.http.auth.form.*} properties and the scope of
+     *     the effective form mechanism, which differs when it is set up with {@code HttpSecurity}
      */
     Set<CookieScope> cookieScopes() {
-        Set<CookieScope> scopes = new LinkedHashSet<>();
-        scopes.add(CookieScope.of(config));
+        Set<CookieScope> scopes = cookieScopes;
+        if (scopes == null) {
+            scopes = new LinkedHashSet<>();
+            scopes.add(CookieScope.of(config));
+            mechanismCookie.get().ifPresent(scopes::add);
+            cookieScopes = scopes;
+        }
         return scopes;
     }
 

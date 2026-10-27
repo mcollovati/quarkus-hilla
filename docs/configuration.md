@@ -228,11 +228,12 @@ Logout is handled at `vaadin.security.logout-path` before authentication, so it 
 the priority of the form mechanism nor on restoring the identity from the cookie, which fails for
 example for a deleted account. The logout request itself is anonymous.
 
-Logout expires the authentication cookie with the path, domain, HttpOnly and SameSite settings of
-the `quarkus.http.auth.form.*` properties, also when the request carries no cookie because the
-logout path is outside the cookie path. It sets Secure on HTTPS, for `__Host-` and `__Secure-`
-cookie names and for `SameSite=None`. A cookie name, path or domain set up with `HttpSecurity` is
-not expired, see [Form login set up in code](#form-login-set-up-in-code).
+Logout expires the authentication cookie with its name, path, domain, HttpOnly and SameSite
+settings, also when the request carries no cookie because the logout path is outside the cookie
+path. It expires the cookie of the `quarkus.http.auth.form.*` properties and, if it differs, the
+cookie of a form mechanism set up with `HttpSecurity`, see
+[Form login set up in code](#form-login-set-up-in-code). It sets Secure on HTTPS, for `__Host-`
+and `__Secure-` cookie names and for `SameSite=None`.
 
 For reliable logout, configure an explicit `quarkus.http.auth.form.cookie-path`;
 the default is `/`. An empty value lets browsers derive cookie paths from login
@@ -300,14 +301,11 @@ properties, but not together with `enabled`.
 
 The extension uses the settings of that mechanism: the login page as the Flow login view, the
 login page, error page and post location as public paths, the landing page for the Hilla login,
-and its priority. Quarkus has no public API for the pages, so the extension reads them from the
-mechanism; if that fails, it logs a warning at startup and uses the `quarkus.http.auth.form.*`
-properties.
-
-Logout expires the cookie of the properties, which defaults to `quarkus-credential` at `/`. A
-cookie name or path set up in code is expired only when the logout request carries the cookie, the
-identity is restored from it and no post-logout redirect is configured. A cookie domain set up in
-code is not expired.
+its priority, and its cookie name, path and domain for logout. Quarkus has no public API for the
+pages and the cookie settings, so the extension reads them from the mechanism. If that fails, it
+logs a warning and uses the `quarkus.http.auth.form.*` properties; logout then expires a cookie
+name or path set up in code only when the logout request carries the cookie, the identity is
+restored from it and no post-logout redirect is configured.
 
 <a id="copilot"></a>
 
