@@ -15,7 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
@@ -72,7 +71,7 @@ public class NavigationAccessControlProducer {
     }
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     @Unremovable
     AnnotatedViewAccessChecker annotatedViewAccessChecker(AccessAnnotationChecker accessAnnotationChecker) {
         return new AnnotatedViewAccessChecker(accessAnnotationChecker);
