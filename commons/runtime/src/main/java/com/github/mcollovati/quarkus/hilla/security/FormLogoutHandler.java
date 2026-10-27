@@ -56,6 +56,15 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
     }
 
     private void logout(RoutingContext ctx, SecurityIdentity identity) {
+        try {
+            logoutAndContinue(ctx, identity);
+        } catch (RuntimeException e) {
+            // Mutiny would otherwise drop the exception and leave the request unanswered.
+            ctx.fail(e);
+        }
+    }
+
+    private void logoutAndContinue(RoutingContext ctx, SecurityIdentity identity) {
         if (identity != null && !identity.isAnonymous()) {
             expireAuthenticatingMechanismCookie(ctx);
         }

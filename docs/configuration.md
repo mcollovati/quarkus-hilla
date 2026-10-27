@@ -72,8 +72,10 @@ checked in addition to the annotation of the view.
 #### Login view
 
 Anonymous users who open a view that requires authentication are redirected to the login view.
-The extension uses `quarkus.http.auth.form.login-page` as the login view, so navigation within
-the application and the Quarkus form login redirect lead to the same page.
+The extension uses the login page of the Quarkus form mechanism as the login view, so navigation
+within the application and the Quarkus form login redirect lead to the same page. The login page is
+set with `quarkus.http.auth.form.login-page` or in code, see
+[Form login set up in code](#form-login-set-up-in-code).
 
 Since 25.3.0, the access control is customized with a
 [configurer](#customizing-the-access-control). An application can still replace it with its own
@@ -81,8 +83,8 @@ Since 25.3.0, the access control is customized with a
 `QuarkusNavigationAccessControl` has to be `@Singleton`. The extension applies the login page to
 that bean as well, unless the bean defines its own login view:
 
-- A bean extending `QuarkusNavigationAccessControl` with a login URL that differs from
-  `quarkus.http.auth.form.login-page` fails the application startup, also when the access check is
+- A bean extending `QuarkusNavigationAccessControl` with a login URL that differs from the form
+  login page fails the application startup, also when the access check is
   disabled. The error names both values.
 - A login view class set by a bean extending `QuarkusNavigationAccessControl` is kept.
 - A bean that does not extend `QuarkusNavigationAccessControl` keeps its login view if it rejects
@@ -194,11 +196,10 @@ as well.
 `withDecisionResolver(...)` takes precedence over the `AccessCheckDecisionResolver` bean. Without
 it, the application's resolver bean is used, or the extension's default.
 
-`withLoginView(...)` is optional. Without it, the extension uses
-`quarkus.http.auth.form.login-page`. A login URL set on the configurer must match that property;
-a different URL fails the startup, also with the access check disabled, and the error names both
-values. A login view class is kept, and the startup log names both values, as its route cannot be
-compared with the property.
+`withLoginView(...)` is optional. Without it, the extension uses the form login page. A login URL
+set on the configurer must match it; a different URL fails the startup, also with the access check
+disabled, and the error names both values. A login view class is kept, and the startup log names
+both values, as its route cannot be compared with the login page.
 Setting two different login views on one configurer fails immediately.
 
 `disabled()` disables the access control. Setting the build-time property
@@ -298,10 +299,11 @@ the access check for Flow views, the extension's security policy and the logout 
 active. Quarkus rejects a mechanism set up in code together with other `quarkus.http.auth.form.*`
 properties, but not together with `enabled`.
 
-The extension uses the priority, post location and authentication cookie of that mechanism. The
-login page, error page and landing page are still taken from the `quarkus.http.auth.form.*`
-properties. Set the Flow login view on a [configurer](#customizing-the-access-control) with
-`withLoginView(Class)`; a login URL set there has to match `quarkus.http.auth.form.login-page`.
+The extension uses the settings of that mechanism: the login page as the Flow login view, the
+login page, error page and post location as public paths, the landing page for the Hilla login,
+and its priority and authentication cookie. Quarkus has no public API for the pages, so the
+extension reads them from the mechanism; if that fails, it logs a warning at startup and uses the
+`quarkus.http.auth.form.*` properties.
 
 <a id="copilot"></a>
 

@@ -28,8 +28,10 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
 import io.quarkus.vertx.http.deployment.PreRouterFinalizationBuildItem;
+import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.SecurityHandlerPriorities;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -78,6 +80,17 @@ class QuarkusHillaSecurityProcessor {
                     .priority(1)
                     .supplier(recorder.setupFormAuthenticationMechanism())
                     .done());
+        }
+    }
+
+    // The pages of the form mechanism are read from its fields, see FormLoginSettings.
+    @BuildStep
+    void registerFormMechanismForReflection(
+            AuthFormBuildItem authFormBuildItem, BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        if (authFormBuildItem.isEnabled()) {
+            reflectiveClasses.produce(ReflectiveClassBuildItem.builder(FormAuthenticationMechanism.class)
+                    .fields()
+                    .build());
         }
     }
 

@@ -198,10 +198,11 @@ public final class NavigationAccessControlConfigurer {
         return loginView != null ? loginView.getName() : loginUrl;
     }
 
-    void configureLoginView(NavigationAccessControl accessControl, String formLoginPage) {
+    void configureLoginView(NavigationAccessControl accessControl, FormLoginSettings formLogin) {
+        String formLoginPage = formLogin.loginPage();
         if (loginUrl != null && formLoginPage != null && !loginUrl.equals(formLoginPage)) {
             throw new IllegalStateException("NavigationAccessControlConfigurer sets the login view " + loginUrl
-                    + ", which conflicts with quarkus.http.auth.form.login-page=" + formLoginPage
+                    + ", which conflicts with " + formLogin.describeLoginPage()
                     + ". Set both to the same URL or remove withLoginView(String).");
         }
         if (loginView != null) {
