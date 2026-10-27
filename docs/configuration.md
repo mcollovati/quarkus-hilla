@@ -182,11 +182,6 @@ including those of the application. An application configurer uses only the chec
 
 An enabled access control without checkers fails the startup.
 
-The built-in `AnnotatedViewAccessChecker` evaluates the view access annotations with the
-`AccessAnnotationChecker` bean (since 25.3.0). As in Vaadin's Spring integration, an application
-`AccessAnnotationChecker` bean replaces the extension's default; the endpoint access check uses it
-as well.
-
 `withDecisionResolver(...)` takes precedence over the `AccessCheckDecisionResolver` bean. Without
 it, the application's resolver bean is used, or the extension's default.
 
@@ -247,7 +242,6 @@ rest is regular Quarkus configuration.
 | `defaultPermitMatcher()`                                | Applied internally, not exposed.                                                                                                                   |
 | `enableNavigationAccessControl(false)`                  | `vaadin.security.navigation-access-control.enabled=false`, see [Disabling the access check](#disabling-the-access-check), or `disabled()` on a configurer.  |
 | `NavigationAccessControlConfigurer` bean                | `NavigationAccessControlConfigurer` bean with the same method names, except `withRoutePathAccessChecker()` (since 25.3.0).                         |
-| `AccessAnnotationChecker` bean                          | `AccessAnnotationChecker` bean, used by the built-in `AnnotatedViewAccessChecker` (since 25.3.0) and the endpoint access check.                    |
 | `enableCsrfConfiguration(...)`, `enableRequestCacheConfiguration(...)`, `enableExceptionHandlingConfiguration(...)`, `enableLogoutConfiguration(...)` | No equivalent. The extension does not change Quarkus CSRF handling, Quarkus form authentication remembers the requested page itself, and logout is always handled at `vaadin.security.logout-path`. |
 
 The navigation access control is on by default with form authentication. In Spring it is only
