@@ -23,6 +23,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import io.quarkus.vertx.http.runtime.security.PersistentLoginManager;
@@ -105,6 +106,47 @@ class HillaFormLogoutTest {
             assertNull(cookie.getValue().getDomain());
             assertEquals(0, cookie.getValue().getMaxAge());
         }
+    }
+
+    @Test
+    void logout_httpPrefixedCookies_setsSecure() {
+        for (String name : new String[] {"__Host-auth", "__Secure-auth"}) {
+            RoutingContext context = mock(RoutingContext.class);
+            HttpServerRequest request = mock(HttpServerRequest.class);
+            HttpServerResponse response = mock(HttpServerResponse.class);
+            when(context.normalizedPath()).thenReturn("/logout");
+            when(context.request()).thenReturn(request);
+            when(context.response()).thenReturn(response);
+            var handler = new FormLogoutHandler(new HillaFormAuthenticationMechanism.Config(
+                    name, "/", "/logout", null, false, "/", null, true, CookieSameSite.STRICT));
+
+            handler.handle(context);
+
+            ArgumentCaptor<Cookie> cookie = ArgumentCaptor.forClass(Cookie.class);
+            verify(response).addCookie(cookie.capture());
+            assertTrue(cookie.getValue().isSecure(), name);
+        }
+    }
+
+    @Test
+    void logout_requestCookie_expiredBeforeAuthentication() {
+        RoutingContext context = mock(RoutingContext.class);
+        HttpServerRequest request = mock(HttpServerRequest.class);
+        Cookie requestCookie = Cookie.cookie("auth", "encrypted-credential");
+        when(context.normalizedPath()).thenReturn("/logout");
+        when(context.request()).thenReturn(request);
+        when(context.response()).thenReturn(mock(HttpServerResponse.class));
+        when(request.cookies("auth")).thenReturn(Set.of(requestCookie));
+        var handler = new FormLogoutHandler(new HillaFormAuthenticationMechanism.Config(
+                "auth", "/", "/logout", null, false, "/app", "example.com", true, CookieSameSite.LAX));
+
+        handler.handle(context);
+
+        assertEquals("", requestCookie.getValue());
+        assertEquals(0, requestCookie.getMaxAge());
+        assertEquals("/app", requestCookie.getPath());
+        assertEquals("example.com", requestCookie.getDomain());
+        verify(context).next();
     }
 
     @Test

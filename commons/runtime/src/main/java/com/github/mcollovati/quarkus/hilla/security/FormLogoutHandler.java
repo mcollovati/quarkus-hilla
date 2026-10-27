@@ -15,22 +15,27 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import io.quarkus.arc.ClientProxy;
-import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
-import io.quarkus.vertx.http.runtime.security.QuarkusHttpUser;
 import io.vertx.core.Handler;
 import io.vertx.core.http.Cookie;
+import io.vertx.core.http.CookieSameSite;
 import io.vertx.ext.web.RoutingContext;
 
 /**
  * Handles requests to {@code vaadin.security.logout-path}.
  * <p>
- * Installed as an HTTP filter that runs after authentication, so the logout does not depend on the
- * order of the authentication mechanisms. A form mechanism set up with {@code HttpSecurity} is in
- * the Quarkus mechanism chain twice, and a higher priority lets the plain mechanism restore the
- * identity before {@link HillaFormAuthenticationMechanism} runs.
+ * Installed as an HTTP filter that runs before authentication, so the logout neither depends on the
+ * order of the authentication mechanisms nor on a successful authentication. A form mechanism set up
+ * with {@code HttpSecurity} is in the Quarkus mechanism chain twice, and restoring the identity from
+ * the cookie may fail, for example for a deleted account.
+ * <p>
+ * The authentication cookie of the request is expired before authentication, so the form mechanisms
+ * find no credential: the logout request is anonymous, and the cookie is neither restored nor renewed.
  */
 final class FormLogoutHandler implements Handler<RoutingContext> {
 
@@ -48,37 +53,11 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
             ctx.next();
             return;
         }
-        // Also resolves a deferred identity when proactive authentication is disabled, so the form
-        // mechanism that restored it has put its cookie scope into the routing context.
-        QuarkusHttpUser.getSecurityIdentity(ctx, null)
-                .subscribe()
-                .with(identity -> logout(ctx, identity), failure -> logout(ctx, null));
-    }
-
-    private void logout(RoutingContext ctx, SecurityIdentity identity) {
-        try {
-            logoutAndContinue(ctx, identity);
-        } catch (RuntimeException e) {
-            // Mutiny would otherwise drop the exception and leave the request unanswered.
-            ctx.fail(e);
+        boolean secureRequest = ctx.request().isSSL();
+        for (CookieScope scope : cookieScopes()) {
+            expire(ctx, scope, secureRequest);
         }
-    }
-
-    private void logoutAndContinue(RoutingContext ctx, SecurityIdentity identity) {
-        if (identity != null && !identity.isAnonymous()) {
-            expireAuthenticatingMechanismCookie(ctx);
-        }
-        // Request cookies do not include path or domain and may be absent when logout is outside the cookie path.
-        // Expire the configured scope explicitly so clients clear the authentication cookie in either case.
-        // Added last, so it replaces a cookie of the same name, domain and path, including a renewed one.
-        Cookie cookie = Cookie.cookie(config.cookieName(), "")
-                .setMaxAge(0)
-                .setPath(config.cookiePath())
-                .setDomain(config.cookieDomain())
-                .setSecure(ctx.request().isSSL())
-                .setHttpOnly(config.httpOnlyCookie())
-                .setSameSite(config.cookieSameSite());
-        ctx.response().addCookie(cookie);
+        ctx.addHeadersEndHandler(ignored -> expireAuthenticatingMechanismCookie(ctx));
         if (config.invalidateSessions() && ctx.session() != null) {
             ctx.session().destroy();
         }
@@ -89,19 +68,75 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
         }
     }
 
-    // FormAuthenticationMechanism.logout expires the cookie name and path of the form mechanism that
-    // authenticated the request, including one set up with HttpSecurity, whose cookie settings are not
-    // available otherwise.
+    /**
+     * The cookie scopes to expire.
+     *
+     * @return the scope configured by the {@code quarkus.http.auth.form.*} properties
+     */
+    Set<CookieScope> cookieScopes() {
+        Set<CookieScope> scopes = new LinkedHashSet<>();
+        scopes.add(CookieScope.of(config));
+        return scopes;
+    }
+
+    private static void expire(RoutingContext ctx, CookieScope scope, boolean secureRequest) {
+        // Request cookies carry no path or domain, and the cookie is absent when the logout path is outside
+        // the cookie path. The expired cookie is therefore always sent with the configured scope. Request
+        // cookies of that name are expired in place, which also leaves the form mechanisms nothing to restore.
+        for (Cookie requestCookie : ctx.request().cookies(scope.name())) {
+            scope.applyExpired(requestCookie, secureRequest);
+        }
+        ctx.response().addCookie(scope.applyExpired(Cookie.cookie(scope.name(), ""), secureRequest));
+    }
+
+    // A cookie that is not among the expired scopes, for example one with a name set up with HttpSecurity,
+    // still lets a form mechanism restore the identity. FormAuthenticationMechanism.logout then expires
+    // its name and path, which the mechanism put into the routing context.
     private static void expireAuthenticatingMechanismCookie(RoutingContext ctx) {
         Object mechanism = ClientProxy.unwrap(ctx.get(AUTHENTICATION_MECHANISM_KEY));
         if (mechanism instanceof FormAuthenticationMechanism || mechanism instanceof HillaFormAuthenticationMechanism) {
             try {
                 FormAuthenticationMechanism.logout(ctx);
             } catch (NullPointerException missingCookieScope) {
-                // Quarkus stores the cookie scope only after the form mechanism restored the identity, and has no
-                // cookie path to store with an empty quarkus.http.auth.form.cookie-path. The configured cookie
-                // expired below still applies.
+                // The mechanism restored no identity, or has no cookie path to store with an empty
+                // quarkus.http.auth.form.cookie-path. The expired scopes still apply.
             }
+        }
+    }
+
+    /**
+     * The scope of an authentication cookie.
+     *
+     * @param name the cookie name
+     * @param path the cookie path
+     * @param domain the cookie domain, or {@code null} for a host-only cookie
+     * @param httpOnly whether the cookie is HttpOnly
+     * @param sameSite the SameSite attribute
+     */
+    record CookieScope(String name, String path, String domain, boolean httpOnly, CookieSameSite sameSite) {
+
+        static CookieScope of(HillaFormAuthenticationMechanism.Config config) {
+            return new CookieScope(
+                    config.cookieName(),
+                    config.cookiePath(),
+                    config.cookieDomain(),
+                    config.httpOnlyCookie(),
+                    config.cookieSameSite());
+        }
+
+        Cookie applyExpired(Cookie cookie, boolean secureRequest) {
+            return cookie.setValue("")
+                    .setMaxAge(0)
+                    .setPath(path)
+                    .setDomain(domain)
+                    .setSecure(secureRequest || requiresSecure())
+                    .setHttpOnly(httpOnly)
+                    .setSameSite(sameSite);
+        }
+
+        // Browsers reject these cookies without the Secure attribute, also when expiring them.
+        private boolean requiresSecure() {
+            return name.startsWith("__Host-") || name.startsWith("__Secure-") || sameSite == CookieSameSite.NONE;
         }
     }
 }

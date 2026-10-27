@@ -94,7 +94,7 @@ class QuarkusHillaSecurityProcessor {
         }
     }
 
-    // Runs after authentication and before authorization, see FormLogoutHandler.
+    // Runs before authentication, see FormLogoutHandler.
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     void registerFormLogoutHandler(
@@ -103,7 +103,7 @@ class QuarkusHillaSecurityProcessor {
             BuildProducer<FilterBuildItem> filters) {
         if (authFormBuildItem.isEnabled()) {
             filters.produce(
-                    new FilterBuildItem(recorder.formLogoutHandler(), SecurityHandlerPriorities.AUTHORIZATION + 1));
+                    new FilterBuildItem(recorder.formLogoutHandler(), SecurityHandlerPriorities.AUTHENTICATION + 1));
         }
     }
 
