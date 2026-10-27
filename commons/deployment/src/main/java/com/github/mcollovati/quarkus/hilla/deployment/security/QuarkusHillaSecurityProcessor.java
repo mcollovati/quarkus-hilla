@@ -31,8 +31,6 @@ import io.quarkus.deployment.annotations.Record;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.eclipse.microprofile.config.ConfigProvider;
 
-import com.github.mcollovati.quarkus.hilla.security.AccessCheckDecisionResolverProducer;
-import com.github.mcollovati.quarkus.hilla.security.AnnotatedViewAccessCheckerProducer;
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
@@ -123,10 +121,7 @@ class QuarkusHillaSecurityProcessor {
         if (authFormBuildItem.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
-                            NavigationAccessControlProducer.class,
-                            QuarkusNavigationAccessControl.Installer.class,
-                            AccessCheckDecisionResolverProducer.class,
-                            AnnotatedViewAccessCheckerProducer.class)
+                            NavigationAccessControlProducer.class, QuarkusNavigationAccessControl.Installer.class)
                     .setUnremovable()
                     .build());
         }

@@ -21,7 +21,6 @@ import java.util.List;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import org.junit.jupiter.api.Test;
 
-import com.github.mcollovati.quarkus.hilla.security.AnnotatedViewAccessCheckerProducer;
 import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlProducer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,9 +35,7 @@ class QuarkusHillaSecurityProcessorTest {
 
         assertThat(beans)
                 .flatExtracting(AdditionalBeanBuildItem::getBeanClasses)
-                .contains(
-                        NavigationAccessControlProducer.class.getName(),
-                        AnnotatedViewAccessCheckerProducer.class.getName());
+                .contains(NavigationAccessControlProducer.class.getName());
     }
 
     @Test

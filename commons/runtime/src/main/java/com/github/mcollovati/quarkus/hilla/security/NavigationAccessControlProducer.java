@@ -15,23 +15,36 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 import java.util.List;
 
+import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
+import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
+import com.vaadin.flow.server.auth.DefaultAccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
+import io.quarkus.arc.Unremovable;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
- * Produces the default navigation access control and its configuration.
+ * Produces the default navigation access control, its configuration and the
+ * beans it uses.
  * <p>
  * The access control is exposed as {@link NavigationAccessControl} only, so
  * {@link QuarkusNavigationAccessControl} is not a bean type.
+ * <p>
+ * As in Vaadin's Spring integration, the built-in
+ * {@link AnnotatedViewAccessChecker} evaluates the view access annotations with
+ * the {@link AccessAnnotationChecker} bean. The extension provides a default
+ * one, which applications can replace by providing their own
+ * {@link AccessAnnotationChecker} bean. The {@link AccessCheckDecisionResolver}
+ * is a {@link DefaultBean} as well.
  */
 public class NavigationAccessControlProducer {
 
@@ -56,5 +69,19 @@ public class NavigationAccessControlProducer {
                 decisionResolver::get,
                 securityIdentity,
                 securityConfig.navigationAccessControl().enabled());
+    }
+
+    @Produces
+    @ApplicationScoped
+    @Unremovable
+    AnnotatedViewAccessChecker annotatedViewAccessChecker(AccessAnnotationChecker accessAnnotationChecker) {
+        return new AnnotatedViewAccessChecker(accessAnnotationChecker);
+    }
+
+    @Produces
+    @Singleton
+    @DefaultBean
+    AccessCheckDecisionResolver accessCheckDecisionResolver() {
+        return new DefaultAccessCheckDecisionResolver();
     }
 }
