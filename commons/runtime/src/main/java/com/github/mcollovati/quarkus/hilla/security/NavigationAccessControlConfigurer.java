@@ -21,7 +21,6 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -69,8 +68,9 @@ public final class NavigationAccessControlConfigurer {
     public NavigationAccessControlConfigurer() {}
 
     /**
-     * Selects the available annotated view access checker, including subclasses
-     * and CDI client proxies. Fails at startup if none is available.
+     * Selects the available annotated view access checkers, including subclasses
+     * and CDI client proxies. If an application subclass is available next to the
+     * built-in checker, both are selected. Fails at startup if none is available.
      *
      * @return this configurer
      */
@@ -200,11 +200,11 @@ public final class NavigationAccessControlConfigurer {
         List<NavigationAccessChecker> selected = new ArrayList<>();
         boolean enabled = !disabled && propertyEnabled;
         if (annotatedViewAccessChecker) {
-            Optional<NavigationAccessChecker> checker = availableCheckers.stream()
+            List<NavigationAccessChecker> checkers = availableCheckers.stream()
                     .filter(AnnotatedViewAccessChecker.class::isInstance)
-                    .findFirst();
-            if (checker.isPresent()) {
-                selected.add(checker.get());
+                    .toList();
+            if (!checkers.isEmpty()) {
+                selected.addAll(checkers);
             } else if (enabled) {
                 throw new IllegalStateException(
                         "No AnnotatedViewAccessChecker CDI bean is available for withAnnotatedViewAccessChecker()");

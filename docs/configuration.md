@@ -173,8 +173,9 @@ class NavigationSecurity {
 Without an application configurer, the extension uses all `NavigationAccessChecker` beans,
 including those of the application. An application configurer uses only the checkers it selects:
 
-- `withAnnotatedViewAccessChecker()` selects the available `AnnotatedViewAccessChecker` bean,
-  including subclasses and CDI client proxies. The startup fails if none is available.
+- `withAnnotatedViewAccessChecker()` selects the available `AnnotatedViewAccessChecker` beans,
+  including subclasses and CDI client proxies. An application subclass is selected together with
+  the built-in checker. The startup fails if none is available.
 - `withNavigationAccessChecker(...)` and `withNavigationAccessCheckers(...)` add checker instances.
 - `withAvailableNavigationAccessCheckers(...)` selects checker beans matching a predicate; a later
   call replaces the predicate. `MyAccessChecker.class::isInstance` also matches subclasses and CDI
