@@ -53,7 +53,7 @@ It is also currently the **only Quarkus integration with Vaadin Copilot support*
 > [!WARNING]
 > Known limitations:
 > - Vaadin Copilot support does not include JPA/Data helpers, Spring Security user switching, or full JVM hotswap integration
-> - [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported
+> - Hilla's Spring Security based [Stateless Authentication](https://vaadin.com/docs/latest/hilla/guides/security/spring-stateless) is not supported. Quarkus [OIDC and JWT authentication](docs/configuration.md#authentication-mechanisms) are supported
 
 ---
 
