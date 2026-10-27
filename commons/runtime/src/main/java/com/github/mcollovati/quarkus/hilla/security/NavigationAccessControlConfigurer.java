@@ -31,6 +31,7 @@ import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
+import io.quarkus.arc.ClientProxy;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
@@ -69,8 +70,11 @@ public final class NavigationAccessControlConfigurer {
     public NavigationAccessControlConfigurer() {}
 
     /**
-     * Selects the available annotated view access checker, including subclasses
-     * and CDI client proxies. Fails at startup if none is available.
+     * Selects the built-in {@link AnnotatedViewAccessChecker}, also behind a CDI
+     * client proxy. As in Vaadin's Spring integration, subclasses are not
+     * selected; add them with {@link #withNavigationAccessChecker} or
+     * {@link #withAvailableNavigationAccessCheckers}. Fails at startup if the
+     * built-in checker is not available.
      *
      * @return this configurer
      */
@@ -175,6 +179,12 @@ public final class NavigationAccessControlConfigurer {
         return this;
     }
 
+    // Reads the class of a client proxy from the bean metadata, so checkers in an
+    // inactive context, e.g. request scoped ones at startup, are not activated.
+    private static Class<?> implementationClass(NavigationAccessChecker checker) {
+        return checker instanceof ClientProxy proxy ? proxy.arc_bean().getImplementationClass() : checker.getClass();
+    }
+
     private String configuredLoginView() {
         return loginView != null ? loginView.getName() : loginUrl;
     }
@@ -201,7 +211,7 @@ public final class NavigationAccessControlConfigurer {
         boolean enabled = !disabled && propertyEnabled;
         if (annotatedViewAccessChecker) {
             Optional<NavigationAccessChecker> checker = availableCheckers.stream()
-                    .filter(AnnotatedViewAccessChecker.class::isInstance)
+                    .filter(available -> implementationClass(available) == AnnotatedViewAccessChecker.class)
                     .findFirst();
             if (checker.isPresent()) {
                 selected.add(checker.get());
