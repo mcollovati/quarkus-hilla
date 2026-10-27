@@ -25,8 +25,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import io.quarkus.security.identity.IdentityProviderManager;
-import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.PersistentLoginManager;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
@@ -42,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -92,12 +91,10 @@ class HillaFormLogoutTest {
             when(context.request()).thenReturn(request);
             when(context.response()).thenReturn(response);
             when(request.isSSL()).thenReturn(true);
-            var mechanism = new HillaFormAuthenticationMechanism(
-                    mock(FormAuthenticationMechanism.class),
-                    new HillaFormAuthenticationMechanism.Config(
-                            name, "/", "/logout", null, false, "/", null, true, CookieSameSite.STRICT));
+            var handler = new FormLogoutHandler(new HillaFormAuthenticationMechanism.Config(
+                    name, "/", "/logout", null, false, "/", null, true, CookieSameSite.STRICT));
 
-            mechanism.authenticate(context, mock(IdentityProviderManager.class));
+            handler.handle(context);
 
             ArgumentCaptor<Cookie> cookie = ArgumentCaptor.forClass(Cookie.class);
             verify(response).addCookie(cookie.capture());
@@ -108,6 +105,34 @@ class HillaFormLogoutTest {
             assertNull(cookie.getValue().getDomain());
             assertEquals(0, cookie.getValue().getMaxAge());
         }
+    }
+
+    @Test
+    void handle_otherPath_passesRequestOn() {
+        RoutingContext context = mock(RoutingContext.class);
+        when(context.normalizedPath()).thenReturn("/app");
+        var handler =
+                new FormLogoutHandler(new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", null, false));
+
+        handler.handle(context);
+
+        verify(context).next();
+        verify(context, never()).response();
+    }
+
+    @Test
+    void handle_postLogoutRedirect_redirectsInsteadOfPassingOn() {
+        RoutingContext context = mock(RoutingContext.class);
+        when(context.normalizedPath()).thenReturn("/logout");
+        when(context.request()).thenReturn(mock(HttpServerRequest.class));
+        when(context.response()).thenReturn(mock(HttpServerResponse.class));
+        var handler = new FormLogoutHandler(
+                new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", "/goodbye", false));
+
+        handler.handle(context);
+
+        verify(context).redirect("/goodbye");
+        verify(context, never()).next();
     }
 
     private void assertLogout(String cookiePath, String cookieDomain) throws Exception {
@@ -129,17 +154,15 @@ class HillaFormLogoutTest {
                     cookiePath,
                     -1L,
                     cookieDomain);
-            HillaFormAuthenticationMechanism mechanism = new HillaFormAuthenticationMechanism(
-                    mock(FormAuthenticationMechanism.class),
-                    new HillaFormAuthenticationMechanism.Config(
-                            "auth", "/", logoutPath, null, false, cookiePath, cookieDomain));
+            FormLogoutHandler handler = new FormLogoutHandler(new HillaFormAuthenticationMechanism.Config(
+                    "auth", "/", logoutPath, null, false, cookiePath, cookieDomain));
             Router router = Router.router(vertx);
             router.get(loginPath).handler(context -> {
                 loginManager.save("user", context, "auth", null, false);
                 context.response().end();
             });
+            router.get(logoutPath).handler(handler);
             router.get(logoutPath).handler(context -> {
-                mechanism.authenticate(context, mock(IdentityProviderManager.class));
                 assertNull(loginManager.restore(context));
                 context.response().end();
             });

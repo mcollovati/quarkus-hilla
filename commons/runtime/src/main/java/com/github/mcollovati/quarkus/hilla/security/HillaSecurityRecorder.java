@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Singleton;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
@@ -26,11 +27,13 @@ import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.InjectableBean;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
+import io.quarkus.vertx.http.runtime.FormAuthConfig;
 import io.quarkus.vertx.http.runtime.VertxHttpConfig;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.smallrye.config.SmallRyeConfig;
+import io.vertx.core.Handler;
 import io.vertx.core.http.CookieSameSite;
-import org.eclipse.microprofile.config.Config;
+import io.vertx.ext.web.RoutingContext;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.LoggerFactory;
 
@@ -43,34 +46,58 @@ public class HillaSecurityRecorder {
 
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
         return () -> {
-            Config config = ConfigProvider.getConfig();
-            VaadinSecurityConfig securityConfig =
-                    config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
-            var formConfig = config.unwrap(SmallRyeConfig.class)
-                    .getConfigMapping(VertxHttpConfig.class)
-                    .auth()
-                    .form();
-            var authConfig = new HillaFormAuthenticationMechanism.Config(
-                    formConfig.cookieName(),
-                    formConfig.landingPage().orElse("/"),
-                    securityConfig.logoutPath(),
-                    securityConfig.postLogoutRedirectUri().orElse(null),
-                    securityConfig.logoutInvalidateSession(),
-                    formConfig.cookiePath().orElse("/"),
-                    formConfig.cookieDomain().orElse(null),
-                    formConfig.httpOnlyCookie(),
-                    CookieSameSite.valueOf(formConfig.cookieSameSite().name()));
-            FormAuthenticationMechanism delegate =
-                    Arc.container().instance(FormAuthenticationMechanism.class).get();
-            return new HillaFormAuthenticationMechanism(delegate, authConfig);
+            FormAuthenticationMechanism delegate = formAuthenticationMechanism();
+            FormLoginSettings settings = formLoginSettings(delegate);
+            return new HillaFormAuthenticationMechanism(delegate, logoutConfig(settings.landingPage()));
         };
     }
 
+    /**
+     * Creates the filter that handles requests to {@code vaadin.security.logout-path}.
+     *
+     * @return the logout filter
+     */
+    public Handler<RoutingContext> formLogoutHandler() {
+        return new FormLogoutHandler(logoutConfig(formConfig().landingPage().orElse("/")));
+    }
+
     public void configureHttpSecurityPolicy(BeanContainer container) {
-        Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
-        policy.withFormLogin(config);
+        policy.withFormLogin(formLoginSettings(formAuthenticationMechanism()).publicPaths());
         markSecurityPolicyUsed();
+    }
+
+    // The CDI bean is the mechanism Quarkus uses, also when it is set up with HttpSecurity.
+    private static FormAuthenticationMechanism formAuthenticationMechanism() {
+        return Arc.container().instance(FormAuthenticationMechanism.class).get();
+    }
+
+    private static FormLoginSettings formLoginSettings(FormAuthenticationMechanism mechanism) {
+        return FormLoginSettings.of(mechanism, formConfig());
+    }
+
+    private static FormAuthConfig formConfig() {
+        return ConfigProvider.getConfig()
+                .unwrap(SmallRyeConfig.class)
+                .getConfigMapping(VertxHttpConfig.class)
+                .auth()
+                .form();
+    }
+
+    private static HillaFormAuthenticationMechanism.Config logoutConfig(String landingPage) {
+        VaadinSecurityConfig securityConfig =
+                ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
+        FormAuthConfig formConfig = formConfig();
+        return new HillaFormAuthenticationMechanism.Config(
+                formConfig.cookieName(),
+                landingPage,
+                securityConfig.logoutPath(),
+                securityConfig.postLogoutRedirectUri().orElse(null),
+                securityConfig.logoutInvalidateSession(),
+                formConfig.cookiePath().orElse("/"),
+                formConfig.cookieDomain().orElse(null),
+                formConfig.httpOnlyCookie(),
+                CookieSameSite.valueOf(formConfig.cookieSameSite().name()));
     }
 
     /**
@@ -123,7 +150,8 @@ public class HillaSecurityRecorder {
         NavigationAccessControl accessControl =
                 ClientProxy.unwrap(container.beanInstance(NavigationAccessControl.class));
         // Read at startup, as Quarkus does for its own form login redirect.
-        var loginPage = ConfigProvider.getConfig().getOptionalValue(FORM_LOGIN_PAGE, String.class);
+        var loginPage = Optional.ofNullable(
+                formLoginSettings(formAuthenticationMechanism()).loginPage());
         if (extensionAccessControl) {
             container
                     .beanInstance(NavigationAccessControlConfigurer.class)

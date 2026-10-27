@@ -28,7 +28,10 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.vertx.http.deployment.FilterBuildItem;
+import io.quarkus.vertx.http.deployment.PreRouterFinalizationBuildItem;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
+import io.quarkus.vertx.http.runtime.security.SecurityHandlerPriorities;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
@@ -78,9 +81,25 @@ class QuarkusHillaSecurityProcessor {
         }
     }
 
+    // Runs after authentication and before authorization, see FormLogoutHandler.
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void registerFormLogoutHandler(
+            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityRecorder recorder,
+            BuildProducer<FilterBuildItem> filters) {
+        if (authFormBuildItem.isEnabled()) {
+            filters.produce(
+                    new FilterBuildItem(recorder.formLogoutHandler(), SecurityHandlerPriorities.AUTHORIZATION + 1));
+        }
+    }
+
+    // The form mechanism bean is read after Quarkus has set up HTTP security, which fires the
+    // HttpSecurity event that may configure it.
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(PreRouterFinalizationBuildItem.class)
     void configureHillaSecurityComponents(
             AuthFormBuildItem authFormBuildItem, HillaSecurityRecorder recorder, BeanContainerBuildItem beanContainer) {
         if (authFormBuildItem.isEnabled()) {
@@ -91,6 +110,7 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(PreRouterFinalizationBuildItem.class)
     void configureNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
             VaadinSecurityConfig securityConfig,

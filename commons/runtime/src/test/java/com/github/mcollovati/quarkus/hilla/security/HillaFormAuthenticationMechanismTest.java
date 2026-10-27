@@ -27,6 +27,7 @@ import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -76,6 +77,14 @@ class HillaFormAuthenticationMechanismTest {
         wrapper.authenticate(context, mock(IdentityProviderManager.class));
 
         assertSame(foreignMechanism, selectedMechanism.get());
+    }
+
+    @Test
+    void getPriority_reportsDelegatePriority() {
+        FormAuthenticationMechanism delegate = mock(FormAuthenticationMechanism.class);
+        when(delegate.getPriority()).thenReturn(2000);
+
+        assertEquals(2000, mechanism(delegate).getPriority());
     }
 
     private RoutingContext routingContext(AtomicReference<Object> selectedMechanism) {

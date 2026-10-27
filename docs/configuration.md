@@ -223,9 +223,16 @@ are constructed. The startup order is tracked in
 
 ### Form logout cookie scope
 
-Form logout expires the authentication cookie using Quarkus's configured path,
-domain, HttpOnly and SameSite settings. On HTTPS it also sets Secure, including
-for `__Host-` and `__Secure-` cookie names.
+Logout is handled at `vaadin.security.logout-path` after authentication and before Quarkus checks
+HTTP permissions, independent of the priority of the form mechanism. It expires two cookies:
+
+- the cookie of the form mechanism that authenticated the request, with its name and path, using
+  Quarkus's `FormAuthenticationMechanism.logout`. This covers a cookie name and path set up with
+  `HttpSecurity`, see [Form login set up in code](#form-login-set-up-in-code).
+- the cookie configured by the `quarkus.http.auth.form.*` properties, with its path, domain,
+  HttpOnly and SameSite settings. On HTTPS it also sets Secure, including for `__Host-` and
+  `__Secure-` cookie names. This cookie is also expired for a request without a valid
+  authentication cookie, for example when the logout path is outside the cookie path.
 
 For reliable logout, configure an explicit `quarkus.http.auth.form.cookie-path`;
 the default is `/`. An empty value lets browsers derive cookie paths from login
@@ -258,11 +265,43 @@ rest is regular Quarkus configuration.
 The navigation access control is on by default with form authentication. In Spring it is only
 turned on through `VaadinSecurityConfigurer`.
 
-Quarkus also offers a programmatic `HttpSecurity` API, comparable to Spring's `HttpSecurity`.
-Configure form login through the `quarkus.http.auth.form.*` properties for now: the extension
-does not pick up a form mechanism set up in code yet
-([#2338](https://github.com/mcollovati/quarkus-hilla/issues/2338),
-[#2339](https://github.com/mcollovati/quarkus-hilla/issues/2339)).
+Quarkus also offers a programmatic `HttpSecurity` API, comparable to Spring's `HttpSecurity`. Form
+login set up with it is supported, see [Form login set up in code](#form-login-set-up-in-code).
+
+<a id="form-login-set-up-in-code"></a>
+
+### Form login set up in code
+
+Quarkus can set up form login with `HttpSecurity` instead of the `quarkus.http.auth.form.*`
+properties:
+
+```java
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+
+import io.quarkus.vertx.http.security.Form;
+import io.quarkus.vertx.http.security.HttpSecurity;
+
+@ApplicationScoped
+class Security {
+
+    void configure(@Observes HttpSecurity http) {
+        http.mechanism(Form.builder().loginPage("/login").landingPage("/home").build());
+    }
+}
+```
+
+Also set `quarkus.http.auth.form.enabled=true`. The property is fixed at build time and activates
+the extension's form security; Quarkus then provides the mechanism set up in code as a CDI bean,
+which the extension wraps for the Hilla login. Without the property, Quarkus form login works, but
+the access check for Flow views, the extension's security policy and the logout handling are not
+active. Quarkus rejects a mechanism set up in code together with other `quarkus.http.auth.form.*`
+properties, but not together with `enabled`.
+
+The extension uses the priority, post location and authentication cookie of that mechanism. The
+login page, error page and landing page are still taken from the `quarkus.http.auth.form.*`
+properties. Set the Flow login view on a [configurer](#customizing-the-access-control) with
+`withLoginView(Class)`; a login URL set there has to match `quarkus.http.auth.form.login-page`.
 
 <a id="copilot"></a>
 
