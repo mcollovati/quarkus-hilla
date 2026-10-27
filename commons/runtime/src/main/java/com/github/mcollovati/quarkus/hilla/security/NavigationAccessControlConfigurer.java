@@ -179,6 +179,12 @@ public final class NavigationAccessControlConfigurer {
         return this;
     }
 
+    // Reads the class of a client proxy from the bean metadata, so checkers in an
+    // inactive context, e.g. request scoped ones at startup, are not activated.
+    private static Class<?> implementationClass(NavigationAccessChecker checker) {
+        return checker instanceof ClientProxy proxy ? proxy.arc_bean().getImplementationClass() : checker.getClass();
+    }
+
     private String configuredLoginView() {
         return loginView != null ? loginView.getName() : loginUrl;
     }
@@ -205,7 +211,7 @@ public final class NavigationAccessControlConfigurer {
         boolean enabled = !disabled && propertyEnabled;
         if (annotatedViewAccessChecker) {
             Optional<NavigationAccessChecker> checker = availableCheckers.stream()
-                    .filter(available -> ClientProxy.unwrap(available).getClass() == AnnotatedViewAccessChecker.class)
+                    .filter(available -> implementationClass(available) == AnnotatedViewAccessChecker.class)
                     .findFirst();
             if (checker.isPresent()) {
                 selected.add(checker.get());
