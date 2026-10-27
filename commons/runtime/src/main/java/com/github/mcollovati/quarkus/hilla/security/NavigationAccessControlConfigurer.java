@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -69,10 +70,11 @@ public final class NavigationAccessControlConfigurer {
     public NavigationAccessControlConfigurer() {}
 
     /**
-     * Selects the available annotated view access checker, including subclasses
-     * and CDI client proxies. An application bean of type
-     * {@link AnnotatedViewAccessChecker} replaces the built-in checker. Fails at
-     * startup if none or more than one is available.
+     * Selects the built-in {@link AnnotatedViewAccessChecker}, also behind a CDI
+     * client proxy. As in Vaadin's Spring integration, subclasses are not
+     * selected; add them with {@link #withNavigationAccessChecker} or
+     * {@link #withAvailableNavigationAccessCheckers}. Fails at startup if the
+     * built-in checker is not available.
      *
      * @return this configurer
      */
@@ -202,20 +204,11 @@ public final class NavigationAccessControlConfigurer {
         List<NavigationAccessChecker> selected = new ArrayList<>();
         boolean enabled = !disabled && propertyEnabled;
         if (annotatedViewAccessChecker) {
-            List<NavigationAccessChecker> checkers = availableCheckers.stream()
-                    .filter(AnnotatedViewAccessChecker.class::isInstance)
-                    .toList();
-            if (checkers.size() > 1 && enabled) {
-                throw new IllegalStateException("withAnnotatedViewAccessChecker() found more than one "
-                        + "AnnotatedViewAccessChecker CDI bean: "
-                        + checkers.stream()
-                                .map(checker ->
-                                        ClientProxy.unwrap(checker).getClass().getName())
-                                .toList()
-                        + ". Keep one or select the checkers with withAvailableNavigationAccessCheckers().");
-            }
-            if (!checkers.isEmpty()) {
-                selected.add(checkers.get(0));
+            Optional<NavigationAccessChecker> checker = availableCheckers.stream()
+                    .filter(available -> ClientProxy.unwrap(available).getClass() == AnnotatedViewAccessChecker.class)
+                    .findFirst();
+            if (checker.isPresent()) {
+                selected.add(checker.get());
             } else if (enabled) {
                 throw new IllegalStateException(
                         "No AnnotatedViewAccessChecker CDI bean is available for withAnnotatedViewAccessChecker()");

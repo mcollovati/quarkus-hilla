@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalStateException;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class NavigationAccessControlConfigurerTest {
 
@@ -94,11 +95,27 @@ class NavigationAccessControlConfigurerTest {
     }
 
     @Test
-    void annotatedChecker_subclassSelected() {
+    void annotatedChecker_builtInSelected_subclassNotSelected() {
+        var builtIn = new AnnotatedViewAccessChecker();
         var accessControl = new NavigationAccessControlConfigurer()
                 .withAnnotatedViewAccessChecker()
-                .build(List.of(new CustomAnnotatedChecker()), DefaultAccessCheckDecisionResolver::new, null, true);
-        assertThat(accessControl.hasAccessChecker(CustomAnnotatedChecker.class)).isTrue();
+                .build(
+                        List.of(new CustomAnnotatedChecker(), builtIn),
+                        DefaultAccessCheckDecisionResolver::new,
+                        null,
+                        true);
+        assertThat(accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class))
+                .isTrue();
+        assertThat(accessControl.hasAccessChecker(CustomAnnotatedChecker.class)).isFalse();
+    }
+
+    @Test
+    void annotatedChecker_onlySubclassAvailable_fails() {
+        var configurer = new NavigationAccessControlConfigurer().withAnnotatedViewAccessChecker();
+        assertThatThrownBy(() -> configurer.build(
+                        List.of(new CustomAnnotatedChecker()), DefaultAccessCheckDecisionResolver::new, null, true))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("No AnnotatedViewAccessChecker");
     }
 
     @Test

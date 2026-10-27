@@ -18,6 +18,7 @@ package com.github.mcollovati.quarkus.hilla.deployment.security;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.List;
 
+import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
 import io.quarkus.arc.deployment.BeanContainerBuildItem;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -30,9 +31,9 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.jboss.jandex.DotName;
 
 import com.github.mcollovati.quarkus.hilla.security.AccessCheckDecisionResolverProducer;
-import com.github.mcollovati.quarkus.hilla.security.AnnotatedViewAccessCheckerProducer;
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
 import com.github.mcollovati.quarkus.hilla.security.HillaFormAuthenticationMechanism;
 import com.github.mcollovati.quarkus.hilla.security.HillaSecurityPolicy;
@@ -119,16 +120,19 @@ class QuarkusHillaSecurityProcessor {
 
     @BuildStep
     void registerNavigationAccessControl(
-            AuthFormBuildItem authFormBuildItem, BuildProducer<AdditionalBeanBuildItem> beans) {
+            AuthFormBuildItem authFormBuildItem,
+            BuildProducer<AdditionalBeanBuildItem> beans,
+            BuildProducer<NavigationAccessCheckerBuildItem> accessCheckerProducer) {
         if (authFormBuildItem.isEnabled()) {
             beans.produce(AdditionalBeanBuildItem.builder()
                     .addBeanClasses(
                             NavigationAccessControlProducer.class,
                             QuarkusNavigationAccessControl.Installer.class,
-                            AccessCheckDecisionResolverProducer.class,
-                            AnnotatedViewAccessCheckerProducer.class)
+                            AccessCheckDecisionResolverProducer.class)
                     .setUnremovable()
                     .build());
+            accessCheckerProducer.produce(
+                    new NavigationAccessCheckerBuildItem(DotName.createSimple(AnnotatedViewAccessChecker.class)));
         }
     }
 }

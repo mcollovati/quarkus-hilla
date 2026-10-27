@@ -18,19 +18,13 @@ package com.github.mcollovati.quarkus.hilla.security;
 import jakarta.enterprise.inject.Instance;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import com.vaadin.flow.server.auth.AccessCheckDecisionResolver;
-import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessChecker;
 import com.vaadin.flow.server.auth.NavigationAccessControl;
 import io.quarkus.arc.All;
 import io.quarkus.arc.DefaultBean;
-import io.quarkus.arc.InjectableBean;
-import io.quarkus.arc.InstanceHandle;
 import io.quarkus.security.identity.SecurityIdentity;
 
 /**
@@ -53,36 +47,14 @@ public class NavigationAccessControlProducer {
     @DefaultBean
     NavigationAccessControl navigationAccessControl(
             NavigationAccessControlConfigurer configurer,
-            @All List<InstanceHandle<NavigationAccessChecker>> availableCheckers,
-            @All List<InstanceHandle<AnnotatedViewAccessChecker>> annotatedCheckers,
+            @All List<NavigationAccessChecker> availableCheckers,
             Instance<AccessCheckDecisionResolver> decisionResolver,
             SecurityIdentity securityIdentity,
             VaadinSecurityConfig securityConfig) {
         return configurer.build(
-                withAnnotatedCheckers(availableCheckers, annotatedCheckers),
+                availableCheckers,
                 decisionResolver::get,
                 securityIdentity,
                 securityConfig.navigationAccessControl().enabled());
-    }
-
-    // The built-in annotated checker is a default bean of its own type only, so it
-    // is not part of the checkers resolved as NavigationAccessChecker. A bean found
-    // through both lists is instantiated once, which matters for @Dependent beans.
-    private static List<NavigationAccessChecker> withAnnotatedCheckers(
-            List<InstanceHandle<NavigationAccessChecker>> availableCheckers,
-            List<InstanceHandle<AnnotatedViewAccessChecker>> annotatedCheckers) {
-        Set<InjectableBean<?>> seen = new HashSet<>();
-        List<NavigationAccessChecker> checkers = new ArrayList<>();
-        for (InstanceHandle<AnnotatedViewAccessChecker> handle : annotatedCheckers) {
-            if (seen.add(handle.getBean())) {
-                checkers.add(handle.get());
-            }
-        }
-        for (InstanceHandle<NavigationAccessChecker> handle : availableCheckers) {
-            if (seen.add(handle.getBean())) {
-                checkers.add(handle.get());
-            }
-        }
-        return checkers;
     }
 }

@@ -19,7 +19,6 @@ import jakarta.annotation.Priority;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Singleton;
 
-import com.vaadin.flow.server.auth.AccessCheckDecision;
 import com.vaadin.flow.server.auth.AccessCheckResult;
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import com.vaadin.flow.server.auth.NavigationContext;
@@ -33,10 +32,10 @@ import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlConfi
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * An application subclass of {@link AnnotatedViewAccessChecker} replaces the
- * built-in checker, so {@code withAnnotatedViewAccessChecker()} selects the
- * subclass and its restrictions apply. The low priority would place the subclass
- * after a built-in checker in the list of available checkers.
+ * An application subclass of {@link AnnotatedViewAccessChecker} next to the
+ * built-in checker. As in Vaadin's Spring integration,
+ * {@code withAnnotatedViewAccessChecker()} selects the built-in checker only,
+ * whatever the order of the available checkers.
  */
 class NavigationAccessControlConfigurerAnnotatedSubclassTest {
 
@@ -45,19 +44,15 @@ class NavigationAccessControlConfigurerAnnotatedSubclassTest {
             NavigationAccessControlTestSupport.extension(Configuration.class, StricterChecker.class);
 
     @Test
-    void annotatedViewAccessChecker_subclassReplacesBuiltIn() {
+    void annotatedViewAccessChecker_selectsBuiltInOnly() {
         var accessControl = NavigationAccessControlTestSupport.accessControl();
         var checker = Arc.container().instance(StricterChecker.class).get();
 
-        assertThat(Arc.container().select(AnnotatedViewAccessChecker.class).stream())
-                .singleElement()
-                .isSameAs(checker);
-
-        assertThat(accessControl
-                        .checkAccess(NavigationAccessControlTestSupport.context(), false)
-                        .decision())
-                .isEqualTo(AccessCheckDecision.DENY);
-        assertThat(checker.calls()).isEqualTo(1);
+        assertThat(accessControl.hasAccessChecker(AnnotatedViewAccessChecker.class))
+                .isTrue();
+        assertThat(accessControl.hasAccessChecker(StricterChecker.class)).isFalse();
+        accessControl.checkAccess(NavigationAccessControlTestSupport.context(), false);
+        assertThat(checker.calls()).isZero();
     }
 
     static class Configuration {
@@ -69,7 +64,7 @@ class NavigationAccessControlConfigurerAnnotatedSubclassTest {
     }
 
     @Singleton
-    @Priority(-1)
+    @Priority(10)
     static class StricterChecker extends AnnotatedViewAccessChecker {
         private int calls;
 

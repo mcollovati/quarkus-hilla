@@ -18,10 +18,11 @@ package com.github.mcollovati.quarkus.hilla.deployment.security;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import org.jboss.jandex.DotName;
 import org.junit.jupiter.api.Test;
 
-import com.github.mcollovati.quarkus.hilla.security.AnnotatedViewAccessCheckerProducer;
 import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlProducer;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,23 +31,29 @@ class QuarkusHillaSecurityProcessorTest {
 
     @Test
     void formAuthentication_registersAnnotatedCheckerForDefaultDeny() {
+        List<NavigationAccessCheckerBuildItem> accessCheckers = new ArrayList<>();
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
 
-        new QuarkusHillaSecurityProcessor().registerNavigationAccessControl(new AuthFormBuildItem(true), beans::add);
+        new QuarkusHillaSecurityProcessor()
+                .registerNavigationAccessControl(new AuthFormBuildItem(true), beans::add, accessCheckers::add);
 
+        assertThat(accessCheckers)
+                .extracting(NavigationAccessCheckerBuildItem::getAccessChecker)
+                .containsExactly(DotName.createSimple(AnnotatedViewAccessChecker.class));
         assertThat(beans)
                 .flatExtracting(AdditionalBeanBuildItem::getBeanClasses)
-                .contains(
-                        NavigationAccessControlProducer.class.getName(),
-                        AnnotatedViewAccessCheckerProducer.class.getName());
+                .contains(NavigationAccessControlProducer.class.getName());
     }
 
     @Test
     void formAuthenticationDisabled_registersNothing() {
+        List<NavigationAccessCheckerBuildItem> accessCheckers = new ArrayList<>();
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
 
-        new QuarkusHillaSecurityProcessor().registerNavigationAccessControl(new AuthFormBuildItem(false), beans::add);
+        new QuarkusHillaSecurityProcessor()
+                .registerNavigationAccessControl(new AuthFormBuildItem(false), beans::add, accessCheckers::add);
 
+        assertThat(accessCheckers).isEmpty();
         assertThat(beans).isEmpty();
     }
 }

@@ -173,10 +173,10 @@ class NavigationSecurity {
 Without an application configurer, the extension uses all `NavigationAccessChecker` beans,
 including those of the application. An application configurer uses only the checkers it selects:
 
-- `withAnnotatedViewAccessChecker()` selects the available `AnnotatedViewAccessChecker` bean,
-  including subclasses and CDI client proxies. An application bean of this type, such as a
-  subclass, replaces the built-in checker. The startup fails if none or more than one is
-  available.
+- `withAnnotatedViewAccessChecker()` selects the built-in `AnnotatedViewAccessChecker`. As in
+  Vaadin's Spring integration, a subclass is not selected by it; add the subclass with
+  `withNavigationAccessChecker(...)` or `withAvailableNavigationAccessCheckers(...)`. The startup
+  fails if the built-in checker is not available.
 - `withNavigationAccessChecker(...)` and `withNavigationAccessCheckers(...)` add checker instances.
 - `withAvailableNavigationAccessCheckers(...)` selects checker beans matching a predicate; a later
   call replaces the predicate. `MyAccessChecker.class::isInstance` also matches subclasses and CDI
@@ -237,7 +237,7 @@ rest is regular Quarkus configuration.
 | `loginView(String)`                                     | `quarkus.http.auth.form.login-page`. The extension uses it as the Flow login view too, see [Login view](#login-view).                              |
 | `loginView(Class)`                                      | `withLoginView(Class)` on a [configurer](#customizing-the-access-control), plus `quarkus.http.auth.form.login-page` for the HTTP redirect.         |
 | `loginView(..., logoutSuccessUrl)`                      | `vaadin.security.post-logout-redirect-uri`                                                                                                         |
-| `oauth2LoginPage(...)`                                  | Not available yet, see [#2276](https://github.com/mcollovati/quarkus-hilla/pull/2276).                                                             |
+| `oauth2LoginPage(...)`                                  | Not available yet, see [#2382](https://github.com/mcollovati/quarkus-hilla/pull/2382).                                                             |
 | `defaultSuccessUrl(...)`                                | `quarkus.http.auth.form.landing-page`                                                                                                              |
 | `logoutSuccessHandler(...)`, `addLogoutHandler(...)`    | `vaadin.security.logout-path`, `vaadin.security.post-logout-redirect-uri` and `vaadin.security.logout-invalidate-session`. No custom handlers.    |
 | `anyRequest(...)`, `enableAuthorizedRequestsConfiguration(...)` | Vaadin's internal requests, public resources and anonymous endpoints and views are permitted, everything else requires a login. Add rules with `quarkus.http.auth.permission.*`; they combine with the extension's policy and cannot make a path public again. |
