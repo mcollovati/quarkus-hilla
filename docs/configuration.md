@@ -32,12 +32,51 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 
 ## 🔒 Security
 
-| Property                                                 | Type    | Default   | Description                                                                                    |
+| Property                                                 | Type    | Default   | Description                                                                                      |
 |----------------------------------------------------------|---------|-----------|--------------------------------------------------------------------------------------------------|
-| `vaadin.security.logout-path`                            | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests.                                |
-| `vaadin.security.post-logout-redirect-uri`               | String  | -         | URI to redirect to after successful logout.                                                    |
-| `vaadin.security.logout-invalidate-session`              | Boolean | `true`    | Whether HTTP session should be invalidated on logout.                                          |
-| `vaadin.security.navigation-access-control.enabled`      | Boolean | `true`    | Whether access to Flow views is checked. See [Route Security](#route-security).                |
+| `vaadin.security.logout-path`                            | String  | `/logout` | Path of the logout HTTP POST endpoint handling logout requests. Form authentication only.        |
+| `vaadin.security.post-logout-redirect-uri`               | String  | -         | URI to redirect to after successful logout. Form authentication only.                            |
+| `vaadin.security.logout-invalidate-session`              | Boolean | `true`    | Whether HTTP session should be invalidated on logout. Form authentication only.                  |
+| `vaadin.security.navigation-access-control.enabled`      | Boolean | `true`    | Whether access to Flow views is checked. See [Route Security](#route-security).                  |
+
+<a id="authentication-mechanisms"></a>
+
+### Authentication Mechanisms
+
+The security integration is active when the application uses one of the following Quarkus
+authentication mechanisms. It checks Hilla endpoints and Flow views against the current Quarkus
+`SecurityIdentity`.
+
+| Mechanism                                                                                                         | Activated by                                               |
+|-------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| [Form](https://quarkus.io/guides/security-authentication-mechanisms#form-auth)                                    | `quarkus.http.auth.form.enabled=true`                      |
+| [Basic](https://quarkus.io/guides/security-basic-authentication) ![Since 25.4.0](https://flat.badgen.net/static/Since/25.4.0/007bff?scale=1.1) | `quarkus.http.auth.basic=true`, set explicitly             |
+| [OIDC](https://quarkus.io/guides/security-oidc-code-flow-authentication) ![Since 25.4.0](https://flat.badgen.net/static/Since/25.4.0/007bff?scale=1.1)  | The `quarkus-oidc` extension                               |
+| [JWT](https://quarkus.io/guides/security-jwt) ![Since 25.4.0](https://flat.badgen.net/static/Since/25.4.0/007bff?scale=1.1)                             | The `quarkus-smallrye-jwt` extension                       |
+
+If more than one mechanism is configured, form authentication takes precedence. The form login
+page, the form login handling and the logout endpoint configured by `vaadin.security.logout-*`
+apply to form authentication only.
+
+> [!IMPORTANT]
+> Since 25.4.0, applications using Basic, OIDC or JWT authentication get the access check for Flow
+> views described in [Route Security](#route-security). Flow views without an access annotation
+> are denied after the upgrade. Add the annotations, or disable the access check with
+> `vaadin.security.navigation-access-control.enabled=false` as a transitional measure.
+
+With Basic, OIDC or JWT authentication:
+
+- Anonymous requests that require authentication, such as loading a protected Flow view, get the
+  challenge of the Quarkus mechanism: Basic and bearer token authentication answer with
+  `401 Unauthorized`, the OIDC `web-app` application type redirects to the OpenID Connect provider.
+- No login view is set by default. Anonymous users navigating from a public view to a protected
+  view within the application get Vaadin's access denied error. To redirect them instead, set a login
+  view with `NavigationAccessControlConfigurer.withLoginView(...)`, for example a URL that
+  requires authentication so that Quarkus starts the provider login.
+- Logout is handled by Quarkus. For the OIDC `web-app` application type, configure
+  `quarkus.oidc.logout.path` to enable RP-initiated logout.
+- Use [Quarkus HTTP permissions](https://quarkus.io/guides/security-authorize-web-endpoints-reference)
+  to protect paths outside Flow views and Hilla endpoints.
 
 <a id="route-security"></a>
 
@@ -47,8 +86,8 @@ See [Endpoints Live Reload](features.md#endpoints-live-reload) for how the featu
 ![Since 25.2.2](https://flat.badgen.net/static/Since/25.2.2/007bff?scale=1.1)
 ![Since 25.3.0](https://flat.badgen.net/static/Since/25.3.0/007bff?scale=1.1)
 
-With Quarkus form authentication enabled (`quarkus.http.auth.form.enabled=true`), the extension
-checks access to Flow views with Vaadin's `NavigationAccessControl`. Access is declared with an
+With a supported [authentication mechanism](#authentication-mechanisms), the extension checks
+access to Flow views with Vaadin's `NavigationAccessControl`. Access is declared with an
 annotation on the view class or one of its superclasses:
 
 | Annotation          | Access                                          |
@@ -72,8 +111,10 @@ checked in addition to the annotation of the view.
 #### Login view
 
 Anonymous users who open a view that requires authentication are redirected to the login view.
-The extension uses `quarkus.http.auth.form.login-page` as the login view, so navigation within
-the application and the Quarkus form login redirect lead to the same page.
+With form authentication, the extension uses `quarkus.http.auth.form.login-page` as the login
+view, so navigation within the application and the Quarkus form login redirect lead to the same
+page. Other mechanisms have no default login view, see
+[Authentication Mechanisms](#authentication-mechanisms).
 
 Since 25.3.0, the access control is customized with a
 [configurer](#customizing-the-access-control). An application can still replace it with its own
@@ -102,8 +143,9 @@ change in any release.
 
 > [!IMPORTANT]
 > Quarkus-Hilla 25.1.4 and 25.2.1 enabled the access check for Flow views by default
-> ([#2264](https://github.com/mcollovati/quarkus-hilla/pull/2264)). After the upgrade, applications
-> using Quarkus form authentication can no longer open Flow views without an access annotation.
+> ([#2264](https://github.com/mcollovati/quarkus-hilla/pull/2264)), and 25.4.0 extends it to Basic,
+> OIDC and JWT authentication. After the upgrade, Flow views without an access annotation can no
+> longer be opened.
 > The following property restores the previous behavior until the annotations are in place.
 
 ```properties

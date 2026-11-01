@@ -20,22 +20,80 @@ import java.util.List;
 
 import com.vaadin.flow.server.auth.AnnotatedViewAccessChecker;
 import io.quarkus.arc.deployment.AdditionalBeanBuildItem;
+import io.quarkus.vertx.http.deployment.SecurityInformationBuildItem;
 import org.jboss.jandex.DotName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
+import com.github.mcollovati.quarkus.hilla.deployment.security.HillaSecurityBuildItem.SecurityModel;
 import com.github.mcollovati.quarkus.hilla.security.NavigationAccessControlProducer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class QuarkusHillaSecurityProcessorTest {
 
+    private final QuarkusHillaSecurityProcessor processor = new QuarkusHillaSecurityProcessor();
+
     @Test
-    void formAuthentication_registersAnnotatedCheckerForDefaultDeny() {
+    void formAuthentication_takesPrecedence() {
+        HillaSecurityBuildItem item = processor.hillaSecurity(
+                new AuthFormBuildItem(true),
+                List.of(SecurityInformationBuildItem.OPENIDCONNECT("quarkus.oidc.auth-server-url")));
+
+        assertThat(item.getSecurityModel()).isEqualTo(SecurityModel.FORM);
+        assertThat(item.isFormAuthentication()).isTrue();
+    }
+
+    @Test
+    void basicAuthentication_detectedFromSecurityInformation() {
+        HillaSecurityBuildItem item =
+                processor.hillaSecurity(new AuthFormBuildItem(false), List.of(SecurityInformationBuildItem.BASIC()));
+
+        assertThat(item.getSecurityModel()).isEqualTo(SecurityModel.BASIC);
+        assertThat(item.isEnabled()).isTrue();
+        assertThat(item.isFormAuthentication()).isFalse();
+    }
+
+    @Test
+    void oidcAuthentication_detectedFromSecurityInformation() {
+        HillaSecurityBuildItem item = processor.hillaSecurity(
+                new AuthFormBuildItem(false),
+                List.of(
+                        SecurityInformationBuildItem.BASIC(),
+                        SecurityInformationBuildItem.OPENIDCONNECT("quarkus.oidc.auth-server-url")));
+
+        assertThat(item.getSecurityModel()).isEqualTo(SecurityModel.OIDC);
+    }
+
+    @Test
+    void jwtAuthentication_detectedFromSecurityInformation() {
+        HillaSecurityBuildItem item =
+                processor.hillaSecurity(new AuthFormBuildItem(false), List.of(SecurityInformationBuildItem.JWT()));
+
+        assertThat(item.getSecurityModel()).isEqualTo(SecurityModel.JWT);
+    }
+
+    @Test
+    void unsupportedOrMissingMechanism_integrationNotActive() {
+        assertThat(processor
+                        .hillaSecurity(new AuthFormBuildItem(false), List.of(SecurityInformationBuildItem.OAUTH2()))
+                        .isEnabled())
+                .isFalse();
+        assertThat(processor
+                        .hillaSecurity(new AuthFormBuildItem(false), List.of())
+                        .isEnabled())
+                .isFalse();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = SecurityModel.class, names = "NONE", mode = EnumSource.Mode.EXCLUDE)
+    void activeSecurityModel_registersAnnotatedCheckerForDefaultDeny(SecurityModel securityModel) {
         List<NavigationAccessCheckerBuildItem> accessCheckers = new ArrayList<>();
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
 
-        new QuarkusHillaSecurityProcessor()
-                .registerNavigationAccessControl(new AuthFormBuildItem(true), beans::add, accessCheckers::add);
+        processor.registerNavigationAccessControl(
+                new HillaSecurityBuildItem(securityModel), beans::add, accessCheckers::add);
 
         assertThat(accessCheckers)
                 .extracting(NavigationAccessCheckerBuildItem::getAccessChecker)
@@ -46,12 +104,12 @@ class QuarkusHillaSecurityProcessorTest {
     }
 
     @Test
-    void formAuthenticationDisabled_registersNothing() {
+    void noSecurityModel_registersNothing() {
         List<NavigationAccessCheckerBuildItem> accessCheckers = new ArrayList<>();
         List<AdditionalBeanBuildItem> beans = new ArrayList<>();
 
-        new QuarkusHillaSecurityProcessor()
-                .registerNavigationAccessControl(new AuthFormBuildItem(false), beans::add, accessCheckers::add);
+        processor.registerNavigationAccessControl(
+                new HillaSecurityBuildItem(SecurityModel.NONE), beans::add, accessCheckers::add);
 
         assertThat(accessCheckers).isEmpty();
         assertThat(beans).isEmpty();
