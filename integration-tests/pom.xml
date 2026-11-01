@@ -18,7 +18,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
 
         <awaitility.version>4.3.0</awaitility.version>
-        <selenide.version>7.19.0</selenide.version>
+        <selenide.version>7.19.1</selenide.version>
         <!-- Align Selenium with the version required by Selenide. -->
         <selenium.version>4.51.0</selenium.version>
         <selenide.browser>chrome</selenide.browser>
