@@ -42,24 +42,30 @@ public class RouteUtil {
     }
 
     public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
+        ensureClientRoutes();
+        return getRouteData(context.normalizedPath(), identity).isPresent();
+    }
+
+    boolean isSecuredRoute(RoutingContext context) {
+        ensureClientRoutes();
+        // Match before filtering, so a secured route cannot fall back to a public wildcard.
+        AvailableViewInfo viewInfo = getRouteByPath(registeredRoutes, context.normalizedPath());
+        return viewInfo != null && !validateViewAccessible(viewInfo, false, role -> false);
+    }
+
+    private void ensureClientRoutes() {
         // Ensure that the VaadinService is set for the current thread, so that collectClientRoutes can access it.
         // The current instances should always be null, but for safety, we restore them after the operation.
         final var oldInstances = CurrentInstance.getInstances();
         VaadinService.setCurrent(vaadinService);
         try {
-            return isRouteAllowedSafe(context, identity);
+            if (registeredRoutes == null) {
+                collectClientRoutes();
+            }
         } finally {
             CurrentInstance.clearAll();
             CurrentInstance.restoreInstances(oldInstances);
         }
-    }
-
-    private boolean isRouteAllowedSafe(RoutingContext context, SecurityIdentity identity) {
-        if (registeredRoutes == null) {
-            collectClientRoutes();
-        }
-        var viewConfig = getRouteData(context.normalizedPath(), identity);
-        return viewConfig.isPresent();
     }
 
     private void collectClientRoutes() {
