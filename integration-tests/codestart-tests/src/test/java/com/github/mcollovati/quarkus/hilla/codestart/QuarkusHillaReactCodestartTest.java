@@ -15,14 +15,11 @@
  */
 package com.github.mcollovati.quarkus.hilla.codestart;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
+import java.nio.file.Files;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.devtools.project.BuildTool;
 import io.quarkus.devtools.testing.codestarts.QuarkusCodestartTest;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -58,14 +55,15 @@ public class QuarkusHillaReactCodestartTest {
         codestartTest
                 .assertThatGeneratedFile(JAVA, "package.json")
                 .exists()
-                .content()
-                .contains("@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals");
-        // Flow lists overrides for every Vaadin package, so only the dependencies tell the frameworks apart.
-        assertThat(dependencies())
-                .contains("@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals")
-                .doesNotContain("@vaadin/router");
+                .satisfies(path -> assertThat(new JsonObject(Files.readString(path))
+                                .getJsonObject("dependencies")
+                                .fieldNames())
+                        .contains(
+                                "@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals")
+                        .doesNotContain("@vaadin/router"));
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "vite.config.ts").exists();
+        codestartTest.assertThatGeneratedFile(JAVA, "hilla-vite-compat.ts").doesNotExist();
         codestartTest.assertThatGeneratedFile(JAVA, "types.d.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "tsconfig.json").exists();
     }
@@ -73,16 +71,5 @@ public class QuarkusHillaReactCodestartTest {
     @Test
     void buildAllProjects() throws Throwable {
         codestartTest.buildAllProjects();
-    }
-
-    private static Set<String> dependencies() throws IOException {
-        Path packageJson = codestartTest.getProjectWithRealDataDir(JAVA).resolve("package.json");
-        Set<String> names = new HashSet<>();
-        new ObjectMapper()
-                .readTree(packageJson.toFile())
-                .get("dependencies")
-                .fieldNames()
-                .forEachRemaining(names::add);
-        return names;
     }
 }

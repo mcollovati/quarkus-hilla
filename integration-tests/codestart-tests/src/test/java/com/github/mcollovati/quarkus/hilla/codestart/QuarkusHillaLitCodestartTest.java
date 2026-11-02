@@ -15,13 +15,10 @@
  */
 package com.github.mcollovati.quarkus.hilla.codestart;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
+import java.nio.file.Files;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.devtools.testing.codestarts.QuarkusCodestartTest;
+import io.vertx.core.json.JsonObject;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
@@ -59,12 +56,23 @@ public class QuarkusHillaLitCodestartTest {
         codestartTest
                 .assertThatGeneratedFile(JAVA, "package.json")
                 .exists()
-                .content()
-                .contains("@vaadin/router");
-        // Flow lists overrides for every Vaadin package, so only the dependencies tell the frameworks apart.
-        assertThat(dependencies())
-                .contains("@vaadin/router")
-                .doesNotContain("@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals");
+                .satisfies(path -> assertThat(new JsonObject(Files.readString(path))
+                                .getJsonObject("dependencies")
+                                .fieldNames())
+                        .contains("@vaadin/router")
+                        .doesNotContain(
+                                "@vaadin/hilla-file-router",
+                                "@vaadin/react-components",
+                                "@vaadin/hilla-react-signals"));
+        codestartTest
+                .assertThatGeneratedFile(JAVA, "package.json")
+                .satisfies(path -> assertThat(new JsonObject(Files.readString(path))
+                                .getJsonObject("devDependencies")
+                                .fieldNames())
+                        .doesNotContain(
+                                "@vaadin/hilla-file-router",
+                                "@vaadin/react-components",
+                                "@vaadin/hilla-react-signals"));
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "vite.config.ts").exists();
         codestartTest.assertThatGeneratedFile(JAVA, "types.d.ts").exists();
@@ -74,16 +82,5 @@ public class QuarkusHillaLitCodestartTest {
     @Test
     void buildAllProjects() throws Throwable {
         codestartTest.buildAllProjects();
-    }
-
-    private static Set<String> dependencies() throws IOException {
-        Path packageJson = codestartTest.getProjectWithRealDataDir(JAVA).resolve("package.json");
-        Set<String> names = new HashSet<>();
-        new ObjectMapper()
-                .readTree(packageJson.toFile())
-                .get("dependencies")
-                .fieldNames()
-                .forEachRemaining(names::add);
-        return names;
     }
 }
