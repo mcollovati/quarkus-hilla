@@ -107,6 +107,7 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
             return CheckResult.permit();
         }
         NavigationContext navigationContext = tryCreateNavigationContext(request);
+        // Must run before isAnonymousRoute, which treats every path without a Flow route as anonymous.
         if (navigationContext == null
                 && routeUtil != null
                 && isPageRequest(request)
