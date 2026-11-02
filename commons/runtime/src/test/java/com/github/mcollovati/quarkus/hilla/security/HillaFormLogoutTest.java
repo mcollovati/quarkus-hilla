@@ -23,15 +23,29 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import io.netty.handler.codec.http.DefaultHttpRequest;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpVersion;
+import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
+import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.PersistentLoginManager;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
+import io.vertx.core.http.impl.CookieJar;
+import io.vertx.core.http.impl.Http1xServerConnection;
+import io.vertx.core.http.impl.Http1xServerResponse;
+import io.vertx.core.impl.ContextInternal;
+import io.vertx.core.impl.VertxInternal;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import org.junit.jupiter.api.Test;
@@ -40,12 +54,79 @@ import org.mockito.ArgumentCaptor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class HillaFormLogoutTest {
+
+    @Test
+    void logout_sharedCookieName_expiresEveryPath() throws Exception {
+        for (String incoming : List.of("", "auth=encrypted-credential")) {
+            LogoutExchange exchange = logoutExchange(incoming);
+            var handler = new FormLogoutHandler(
+                    new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", null, false),
+                    () -> Optional.of(
+                            new FormLogoutHandler.CookieScope("auth", "/app", null, true, CookieSameSite.STRICT)));
+
+            handler.handle(exchange.context());
+
+            List<HttpCookie> expired = exchange.finish();
+            assertEquals(2, expired.size());
+            assertEquals(
+                    Set.of("/", "/app"),
+                    expired.stream().map(HttpCookie::getPath).collect(Collectors.toSet()));
+            assertTrue(expired.stream().allMatch(cookie -> cookie.getValue().isEmpty() && cookie.getMaxAge() == 0));
+            verify(exchange.request()).cookies("auth");
+        }
+    }
+
+    @Test
+    void logout_sharedCookieName_expiresEveryDomain() throws Exception {
+        LogoutExchange exchange = logoutExchange("auth=encrypted-credential");
+        var handler = new FormLogoutHandler(
+                new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", null, false),
+                () -> Optional.of(
+                        new FormLogoutHandler.CookieScope("auth", "/", "example.com", true, CookieSameSite.STRICT)));
+
+        handler.handle(exchange.context());
+
+        List<HttpCookie> expired = exchange.finish();
+        assertEquals(2, expired.size());
+        assertTrue(expired.stream().anyMatch(cookie -> cookie.getDomain() == null));
+        assertTrue(expired.stream().anyMatch(cookie -> "example.com".equals(cookie.getDomain())));
+        assertTrue(expired.stream().allMatch(cookie -> cookie.getValue().isEmpty() && cookie.getMaxAge() == 0));
+    }
+
+    @Test
+    void logout_authenticatingMechanism_preservesScopedExpiryAttributes() throws Exception {
+        LogoutExchange exchange = logoutExchange("__Secure-auth=encrypted-credential");
+        when(exchange.context().get(HttpAuthenticationMechanism.class.getName()))
+                .thenReturn(mock(FormAuthenticationMechanism.class));
+        when(exchange.context().get("io.quarkus.vertx.http.runtime.security.form.cookie-name"))
+                .thenReturn("__Secure-auth");
+        when(exchange.context().get("io.quarkus.vertx.http.runtime.security.form.cookie-path"))
+                .thenReturn("/");
+        var handler = new FormLogoutHandler(
+                new HillaFormAuthenticationMechanism.Config(
+                        "__Secure-auth", "/", "/logout", null, false, "/", null, true, CookieSameSite.STRICT),
+                () -> Optional.of(
+                        new FormLogoutHandler.CookieScope("__Secure-auth", "/app", null, true, CookieSameSite.STRICT)));
+
+        handler.handle(exchange.context());
+
+        List<HttpCookie> expired = exchange.finish();
+        assertEquals(2, expired.size());
+        assertTrue(expired.stream()
+                .allMatch(cookie -> cookie.getValue().isEmpty()
+                        && cookie.getMaxAge() == 0
+                        && cookie.getSecure()
+                        && cookie.isHttpOnly()));
+        assertTrue(exchange.response().headers().getAll("Set-Cookie").stream()
+                .allMatch(header -> header.contains("SameSite=Strict")));
+    }
 
     @Test
     void logout_defaultCookiePath_clearsAuthenticationCookie() throws Exception {
@@ -175,6 +256,49 @@ class HillaFormLogoutTest {
 
         verify(context).redirect("/goodbye");
         verify(context, never()).next();
+    }
+
+    // Exercise the pinned Vert.x cookie jar and actual Set-Cookie serialization without opening a socket.
+    private static LogoutExchange logoutExchange(String incoming) throws Exception {
+        var nettyRequest = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/logout");
+        nettyRequest.headers().set("Cookie", incoming);
+        var constructor = Http1xServerResponse.class.getDeclaredConstructor(
+                VertxInternal.class,
+                ContextInternal.class,
+                Http1xServerConnection.class,
+                io.netty.handler.codec.http.HttpRequest.class,
+                Object.class,
+                boolean.class,
+                boolean.class);
+        constructor.setAccessible(true);
+        Http1xServerResponse response =
+                constructor.newInstance(null, null, mock(Http1xServerConnection.class), nettyRequest, null, true, true);
+        var cookiesMethod = Http1xServerResponse.class.getDeclaredMethod("cookies");
+        cookiesMethod.setAccessible(true);
+        CookieJar cookies = (CookieJar) cookiesMethod.invoke(response);
+        RoutingContext context = mock(RoutingContext.class);
+        HttpServerRequest request = mock(HttpServerRequest.class);
+        when(context.normalizedPath()).thenReturn("/logout");
+        when(context.request()).thenReturn(request);
+        when(context.response()).thenReturn(response);
+        when(request.cookies(anyString()))
+                .thenAnswer(invocation -> Set.copyOf(cookies.getAll(invocation.getArgument(0, String.class))));
+        return new LogoutExchange(context, request, response);
+    }
+
+    private record LogoutExchange(RoutingContext context, HttpServerRequest request, Http1xServerResponse response) {
+        @SuppressWarnings("unchecked")
+        List<HttpCookie> finish() throws Exception {
+            ArgumentCaptor<Handler<Void>> callback = ArgumentCaptor.forClass(Handler.class);
+            verify(context).addHeadersEndHandler(callback.capture());
+            callback.getValue().handle(null);
+            var prepareHeaders = Http1xServerResponse.class.getDeclaredMethod("prepareHeaders", long.class);
+            prepareHeaders.setAccessible(true);
+            prepareHeaders.invoke(response, 0L);
+            return response.headers().getAll("Set-Cookie").stream()
+                    .map(header -> HttpCookie.parse(header).get(0))
+                    .toList();
+        }
     }
 
     private void assertLogout(String cookiePath, String cookieDomain) throws Exception {

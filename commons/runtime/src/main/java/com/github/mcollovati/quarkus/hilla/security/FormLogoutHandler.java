@@ -70,10 +70,21 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
             return;
         }
         boolean secureRequest = ctx.request().isSSL();
-        for (CookieScope scope : cookieScopes()) {
+        Set<CookieScope> scopes = cookieScopes();
+        Set<String> neutralizedNames = new LinkedHashSet<>();
+        // Vert.x shares the request and response cookie jar. Neutralize incoming credentials once per
+        // name before adding any expiry, so a later scope cannot mutate an already queued deletion.
+        for (CookieScope scope : scopes) {
+            if (neutralizedNames.add(scope.name())) {
+                for (Cookie requestCookie : ctx.request().cookies(scope.name())) {
+                    scope.applyExpired(requestCookie, secureRequest);
+                }
+            }
+        }
+        for (CookieScope scope : scopes) {
             expire(ctx, scope, secureRequest);
         }
-        ctx.addHeadersEndHandler(ignored -> expireAuthenticatingMechanismCookie(ctx));
+        ctx.addHeadersEndHandler(ignored -> expireAuthenticatingMechanismCookie(ctx, scopes, secureRequest));
         if (config.invalidateSessions() && ctx.session() != null) {
             ctx.session().destroy();
         }
@@ -104,21 +115,24 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
     private static void expire(RoutingContext ctx, CookieScope scope, boolean secureRequest) {
         // Request cookies carry no path or domain, and the cookie is absent when the logout path is outside
         // the cookie path. The expired cookie is therefore always sent with the configured scope. Request
-        // cookies of that name are expired in place, which also leaves the form mechanisms nothing to restore.
-        for (Cookie requestCookie : ctx.request().cookies(scope.name())) {
-            scope.applyExpired(requestCookie, secureRequest);
-        }
+        // cookies have already been neutralized. Fresh response cookies are keyed by name, path and domain.
         ctx.response().addCookie(scope.applyExpired(Cookie.cookie(scope.name(), ""), secureRequest));
     }
 
     // A cookie that is not among the expired scopes, for example one with a name set up with HttpSecurity,
     // still lets a form mechanism restore the identity. FormAuthenticationMechanism.logout then expires
     // its name and path, which the mechanism put into the routing context.
-    private static void expireAuthenticatingMechanismCookie(RoutingContext ctx) {
+    private static void expireAuthenticatingMechanismCookie(
+            RoutingContext ctx, Set<CookieScope> scopes, boolean secureRequest) {
         Object mechanism = ClientProxy.unwrap(ctx.get(AUTHENTICATION_MECHANISM_KEY));
         if (mechanism instanceof FormAuthenticationMechanism || mechanism instanceof HillaFormAuthenticationMechanism) {
             try {
                 FormAuthenticationMechanism.logout(ctx);
+                // Quarkus adds a bare name/path expiry, which can replace one of ours. Restore the
+                // configured attributes without looking up or mutating cookies in the shared jar.
+                for (CookieScope scope : scopes) {
+                    expire(ctx, scope, secureRequest);
+                }
             } catch (NullPointerException missingCookieScope) {
                 // The mechanism restored no identity, or has no cookie path to store with an empty
                 // quarkus.http.auth.form.cookie-path. The expired scopes still apply.
