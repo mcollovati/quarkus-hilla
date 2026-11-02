@@ -108,9 +108,9 @@ record FormLoginSettings(
                     (String) field(PersistentLoginManager.class, loginManager, "cookieDomain"),
                     (Boolean) field(PersistentLoginManager.class, loginManager, "httpOnlyCookie"),
                     (CookieSameSite) field(PersistentLoginManager.class, loginManager, "cookieSameSite"));
-            return path == null || path.isEmpty()
-                    ? cookieScopes(scope, postLocation(mechanism).orElseThrow(), rootPath)
-                    : Set.of(scope);
+            return hasExplicitPath(path)
+                    ? Set.of(scope)
+                    : cookieScopes(scope, postLocation(mechanism).orElseThrow(), rootPath);
         } catch (ReflectiveOperationException | RuntimeException unreadable) {
             LoggerFactory.getLogger(FormLoginSettings.class)
                     .warn(
@@ -135,16 +135,21 @@ record FormLoginSettings(
 
     static Set<FormLogoutHandler.CookieScope> cookieScopes(
             FormLogoutHandler.CookieScope scope, String postLocation, String rootPath) {
-        if (scope.path() != null && !scope.path().isEmpty()) {
+        if (hasExplicitPath(scope.path())) {
             return Set.of(scope);
         }
-        // With no Path attribute the browser uses the directory of the POST request URI, including
+        // With no usable Path attribute the browser uses the directory of the POST request URI, including
         // the root under which Quarkus mounts the application router. Keep a root expiry as well.
         String postPath = rootPath + (postLocation.startsWith("/") ? postLocation.substring(1) : postLocation);
         Set<FormLogoutHandler.CookieScope> scopes = new LinkedHashSet<>();
         scopes.add(scope.withPath(defaultCookiePath(postPath)));
         scopes.add(scope.withPath("/"));
         return scopes;
+    }
+
+    // RFC 6265 section 5.2.4: browsers ignore a Path attribute that is empty or does not start with a slash.
+    private static boolean hasExplicitPath(String path) {
+        return path != null && path.startsWith("/");
     }
 
     // RFC 6265 section 5.1.4: use the raw URI path, excluding its right-most slash and everything after it.

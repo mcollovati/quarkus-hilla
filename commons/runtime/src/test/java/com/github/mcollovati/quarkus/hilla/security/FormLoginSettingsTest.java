@@ -47,8 +47,8 @@ class FormLoginSettingsTest {
     }
 
     @Test
-    void cookieScopes_programmaticImplicitPath_includesMountedPostDirectoryAndRoot() {
-        for (String path : new String[] {null, ""}) {
+    void cookieScopes_programmaticImplicitOrInvalidPath_includesMountedPostDirectoryAndRoot() {
+        for (String path : new String[] {null, "", "app"}) {
             var scopes = FormLoginSettings.cookieScopes(mechanism(path, "/app/j_security_check"), "/mount/");
 
             assertEquals(Set.of("/mount/app", "/"), paths(scopes));
@@ -73,8 +73,8 @@ class FormLoginSettingsTest {
     }
 
     @Test
-    void cookieScopes_propertyImplicitPath_includesMountedPostDirectoryAndRoot() {
-        for (Optional<String> path : List.of(Optional.<String>empty(), Optional.of(""))) {
+    void cookieScopes_propertyImplicitOrInvalidPath_includesMountedPostDirectoryAndRoot() {
+        for (Optional<String> path : List.of(Optional.<String>empty(), Optional.of(""), Optional.of("app"))) {
             FormAuthConfig properties = mock(FormAuthConfig.class);
             when(properties.cookieName()).thenReturn("property-auth");
             when(properties.cookiePath()).thenReturn(path);
