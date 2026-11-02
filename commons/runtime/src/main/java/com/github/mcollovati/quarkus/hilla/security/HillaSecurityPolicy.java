@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -44,6 +45,8 @@ import io.quarkus.vertx.http.runtime.security.HttpSecurityPolicy;
 import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.smallrye.mutiny.Uni;
 import io.vertx.core.MultiMap;
+import io.vertx.core.http.HttpHeaders;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
 import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
@@ -100,15 +103,36 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         Boolean permittedPath = permitAllMatcher.match(request.request().path()).getValue();
         if ((permittedPath != null && permittedPath)
                 || isFrameworkInternalRequest(request)
-                || isAnonymousEndpoint(request)
-                || isAnonymousRoute(tryCreateNavigationContext(request), request.normalizedPath())
-                || isCustomWebIcon(request)) {
+                || isAnonymousEndpoint(request)) {
+            return CheckResult.permit();
+        }
+        NavigationContext navigationContext = tryCreateNavigationContext(request);
+        // Must run before isAnonymousRoute, which treats every path without a Flow route as anonymous.
+        if (navigationContext == null
+                && routeUtil != null
+                && isPageRequest(request)
+                && routeUtil.isSecuredRoute(request)
+                && !isCustomWebIcon(request)) {
+            // Only authentication is enforced here; Hilla's client router checks roles.
+            return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
+        }
+        if (isAnonymousRoute(navigationContext, request.normalizedPath()) || isCustomWebIcon(request)) {
             return CheckResult.permit();
         }
         return identity.flatMap(secIdentity -> {
             if (isAllowedHillaView(request, secIdentity)) return CheckResult.permit();
             return authenticatedHttpSecurityPolicy.checkPermission(request, identity, requestContext);
         });
+    }
+
+    // Wildcard Hilla routes must not capture REST, health or other non-page requests.
+    private static boolean isPageRequest(RoutingContext request) {
+        HttpMethod method = request.request().method();
+        if (method != HttpMethod.GET && method != HttpMethod.HEAD) {
+            return false;
+        }
+        String accept = request.request().getHeader(HttpHeaders.ACCEPT);
+        return accept != null && accept.toLowerCase(Locale.ROOT).contains("text/html");
     }
 
     private boolean isAllowedHillaView(RoutingContext request, SecurityIdentity secIdentity) {
