@@ -15,11 +15,18 @@
  */
 package com.github.mcollovati.quarkus.hilla.codestart;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.devtools.testing.codestarts.QuarkusCodestartTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 
 import static io.quarkus.devtools.codestarts.quarkus.QuarkusCodestartCatalog.Language.JAVA;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class QuarkusHillaLitCodestartTest {
 
@@ -53,6 +60,9 @@ public class QuarkusHillaLitCodestartTest {
                 .assertThatGeneratedFile(JAVA, "package.json")
                 .exists()
                 .content()
+                .contains("@vaadin/router");
+        // Flow lists overrides for every Vaadin package, so only the dependencies tell the frameworks apart.
+        assertThat(dependencies())
                 .contains("@vaadin/router")
                 .doesNotContain("@vaadin/hilla-file-router", "@vaadin/react-components", "@vaadin/hilla-react-signals");
         codestartTest.assertThatGeneratedFile(JAVA, "package-lock.json").exists();
@@ -64,5 +74,16 @@ public class QuarkusHillaLitCodestartTest {
     @Test
     void buildAllProjects() throws Throwable {
         codestartTest.buildAllProjects();
+    }
+
+    private static Set<String> dependencies() throws IOException {
+        Path packageJson = codestartTest.getProjectWithRealDataDir(JAVA).resolve("package.json");
+        Set<String> names = new HashSet<>();
+        new ObjectMapper()
+                .readTree(packageJson.toFile())
+                .get("dependencies")
+                .fieldNames()
+                .forEachRemaining(names::add);
+        return names;
     }
 }

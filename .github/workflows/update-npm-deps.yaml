@@ -80,6 +80,17 @@ jobs:
         run: |
           set -x -e -o pipefail
           mvn -V -e -ntp install -Pall-modules -Dflatten.skip=true -DskipTests -DskipITs=true
+      - name: Install standalone extension artifacts
+        # The integration-test build skips flattening. Generated projects need resolved POMs.
+        run: mvn -V -e -ntp install -DskipTests -DskipITs=true
+      - name: Setup JBang
+        uses: jbangdev/setup-jbang@2b1b465a7b75f4222b81426f23a01e013aa7b95c # v0.1.1
+      - name: Generate codestart NPM files with Vaadin
+        env:
+          SYNC_SCRIPT_REVISION: ${{ github.workflow_sha }}
+        run: |
+          git show "$SYNC_SCRIPT_REVISION:etc/SyncCodestartNpm.java" > "$RUNNER_TEMP/SyncCodestartNpm.java"
+          jbang "$RUNNER_TEMP/SyncCodestartNpm.java" .
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v7
         id: commit-changes
