@@ -16,7 +16,6 @@
 package com.github.mcollovati.quarkus.hilla.security;
 
 import java.util.LinkedHashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -47,20 +46,20 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
     private static final String AUTHENTICATION_MECHANISM_KEY = HttpAuthenticationMechanism.class.getName();
 
     private final HillaFormAuthenticationMechanism.Config config;
-    private final Supplier<Optional<CookieScope>> mechanismCookie;
+    private final Supplier<Set<CookieScope>> additionalCookies;
     private volatile Set<CookieScope> cookieScopes;
 
     FormLogoutHandler(HillaFormAuthenticationMechanism.Config config) {
-        this(config, Optional::empty);
+        this(config, Set::of);
     }
 
     /**
      * @param config the logout settings and the cookie of the {@code quarkus.http.auth.form.*} properties
-     * @param mechanismCookie the cookie of the effective form mechanism, read on the first logout
+     * @param additionalCookies the effective and property default-path scopes, read on the first logout
      */
-    FormLogoutHandler(HillaFormAuthenticationMechanism.Config config, Supplier<Optional<CookieScope>> mechanismCookie) {
+    FormLogoutHandler(HillaFormAuthenticationMechanism.Config config, Supplier<Set<CookieScope>> additionalCookies) {
         this.config = config;
-        this.mechanismCookie = mechanismCookie;
+        this.additionalCookies = additionalCookies;
     }
 
     @Override
@@ -106,7 +105,7 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
         if (scopes == null) {
             scopes = new LinkedHashSet<>();
             scopes.add(CookieScope.of(config));
-            mechanismCookie.get().ifPresent(scopes::add);
+            scopes.addAll(additionalCookies.get());
             cookieScopes = scopes;
         }
         return scopes;
@@ -158,6 +157,10 @@ final class FormLogoutHandler implements Handler<RoutingContext> {
                     config.cookieDomain(),
                     config.httpOnlyCookie(),
                     config.cookieSameSite());
+        }
+
+        CookieScope withPath(String path) {
+            return new CookieScope(name, path, domain, httpOnly, sameSite);
         }
 
         Cookie applyExpired(Cookie cookie, boolean secureRequest) {

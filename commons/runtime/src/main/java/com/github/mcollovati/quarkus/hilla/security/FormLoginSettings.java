@@ -95,26 +95,63 @@ record FormLoginSettings(
      * TODO: use the public API once https://github.com/quarkusio/quarkus/issues/58043 is resolved.
      *
      * @param mechanism the form mechanism Quarkus uses
-     * @return the cookie scope, or empty if it cannot be read
+     * @param rootPath the normalized HTTP root path, including its trailing slash
+     * @return the cookie scopes, or empty if they cannot be read
      */
-    static Optional<FormLogoutHandler.CookieScope> cookieScope(FormAuthenticationMechanism mechanism) {
+    static Set<FormLogoutHandler.CookieScope> cookieScopes(FormAuthenticationMechanism mechanism, String rootPath) {
         try {
             Object loginManager = field(FormAuthenticationMechanism.class, mechanism, "loginManager");
             String path = (String) field(PersistentLoginManager.class, loginManager, "cookiePath");
-            return Optional.of(new FormLogoutHandler.CookieScope(
+            var scope = new FormLogoutHandler.CookieScope(
                     (String) field(PersistentLoginManager.class, loginManager, "cookieName"),
-                    path == null || path.isEmpty() ? "/" : path,
+                    path,
                     (String) field(PersistentLoginManager.class, loginManager, "cookieDomain"),
                     (Boolean) field(PersistentLoginManager.class, loginManager, "httpOnlyCookie"),
-                    (CookieSameSite) field(PersistentLoginManager.class, loginManager, "cookieSameSite")));
+                    (CookieSameSite) field(PersistentLoginManager.class, loginManager, "cookieSameSite"));
+            return path == null || path.isEmpty()
+                    ? cookieScopes(scope, postLocation(mechanism).orElseThrow(), rootPath)
+                    : Set.of(scope);
         } catch (ReflectiveOperationException | RuntimeException unreadable) {
             LoggerFactory.getLogger(FormLoginSettings.class)
                     .warn(
                             "Cannot read the cookie settings of the form authentication mechanism. Logout expires "
                                     + "only the cookie of the quarkus.http.auth.form.* properties.",
                             unreadable);
-            return Optional.empty();
+            return Set.of();
         }
+    }
+
+    static Set<FormLogoutHandler.CookieScope> cookieScopes(FormAuthConfig properties, String rootPath) {
+        return cookieScopes(
+                new FormLogoutHandler.CookieScope(
+                        properties.cookieName(),
+                        properties.cookiePath().orElse(null),
+                        properties.cookieDomain().orElse(null),
+                        properties.httpOnlyCookie(),
+                        CookieSameSite.valueOf(properties.cookieSameSite().name())),
+                properties.postLocation(),
+                rootPath);
+    }
+
+    static Set<FormLogoutHandler.CookieScope> cookieScopes(
+            FormLogoutHandler.CookieScope scope, String postLocation, String rootPath) {
+        if (scope.path() != null && !scope.path().isEmpty()) {
+            return Set.of(scope);
+        }
+        // With no Path attribute the browser uses the directory of the POST request URI, including
+        // the root under which Quarkus mounts the application router. Keep a root expiry as well.
+        String postPath = rootPath + (postLocation.startsWith("/") ? postLocation.substring(1) : postLocation);
+        Set<FormLogoutHandler.CookieScope> scopes = new LinkedHashSet<>();
+        scopes.add(scope.withPath(defaultCookiePath(postPath)));
+        scopes.add(scope.withPath("/"));
+        return scopes;
+    }
+
+    // RFC 6265 section 5.1.4: use the raw URI path, excluding its right-most slash and everything after it.
+    static String defaultCookiePath(String requestPath) {
+        String path = withoutQuery(requestPath);
+        int lastSlash = path.lastIndexOf('/');
+        return !path.startsWith("/") || lastSlash <= 0 ? "/" : path.substring(0, lastSlash);
     }
 
     /**

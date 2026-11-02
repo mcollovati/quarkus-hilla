@@ -24,7 +24,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -68,8 +67,7 @@ class HillaFormLogoutTest {
             LogoutExchange exchange = logoutExchange(incoming);
             var handler = new FormLogoutHandler(
                     new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", null, false),
-                    () -> Optional.of(
-                            new FormLogoutHandler.CookieScope("auth", "/app", null, true, CookieSameSite.STRICT)));
+                    () -> Set.of(new FormLogoutHandler.CookieScope("auth", "/app", null, true, CookieSameSite.STRICT)));
 
             handler.handle(exchange.context());
 
@@ -84,11 +82,35 @@ class HillaFormLogoutTest {
     }
 
     @Test
+    void logout_implicitCookiePath_expiresPostDirectoryAndRootIndependently() throws Exception {
+        for (String incoming : List.of("", "auth=encrypted-credential")) {
+            for (String path : new String[] {null, ""}) {
+                LogoutExchange exchange = logoutExchange(incoming);
+                var handler = new FormLogoutHandler(
+                        new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", null, false),
+                        () -> FormLoginSettings.cookieScopes(
+                                new FormLogoutHandler.CookieScope("auth", path, null, true, CookieSameSite.STRICT),
+                                "/app/j_security_check",
+                                "/mount/"));
+
+                handler.handle(exchange.context());
+
+                List<HttpCookie> expired = exchange.finish();
+                assertEquals(2, expired.size());
+                assertEquals(
+                        Set.of("/", "/mount/app"),
+                        expired.stream().map(HttpCookie::getPath).collect(Collectors.toSet()));
+                assertTrue(expired.stream().allMatch(cookie -> cookie.getValue().isEmpty() && cookie.getMaxAge() == 0));
+            }
+        }
+    }
+
+    @Test
     void logout_sharedCookieName_expiresEveryDomain() throws Exception {
         LogoutExchange exchange = logoutExchange("auth=encrypted-credential");
         var handler = new FormLogoutHandler(
                 new HillaFormAuthenticationMechanism.Config("auth", "/", "/logout", null, false),
-                () -> Optional.of(
+                () -> Set.of(
                         new FormLogoutHandler.CookieScope("auth", "/", "example.com", true, CookieSameSite.STRICT)));
 
         handler.handle(exchange.context());
@@ -112,7 +134,7 @@ class HillaFormLogoutTest {
         var handler = new FormLogoutHandler(
                 new HillaFormAuthenticationMechanism.Config(
                         "__Secure-auth", "/", "/logout", null, false, "/", null, true, CookieSameSite.STRICT),
-                () -> Optional.of(
+                () -> Set.of(
                         new FormLogoutHandler.CookieScope("__Secure-auth", "/app", null, true, CookieSameSite.STRICT)));
 
         handler.handle(exchange.context());

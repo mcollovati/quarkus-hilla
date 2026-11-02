@@ -30,6 +30,7 @@ import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
 import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
 import io.quarkus.vertx.http.deployment.FilterBuildItem;
+import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
 import io.quarkus.vertx.http.deployment.PreRouterFinalizationBuildItem;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
@@ -102,10 +103,11 @@ class QuarkusHillaSecurityProcessor {
     void registerFormLogoutHandler(
             AuthFormBuildItem authFormBuildItem,
             HillaSecurityRecorder recorder,
+            HttpRootPathBuildItem rootPath,
             BuildProducer<FilterBuildItem> filters) {
         if (authFormBuildItem.isEnabled()) {
-            filters.produce(
-                    new FilterBuildItem(recorder.formLogoutHandler(), SecurityHandlerPriorities.AUTHENTICATION + 1));
+            filters.produce(new FilterBuildItem(
+                    recorder.formLogoutHandler(rootPath.getRootPath()), SecurityHandlerPriorities.AUTHENTICATION + 1));
         }
     }
 

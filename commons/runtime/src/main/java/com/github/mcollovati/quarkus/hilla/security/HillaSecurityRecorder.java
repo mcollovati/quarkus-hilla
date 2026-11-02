@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Singleton;
+import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
@@ -52,12 +53,15 @@ public class HillaSecurityRecorder {
     /**
      * Creates the filter that handles requests to {@code vaadin.security.logout-path}.
      *
+     * @param rootPath the normalized HTTP root path, including its trailing slash
      * @return the logout filter
      */
-    public Handler<RoutingContext> formLogoutHandler() {
-        return new FormLogoutHandler(
-                logoutConfig(formConfig().landingPage().orElse("/")),
-                () -> FormLoginSettings.cookieScope(formAuthenticationMechanism()));
+    public Handler<RoutingContext> formLogoutHandler(String rootPath) {
+        return new FormLogoutHandler(logoutConfig(formConfig().landingPage().orElse("/")), () -> {
+            var scopes = new LinkedHashSet<>(FormLoginSettings.cookieScopes(formConfig(), rootPath));
+            scopes.addAll(FormLoginSettings.cookieScopes(formAuthenticationMechanism(), rootPath));
+            return scopes;
+        });
     }
 
     public void configureHttpSecurityPolicy(BeanContainer container) {
