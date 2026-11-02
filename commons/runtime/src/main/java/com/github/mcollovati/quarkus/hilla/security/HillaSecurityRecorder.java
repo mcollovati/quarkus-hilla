@@ -17,6 +17,7 @@ package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.context.Dependent;
 import jakarta.inject.Singleton;
+import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
 import com.vaadin.flow.internal.UsageStatistics;
@@ -26,11 +27,13 @@ import io.quarkus.arc.ClientProxy;
 import io.quarkus.arc.InjectableBean;
 import io.quarkus.arc.runtime.BeanContainer;
 import io.quarkus.runtime.annotations.Recorder;
+import io.quarkus.vertx.http.runtime.FormAuthConfig;
 import io.quarkus.vertx.http.runtime.VertxHttpConfig;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.smallrye.config.SmallRyeConfig;
+import io.vertx.core.Handler;
 import io.vertx.core.http.CookieSameSite;
-import org.eclipse.microprofile.config.Config;
+import io.vertx.ext.web.RoutingContext;
 import org.eclipse.microprofile.config.ConfigProvider;
 import org.slf4j.LoggerFactory;
 
@@ -39,38 +42,66 @@ import com.github.mcollovati.quarkus.hilla.QuarkusHillaExtension;
 @Recorder
 public class HillaSecurityRecorder {
 
-    private static final String FORM_LOGIN_PAGE = "quarkus.http.auth.form.login-page";
-
     public Supplier<HillaFormAuthenticationMechanism> setupFormAuthenticationMechanism() {
         return () -> {
-            Config config = ConfigProvider.getConfig();
-            VaadinSecurityConfig securityConfig =
-                    config.unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
-            var formConfig = config.unwrap(SmallRyeConfig.class)
-                    .getConfigMapping(VertxHttpConfig.class)
-                    .auth()
-                    .form();
-            var authConfig = new HillaFormAuthenticationMechanism.Config(
-                    formConfig.cookieName(),
-                    formConfig.landingPage().orElse("/"),
-                    securityConfig.logoutPath(),
-                    securityConfig.postLogoutRedirectUri().orElse(null),
-                    securityConfig.logoutInvalidateSession(),
-                    formConfig.cookiePath().orElse("/"),
-                    formConfig.cookieDomain().orElse(null),
-                    formConfig.httpOnlyCookie(),
-                    CookieSameSite.valueOf(formConfig.cookieSameSite().name()));
-            FormAuthenticationMechanism delegate =
-                    Arc.container().instance(FormAuthenticationMechanism.class).get();
-            return new HillaFormAuthenticationMechanism(delegate, authConfig);
+            FormAuthenticationMechanism delegate = formAuthenticationMechanism();
+            FormLoginSettings settings = formLoginSettings(delegate);
+            return new HillaFormAuthenticationMechanism(delegate, logoutConfig(settings.landingPage()));
         };
     }
 
+    /**
+     * Creates the filter that handles requests to {@code vaadin.security.logout-path}.
+     *
+     * @param rootPath the normalized HTTP root path, including its trailing slash
+     * @return the logout filter
+     */
+    public Handler<RoutingContext> formLogoutHandler(String rootPath) {
+        return new FormLogoutHandler(logoutConfig(formConfig().landingPage().orElse("/")), () -> {
+            var scopes = new LinkedHashSet<>(FormLoginSettings.cookieScopes(formConfig(), rootPath));
+            scopes.addAll(FormLoginSettings.cookieScopes(formAuthenticationMechanism(), rootPath));
+            return scopes;
+        });
+    }
+
     public void configureHttpSecurityPolicy(BeanContainer container) {
-        Config config = ConfigProvider.getConfig();
         HillaSecurityPolicy policy = container.beanInstance(HillaSecurityPolicy.class);
-        policy.withFormLogin(config);
+        policy.withFormLogin(formLoginSettings(formAuthenticationMechanism()).publicPaths());
         markSecurityPolicyUsed();
+    }
+
+    // The CDI bean is the mechanism Quarkus uses, also when it is set up with HttpSecurity.
+    private static FormAuthenticationMechanism formAuthenticationMechanism() {
+        return ClientProxy.unwrap(
+                Arc.container().instance(FormAuthenticationMechanism.class).get());
+    }
+
+    private static FormLoginSettings formLoginSettings(FormAuthenticationMechanism mechanism) {
+        return FormLoginSettings.of(mechanism, formConfig());
+    }
+
+    private static FormAuthConfig formConfig() {
+        return ConfigProvider.getConfig()
+                .unwrap(SmallRyeConfig.class)
+                .getConfigMapping(VertxHttpConfig.class)
+                .auth()
+                .form();
+    }
+
+    private static HillaFormAuthenticationMechanism.Config logoutConfig(String landingPage) {
+        VaadinSecurityConfig securityConfig =
+                ConfigProvider.getConfig().unwrap(SmallRyeConfig.class).getConfigMapping(VaadinSecurityConfig.class);
+        FormAuthConfig formConfig = formConfig();
+        return new HillaFormAuthenticationMechanism.Config(
+                formConfig.cookieName(),
+                landingPage,
+                securityConfig.logoutPath(),
+                securityConfig.postLogoutRedirectUri().orElse(null),
+                securityConfig.logoutInvalidateSession(),
+                formConfig.cookiePath().orElse("/"),
+                formConfig.cookieDomain().orElse(null),
+                formConfig.httpOnlyCookie(),
+                CookieSameSite.valueOf(formConfig.cookieSameSite().name()));
     }
 
     /**
@@ -114,7 +145,7 @@ public class HillaSecurityRecorder {
                             + ".enabled=false has no effect.");
                 }
                 LoggerFactory.getLogger(HillaSecurityRecorder.class)
-                        .warn("{} Otherwise {} is not applied as its login view.", message, FORM_LOGIN_PAGE);
+                        .warn("{} Otherwise the form login page is not applied as its login view.", message);
                 return;
             }
         }
@@ -122,18 +153,18 @@ public class HillaSecurityRecorder {
         // Unwrapped, so that a normal-scoped bean can be inspected.
         NavigationAccessControl accessControl =
                 ClientProxy.unwrap(container.beanInstance(NavigationAccessControl.class));
-        // Read at startup, as Quarkus does for its own form login redirect.
-        var loginPage = ConfigProvider.getConfig().getOptionalValue(FORM_LOGIN_PAGE, String.class);
+        // The login page Quarkus redirects to, set up with properties or HttpSecurity.
+        FormLoginSettings settings = formLoginSettings(formAuthenticationMechanism());
         if (extensionAccessControl) {
-            container
-                    .beanInstance(NavigationAccessControlConfigurer.class)
-                    .configureLoginView(accessControl, loginPage.orElse(null));
+            container.beanInstance(NavigationAccessControlConfigurer.class).configureLoginView(accessControl, settings);
         }
         // Names what set the login view in log and error messages.
         String owner = extensionAccessControl
                 ? NavigationAccessControlConfigurer.class.getSimpleName()
                 : accessControl.getClass().getName();
-        loginPage.ifPresent(page -> applyLoginView(accessControl, owner, page));
+        if (settings.loginPage() != null) {
+            applyLoginView(accessControl, owner, settings);
+        }
         if (!enabled) {
             // Never turns the access control on, an application disabling its
             // own bean keeps that state.
@@ -152,19 +183,21 @@ public class HillaSecurityRecorder {
         return Arc.container().select(type).getHandle().getBean();
     }
 
-    private static void applyLoginView(NavigationAccessControl accessControl, String owner, String loginPage) {
+    private static void applyLoginView(
+            NavigationAccessControl accessControl, String owner, FormLoginSettings settings) {
+        String loginPage = settings.loginPage();
         if (accessControl instanceof QuarkusNavigationAccessControl ours) {
             Class<?> loginViewClass = ours.currentLoginViewClass();
             String loginUrl = ours.currentLoginUrl();
             if (loginViewClass != null) {
                 // The route of a login view class cannot be compared reliably
                 // at startup, so it is kept rather than reported as a conflict.
-                logKeptLoginView(owner, loginViewClass.getName(), loginPage);
+                logKeptLoginView(owner, loginViewClass.getName(), settings);
             } else if (loginUrl != null && !loginUrl.equals(loginPage)) {
                 throw new IllegalStateException(owner + " sets the login view "
-                        + loginUrl + ", which conflicts with " + FORM_LOGIN_PAGE + "=" + loginPage
-                        + ". The login view is taken from that property: remove the setLoginView call from the "
-                        + "bean, or set the property to the same view.");
+                        + loginUrl + ", which conflicts with " + settings.describeLoginPage()
+                        + ". The login view is taken from the form login page: remove the setLoginView call from "
+                        + "the bean, or set the form login page to the same view.");
             } else {
                 // A no-op if the same login view is already set.
                 accessControl.setLoginView(loginPage);
@@ -176,18 +209,27 @@ public class HillaSecurityRecorder {
         } catch (IllegalStateException alreadySet) {
             // A bean not extending QuarkusNavigationAccessControl cannot be
             // inspected, so its own login view is kept.
-            logKeptLoginView(owner, alreadySet.getMessage(), loginPage);
+            logKeptLoginView(owner, alreadySet.getMessage(), settings);
         }
     }
 
-    private static void logKeptLoginView(String owner, String kept, String loginPage) {
-        LoggerFactory.getLogger(HillaSecurityRecorder.class)
-                .info(
-                        "Keeping the login view of {} ({}). {}={} is not applied to navigation within the application.",
-                        owner,
-                        kept,
-                        FORM_LOGIN_PAGE,
-                        loginPage);
+    private static void logKeptLoginView(String owner, String kept, FormLoginSettings settings) {
+        var logger = LoggerFactory.getLogger(HillaSecurityRecorder.class);
+        if (settings.loginPageFromProperties()) {
+            logger.info(
+                    "Keeping the login view of {} ({}). {}={} is not applied to navigation within the application.",
+                    owner,
+                    kept,
+                    FormLoginSettings.LOGIN_PAGE_PROPERTY,
+                    settings.loginPage());
+        } else {
+            logger.info(
+                    "Keeping the login view of {} ({}). The login page {} of the form mechanism set up with "
+                            + "HttpSecurity is not applied to navigation within the application.",
+                    owner,
+                    kept,
+                    settings.loginPage());
+        }
     }
 
     /**

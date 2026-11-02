@@ -28,7 +28,14 @@ import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.annotations.Consume;
 import io.quarkus.deployment.annotations.ExecutionTime;
 import io.quarkus.deployment.annotations.Record;
+import io.quarkus.deployment.builditem.nativeimage.ReflectiveClassBuildItem;
+import io.quarkus.vertx.http.deployment.FilterBuildItem;
+import io.quarkus.vertx.http.deployment.HttpRootPathBuildItem;
+import io.quarkus.vertx.http.deployment.PreRouterFinalizationBuildItem;
+import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
+import io.quarkus.vertx.http.runtime.security.PersistentLoginManager;
+import io.quarkus.vertx.http.runtime.security.SecurityHandlerPriorities;
 import org.eclipse.microprofile.config.ConfigProvider;
 
 import com.github.mcollovati.quarkus.hilla.security.EndpointUtil;
@@ -78,9 +85,38 @@ class QuarkusHillaSecurityProcessor {
         }
     }
 
+    // The pages and cookie settings of the form mechanism are read from fields, see FormLoginSettings.
+    @BuildStep
+    void registerFormMechanismForReflection(
+            AuthFormBuildItem authFormBuildItem, BuildProducer<ReflectiveClassBuildItem> reflectiveClasses) {
+        if (authFormBuildItem.isEnabled()) {
+            reflectiveClasses.produce(
+                    ReflectiveClassBuildItem.builder(FormAuthenticationMechanism.class, PersistentLoginManager.class)
+                            .fields()
+                            .build());
+        }
+    }
+
+    // Runs before authentication, see FormLogoutHandler.
+    @BuildStep
+    @Record(ExecutionTime.RUNTIME_INIT)
+    void registerFormLogoutHandler(
+            AuthFormBuildItem authFormBuildItem,
+            HillaSecurityRecorder recorder,
+            HttpRootPathBuildItem rootPath,
+            BuildProducer<FilterBuildItem> filters) {
+        if (authFormBuildItem.isEnabled()) {
+            filters.produce(new FilterBuildItem(
+                    recorder.formLogoutHandler(rootPath.getRootPath()), SecurityHandlerPriorities.AUTHENTICATION + 1));
+        }
+    }
+
+    // The form mechanism bean is read after Quarkus has set up HTTP security, which fires the
+    // HttpSecurity event that may configure it.
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(PreRouterFinalizationBuildItem.class)
     void configureHillaSecurityComponents(
             AuthFormBuildItem authFormBuildItem, HillaSecurityRecorder recorder, BeanContainerBuildItem beanContainer) {
         if (authFormBuildItem.isEnabled()) {
@@ -91,6 +127,7 @@ class QuarkusHillaSecurityProcessor {
     @BuildStep
     @Record(ExecutionTime.RUNTIME_INIT)
     @Consume(SyntheticBeansRuntimeInitBuildItem.class)
+    @Consume(PreRouterFinalizationBuildItem.class)
     void configureNavigationAccessControl(
             AuthFormBuildItem authFormBuildItem,
             VaadinSecurityConfig securityConfig,
