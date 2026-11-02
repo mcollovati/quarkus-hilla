@@ -38,6 +38,12 @@ Option 1.
 
 * The extension builds the `NavigationAccessControl` from the configurer and
   exposes it only as `NavigationAccessControl`.
+* Without an application configurer, the extension's default configurer uses
+  all `NavigationAccessChecker` beans, as the extension's bean did up to 25.2.
+  Spring's default configurer uses only `AnnotatedViewAccessChecker`. The
+  extension keeps the CDI behavior that a declared checker bean takes effect:
+  following Spring would drop application checkers without notice and allow
+  the views they deny.
 * An application `NavigationAccessControl` bean still replaces the extension's.
   The extension logs a warning that replacing the bean is deprecated, asking
   to describe uncovered use cases in an issue. It applies the login page and
@@ -65,6 +71,8 @@ alternative.
   their login view handling, until its removal in 26.0.
 * Bad, because injecting `QuarkusNavigationAccessControl` no longer works
   (breaking change in 25.3.0).
+* Bad, because the default checker selection differs from Vaadin's Spring
+  integration; the configuration reference documents the difference.
 
 ## More Information
 
