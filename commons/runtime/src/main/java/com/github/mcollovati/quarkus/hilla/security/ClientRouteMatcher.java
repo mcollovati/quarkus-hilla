@@ -40,7 +40,10 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Matches Hilla client routes using React Router's path matching and score ranking rules.
- * All equally ranked matching views are returned so callers can combine their access requirements strictly.
+ * All potentially highest-ranked matching views are returned so callers can combine their access requirements strictly.
+ * File route metadata has no explicit index flag: Hilla determines it from the original file path before applying
+ * {@code config.route}, so an empty-path leaf may be an index route or an ordinary route with an overridden path.
+ * Both scores are considered; an inferred index bonus must never exclude another possible winning view.
  * Layout and ancestor requirements are not applied.
  */
 final class ClientRouteMatcher {
@@ -79,7 +82,7 @@ final class ClientRouteMatcher {
             Route route = new Route(PathUtil.ensureSlashBegin(path), false, view, null);
             flattenRoutes(List.of(route), collected, List.of(), "", false, new HashMap<>());
         });
-        collected.sort(Comparator.comparingInt(Branch::score).reversed());
+        collected.sort(Comparator.comparingInt(Branch::maximumScore).reversed());
         branches = List.copyOf(collected);
     }
 
@@ -87,7 +90,7 @@ final class ClientRouteMatcher {
         this.basename = basename;
         List<Branch> collected = new ArrayList<>();
         flattenRoutes(routes, collected, List.of(), "", false, new HashMap<>());
-        collected.sort(Comparator.comparingInt(Branch::score).reversed());
+        collected.sort(Comparator.comparingInt(Branch::maximumScore).reversed());
         branches = List.copyOf(collected);
     }
 
@@ -103,12 +106,15 @@ final class ClientRouteMatcher {
     }
 
     /**
-     * Finds all matching views with the highest score before any principal-specific filtering.
+     * Finds all matching views that can have the highest score before any principal-specific filtering.
      * Equally ranked candidates must be combined strictly (fail closed), because the client may reorder them
      * during optional-segment expansion or route transformations. Their order must never weaken access requirements.
+     * Empty-path leaves are evaluated as both index and non-index routes. A branch remains a candidate when its
+     * maximum score ties or exceeds every matching branch's minimum score, so neither index interpretation can
+     * exclude a possible winner.
      *
      * @param requestPath the request path, including the basename
-     * @return all highest-scoring matching views, or an empty optional if no route matches
+     * @return all potentially highest-scoring matching views, or an empty optional if no route matches
      */
     Optional<List<AvailableViewInfo>> match(String requestPath) {
         String pathname = stripBasename(requestPath == null || requestPath.isEmpty() ? "/" : requestPath, basename);
@@ -116,14 +122,20 @@ final class ClientRouteMatcher {
             return Optional.empty();
         }
         String decoded = decodePath(pathname);
-        Set<AvailableViewInfo> views = new LinkedHashSet<>();
+        List<Branch> matches = new ArrayList<>();
         int best = Integer.MIN_VALUE;
         for (Branch branch : branches) {
-            if (branch.score() < best) {
+            if (branch.maximumScore() < best) {
                 break;
             }
             if (branch.matches(decoded)) {
-                best = branch.score();
+                best = Math.max(best, branch.minimumScore());
+                matches.add(branch);
+            }
+        }
+        Set<AvailableViewInfo> views = new LinkedHashSet<>();
+        for (Branch branch : matches) {
+            if (branch.maximumScore() >= best) {
                 views.add(branch.view());
             }
         }
@@ -203,7 +215,8 @@ final class ClientRouteMatcher {
                 String levelPath = levels.get(i).relativePath();
                 matchers.add(compiled.computeIfAbsent(end + levelPath, ignored -> compilePath(levelPath, end)));
             }
-            branches.add(new Branch(computeScore(path, route.index()), route.view(), List.copyOf(matchers)));
+            branches.add(new Branch(
+                    computeScore(path, false), computeScore(path, route.index()), route.view(), List.copyOf(matchers)));
         } catch (PatternSyntaxException exception) {
             // React Router fails to create the router as well.
             LOGGER.warn("Route path \"{}\" is not a valid pattern; it is ignored", path, exception);
@@ -465,7 +478,7 @@ final class ClientRouteMatcher {
 
     private record Level(String relativePath) {}
 
-    private record Branch(int score, AvailableViewInfo view, List<CompiledPath> matchers) {
+    private record Branch(int minimumScore, int maximumScore, AvailableViewInfo view, List<CompiledPath> matchers) {
 
         // Ports React Router's matchRouteBranch.
         boolean matches(String pathname) {

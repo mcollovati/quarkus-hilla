@@ -69,7 +69,9 @@ class HillaRouteSecurityTest {
                             new StringAsset("<!DOCTYPE html><html><head></head><body>Hilla app shell</body></html>"),
                             "META-INF/VAADIN/webapp/index.html")
                     .addAsResource(new StringAsset("""
-                            [{"route":"protected", "loginRequired":true},
+                            [{"route":":id?", "loginRequired":true},
+                             {"route":""},
+                             {"route":"protected", "loginRequired":true},
                              {"route":"public"},
                              {"route":"public/*"},
                              {"route":"admin", "rolesAllowed":["ADMIN"]},
@@ -80,8 +82,8 @@ class HillaRouteSecurityTest {
                              {"route":"protected-wildcard/*", "loginRequired":true},
                              {"route":":lang?", "children":[
                                {"route":":id/foo", "loginRequired":true}, {"route":"foo"}]},
-                             {"route":":id"},
-                             {"route":":name", "loginRequired":true, "skipLayouts":true}]
+                             {"route":"skip-layouts/:id"},
+                             {"route":"skip-layouts/:name", "loginRequired":true, "skipLayouts":true}]
                             """), "META-INF/VAADIN/file-routes.json"));
 
     @BeforeAll
@@ -95,6 +97,17 @@ class HillaRouteSecurityTest {
                 .follow(false)
                 .accept("text/html")
                 .get("/protected")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_emptyPathLeafAndSecuredOptionalSibling_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/")
                 .then()
                 .statusCode(302)
                 .header("Location", endsWith("/login"));
@@ -149,7 +162,7 @@ class HillaRouteSecurityTest {
         given().redirects()
                 .follow(false)
                 .accept("text/html")
-                .get("/42")
+                .get("/skip-layouts/42")
                 .then()
                 .statusCode(302)
                 .header("Location", endsWith("/login"));
@@ -160,7 +173,7 @@ class HillaRouteSecurityTest {
         given().redirects()
                 .follow(false)
                 .accept("text/html")
-                .head("/42")
+                .head("/skip-layouts/42")
                 .then()
                 .statusCode(302)
                 .header("Location", endsWith("/login"));

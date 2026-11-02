@@ -192,6 +192,30 @@ class RouteUtilTest {
     }
 
     @Test
+    void routeLookup_emptyPathLeafCannotExcludeSecuredOptionalSibling() throws Exception {
+        // admin.tsx and home.tsx override their routes; neither is a file-based index route.
+        Files.writeString(frontend.resolve("generated/file-routes.json"), """
+                [{"route":":id?", "loginRequired":true}, {"route":""}]
+                """);
+
+        for (RoutingContext context : new RoutingContext[] {context("/"), context("/missing/..", "/")}) {
+            assertTrue(routeUtil.isSecuredRoute(context));
+            assertFalse(routeUtil.isRouteAllowed(context, identity(true)));
+            assertTrue(routeUtil.isRouteAllowed(context, identity(false)));
+        }
+    }
+
+    @Test
+    void routeLookup_plainPublicIndexAloneStaysPublic() throws Exception {
+        Files.writeString(frontend.resolve("generated/file-routes.json"), """
+                [{"route":""}]
+                """);
+
+        assertFalse(routeUtil.isSecuredRoute(context("/")));
+        assertTrue(routeUtil.isRouteAllowed(context("/"), identity(true)));
+    }
+
+    @Test
     void routeLookup_roleTiesRequireAccessToEveryCandidate() throws Exception {
         Files.writeString(frontend.resolve("generated/file-routes.json"), """
                 [{"route":":id", "rolesAllowed":["ADMIN"]},

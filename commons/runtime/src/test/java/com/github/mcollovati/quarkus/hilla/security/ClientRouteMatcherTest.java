@@ -266,6 +266,29 @@ class ClientRouteMatcherTest {
     }
 
     @Test
+    void match_emptyPathLeafCannotExcludeSecuredOptionalSibling() {
+        // admin.tsx overrides its route to ":id?"; home.tsx overrides its route to "".
+        AvailableViewInfo admin = route(":id?", "admin", true);
+        AvailableViewInfo home = route("", "home");
+        for (List<AvailableViewInfo> order : List.of(List.of(admin, home), List.of(home, admin))) {
+            ClientRouteMatcher matcher = ClientRouteMatcher.forFileRoutes(order, "/");
+
+            var candidates = matcher.match("/").orElseThrow();
+            assertEquals(Set.of(admin, home), Set.copyOf(candidates));
+            assertTrue(candidates.stream().anyMatch(AvailableViewInfo::loginRequired));
+            assertMatch(matcher, "/42", "admin");
+        }
+    }
+
+    @Test
+    void match_plainPublicIndexAloneStaysPublic() {
+        AvailableViewInfo index = route("", "index");
+
+        assertEquals(List.of(index), matcher(index).match("/").orElseThrow());
+        assertTrue(matcher(index).match("/").orElseThrow().stream().noneMatch(AvailableViewInfo::loginRequired));
+    }
+
+    @Test
     void match_noRoutes() {
         ClientRouteMatcher matcher = new ClientRouteMatcher(Map.of(), "/");
 
