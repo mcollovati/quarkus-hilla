@@ -50,6 +50,8 @@ record FormLoginSettings(
      * has no public API for the pages, so they are read from the fields of
      * {@link FormAuthenticationMechanism}. If that fails, the properties are used and a warning is
      * logged.
+     * <p>
+     * TODO: use the public API once https://github.com/quarkusio/quarkus/issues/58043 is resolved.
      *
      * @param mechanism the form mechanism Quarkus uses
      * @param properties the {@code quarkus.http.auth.form} configuration
@@ -89,6 +91,8 @@ record FormLoginSettings(
      * Quarkus has no public API for these settings, so they are read from the fields of the
      * mechanism and its login manager. If that fails, a warning is logged and logout expires only the
      * cookie of the {@code quarkus.http.auth.form.*} properties.
+     * <p>
+     * TODO: use the public API once https://github.com/quarkusio/quarkus/issues/58043 is resolved.
      *
      * @param mechanism the form mechanism Quarkus uses
      * @return the cookie scope, or empty if it cannot be read

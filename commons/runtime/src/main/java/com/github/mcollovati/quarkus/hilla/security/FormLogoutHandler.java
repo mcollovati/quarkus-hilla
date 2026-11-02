@@ -38,6 +38,9 @@ import io.vertx.ext.web.RoutingContext;
  * <p>
  * The authentication cookie of the request is expired before authentication, so the form mechanisms
  * find no credential: the logout request is anonymous, and the cookie is neither restored nor renewed.
+ * <p>
+ * The cookie is expired here with its domain, because {@code FormAuthenticationMechanism.logout} does
+ * not set it (https://github.com/quarkusio/quarkus/issues/58042).
  */
 final class FormLogoutHandler implements Handler<RoutingContext> {
 
