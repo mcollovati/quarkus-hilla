@@ -117,7 +117,7 @@ class RouteUtilTest {
     }
 
     @Test
-    void routeLookup_equalScoresUseDocumentOrder() throws Exception {
+    void routeLookup_securedFirstTieFailsClosed() throws Exception {
         Files.writeString(frontend.resolve("generated/file-routes.json"), """
                 [{"route":"users/:id", "loginRequired":true},
                  {"route":"users/:name"}]
@@ -128,14 +128,15 @@ class RouteUtilTest {
     }
 
     @Test
-    void routeLookup_publicFirstTieDoesNotInheritSecuredSiblingRequirements() throws Exception {
+    void routeLookup_publicFirstTieFailsClosed() throws Exception {
         Files.writeString(frontend.resolve("generated/file-routes.json"), """
                 [{"route":"users/:name"},
                  {"route":"users/:id", "loginRequired":true}]
                 """);
 
-        assertFalse(routeUtil.isSecuredRoute(context("/users/42")));
-        assertTrue(routeUtil.isRouteAllowed(context("/users/42"), identity(true)));
+        assertTrue(routeUtil.isSecuredRoute(context("/users/42")));
+        assertFalse(routeUtil.isRouteAllowed(context("/users/42"), identity(true)));
+        assertTrue(routeUtil.isRouteAllowed(context("/users/42"), identity(false)));
     }
 
     @Test
@@ -147,8 +148,61 @@ class RouteUtilTest {
 
         assertFalse(routeUtil.isSecuredRoute(context("/users")));
         assertTrue(routeUtil.isRouteAllowed(context("/users"), identity(true)));
-        assertFalse(routeUtil.isSecuredRoute(context("/users/42")));
-        assertTrue(routeUtil.isRouteAllowed(context("/users/42"), identity(true)));
+        assertTrue(routeUtil.isSecuredRoute(context("/users/42")));
+        assertFalse(routeUtil.isRouteAllowed(context("/users/42"), identity(true)));
+        assertTrue(routeUtil.isRouteAllowed(context("/users/42"), identity(false)));
+    }
+
+    @Test
+    void routeLookup_optionalParentExpansionTiesFailClosed() throws Exception {
+        Files.writeString(frontend.resolve("generated/file-routes.json"), """
+                [{"route":":lang?", "children":[
+                  {"route":":id/foo", "loginRequired":true}, {"route":"foo"}]}]
+                """);
+
+        for (RoutingContext context :
+                new RoutingContext[] {context("/en/foo"), context("/missing/../en/foo", "/en/foo")}) {
+            assertTrue(routeUtil.isSecuredRoute(context));
+            assertFalse(routeUtil.isRouteAllowed(context, identity(true)));
+            assertTrue(routeUtil.isRouteAllowed(context, identity(false)));
+        }
+    }
+
+    @Test
+    void routeLookup_skipLayoutsTiesFailClosed() throws Exception {
+        Files.writeString(frontend.resolve("generated/file-routes.json"), """
+                [{"route":":id"}, {"route":":name", "loginRequired":true, "skipLayouts":true}]
+                """);
+
+        for (RoutingContext context : new RoutingContext[] {context("/42"), context("/missing/../42", "/42")}) {
+            assertTrue(routeUtil.isSecuredRoute(context));
+            assertFalse(routeUtil.isRouteAllowed(context, identity(true)));
+            assertTrue(routeUtil.isRouteAllowed(context, identity(false)));
+        }
+    }
+
+    @Test
+    void routeLookup_publicTiesStayPublic() throws Exception {
+        Files.writeString(frontend.resolve("generated/file-routes.json"), """
+                [{"route":":id"}, {"route":":name"}]
+                """);
+
+        assertFalse(routeUtil.isSecuredRoute(context("/42")));
+        assertTrue(routeUtil.isRouteAllowed(context("/42"), identity(true)));
+    }
+
+    @Test
+    void routeLookup_roleTiesRequireAccessToEveryCandidate() throws Exception {
+        Files.writeString(frontend.resolve("generated/file-routes.json"), """
+                [{"route":":id", "rolesAllowed":["ADMIN"]},
+                 {"route":":name", "rolesAllowed":["MANAGER"], "skipLayouts":true}]
+                """);
+
+        assertTrue(routeUtil.isSecuredRoute(context("/42")));
+        assertFalse(routeUtil.isRouteAllowed(context("/42"), identity(true)));
+        assertFalse(routeUtil.isRouteAllowed(context("/42"), identity(false, "ADMIN")));
+        assertFalse(routeUtil.isRouteAllowed(context("/42"), identity(false, "MANAGER")));
+        assertTrue(routeUtil.isRouteAllowed(context("/42"), identity(false, "ADMIN", "MANAGER")));
     }
 
     @Test

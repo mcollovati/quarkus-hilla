@@ -39,8 +39,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Matches Hilla client routes using React Router's path matching and ranking rules.
- * Document order resolves equal scores. If order is unavailable, all best matching views are returned.
+ * Matches Hilla client routes using React Router's path matching and score ranking rules.
+ * All equally ranked matching views are returned so callers can combine their access requirements strictly.
  * Layout and ancestor requirements are not applied.
  */
 final class ClientRouteMatcher {
@@ -65,17 +65,15 @@ final class ClientRouteMatcher {
 
     private final List<Branch> branches;
     private final String basename;
-    private final boolean ordered;
 
     /**
-     * Creates a defensive matcher when only an unordered flattened route map is available.
+     * Creates a matcher from a flattened route map.
      *
      * @param registeredRoutes the flattened route paths and their views
      * @param basename the path of the router's document base URI
      */
     ClientRouteMatcher(Map<String, AvailableViewInfo> registeredRoutes, String basename) {
         this.basename = basename;
-        ordered = false;
         List<Branch> collected = new ArrayList<>();
         registeredRoutes.forEach((path, view) -> {
             Route route = new Route(PathUtil.ensureSlashBegin(path), false, view, null);
@@ -87,16 +85,14 @@ final class ClientRouteMatcher {
 
     private ClientRouteMatcher(List<Route> routes, String basename) {
         this.basename = basename;
-        ordered = true;
         List<Branch> collected = new ArrayList<>();
         flattenRoutes(routes, collected, List.of(), "", false, new HashMap<>());
-        // React Router traverses children before parents and preserves sibling order for equal scores.
         collected.sort(Comparator.comparingInt(Branch::score).reversed());
         branches = List.copyOf(collected);
     }
 
     /**
-     * Creates a matcher from file routes in document order, using the tree only for paths and ranking.
+     * Creates a matcher from file routes, using the tree only for paths and score ranking.
      *
      * @param fileRoutes the file route tree
      * @param basename the path of the router's document base URI
@@ -107,10 +103,12 @@ final class ClientRouteMatcher {
     }
 
     /**
-     * Finds the highest ranked view before any principal-specific filtering.
+     * Finds all matching views with the highest score before any principal-specific filtering.
+     * Equally ranked candidates must be combined strictly (fail closed), because the client may reorder them
+     * during optional-segment expansion or route transformations. Their order must never weaken access requirements.
      *
      * @param requestPath the request path, including the basename
-     * @return the matched view, all best matching views when order is unknown, or an empty optional if no route matches
+     * @return all highest-scoring matching views, or an empty optional if no route matches
      */
     Optional<List<AvailableViewInfo>> match(String requestPath) {
         String pathname = stripBasename(requestPath == null || requestPath.isEmpty() ? "/" : requestPath, basename);
@@ -125,9 +123,6 @@ final class ClientRouteMatcher {
                 break;
             }
             if (branch.matches(decoded)) {
-                if (ordered) {
-                    return Optional.of(List.of(branch.view()));
-                }
                 best = branch.score();
                 views.add(branch.view());
             }

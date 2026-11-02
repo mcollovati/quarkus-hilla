@@ -18,9 +18,13 @@ package com.github.mcollovati.quarkus.hilla.security;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -212,10 +216,41 @@ class ClientRouteMatcherTest {
     }
 
     @Test
-    void match_equalScoresPreserveRegistrationOrder() {
-        ClientRouteMatcher matcher = matcher(route("users/:id", "first"), route("users/:name", "second"));
+    void match_equalScoresReturnAllPublicCandidates() {
+        AvailableViewInfo first = route("users/:id", "first");
+        AvailableViewInfo second = route("users/:name", "second");
+        ClientRouteMatcher matcher = matcher(first, second, route("users/*", "fallback"));
 
-        assertMatch(matcher, "/users/42", "first");
+        assertEquals(
+                Set.of(first, second), Set.copyOf(matcher.match("/users/42").orElseThrow()));
+    }
+
+    @Test
+    void match_optionalParentExpansionsReturnAllBestCandidates() {
+        AvailableViewInfo secured = route(":id/foo", "secured", true);
+        AvailableViewInfo publicView = route("foo", "public");
+        ClientRouteMatcher matcher = matcher(route(":lang?", "layout", secured, publicView));
+
+        var candidates = matcher.match("/en/foo").orElseThrow();
+        assertEquals(Set.of(secured, publicView), Set.copyOf(candidates));
+        assertTrue(candidates.stream().anyMatch(AvailableViewInfo::loginRequired));
+    }
+
+    @Test
+    void match_skipLayoutsMetadataReturnsAllBestCandidates() {
+        var mapper = JsonMapper.builder()
+                .disable(
+                        DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                        DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+                .build();
+        List<AvailableViewInfo> routes = mapper.readValue("""
+                [{"route":":id"}, {"route":":name", "loginRequired":true, "skipLayouts":true}]
+                """, new TypeReference<List<AvailableViewInfo>>() {});
+        ClientRouteMatcher matcher = ClientRouteMatcher.forFileRoutes(routes, "/");
+
+        var candidates = matcher.match("/42").orElseThrow();
+        assertEquals(Set.copyOf(routes), Set.copyOf(candidates));
+        assertTrue(candidates.stream().anyMatch(AvailableViewInfo::loginRequired));
     }
 
     @Test
@@ -296,10 +331,15 @@ class ClientRouteMatcherTest {
     }
 
     private static AvailableViewInfo route(String path, String id, AvailableViewInfo... children) {
+        return route(path, id, false, children);
+    }
+
+    private static AvailableViewInfo route(
+            String path, String id, boolean loginRequired, AvailableViewInfo... children) {
         return new AvailableViewInfo(
                 id,
                 null,
-                false,
+                loginRequired,
                 path,
                 false,
                 false,

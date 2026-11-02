@@ -77,7 +77,11 @@ class HillaRouteSecurityTest {
                              {"route":"optional/:id?", "loginRequired":true},
                              {"route":"café", "loginRequired":true},
                              {"route":"public-products/:id"},
-                             {"route":"protected-wildcard/*", "loginRequired":true}]
+                             {"route":"protected-wildcard/*", "loginRequired":true},
+                             {"route":":lang?", "children":[
+                               {"route":":id/foo", "loginRequired":true}, {"route":"foo"}]},
+                             {"route":":id"},
+                             {"route":":name", "loginRequired":true, "skipLayouts":true}]
                             """), "META-INF/VAADIN/file-routes.json"));
 
     @BeforeAll
@@ -113,6 +117,50 @@ class HillaRouteSecurityTest {
                 .follow(false)
                 .accept("text/html")
                 .get("/products/123")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_optionalParentExpansionTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/en/foo")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousHead_optionalParentExpansionTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .head("/en/foo")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_skipLayoutsTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/42")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousHead_skipLayoutsTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .head("/42")
                 .then()
                 .statusCode(302)
                 .header("Location", endsWith("/login"));
@@ -201,7 +249,7 @@ class HillaRouteSecurityTest {
         given().redirects()
                 .follow(false)
                 .accept("text/html")
-                .get("/unknown")
+                .get("/unknown/path")
                 .then()
                 .statusCode(200);
     }

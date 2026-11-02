@@ -39,11 +39,14 @@ import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
- * Looks up client routes and checks the matched view's access requirements.
+ * Looks up client routes and checks the matching views' access requirements without inheriting layout requirements.
+ * For each raw and normalized path, all highest-scoring matching candidates are combined strictly (fail closed),
+ * because the client may reorder equally ranked routes. A route is secured if any candidate requires login or roles;
+ * access is allowed only if every candidate allows the identity.
  */
 public class RouteUtil {
 
-    // Match MenuRegistry's metadata parsing while preserving document order.
+    // Match MenuRegistry's metadata parsing while retaining the tree for paths and score ranking.
     private static final ObjectMapper ROUTE_MAPPER = JsonMapper.builder()
             .disable(
                     DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
@@ -64,6 +67,7 @@ public class RouteUtil {
 
     /**
      * Checks access to the client views matched by the raw and normalized paths without inheriting layout requirements.
+     * All equally ranked candidates must allow access, because the client may reorder them.
      *
      * @param context the request context
      * @param identity the requesting user's identity
@@ -76,6 +80,13 @@ public class RouteUtil {
                 .orElse(false);
     }
 
+    /**
+     * Checks whether any highest-scoring candidate for either the raw or normalized path requires login or roles.
+     * Equally ranked candidates are combined strictly, because the client may reorder them.
+     *
+     * @param context the request context
+     * @return whether any matched candidate requires authentication
+     */
     boolean isSecuredRoute(RoutingContext context) {
         // Match before filtering, so a secured route cannot fall back to a public wildcard.
         return getRouteData(context)
@@ -125,7 +136,7 @@ public class RouteUtil {
                     LoggerFactory.getLogger(RouteUtil.class).warn("Cannot load Hilla client route metadata", exception);
                 }
             }
-            // MenuRegistry's flattened map loses order, so equally ranked matches must all allow access.
+            // Fall back to flattened metadata when the route tree is unavailable.
             clientRouteMatcher = new ClientRouteMatcher(
                     MenuRegistry.collectClientMenuItems(false, config, null), basename(vaadinService));
         } finally {
