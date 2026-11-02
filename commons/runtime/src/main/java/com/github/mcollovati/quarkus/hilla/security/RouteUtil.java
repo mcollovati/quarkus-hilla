@@ -15,89 +15,139 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
+import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.vaadin.flow.internal.CurrentInstance;
 import com.vaadin.flow.internal.menu.MenuRegistry;
 import com.vaadin.flow.server.VaadinService;
+import com.vaadin.flow.server.VaadinServletContext;
 import com.vaadin.flow.server.menu.AvailableViewInfo;
 import com.vaadin.flow.server.startup.ApplicationConfiguration;
 import io.quarkus.security.identity.SecurityIdentity;
-import io.quarkus.vertx.http.runtime.security.ImmutablePathMatcher;
 import io.vertx.ext.web.RoutingContext;
+import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
+/**
+ * Looks up client routes and checks the matched view's access requirements.
+ */
 public class RouteUtil {
 
-    private Map<String, AvailableViewInfo> registeredRoutes = null;
+    // Match MenuRegistry's metadata parsing while preserving document order.
+    private static final ObjectMapper ROUTE_MAPPER = JsonMapper.builder()
+            .disable(
+                    DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                    DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+            .build();
+
+    private volatile ClientRouteMatcher clientRouteMatcher;
     private final VaadinService vaadinService;
 
+    /**
+     * Creates a route lookup for the given service.
+     *
+     * @param vaadinService the service providing client routes
+     */
     public RouteUtil(VaadinService vaadinService) {
         this.vaadinService = vaadinService;
     }
 
+    /**
+     * Checks access to the client views matched by the raw and normalized paths without inheriting layout requirements.
+     *
+     * @param context the request context
+     * @param identity the requesting user's identity
+     * @return whether at least one path matches and every matched candidate allows the identity
+     */
     public boolean isRouteAllowed(RoutingContext context, SecurityIdentity identity) {
-        ensureClientRoutes();
-        return getRouteData(context.normalizedPath(), identity).isPresent();
+        return getRouteData(context)
+                .map(views -> views.stream()
+                        .allMatch(view -> validateViewAccessible(view, !identity.isAnonymous(), identity::hasRole)))
+                .orElse(false);
     }
 
     boolean isSecuredRoute(RoutingContext context) {
-        ensureClientRoutes();
         // Match before filtering, so a secured route cannot fall back to a public wildcard.
-        AvailableViewInfo viewInfo = getRouteByPath(registeredRoutes, context.normalizedPath());
-        return viewInfo != null && !validateViewAccessible(viewInfo, false, role -> false);
+        return getRouteData(context)
+                .map(views -> views.stream().anyMatch(view -> !validateViewAccessible(view, false, role -> false)))
+                .orElse(false);
+    }
+
+    private Optional<List<AvailableViewInfo>> getRouteData(RoutingContext context) {
+        ensureClientRoutes();
+        // Raw and normalized paths can resolve to different views; neither may weaken the other's requirements.
+        List<AvailableViewInfo> views = Stream.of(context.request().path(), context.normalizedPath())
+                .filter(Objects::nonNull)
+                .distinct()
+                .flatMap(path -> clientRouteMatcher.match(path).stream())
+                .flatMap(List::stream)
+                .distinct()
+                .toList();
+        return views.isEmpty() ? Optional.empty() : Optional.of(views);
     }
 
     private void ensureClientRoutes() {
-        // Ensure that the VaadinService is set for the current thread, so that collectClientRoutes can access it.
-        // The current instances should always be null, but for safety, we restore them after the operation.
+        if (clientRouteMatcher != null) {
+            return;
+        }
+        initializeClientRoutes();
+    }
+
+    private synchronized void initializeClientRoutes() {
+        if (clientRouteMatcher != null) {
+            return;
+        }
+        // Route discovery needs the current service; restore any previous instances afterward.
         final var oldInstances = CurrentInstance.getInstances();
         VaadinService.setCurrent(vaadinService);
         try {
-            if (registeredRoutes == null) {
-                collectClientRoutes();
+            ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
+            var resource = MenuRegistry.getViewsJsonAsResource(config);
+            if (resource != null) {
+                try (var input = resource.openStream()) {
+                    List<AvailableViewInfo> routes =
+                            ROUTE_MAPPER.readValue(input, new TypeReference<List<AvailableViewInfo>>() {});
+                    if (routes != null) {
+                        clientRouteMatcher = ClientRouteMatcher.forFileRoutes(routes, basename(vaadinService));
+                        return;
+                    }
+                } catch (IOException | JacksonException exception) {
+                    LoggerFactory.getLogger(RouteUtil.class).warn("Cannot load Hilla client route metadata", exception);
+                }
             }
+            // MenuRegistry's flattened map loses order, so equally ranked matches must all allow access.
+            clientRouteMatcher = new ClientRouteMatcher(
+                    MenuRegistry.collectClientMenuItems(false, config, null), basename(vaadinService));
         } finally {
             CurrentInstance.clearAll();
             CurrentInstance.restoreInstances(oldInstances);
         }
     }
 
-    private void collectClientRoutes() {
-        ApplicationConfiguration config = ApplicationConfiguration.get(vaadinService.getContext());
-        setRoutes(MenuRegistry.collectClientMenuItems(false, config, null));
-    }
-
-    private void setRoutes(final Map<String, AvailableViewInfo> registeredRoutes) {
-        if (registeredRoutes == null) {
-            this.registeredRoutes = null;
-        } else {
-            this.registeredRoutes = new HashMap<>(registeredRoutes);
+    /**
+     * Returns the context root used as the client router's basename.
+     *
+     * @param vaadinService the Vaadin service
+     * @return the basename, ending with a slash
+     */
+    static String basename(VaadinService vaadinService) {
+        String contextPath = "";
+        if (vaadinService.getContext() instanceof VaadinServletContext servletContext
+                && servletContext.getContext() != null
+                && servletContext.getContext().getContextPath() != null) {
+            contextPath = servletContext.getContext().getContextPath().replaceFirst("/+$", "");
         }
-    }
-
-    private Optional<AvailableViewInfo> getRouteData(String path, SecurityIdentity identity) {
-        Map<String, AvailableViewInfo> availableRoutes = new HashMap<>(registeredRoutes);
-        filterClientViews(availableRoutes, identity);
-        return Optional.ofNullable(getRouteByPath(availableRoutes, path));
-    }
-
-    private static void filterClientViews(Map<String, AvailableViewInfo> configurations, SecurityIdentity identity) {
-        final boolean isUserAuthenticated = !identity.isAnonymous();
-        Set<String> clientEntries = new HashSet<>(configurations.keySet());
-        // configurations::containsKey is used to avoid ConcurrentModificationException
-        clientEntries.stream().filter(configurations::containsKey).forEach(path -> {
-            final AvailableViewInfo viewInfo = configurations.get(path);
-            final boolean routeValid = validateViewAccessible(viewInfo, isUserAuthenticated, identity::hasRole);
-            if (!routeValid) {
-                removePathRecursive(configurations, viewInfo, path);
-            }
-        });
+        return contextPath + "/";
     }
 
     private static boolean validateViewAccessible(
@@ -107,23 +157,5 @@ public class RouteUtil {
         }
         String[] roles = viewInfo.rolesAllowed();
         return roles == null || roles.length == 0 || Arrays.stream(roles).anyMatch(roleAuthentication);
-    }
-
-    private static void removePathRecursive(
-            Map<String, AvailableViewInfo> configurations, AvailableViewInfo viewInfo, String parentPath) {
-        configurations.remove(parentPath);
-        if (viewInfo.children() == null) return;
-        for (AvailableViewInfo child : viewInfo.children()) {
-            String childRoute = (parentPath + "/" + child.route()).replace("//", "/");
-            removePathRecursive(configurations, child, childRoute);
-        }
-    }
-
-    private AvailableViewInfo getRouteByPath(Map<String, AvailableViewInfo> availableRoutes, String path) {
-        final var matcherBuilder = ImmutablePathMatcher.<AvailableViewInfo>builder();
-        availableRoutes.forEach((route, info) -> {
-            matcherBuilder.addPath(PathUtil.ensureSlashBegin(route), info);
-        });
-        return matcherBuilder.build().match(path).getValue();
     }
 }

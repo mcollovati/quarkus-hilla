@@ -71,7 +71,12 @@ class HillaRouteSecurityTest {
                     .addAsResource(new StringAsset("""
                             [{"route":"protected", "loginRequired":true},
                              {"route":"public"},
+                             {"route":"public/*"},
                              {"route":"admin", "rolesAllowed":["ADMIN"]},
+                             {"route":"products/:id", "loginRequired":true},
+                             {"route":"optional/:id?", "loginRequired":true},
+                             {"route":"café", "loginRequired":true},
+                             {"route":"public-products/:id"},
                              {"route":"protected-wildcard/*", "loginRequired":true}]
                             """), "META-INF/VAADIN/file-routes.json"));
 
@@ -100,6 +105,74 @@ class HillaRouteSecurityTest {
                 .then()
                 .statusCode(302)
                 .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_parameterizedSecuredRoute_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/products/123")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_optionalSecuredRoute_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/optional")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_mixedCaseSecuredRoute_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/PROTECTED")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_encodedSecuredRoute_challenged() {
+        given().urlEncodingEnabled(false)
+                .redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/caf%C3%A9")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_encodedDotSegmentsToSecuredRoute_challenged() {
+        // Encoded dot segments preserve the traversal path through the HTTP client's URI handling.
+        given().urlEncodingEnabled(false)
+                .redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/public/%2e%2e/protected")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_publicParameterizedRoute_permitted() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/public-products/123")
+                .then()
+                .statusCode(200);
     }
 
     @Test
