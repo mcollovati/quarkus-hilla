@@ -171,7 +171,9 @@ class NavigationSecurity {
 ```
 
 Without an application configurer, the extension uses all `NavigationAccessChecker` beans,
-including those of the application. An application configurer uses only the checkers it selects:
+including those of the application. This differs from Vaadin's Spring integration, whose default
+configurer uses only `AnnotatedViewAccessChecker`: a checker bean declared by the application
+always takes effect. An application configurer uses only the checkers it selects:
 
 - `withAnnotatedViewAccessChecker()` selects the built-in `AnnotatedViewAccessChecker`. As in
   Vaadin's Spring integration, a subclass is not selected by it; add the subclass with
@@ -249,6 +251,7 @@ rest is regular Quarkus configuration.
 | `defaultPermitMatcher()`                                | Applied internally, not exposed.                                                                                                                   |
 | `enableNavigationAccessControl(false)`                  | `vaadin.security.navigation-access-control.enabled=false`, see [Disabling the access check](#disabling-the-access-check), or `disabled()` on a configurer.  |
 | `NavigationAccessControlConfigurer` bean                | `NavigationAccessControlConfigurer` bean with the same method names, except `withRoutePathAccessChecker()` (since 25.3.0).                         |
+| Default configurer: only `AnnotatedViewAccessChecker`   | Default configurer: all `NavigationAccessChecker` beans, including the application's. Produce a configurer to use only selected checkers.          |
 | `AccessAnnotationChecker` bean                          | `AccessAnnotationChecker` bean, used by the built-in `AnnotatedViewAccessChecker` (since 25.3.0) and the endpoint access check.                    |
 | `enableCsrfConfiguration(...)`, `enableRequestCacheConfiguration(...)`, `enableExceptionHandlingConfiguration(...)`, `enableLogoutConfiguration(...)` | No equivalent. The extension does not change Quarkus CSRF handling, Quarkus form authentication remembers the requested page itself, and logout is always handled at `vaadin.security.logout-path`. |
 
