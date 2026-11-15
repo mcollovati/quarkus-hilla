@@ -375,5 +375,6 @@
         -->
         <module>security-form-tests</module>
         <module>codestart-tests</module>
+        <module>kotlin-dev-mode-tests</module>
     </modules>
 </project>
