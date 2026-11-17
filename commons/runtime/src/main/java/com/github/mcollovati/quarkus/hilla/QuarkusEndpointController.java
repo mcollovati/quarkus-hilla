@@ -82,13 +82,13 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
-            com.fasterxml.jackson.databind.node.ObjectNode body) {
+            String body) {
 
         ObjectNode jackson3Node;
-        if (body == null) {
+        if (body == null || body.isBlank()) {
             jackson3Node = null;
         } else {
-            jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body.toString());
+            jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body);
         }
         ResponseEntity<String> endpointResponse =
                 delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
@@ -100,7 +100,7 @@ public class QuarkusEndpointController {
      * used when there are uploaded files.
      * <p>
      * This method works as
-     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, com.fasterxml.jackson.databind.node.ObjectNode)},
+     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, String)},
      * but it also captures the files uploaded in the request.
      *
      * @param endpointName the name of an endpoint to address the calls to, not case

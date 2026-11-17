@@ -20,10 +20,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.QuarkusDevModeTest;
 import io.quarkus.value.registry.ValueRegistry;
 import io.quarkus.value.registry.ValueRegistry.RuntimeKey;
@@ -32,6 +28,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 import com.github.mcollovati.quarkus.hilla.deployment.endpoints.TestEndpoint;
 
@@ -48,8 +47,7 @@ public class DevUiTest {
     private static final String EQUALS = "=";
     private static final String NAMESPACE = "quarkus-hilla-commons";
 
-    private final ObjectMapper mapper = new ObjectMapper();
-    private final JsonFactory factory = mapper.getFactory();
+    private final ObjectMapper mapper = JsonMapper.builder().build();
     private URI devUI;
 
     @BeforeEach
@@ -102,6 +100,9 @@ public class DevUiTest {
         for (String kv : kvs) {
             if (kv.startsWith(key + SPACE + EQUALS + SPACE)) {
                 String json = kv.substring(kv.indexOf(EQUALS) + 1).trim();
+                if (json.endsWith(";")) {
+                    json = json.substring(0, json.length() - 1);
+                }
                 return toJsonNode(json);
             }
         }
@@ -110,11 +111,6 @@ public class DevUiTest {
     }
 
     protected JsonNode toJsonNode(String json) {
-        try {
-            JsonParser parser = factory.createParser(json);
-            return mapper.readTree(parser);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
-        }
+        return mapper.readTree(json);
     }
 }
