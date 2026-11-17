@@ -146,7 +146,7 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
             // Generation not required for test code
             return false;
         }
-        String prefix = computeConnectClientPrefix(context.config());
+        String prefix = computeConnectClientPrefix(buildConfig(context));
         boolean defaultPrefix = "connect".equals(prefix);
         Path customClient = context.inputDir().resolve("connect-client.ts");
         if (Files.exists(customClient)) {
@@ -175,6 +175,25 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
             return writeConnectClient(prefix, customClient);
         }
         return false;
+    }
+
+    /**
+     * Gets the build configuration from the code generation context.
+     * <p>
+     * {@link CodeGenContext#config()} returns a MicroProfile {@link Config} in Quarkus 3 and a
+     * {@link io.smallrye.config.Config} in Quarkus 4. A direct call compiled against one version fails with
+     * {@link NoSuchMethodError} on the other, so the method is looked up by name. Both return types are a
+     * MicroProfile {@link Config}.
+     *
+     * @param context the code generation context
+     * @return the build configuration
+     */
+    static Config buildConfig(CodeGenContext context) {
+        try {
+            return (Config) CodeGenContext.class.getMethod("config").invoke(context);
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalStateException("Cannot read the build configuration from the code generation context", e);
+        }
     }
 
     private static String computeConnectClientPrefix(Config config) {

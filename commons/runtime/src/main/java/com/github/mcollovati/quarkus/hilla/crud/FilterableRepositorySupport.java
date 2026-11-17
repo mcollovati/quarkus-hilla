@@ -19,6 +19,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaSelect;
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Order;
 import jakarta.persistence.criteria.Path;
@@ -51,7 +52,7 @@ public final class FilterableRepositorySupport {
         if (predicate != null) {
             countQuery.where(predicate);
         }
-        return entityManager.createQuery(countQuery).getSingleResult();
+        return entityManager.createQuery(asSelect(countQuery)).getSingleResult();
     }
 
     public static <T> List<T> list(Pageable pageable, Filter filter, Class<T> entityClass) {
@@ -66,11 +67,22 @@ public final class FilterableRepositorySupport {
         if (pageable != null && pageable.getSortOr(Sort.unsorted()).isSorted()) {
             query.orderBy(toOrder(pageable.getSort(), builder, root));
         }
-        TypedQuery<T> typedQuery = entityManager.createQuery(query);
+        TypedQuery<T> typedQuery = entityManager.createQuery(asSelect(query));
         if (pageable != null && pageable.isPaged()) {
             typedQuery.setFirstResult((int) pageable.getOffset()).setMaxResults(pageable.getPageSize());
         }
         return typedQuery.getResultList();
+    }
+
+    /**
+     * Widens a criteria query to {@link CriteriaSelect}.
+     * <p>
+     * Jakarta Persistence 4 removed {@code EntityManager.createQuery(CriteriaQuery)}; the
+     * {@code createQuery(CriteriaSelect)} overload exists in both 3.2 and 4. Calling it keeps a build against
+     * Quarkus 3 working on Quarkus 4.
+     */
+    private static <T> CriteriaSelect<T> asSelect(CriteriaQuery<T> query) {
+        return query;
     }
 
     private static <T> Predicate toPredicate(Filter rawFilter, Class<T> entity, CriteriaBuilder builder, Root<T> root) {
@@ -78,13 +90,15 @@ public final class FilterableRepositorySupport {
             return null;
         }
         if (rawFilter instanceof AndFilter filter) {
+            // List variant: and(Predicate...) is gone in Jakarta Persistence 4, and(List) has the same
+            // erased signature in 3.2 and 4, so a build against either version runs on both
             return builder.and(filter.getChildren().stream()
                     .map(f -> toPredicate(f, entity, builder, root))
-                    .toArray(Predicate[]::new));
+                    .toList());
         } else if (rawFilter instanceof OrFilter filter) {
             return builder.or(filter.getChildren().stream()
                     .map(f -> toPredicate(f, entity, builder, root))
-                    .toArray(Predicate[]::new));
+                    .toList());
         } else if (rawFilter instanceof PropertyStringFilter filter) {
             Class<?> javaType = extractPropertyJavaType(entity, filter.getPropertyId(), builder);
             return new PropertyStringFilterSpecification<>(filter, javaType).toPredicate((Root) root, builder);
