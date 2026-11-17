@@ -30,7 +30,6 @@ import io.quarkus.bootstrap.workspace.WorkspaceModuleId;
 import io.quarkus.deployment.CodeGenContext;
 import io.quarkus.maven.dependency.ResolvedDependencyBuilder;
 import io.smallrye.config.PropertiesConfigSource;
-import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.spi.ConfigProviderResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -61,8 +60,8 @@ class TypescriptClientCodeGenProviderTest {
                 .build();
     }
 
-    private Config buildConfig() {
-        return ConfigProviderResolver.instance()
+    private io.smallrye.config.Config buildConfig() {
+        return (io.smallrye.config.Config) ConfigProviderResolver.instance()
                 .getBuilder()
                 .withSources(new PropertiesConfigSource(configProperties, "test"))
                 .build();

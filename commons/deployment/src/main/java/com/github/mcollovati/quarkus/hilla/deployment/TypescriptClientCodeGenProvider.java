@@ -85,8 +85,33 @@ public class TypescriptClientCodeGenProvider implements CodeGenProvider {
         return frontendFolder;
     }
 
-    @Override
+    /**
+     * {@link CodeGenProvider#shouldRun} signature of Quarkus 3, which passes a MicroProfile {@link Config}.
+     * <p>
+     * No {@code @Override}: Quarkus 4 changed the parameter to {@link io.smallrye.config.Config}, so only one of
+     * the two overloads overrides the interface method, depending on the Quarkus version.
+     *
+     * @param sourceDir the frontend source directory
+     * @param config the build configuration
+     * @return {@code true} if the code generation should run
+     */
     public boolean shouldRun(Path sourceDir, Config config) {
+        return shouldRunInternal(sourceDir, config);
+    }
+
+    /**
+     * {@link CodeGenProvider#shouldRun} signature of Quarkus 4, which passes a SmallRye
+     * {@link io.smallrye.config.Config}.
+     *
+     * @param sourceDir the frontend source directory
+     * @param config the build configuration
+     * @return {@code true} if the code generation should run
+     */
+    public boolean shouldRun(Path sourceDir, io.smallrye.config.Config config) {
+        return shouldRunInternal(sourceDir, config);
+    }
+
+    private boolean shouldRunInternal(Path sourceDir, Config config) {
         if (!Files.isDirectory(sourceDir)) {
             return false;
         }
