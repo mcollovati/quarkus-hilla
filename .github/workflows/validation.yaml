@@ -9,7 +9,8 @@ permissions:
   contents: read
   issues: read
 concurrency:
-  group: ${{ github.head_ref || github.ref_name }}
+  # Event name keeps a manual run on a PR branch from cancelling the pull request run
+  group: ${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 env:
   JAVA_VERSION: 21
