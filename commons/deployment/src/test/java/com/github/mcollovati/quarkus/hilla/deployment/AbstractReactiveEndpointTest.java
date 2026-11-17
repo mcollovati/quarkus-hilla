@@ -127,7 +127,26 @@ abstract class AbstractReactiveEndpointTest {
                         .isEqualTo("{\"@type\":\"update\",\"id\":\"%s\",\"item\":%s}", client.id, i));
     }
 
-    private void assertCounterValue(String counterName, int expected) {
+    /**
+     * Asserts the server-side counter, retrying for a few seconds: after the client disconnects, the server runs
+     * the unsubscribe callback asynchronously, so the value may lag behind the closed connection.
+     */
+    private void assertCounterValue(String counterName, int expected) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (true) {
+            try {
+                fetchAndAssertCounterValue(counterName, expected);
+                return;
+            } catch (AssertionError e) {
+                if (System.nanoTime() > deadline) {
+                    throw e;
+                }
+                Thread.sleep(100);
+            }
+        }
+    }
+
+    private void fetchAndAssertCounterValue(String counterName, int expected) {
         LinkedHashMap<String, Object> orderedParams = new LinkedHashMap<>();
         orderedParams.put("counterName", counterName);
         RestAssured.given()
