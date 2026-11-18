@@ -83,7 +83,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           # Native images are built in a container (quarkus.native.container-build), using the
-          # Mandrel builder image each Quarkus version defaults to; the host only needs a JDK
+          # Mandrel builder image the Quarkus version defaults to; the host only needs a JDK
           java-version: 21
           distribution: 'temurin'
           cache: maven
