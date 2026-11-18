@@ -173,6 +173,18 @@ migration guide, and delete it from this list.
 |------------------|---------|------|
 | 25.3.0 | 26.0 | Replacing the `NavigationAccessControl` bean; applications use a `NavigationAccessControlConfigurer` instead. Remove the bean replacement support and its startup warning in `HillaSecurityRecorder`. See [ADR 0001](decisions/0001-customize-navigation-access-control-through-a-configurer.md). |
 
+## Workarounds for Upstream Issues
+
+Code that works around a missing API or a bug in Quarkus, Vaadin or Hilla. Remove an item once the
+minimum supported version of the upstream project contains the fix, and delete it from this list.
+Maintenance lines whose minimum version does not contain the fix keep the workaround.
+
+| Upstream | Workaround | Remove when |
+|----------|------------|-------------|
+| [quarkusio/quarkus#58042](https://github.com/quarkusio/quarkus/issues/58042) | `FormLogoutHandler` expires the form authentication cookie itself, because `FormAuthenticationMechanism.logout` drops the cookie domain. | The minimum Quarkus version contains [quarkusio/quarkus#58052](https://github.com/quarkusio/quarkus/pull/58052). Check that logout still expires every cookie scope. |
+| [quarkusio/quarkus#58043](https://github.com/quarkusio/quarkus/issues/58043) | `FormLoginSettings` reads the pages and cookie settings of `FormAuthenticationMechanism` and `PersistentLoginManager` with reflection, registered for native in `QuarkusHillaSecurityProcessor`. | Quarkus provides a public way to read the effective form settings and the minimum Quarkus version contains it. |
+| [vaadin/hilla#6961](https://github.com/vaadin/hilla/issues/6961) | None. `ClientRouteMatcher` cannot recognize an `@index.tsx` view whose `config.route` is overridden (known limitation). | Hilla aligns `file-routes.json` with the client router; then add a regression test. |
+
 ## Post-Release Tasks
 
 After a successful release:
