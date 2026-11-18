@@ -15,7 +15,12 @@
  */
 package com.example.application;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.graalvm.nativeimage.hosted.Feature;
@@ -26,6 +31,84 @@ import org.graalvm.nativeimage.hosted.Feature;
 public class TmpHeapTraceFeature implements Feature {
 
     private final AtomicInteger calls = new AtomicInteger();
+
+    private static final sun.misc.Unsafe U;
+
+    static {
+        try {
+            Field f = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
+            f.setAccessible(true);
+            U = (sun.misc.Unsafe) f.get(null);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static final ConcurrentHashMap<Class<?>, Object[]> FIELDS = new ConcurrentHashMap<>();
+
+    @Override
+    public void duringSetup(DuringSetupAccess access) {
+        access.registerObjectReplacer(obj -> {
+            try {
+                Class<?> c = obj.getClass();
+                if (isTarget(obj)) {
+                    new Throwable("[HEAPTRACE] target object scanned: " + c.getName()).printStackTrace(System.out);
+                    return obj;
+                }
+                if (c.isArray()) {
+                    if (!c.getComponentType().isPrimitive()) {
+                        Object[] a = (Object[]) obj;
+                        for (int i = 0; i < a.length; i++) {
+                            if (isTarget(a[i])) {
+                                System.out.println("[HEAPTRACE] holder array " + c.getName() + "[" + i + "]");
+                            }
+                        }
+                    }
+                    return obj;
+                }
+                Object[] meta = FIELDS.computeIfAbsent(c, TmpHeapTraceFeature::fields);
+                long[] offs = (long[]) meta[0];
+                String[] names = (String[]) meta[1];
+                for (int i = 0; i < offs.length; i++) {
+                    Object v = U.getObject(obj, offs[i]);
+                    if (isTarget(v)) {
+                        System.out.println("[HEAPTRACE] holder " + c.getName() + " field " + names[i] + " -> "
+                                + v.getClass().getName());
+                    }
+                }
+            } catch (Throwable t) {
+                // ignore
+            }
+            return obj;
+        });
+    }
+
+    private static Object[] fields(Class<?> c) {
+        List<Long> o = new ArrayList<>();
+        List<String> n = new ArrayList<>();
+        for (Class<?> k = c; k != null && k != Object.class; k = k.getSuperclass()) {
+            Field[] fs;
+            try {
+                fs = k.getDeclaredFields();
+            } catch (Throwable t) {
+                continue;
+            }
+            for (Field f : fs) {
+                if (Modifier.isStatic(f.getModifiers()) || f.getType().isPrimitive()) continue;
+                try {
+                    o.add(U.objectFieldOffset(f));
+                    n.add(k.getName() + "." + f.getName());
+                } catch (Throwable t) {
+                    // ignore
+                }
+            }
+        }
+        return new Object[] {o.stream().mapToLong(Long::longValue).toArray(), n.toArray(String[]::new)};
+    }
+
+    private static boolean isTarget(Object o) {
+        return o != null && o.getClass().getName().startsWith("com.oracle.svm.hosted.NativeImageClassLoader$");
+    }
 
     @Override
     public void beforeAnalysis(BeforeAnalysisAccess access) {
