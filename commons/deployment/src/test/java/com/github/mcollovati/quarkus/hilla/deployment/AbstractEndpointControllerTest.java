@@ -81,6 +81,22 @@ abstract class AbstractEndpointControllerTest {
     }
 
     @Test
+    void invokeEndpoint_malformedJsonBody_badRequest() {
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "echo", spec -> spec.body("{"))
+                .then()
+                .assertThat()
+                .statusCode(400);
+    }
+
+    @Test
+    void invokeEndpoint_nonObjectJsonBody_badRequest() {
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "echo", spec -> spec.body("[\"message\"]"))
+                .then()
+                .assertThat()
+                .statusCode(400);
+    }
+
+    @Test
     @Disabled("Order does not matter anymore")
     void invokeEndpoint_wrongParametersOrder_badRequest() {
         givenEndpointRequest(

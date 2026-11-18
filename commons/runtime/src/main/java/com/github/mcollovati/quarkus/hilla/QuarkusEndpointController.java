@@ -18,6 +18,7 @@ package com.github.mcollovati.quarkus.hilla;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
@@ -32,6 +33,7 @@ import com.vaadin.hilla.EndpointController;
 import io.smallrye.common.annotation.Identifier;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -88,7 +90,13 @@ public class QuarkusEndpointController {
         if (body == null || body.isBlank()) {
             jackson3Node = null;
         } else {
-            jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body);
+            try {
+                jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body);
+            } catch (JacksonException e) {
+                // Malformed JSON or a non-object body is a client error, as it was with the
+                // Quarkus REST Jackson body reader that parsed the body before
+                throw new BadRequestException("Request body is not a valid JSON object", e);
+            }
         }
         ResponseEntity<String> endpointResponse =
                 delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
