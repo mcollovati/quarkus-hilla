@@ -18,6 +18,12 @@
     </properties>
 
     <dependencies>
+        <!-- TEMPORARY native build diagnostic, to be removed before merge -->
+        <dependency>
+            <groupId>org.graalvm.sdk</groupId>
+            <artifactId>nativeimage</artifactId>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.github.mcollovati</groupId>
             <artifactId>quarkus-hilla-react</artifactId>
