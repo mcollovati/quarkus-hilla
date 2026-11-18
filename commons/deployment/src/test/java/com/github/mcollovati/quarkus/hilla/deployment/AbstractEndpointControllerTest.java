@@ -17,6 +17,9 @@ package com.github.mcollovati.quarkus.hilla.deployment;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -94,6 +97,50 @@ abstract class AbstractEndpointControllerTest {
                 .then()
                 .assertThat()
                 .statusCode(400);
+    }
+
+    @Test
+    void invokeEndpoint_plainTextBody_unsupportedMediaType() {
+        // A text/plain POST needs no CORS preflight; it must not reach the endpoint
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType(ContentType.TEXT).body("{\"message\":\"hello\"}"))
+                .then()
+                .assertThat()
+                .statusCode(415);
+    }
+
+    @Test
+    void invokeEndpoint_formUrlEncodedBody_unsupportedMediaType() {
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType(ContentType.URLENC).body("message=hello"))
+                .then()
+                .assertThat()
+                .statusCode(415);
+    }
+
+    @Test
+    void invokeEndpoint_noContentType_unsupportedMediaType() throws Exception {
+        // A request without Content-Type needs no CORS preflight either. java.net.http sends no
+        // Content-Type unless told to; RestAssured may add one depending on its version.
+        URI uri = URI.create(
+                RestAssured.baseURI + ":" + RestAssured.port + getEndpointPrefix() + "/" + getEndpointName() + "/echo");
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .header("Cookie", "csrfToken=CSRF_TOKEN")
+                .header("X-CSRF-Token", "CSRF_TOKEN")
+                .POST(HttpRequest.BodyPublishers.ofString("{\"message\":\"hello\"}"))
+                .build();
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            Assertions.assertThat(response.request().headers().firstValue("Content-Type"))
+                    .isEmpty();
+            Assertions.assertThat(response.statusCode()).isEqualTo(415);
+        }
     }
 
     @Test

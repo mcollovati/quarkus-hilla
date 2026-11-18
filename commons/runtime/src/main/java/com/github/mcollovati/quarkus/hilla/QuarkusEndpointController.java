@@ -20,11 +20,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
@@ -74,18 +77,26 @@ public class QuarkusEndpointController {
      *                     called has parameters
      * @param request      the current request which triggers the endpoint call
      * @param response     the current response
+     * @param contentType  the request Content-Type; requests without one are rejected
      * @return execution result as a JSON string or an error message string
      */
     @POST
     @Path(ENDPOINT_METHODS)
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response serveEndpoint(
             @PathParam("endpoint") String endpointName,
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
+            @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             String body) {
 
+        // @Consumes rejects other media types, but lets requests without Content-Type through.
+        // Reject them too: a cross-site request without Content-Type needs no CORS preflight.
+        if (contentType == null || contentType.isBlank()) {
+            throw new NotSupportedException("Endpoint requests must use Content-Type " + MediaType.APPLICATION_JSON);
+        }
         ObjectNode jackson3Node;
         if (body == null || body.isBlank()) {
             jackson3Node = null;
@@ -108,7 +119,7 @@ public class QuarkusEndpointController {
      * used when there are uploaded files.
      * <p>
      * This method works as
-     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, String)},
+     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, String, String)},
      * but it also captures the files uploaded in the request.
      *
      * @param endpointName the name of an endpoint to address the calls to, not case
