@@ -16,12 +16,10 @@
 package com.github.mcollovati.quarkus.hilla.security;
 
 import jakarta.enterprise.event.Observes;
-import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import com.vaadin.flow.router.Location;
@@ -48,7 +46,6 @@ import io.vertx.core.MultiMap;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.RoutingContext;
-import org.eclipse.microprofile.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,17 +144,12 @@ public class HillaSecurityPolicy implements HttpSecurityPolicy {
         return endpointUtil.isAnonymousEndpoint(request);
     }
 
-    void withFormLogin(Config config) {
-        Set<String> paths = new HashSet<>();
-        UnaryOperator<String> removeQueryString = path -> path.replaceFirst("\\?.*", "");
-
-        config.getOptionalValue("quarkus.http.auth.form.login-page", String.class)
-                .map(removeQueryString)
-                .ifPresent(paths::add);
-        config.getOptionalValue("quarkus.http.auth.form.error-page", String.class)
-                .map(removeQueryString)
-                .ifPresent(paths::add);
-        paths.add(removeQueryString.apply(config.getValue("quarkus.http.auth.form.post-location", String.class)));
+    /**
+     * Permits the paths that anonymous users need to log in with the form mechanism.
+     *
+     * @param paths the login page, error page and post location
+     */
+    void withFormLogin(Set<String> paths) {
         buildPathMatcher(builder -> paths.forEach(p -> builder.addPath(PathUtil.normalizeWildcard(p), true)));
     }
 
