@@ -100,6 +100,20 @@ abstract class AbstractEndpointControllerTest {
     }
 
     @Test
+    void invokeEndpoint_vendorJsonContentType_accepted() {
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType("application/vnd.example+json; charset=UTF-8")
+                                .body("{\"message\":\"hello\"}"))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"hello\""));
+    }
+
+    @Test
     void invokeEndpoint_plainTextBody_unsupportedMediaType() {
         // A text/plain POST needs no CORS preflight; it must not reach the endpoint
         givenEndpointRequest(
@@ -125,7 +139,7 @@ abstract class AbstractEndpointControllerTest {
     }
 
     @Test
-    void invokeEndpoint_noContentType_unsupportedMediaType() throws Exception {
+    void invokeEndpoint_noContentType_rejected() throws Exception {
         // A request without Content-Type needs no CORS preflight either. java.net.http sends no
         // Content-Type unless told to; RestAssured may add one depending on its version.
         URI uri = URI.create(
@@ -139,7 +153,9 @@ abstract class AbstractEndpointControllerTest {
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             Assertions.assertThat(response.request().headers().firstValue("Content-Type"))
                     .isEmpty();
-            Assertions.assertThat(response.statusCode()).isEqualTo(415);
+            // Quarkus REST rejects it with 400 before the method (as on main); the method itself would
+            // answer 415. Either way the endpoint must not run.
+            Assertions.assertThat(response.statusCode()).isIn(400, 415);
         }
     }
 

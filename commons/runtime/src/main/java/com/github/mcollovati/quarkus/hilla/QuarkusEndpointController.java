@@ -31,6 +31,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Locale;
 
 import com.vaadin.hilla.EndpointController;
 import io.smallrye.common.annotation.Identifier;
@@ -82,7 +83,6 @@ public class QuarkusEndpointController {
      */
     @POST
     @Path(ENDPOINT_METHODS)
-    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response serveEndpoint(
             @PathParam("endpoint") String endpointName,
@@ -92,11 +92,7 @@ public class QuarkusEndpointController {
             @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             String body) {
 
-        // @Consumes rejects other media types, but lets requests without Content-Type through.
-        // Reject them too: a cross-site request without Content-Type needs no CORS preflight.
-        if (contentType == null || contentType.isBlank()) {
-            throw new NotSupportedException("Endpoint requests must use Content-Type " + MediaType.APPLICATION_JSON);
-        }
+        requireJsonContentType(contentType);
         ObjectNode jackson3Node;
         if (body == null || body.isBlank()) {
             jackson3Node = null;
@@ -112,6 +108,37 @@ public class QuarkusEndpointController {
         ResponseEntity<String> endpointResponse =
                 delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
         return buildResponse(endpointResponse);
+    }
+
+    /**
+     * Rejects endpoint requests whose body is not declared as JSON.
+     * <p>
+     * The body is read as a plain string, which accepts any media type. This keeps the media types the Quarkus
+     * REST Jackson reader accepted before ({@code application/json}, {@code application/*+json},
+     * {@code application/x-ndjson}) and rejects everything else, including requests without Content-Type.
+     * {@code text/plain}, form and Content-Type-less POSTs need no CORS preflight, so accepting them would let a
+     * cross-site page invoke endpoints when XSRF protection is disabled. A {@code @Consumes} restriction is not
+     * used because it would also reject vendor JSON types and still let requests without Content-Type through.
+     *
+     * @param contentType the request Content-Type header, may be {@code null}
+     * @throws NotSupportedException if the request is not declared as JSON
+     */
+    private static void requireJsonContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new NotSupportedException("Endpoint requests must declare a JSON Content-Type");
+        }
+        MediaType mediaType;
+        try {
+            mediaType = MediaType.valueOf(contentType);
+        } catch (IllegalArgumentException e) {
+            throw new NotSupportedException("Invalid Content-Type: " + contentType, e);
+        }
+        String subtype = mediaType.getSubtype().toLowerCase(Locale.ROOT);
+        boolean json = "application".equalsIgnoreCase(mediaType.getType())
+                && (subtype.equals("json") || subtype.endsWith("+json") || subtype.equals("x-ndjson"));
+        if (!json) {
+            throw new NotSupportedException("Endpoint requests must declare a JSON Content-Type");
+        }
     }
 
     /**
