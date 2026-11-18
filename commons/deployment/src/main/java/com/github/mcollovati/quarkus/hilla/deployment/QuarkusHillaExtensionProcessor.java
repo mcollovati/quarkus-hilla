@@ -67,6 +67,7 @@ import org.atmosphere.client.TrackMessageSizeInterceptor;
 import org.atmosphere.cpr.ApplicationConfig;
 import org.atmosphere.interceptor.AtmosphereResourceLifecycleInterceptor;
 import org.atmosphere.interceptor.SuspendTrackerInterceptor;
+import org.atmosphere.util.VoidAnnotationProcessor;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationTransformation;
@@ -329,6 +330,12 @@ class QuarkusHillaExtensionProcessor {
                 .addInitParam(ApplicationConfig.ATMOSPHERE_HANDLER, PushEndpoint.class.getName())
                 .addInitParam(ApplicationConfig.OBJECT_FACTORY, HillaAtmosphereObjectFactory.class.getName())
                 .addInitParam(ApplicationConfig.ANALYTICS, "false")
+                // The handler is configured explicitly: skip Atmosphere's class path
+                // annotation scan, as Flow's PushRequestHandler does. In native builds
+                // the servlet starts during static init, concurrently with the image
+                // heap scan, and the scan's open class loader resource enumerations
+                // could otherwise be reached (NativeImageClassLoader$1 error).
+                .addInitParam(ApplicationConfig.ANNOTATION_PROCESSOR, VoidAnnotationProcessor.class.getName())
                 .addInitParam(
                         ApplicationConfig.ATMOSPHERE_INTERCEPTORS,
                         AtmosphereResourceLifecycleInterceptor.class.getName()
