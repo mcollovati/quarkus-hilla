@@ -18,12 +18,16 @@ package com.github.mcollovati.quarkus.hilla.devmode;
 import java.io.File;
 import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.quarkus.maven.it.RunAndCheckMojoTestBase;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
 
 /**
@@ -40,6 +44,7 @@ import static org.awaitility.Awaitility.await;
 class LiveReloadWithCopilotTest extends RunAndCheckMojoTestBase {
 
     private static final String ENDPOINT = "/rest/greeting";
+    private static final Pattern ERROR_PAGE_TITLE = Pattern.compile("<title>(.*?)</title>", Pattern.DOTALL);
 
     @Override
     protected int getPort() {
@@ -92,11 +97,25 @@ class LiveReloadWithCopilotTest extends RunAndCheckMojoTestBase {
 
         filter(new File(testDir, sourceFile), Map.of("\"initial\"", "\"changed\""));
 
-        await().pollDelay(Duration.ofSeconds(1))
-                .atMost(Duration.ofMinutes(3))
-                .until(() -> !"initial".equals(devModeClient.getHttpResponse(ENDPOINT, true)));
-        assertThat(devModeClient.getHttpResponse(ENDPOINT, true))
-                .as("response after changing %s", sourceFile)
-                .isEqualTo("changed");
+        // A failed restart is not logged: Quarkus only reports it in the error page of the request that triggered it
+        AtomicReference<String> response = new AtomicReference<>();
+        await().pollDelay(Duration.ofSeconds(1)).atMost(Duration.ofMinutes(3)).until(() -> {
+            response.set(devModeClient.getHttpResponse(ENDPOINT, true));
+            return !"initial".equals(response.get());
+        });
+        if (!"changed".equals(response.get())) {
+            fail("Reload after changing %s failed: %s", sourceFile, summarize(response.get()));
+        }
+    }
+
+    private static String summarize(String response) {
+        if (response == null) {
+            return "no response";
+        }
+        Matcher title = ERROR_PAGE_TITLE.matcher(response);
+        if (title.find()) {
+            return title.group(1).strip();
+        }
+        return response.length() > 300 ? response.substring(0, 300) + "..." : response;
     }
 }
