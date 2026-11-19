@@ -26,6 +26,10 @@ public class TestEndpoint {
         return message;
     }
 
+    public String ping() {
+        return "pong";
+    }
+
     public int calculate(String operator, int a, int b) {
         int result;
         switch (operator) {

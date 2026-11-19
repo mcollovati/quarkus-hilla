@@ -18,20 +18,26 @@ package com.github.mcollovati.quarkus.hilla;
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.IOException;
+import java.util.Locale;
 
 import com.vaadin.hilla.EndpointController;
 import io.smallrye.common.annotation.Identifier;
 import org.jboss.resteasy.reactive.server.multipart.MultipartFormDataInput;
 import org.springframework.http.ResponseEntity;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 
@@ -72,6 +78,7 @@ public class QuarkusEndpointController {
      *                     called has parameters
      * @param request      the current request which triggers the endpoint call
      * @param response     the current response
+     * @param contentType  the request Content-Type; requests without one are rejected
      * @return execution result as a JSON string or an error message string
      */
     @POST
@@ -82,13 +89,22 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
-            com.fasterxml.jackson.databind.node.ObjectNode body) {
+            @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
+            byte[] body) {
 
+        requireJsonContentType(contentType);
         ObjectNode jackson3Node;
-        if (body == null) {
+        if (isBlank(body)) {
             jackson3Node = null;
         } else {
-            jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body.toString());
+            // Raw bytes let Jackson detect the encoding (UTF-8/16/32), as the Jackson body reader did
+            try {
+                jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body);
+            } catch (JacksonException e) {
+                // Malformed JSON or a non-object body is a client error, as it was with the
+                // Quarkus REST Jackson body reader that parsed the body before
+                throw new BadRequestException("Request body is not a valid JSON object", e);
+            }
         }
         ResponseEntity<String> endpointResponse =
                 delegate.serveEndpoint(endpointName, methodName, jackson3Node, request, response);
@@ -96,11 +112,75 @@ public class QuarkusEndpointController {
     }
 
     /**
+     * Rejects endpoint requests whose body is not declared as JSON.
+     * <p>
+     * The body is read as a plain string, which accepts any media type. This keeps the media types the Quarkus
+     * REST Jackson reader accepted before ({@code application/json}, {@code application/*+json},
+     * {@code application/x-ndjson}) and rejects everything else, including requests without Content-Type.
+     * {@code text/plain} and form POSTs need no CORS preflight, so accepting them would let a cross-site page
+     * invoke endpoints when XSRF protection is disabled. A {@code @Consumes} restriction is not used because it
+     * would also reject vendor JSON types.
+     *
+     * @param contentType the request Content-Type header, may be {@code null}
+     * @throws NotSupportedException if the request is not declared as JSON
+     */
+    /**
+     * Rejects requests routed to the multipart method that are not declared as {@code multipart/form-data}.
+     * <p>
+     * Quarkus REST routes requests without Content-Type to the multipart overload. Without this check, a
+     * cross-site POST without Content-Type, which needs no CORS preflight, would invoke endpoint methods without
+     * parameters when XSRF protection is disabled.
+     *
+     * @param contentType the request Content-Type header, may be {@code null}
+     * @throws NotSupportedException if the request is not a multipart form
+     */
+    private static void requireMultipartContentType(String contentType) {
+        MediaType mediaType = parseContentType(contentType);
+        if (!"multipart".equalsIgnoreCase(mediaType.getType())
+                || !"form-data".equalsIgnoreCase(mediaType.getSubtype())) {
+            throw new NotSupportedException("Endpoint upload requests must use Content-Type multipart/form-data");
+        }
+    }
+
+    private static MediaType parseContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new NotSupportedException("Endpoint requests must declare a Content-Type");
+        }
+        try {
+            return MediaType.valueOf(contentType);
+        } catch (IllegalArgumentException e) {
+            throw new NotSupportedException("Invalid Content-Type: " + contentType, e);
+        }
+    }
+
+    private static boolean isBlank(byte[] body) {
+        if (body == null) {
+            return true;
+        }
+        for (byte b : body) {
+            if (!Character.isWhitespace(b)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void requireJsonContentType(String contentType) {
+        MediaType mediaType = parseContentType(contentType);
+        String subtype = mediaType.getSubtype().toLowerCase(Locale.ROOT);
+        boolean json = "application".equalsIgnoreCase(mediaType.getType())
+                && (subtype.equals("json") || subtype.endsWith("+json") || subtype.equals("x-ndjson"));
+        if (!json) {
+            throw new NotSupportedException("Endpoint requests must declare a JSON Content-Type");
+        }
+    }
+
+    /**
      * Captures and processes the Vaadin multipart endpoint requests. They are
      * used when there are uploaded files.
      * <p>
      * This method works as
-     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, com.fasterxml.jackson.databind.node.ObjectNode)},
+     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, String, byte[])},
      * but it also captures the files uploaded in the request.
      *
      * @param endpointName the name of an endpoint to address the calls to, not case
@@ -121,8 +201,11 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
+            @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             MultipartFormDataInput formData)
             throws IOException {
+        // Quarkus REST also routes requests without Content-Type here; only real multipart requests may pass
+        requireMultipartContentType(contentType);
         ResponseEntity<String> endpointResponse = delegate.serveMultipartEndpoint(
                 endpointName, methodName, new MultipartRequest(request, formData), response);
         return buildResponse(endpointResponse);
