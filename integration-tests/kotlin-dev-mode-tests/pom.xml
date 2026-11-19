@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.github.mcollovati</groupId>
+        <artifactId>quarkus-hilla-tests</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+    <artifactId>kotlin-dev-mode-tests</artifactId>
+    <name>Quarkus - Hilla - Kotlin Dev Mode Tests</name>
+    <description>
+        Starts sample projects with quarkus:dev and checks live reload of Kotlin and Java sources
+        while Vaadin Copilot is on the class path.
+    </description>
+
+    <properties>
+        <skipUTs>false</skipUTs>
+        <!-- Kotlin version managed by the Quarkus BOM; the Kotlin Maven plugin needs it explicitly. -->
+        <kotlin.version>2.4.10</kotlin.version>
+    </properties>
+
+    <dependencies>
+        <!-- Makes sure the extension is built before the sample projects are started. -->
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mcollovati</groupId>
+            <artifactId>quarkus-hilla-deployment</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-maven</artifactId>
+            <version>${quarkus.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <testResources>
+            <testResource>
+                <directory>src/test/projects</directory>
+                <targetPath>projects</targetPath>
+                <filtering>true</filtering>
+            </testResource>
+        </testResources>
+        <plugins>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <!-- The sample poms use ${...} for their own properties -->
+                    <useDefaultDelimiters>false</useDefaultDelimiters>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <maven.repo.local>${settings.localRepository}</maven.repo.local>
+                        <maven.settings>${session.request.userSettingsFile.path}</maven.settings>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -25,6 +25,20 @@ The integration is intended for application inspection, Flow view editing, Hilla
 - Spring Data/JPA helper panels are not implemented.
 - H2 datasource helper information is not implemented.
 
+## Kotlin Projects
+
+Since Vaadin 25.3, the Copilot jar bundles a Kotlin compiler for its Kotlin source rewriter. Only the third-party packages inside it are relocated; the Kotlin compiler's own `org.jetbrains.kotlin` packages are not. In dev mode, `quarkus-kotlin` recompiles changed `.kt` files with `org.jetbrains.kotlin:kotlin-compiler`, and Copilot's copy of the same classes used to shadow it. Every Kotlin edit then ended with `Error restarting Quarkus` and a `NoSuchFieldError` or `NoSuchMethodError` from the Kotlin compiler ([#2434](https://github.com/mcollovati/quarkus-hilla/issues/2434)).
+
+Quarkus-Hilla declares two class loading rules in its extension metadata, so the real compiler wins:
+
+- `com.vaadin:copilot` is a lesser-priority artifact: a class or resource is only loaded from Copilot when no other artifact provides it.
+- `org.jetbrains.kotlin:kotlin-compiler` is a parent-first artifact. `quarkus-kotlin` already marks the compiler as lesser priority, so without this rule Copilot and the compiler would tie and Copilot would still win by class path order.
+
+Both rules only change something when the artifacts contain the same classes. Java projects load classes as before. In Kotlin projects the compiler also takes precedence over other lesser-priority artifacts in the deployment class loader; normal dependencies listed before it, such as Guava, still win over the copies bundled in the compiler. Copilot's Kotlin rewriter keeps working, because the compiler is a deployment-only dependency and never reaches the runtime class loader.
+
+> [!NOTE]
+> Do not use `quarkus.class-loading.removed-artifacts=com.vaadin:copilot` as a workaround. Quarkus hides every resource name found in a removed artifact from all artifacts, so the compiler's own classes disappear too and dev mode fails with `ClassNotFoundException: org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments`. `quarkus.class-loading.removed-resources` has the same effect.
+
 ## Browser Callables
 
 Copilot browser-callable metadata is read from the Hilla `EndpointRegistry`.
