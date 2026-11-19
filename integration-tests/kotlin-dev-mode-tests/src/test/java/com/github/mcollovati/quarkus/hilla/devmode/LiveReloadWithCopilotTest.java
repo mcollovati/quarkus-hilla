@@ -55,7 +55,7 @@ class LiveReloadWithCopilotTest extends RunAndCheckMojoTestBase {
     void kotlinSourceChange_copilotOnClassPath_reloadsApplication() throws Exception {
         testDir = initProject("projects/kotlin-app", "projects/kotlin-app-with-copilot");
 
-        run(true);
+        run(true, copilotVersionArgs());
 
         assertReloadAfterChange("src/main/kotlin/org/acme/GreetingResource.kt");
     }
@@ -73,9 +73,18 @@ class LiveReloadWithCopilotTest extends RunAndCheckMojoTestBase {
     void javaSourceChange_copilotOnClassPath_reloadsApplication() throws Exception {
         testDir = initProject("projects/java-app", "projects/java-app-with-copilot");
 
-        run(true);
+        run(true, copilotVersionArgs());
 
         assertReloadAfterChange("src/main/java/org/acme/GreetingResource.java");
+    }
+
+    /**
+     * Forwards {@code -Dcopilot.version=...} to the sample project, so the tests can run against an unreleased
+     * Copilot build installed in the local Maven repository.
+     */
+    private static String[] copilotVersionArgs() {
+        String version = System.getProperty("copilot.version", "").strip();
+        return version.isEmpty() ? new String[0] : new String[] {"-Dcopilot.version=" + version};
     }
 
     private void assertReloadAfterChange(String sourceFile) throws Exception {

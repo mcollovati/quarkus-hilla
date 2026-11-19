@@ -113,6 +113,24 @@
 
     <profiles>
         <profile>
+            <!-- Runs the app against another Copilot build, e.g. -Dcopilot.version=25.3-SNAPSHOT -->
+            <id>custom-copilot</id>
+            <activation>
+                <property>
+                    <name>copilot.version</name>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>copilot</artifactId>
+                        <version>${copilot.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+        <profile>
             <id>without-copilot</id>
             <dependencyManagement>
                 <dependencies>
