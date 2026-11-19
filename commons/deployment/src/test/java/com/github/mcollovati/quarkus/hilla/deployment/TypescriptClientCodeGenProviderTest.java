@@ -167,6 +167,16 @@ class TypescriptClientCodeGenProviderTest {
     }
 
     @Test
+    void shouldRun_microProfileConfigOverload_customPrefix_run() throws IOException {
+        // Quarkus 3 calls the MicroProfile Config overload, Quarkus 4 the SmallRye one
+        Path path = createFolder("frontend");
+        configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");
+
+        org.eclipse.microprofile.config.Config config = buildConfig();
+        assertThat(provider.shouldRun(path, config)).isTrue();
+    }
+
+    @Test
     void shouldRun_customPrefix_noCustomClient_run() throws IOException {
         Path path = createFolder("frontend");
         configProperties.put(VAADIN_ENDPOINT_PREFIX, "/my-prefix");

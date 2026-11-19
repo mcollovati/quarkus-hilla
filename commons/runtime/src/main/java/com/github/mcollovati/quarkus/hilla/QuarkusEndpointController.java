@@ -90,13 +90,14 @@ public class QuarkusEndpointController {
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
             @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
-            String body) {
+            byte[] body) {
 
         requireJsonContentType(contentType);
         ObjectNode jackson3Node;
-        if (body == null || body.isBlank()) {
+        if (isBlank(body)) {
             jackson3Node = null;
         } else {
+            // Raw bytes let Jackson detect the encoding (UTF-8/16/32), as the Jackson body reader did
             try {
                 jackson3Node = objectMapper.readerFor(ObjectNode.class).readValue(body);
             } catch (JacksonException e) {
@@ -116,23 +117,56 @@ public class QuarkusEndpointController {
      * The body is read as a plain string, which accepts any media type. This keeps the media types the Quarkus
      * REST Jackson reader accepted before ({@code application/json}, {@code application/*+json},
      * {@code application/x-ndjson}) and rejects everything else, including requests without Content-Type.
-     * {@code text/plain}, form and Content-Type-less POSTs need no CORS preflight, so accepting them would let a
-     * cross-site page invoke endpoints when XSRF protection is disabled. A {@code @Consumes} restriction is not
-     * used because it would also reject vendor JSON types and still let requests without Content-Type through.
+     * {@code text/plain} and form POSTs need no CORS preflight, so accepting them would let a cross-site page
+     * invoke endpoints when XSRF protection is disabled. A {@code @Consumes} restriction is not used because it
+     * would also reject vendor JSON types.
      *
      * @param contentType the request Content-Type header, may be {@code null}
      * @throws NotSupportedException if the request is not declared as JSON
      */
-    private static void requireJsonContentType(String contentType) {
-        if (contentType == null || contentType.isBlank()) {
-            throw new NotSupportedException("Endpoint requests must declare a JSON Content-Type");
+    /**
+     * Rejects requests routed to the multipart method that are not declared as {@code multipart/form-data}.
+     * <p>
+     * Quarkus REST routes requests without Content-Type to the multipart overload. Without this check, a
+     * cross-site POST without Content-Type, which needs no CORS preflight, would invoke endpoint methods without
+     * parameters when XSRF protection is disabled.
+     *
+     * @param contentType the request Content-Type header, may be {@code null}
+     * @throws NotSupportedException if the request is not a multipart form
+     */
+    private static void requireMultipartContentType(String contentType) {
+        MediaType mediaType = parseContentType(contentType);
+        if (!"multipart".equalsIgnoreCase(mediaType.getType())
+                || !"form-data".equalsIgnoreCase(mediaType.getSubtype())) {
+            throw new NotSupportedException("Endpoint upload requests must use Content-Type multipart/form-data");
         }
-        MediaType mediaType;
+    }
+
+    private static MediaType parseContentType(String contentType) {
+        if (contentType == null || contentType.isBlank()) {
+            throw new NotSupportedException("Endpoint requests must declare a Content-Type");
+        }
         try {
-            mediaType = MediaType.valueOf(contentType);
+            return MediaType.valueOf(contentType);
         } catch (IllegalArgumentException e) {
             throw new NotSupportedException("Invalid Content-Type: " + contentType, e);
         }
+    }
+
+    private static boolean isBlank(byte[] body) {
+        if (body == null) {
+            return true;
+        }
+        for (byte b : body) {
+            if (!Character.isWhitespace(b)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static void requireJsonContentType(String contentType) {
+        MediaType mediaType = parseContentType(contentType);
         String subtype = mediaType.getSubtype().toLowerCase(Locale.ROOT);
         boolean json = "application".equalsIgnoreCase(mediaType.getType())
                 && (subtype.equals("json") || subtype.endsWith("+json") || subtype.equals("x-ndjson"));
@@ -146,7 +180,7 @@ public class QuarkusEndpointController {
      * used when there are uploaded files.
      * <p>
      * This method works as
-     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, String, String)},
+     * {@link #serveEndpoint(String, String, HttpServletRequest, HttpServletResponse, String, byte[])},
      * but it also captures the files uploaded in the request.
      *
      * @param endpointName the name of an endpoint to address the calls to, not case
@@ -167,8 +201,11 @@ public class QuarkusEndpointController {
             @PathParam("method") String methodName,
             @Context HttpServletRequest request,
             @Context HttpServletResponse response,
+            @HeaderParam(HttpHeaders.CONTENT_TYPE) String contentType,
             MultipartFormDataInput formData)
             throws IOException {
+        // Quarkus REST also routes requests without Content-Type here; only real multipart requests may pass
+        requireMultipartContentType(contentType);
         ResponseEntity<String> endpointResponse = delegate.serveMultipartEndpoint(
                 endpointName, methodName, new MultipartRequest(request, formData), response);
         return buildResponse(endpointResponse);
