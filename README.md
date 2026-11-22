@@ -141,6 +141,7 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 | Vaadin version | Status | Details |
 | --- | --- | --- |
 | `25.3.0` – `25.3.2` | Avoid with Quarkus-Hilla `25.3` | They manage Hilla `25.3.0` – `25.3.2`: in development mode, the TypeScript checker can report `TS2307` for `Frontend/generated/file-routes`. Use Vaadin `25.3.3` or newer. See [vaadin/hilla#6040](https://github.com/vaadin/hilla/issues/6040). |
+| `25.3.0` and newer, until the Copilot fix ships | Workaround needed for Kotlin projects | Copilot bundles an unrelocated Kotlin compiler, so Kotlin hot reload in development mode fails with `Error restarting Quarkus`. Exclude `com.vaadin:copilot` on the `quarkus-hilla` (or `quarkus-hilla-react`) dependency, see [Copilot: Kotlin Projects](docs/copilot-integration.md#kotlin-projects) and [vaadin/copilot#160](https://github.com/vaadin/copilot/issues/160). |
 
 ---
 
