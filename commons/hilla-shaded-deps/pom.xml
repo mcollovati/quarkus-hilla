@@ -112,6 +112,13 @@
                                 <filter>
                                     <artifact>org.springframework.data:spring-data-commons</artifact>
                                     <includes>
+                                        <!--
+                                            Sort.by(TypedPropertyPath...) needs TypedPropertyPath and its
+                                            super interface PropertyPath to be loadable when Sort methods
+                                            are registered for reflection (e.g. by quarkus-spring-data-jpa
+                                            in native builds).
+                                        -->
+                                        <include>org/springframework/data/core/PropertyPath.class</include>
                                         <include>org/springframework/data/core/TypedPropertyPath.class</include>
                                         <include>org/springframework/data/domain/AbstractPageRequest.class</include>
                                         <include>org/springframework/data/domain/Chunk.class</include>
