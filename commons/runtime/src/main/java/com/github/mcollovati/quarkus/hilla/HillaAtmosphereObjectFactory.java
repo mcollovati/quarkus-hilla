@@ -30,6 +30,8 @@ public class HillaAtmosphereObjectFactory extends InjectableObjectFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HillaAtmosphereObjectFactory.class);
 
+    static final String INJECTABLE_SERVICE_LOADER_FIELD = "injectableServiceLoader";
+
     private AtmosphereConfig config;
 
     public void configure(AtmosphereConfig config) {
@@ -50,13 +52,14 @@ public class HillaAtmosphereObjectFactory extends InjectableObjectFactory {
      */
     private void releaseInjectableServiceLoader() {
         try {
-            Field field = InjectableObjectFactory.class.getDeclaredField("injectableServiceLoader");
+            Field field = InjectableObjectFactory.class.getDeclaredField(INJECTABLE_SERVICE_LOADER_FIELD);
             field.setAccessible(true);
             if (field.get(this) instanceof ServiceLoader<?> serviceLoader) {
                 serviceLoader.reload();
             }
         } catch (ReflectiveOperationException | RuntimeException e) {
-            LOGGER.debug("Cannot reset the Atmosphere Injectable ServiceLoader", e);
+            // Not fatal in JVM mode, but native builds may fail again: make it visible
+            LOGGER.warn("Cannot reset the Atmosphere Injectable ServiceLoader", e);
         }
     }
 
