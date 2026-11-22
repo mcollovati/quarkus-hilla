@@ -17,8 +17,9 @@ env:
   HEAD_REF: ${{ github.head_ref }}
   REF_NAME: ${{ github.ref_name }}
   HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-  # Quarkus 4 pre-release used for the compatibility jobs. Move to the GA release once it is out.
-  QUARKUS_4_VERSION: 4.0.0.CR1
+  # Quarkus 4 version for the compatibility jobs; the pom stays on Quarkus 3 (the published baseline).
+  # Keep in sync with QUARKUS_4_VERSION in validation-native.yaml
+  QUARKUS_4_VERSION: 4.0.0
 jobs:
   changes:
     environment: ${{ github.event.pull_request.head.repo.fork && 'pr-validation' || '' }}

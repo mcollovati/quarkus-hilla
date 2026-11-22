@@ -128,7 +128,7 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 > [!NOTE]
 > Quarkus-Hilla's major/minor version matches Vaadin/Hilla. The Quarkus and Vaadin columns show minimum versions, which can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from Quarkus `3.27` to `3.32`, so Quarkus-Hilla `25.0.2` needs the newer Quarkus. The Quarkus column is what the bundled Vaadin Quarkus extension requires, not the version Quarkus-Hilla is built with.
 >
-> Quarkus 4: CI also builds and tests the development line against the Quarkus 4 pre-release (`4.0.0.CR1`), including the Quarkus 3 build running on Quarkus 4. Quarkus 4 is not officially supported until its GA release.
+> Quarkus 4: supported _(since 25.4)_ alongside Quarkus 3. The published artifacts are built against Quarkus 3 and run unchanged on Quarkus 4; CI tests both lines, including the Quarkus 3 build running on Quarkus 4.
 >
 > On v24 or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
