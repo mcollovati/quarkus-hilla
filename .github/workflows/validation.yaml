@@ -9,13 +9,17 @@ permissions:
   contents: read
   issues: read
 concurrency:
-  group: ${{ github.head_ref || github.ref_name }}
+  # Event name keeps a manual run on a PR branch from cancelling the pull request run
+  group: ${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 env:
   JAVA_VERSION: 21
   HEAD_REF: ${{ github.head_ref }}
   REF_NAME: ${{ github.ref_name }}
   HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+  # Quarkus 4 version for the compatibility jobs; the pom stays on Quarkus 3 (the published baseline).
+  # Keep in sync with QUARKUS_4_VERSION in validation-native.yaml
+  QUARKUS_4_VERSION: 4.0.0
 jobs:
   changes:
     environment: ${{ github.event.pull_request.head.repo.fork && 'pr-validation' || '' }}
@@ -72,12 +76,24 @@ jobs:
               - '!.github/scripts/format-check-report.tpl.md'
               - '!.github/dependabot.yml'
   build-and-test:
-    name: Build and test
+    name: Build and test (${{ matrix.quarkus }})
     needs: [changes]
     if: ${{ needs.changes.outputs.validation-required == 'true' }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        quarkus: [quarkus-3, quarkus-4]
     steps:
+      # Quarkus 3 uses the version in pom.xml; Quarkus 4 overrides quarkus.version
+      - name: Select Quarkus version
+        run: |
+          if [ "${{ matrix.quarkus }}" = "quarkus-4" ]; then
+            echo "QUARKUS_ARGS=-Dquarkus.version=${QUARKUS_4_VERSION}" >> "$GITHUB_ENV"
+          else
+            echo "QUARKUS_ARGS=" >> "$GITHUB_ENV"
+          fi
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -96,18 +112,18 @@ jobs:
       - name: Build
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true -Dmaven.javadoc.skip=false install $QUARKUS_ARGS
       - name: Test
         run: |
           set -x -e -o pipefail
-          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false
+          mvn -V -e -B -ntp verify -Dmaven.javadoc.skip=false -DtrimStackTrace=false $QUARKUS_ARGS
       - name: Package test output files
         if: ${{ failure() || success() }}
-        run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main.tgz -T -
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-main-${{ matrix.quarkus }}.tgz -T -
       - uses: actions/upload-artifact@v6
         if: ${{ failure() || success() }}
         with:
-          name: tests-output-ut
+          name: tests-output-ut-${{ matrix.quarkus }}
           path: tests-report-*.tgz
   e2e-dev-tests:
     name: End-to-end tests (Development)
@@ -223,13 +239,67 @@ jobs:
         with:
           name: tests-output-it-embedded-plugin
           path: tests-report-*.tgz
+  quarkus-4-binary-compat:
+    # The published artifacts are built against Quarkus 3; run them on Quarkus 4 in both modes.
+    # Development mode is where the Vaadin Quarkus extension has most of its own logic.
+    name: Quarkus 3 build on Quarkus 4 (${{ matrix.label }})
+    needs: [changes]
+    if: ${{ needs.changes.outputs.validation-required == 'true' }}
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: production
+            label: Production
+            profile: -Pproduction
+          - mode: development
+            label: Development
+            profile: ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{env.HEAD_SHA}}
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: 'temurin'
+          cache: maven
+      - uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
+        if: ${{ !vars.QH_DISABLE_CHROME_INSTALL }}
+        with:
+          chrome-version: stable
+      # Build and install the extension against the default Quarkus 3 version,
+      # exactly like the published artifacts.
+      - name: Build extension (Quarkus 3)
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp -DskipTests -DskipITs=true install -Dquarkus-hilla.test-mode=${{ matrix.mode }}
+      # Run the integration tests against Quarkus 4, using the extension jars
+      # installed by the previous step instead of rebuilding them.
+      - name: End-to-end Test on Quarkus 4 (${{ matrix.label }} mode)
+        run: |
+          set -x -e -o pipefail
+          mvn -V -e -B -ntp -f integration-tests/pom.xml verify -DtrimStackTrace=false -Dselenide.browserBinary=${{ steps.setup-chrome.outputs.chrome-path }} ${{ matrix.profile }} -Dquarkus-hilla.test-mode=${{ matrix.mode }} -Dquarkus.version=${{ env.QUARKUS_4_VERSION }}
+      - name: Package test output files
+        if: ${{ failure() || success() }}
+        run: find . -name surefire-reports -o -name failsafe-reports -o -name selenide-reports | tar -czf tests-report-quarkus-4-binary-compat-${{ matrix.mode }}.tgz -T -
+      - uses: actions/upload-artifact@v6
+        if: ${{ failure() || success() }}
+        with:
+          name: tests-output-quarkus-4-binary-compat-${{ matrix.mode }}
+          path: tests-report-*.tgz
   test-results:
     permissions:
       issues: read
       checks: write
       pull-requests: write
     if: ${{ always() }}
-    needs: [changes, build-and-test, e2e-dev-tests, e2e-prod-tests, e2e-embedded-plugin-tests]
+    needs: [changes, build-and-test, e2e-dev-tests, e2e-prod-tests, e2e-embedded-plugin-tests, quarkus-4-binary-compat]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -249,7 +319,7 @@ jobs:
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
       - name: Set Failure Status
-        if: ${{ always() && needs.changes.outputs.validation-required == 'true' && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success') }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success' || needs.quarkus-4-binary-compat.result != 'success') }}
         run: |
           echo "🚫 THERE ARE TEST MODULES WITH FAILURES or BEEN CANCELLED" | tee -a $GITHUB_STEP_SUMMARY
           exit 1

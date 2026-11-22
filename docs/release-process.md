@@ -172,6 +172,8 @@ migration guide, and delete it from this list.
 | Deprecated since | Removal | Item |
 |------------------|---------|------|
 | 25.3.0 | 26.0 | Replacing the `NavigationAccessControl` bean; applications use a `NavigationAccessControlConfigurer` instead. Remove the bean replacement support and its startup warning in `HillaSecurityRecorder`. See [ADR 0001](decisions/0001-customize-navigation-access-control-through-a-configurer.md). |
+| Quarkus 4.0 (upstream) | First line that drops Quarkus 3 | `@io.quarkus.arc.DefaultBean` is deprecated for removal in Quarkus 4. Replace each use (`QuarkusEndpointControllerConfiguration`, `NavigationAccessControlProducer`) with `@jakarta.enterprise.inject.Reserve` plus `@jakarta.annotation.Priority(0)`. `@Reserve` is a CDI 5 annotation that Quarkus 3 does not have, so the switch has to wait until Quarkus 3 support ends. |
+| Quarkus 4.0 (upstream) | First line that drops Quarkus 3 | Quarkus 3/4 bridges in `TypescriptClientCodeGenProvider`: replace the reflective `CodeGenContext.config()` lookup with a direct call, and drop the `shouldRun(Path, org.eclipse.microprofile.config.Config)` overload in favor of an `@Override` of the `io.smallrye.config.Config` variant. |
 
 ## Post-Release Tasks
 

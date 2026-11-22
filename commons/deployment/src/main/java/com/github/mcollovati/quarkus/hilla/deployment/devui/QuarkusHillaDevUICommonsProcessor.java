@@ -23,19 +23,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import io.quarkus.deployment.IsDevelopment;
 import io.quarkus.deployment.annotations.BuildProducer;
 import io.quarkus.deployment.annotations.BuildStep;
 import io.quarkus.deployment.builditem.CombinedIndexBuildItem;
 import io.quarkus.devui.spi.DevUIContent;
 import io.quarkus.devui.spi.buildtime.StaticContentBuildItem;
-import io.vertx.core.json.jackson.DatabindCodec;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.slf4j.LoggerFactory;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.json.JsonMapper;
 
 public class QuarkusHillaDevUICommonsProcessor {
 
@@ -101,10 +101,10 @@ public class QuarkusHillaDevUICommonsProcessor {
     }
 
     private String toJsonArrayString(List<EndpointInfo> endpointInfos) {
-        var mapper = DatabindCodec.mapper().writerWithDefaultPrettyPrinter();
+        var mapper = JsonMapper.builder().build().writerWithDefaultPrettyPrinter();
         try {
             return mapper.writeValueAsString(endpointInfos);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             LoggerFactory.getLogger(getClass()).error("Failed to serialize endpoints for Dev UI page", e);
             return "[]";
         }

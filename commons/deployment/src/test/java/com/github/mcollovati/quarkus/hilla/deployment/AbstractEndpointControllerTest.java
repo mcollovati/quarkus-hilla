@@ -17,6 +17,10 @@ package com.github.mcollovati.quarkus.hilla.deployment;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -78,6 +82,105 @@ abstract class AbstractEndpointControllerTest {
                 .statusCode(200)
                 .and()
                 .body(equalTo("30"));
+    }
+
+    @Test
+    void invokeEndpoint_malformedJsonBody_badRequest() {
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "echo", spec -> spec.body("{"))
+                .then()
+                .assertThat()
+                .statusCode(400);
+    }
+
+    @Test
+    void invokeEndpoint_nonObjectJsonBody_badRequest() {
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "echo", spec -> spec.body("[\"message\"]"))
+                .then()
+                .assertThat()
+                .statusCode(400);
+    }
+
+    @Test
+    void invokeEndpoint_vendorJsonContentType_accepted() {
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType("application/vnd.example+json; charset=UTF-8")
+                                .body("{\"message\":\"hello\"}"))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"hello\""));
+    }
+
+    @Test
+    void invokeEndpoint_plainTextBody_unsupportedMediaType() {
+        // A text/plain POST needs no CORS preflight; it must not reach the endpoint
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType(ContentType.TEXT).body("{\"message\":\"hello\"}"))
+                .then()
+                .assertThat()
+                .statusCode(415);
+    }
+
+    @Test
+    void invokeEndpoint_formUrlEncodedBody_unsupportedMediaType() {
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType(ContentType.URLENC).body("message=hello"))
+                .then()
+                .assertThat()
+                .statusCode(415);
+    }
+
+    @Test
+    void invokeEndpoint_noContentType_unsupportedMediaType() throws Exception {
+        // A POST without Content-Type needs no CORS preflight. Quarkus REST routes it to the multipart
+        // overload, so use a method without parameters: it would answer 200 "pong" if it ran.
+        // java.net.http sends no Content-Type unless told to; RestAssured may add one.
+        URI uri = URI.create(
+                RestAssured.baseURI + ":" + RestAssured.port + getEndpointPrefix() + "/" + getEndpointName() + "/ping");
+        HttpRequest request = HttpRequest.newBuilder(uri)
+                .header("Cookie", "csrfToken=CSRF_TOKEN")
+                .header("X-CSRF-Token", "CSRF_TOKEN")
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            Assertions.assertThat(response.request().headers().firstValue("Content-Type"))
+                    .isEmpty();
+            Assertions.assertThat(response.statusCode()).isEqualTo(415);
+            Assertions.assertThat(response.body()).doesNotContain("pong");
+        }
+    }
+
+    @Test
+    void invokeEndpoint_jsonContentType_methodWithoutParameters() {
+        givenEndpointRequest(getEndpointPrefix(), getEndpointName(), "ping")
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"pong\""));
+    }
+
+    @Test
+    void invokeEndpoint_utf16Body_accepted() {
+        givenEndpointRequest(
+                        getEndpointPrefix(),
+                        getEndpointName(),
+                        "echo",
+                        spec -> spec.contentType("application/json; charset=UTF-16")
+                                .body("{\"message\":\"h\u00e9llo\"}".getBytes(StandardCharsets.UTF_16)))
+                .then()
+                .assertThat()
+                .statusCode(200)
+                .body(equalTo("\"h\u00e9llo\""));
     }
 
     @Test

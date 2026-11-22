@@ -128,13 +128,15 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 > [!NOTE]
 > Quarkus-Hilla's major/minor version matches Vaadin/Hilla. The Quarkus and Vaadin columns show minimum versions, which can shift within a line — e.g. Vaadin `25.0.9` raised the [Vaadin Quarkus extension](https://github.com/vaadin/quarkus/) baseline from Quarkus `3.27` to `3.32`, so Quarkus-Hilla `25.0.2` needs the newer Quarkus. The Quarkus column is what the bundled Vaadin Quarkus extension requires, not the version Quarkus-Hilla is built with.
 >
+> Quarkus 4: supported _(since 25.4)_ alongside Quarkus 3. The published artifacts are built against Quarkus 3 and run unchanged on Quarkus 4; CI tests both lines, including the Quarkus 3 build running on Quarkus 4.
+>
 > On v24 or older? See [v24 Docs](docs/v24-docs.md) for setup notes and workarounds.
 
 ### Known incompatible Quarkus versions
 
 | Quarkus version | Status | Details |
 | --- | --- | --- |
-| `3.37.0`, `3.37.1` | Avoid | These versions can drop `ObjectNode` request body fields in Quarkus REST Jackson when reflection-free serializers are enabled. Upgrade to Quarkus `3.37.2` or newer. If upgrading is not possible, set `quarkus.rest.jackson.optimization.enable-reflection-free-serializers=false`. See [quarkusio/quarkus#55254](https://github.com/quarkusio/quarkus/issues/55254). |
+| `3.37.0`, `3.37.1` | Avoid | These versions can drop `ObjectNode` request body fields in Quarkus REST Jackson when reflection-free serializers are enabled. Upgrade to Quarkus `3.37.2` or newer. If upgrading is not possible, set `quarkus.rest.jackson.optimization.enable-reflection-free-serializers=false`. See [quarkusio/quarkus#55254](https://github.com/quarkusio/quarkus/issues/55254). Quarkus-Hilla 25.4 and newer read the request body without Quarkus REST Jackson and are not affected. |
 
 ### Known incompatible Vaadin versions
 
