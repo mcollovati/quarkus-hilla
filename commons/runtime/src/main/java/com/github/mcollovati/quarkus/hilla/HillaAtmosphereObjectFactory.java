@@ -17,18 +17,47 @@ package com.github.mcollovati.quarkus.hilla;
 
 import jakarta.enterprise.inject.spi.BeanManager;
 import jakarta.enterprise.inject.spi.CDI;
+import java.lang.reflect.Field;
+import java.util.ServiceLoader;
 
 import com.vaadin.hilla.push.PushEndpoint;
 import org.atmosphere.cpr.AtmosphereConfig;
 import org.atmosphere.inject.InjectableObjectFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class HillaAtmosphereObjectFactory extends InjectableObjectFactory {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HillaAtmosphereObjectFactory.class);
 
     private AtmosphereConfig config;
 
     public void configure(AtmosphereConfig config) {
         this.config = config;
         super.configure(config);
+        releaseInjectableServiceLoader();
+    }
+
+    /*
+     * InjectableObjectFactory iterates a ServiceLoader<Injectable> in
+     * configure() and never uses it again. After the iteration the loader still
+     * references its lazy class path lookup iterator, which keeps the class
+     * loader resource enumeration it was created from. In native builds the
+     * push servlet is configured at static init, so that enumeration ends up in
+     * the image heap and the build fails with "Type is not available in this
+     * platform: com.oracle.svm.hosted.NativeImageClassLoader$1". Reloading the
+     * loader drops the iterator and the enumeration.
+     */
+    private void releaseInjectableServiceLoader() {
+        try {
+            Field field = InjectableObjectFactory.class.getDeclaredField("injectableServiceLoader");
+            field.setAccessible(true);
+            if (field.get(this) instanceof ServiceLoader<?> serviceLoader) {
+                serviceLoader.reload();
+            }
+        } catch (ReflectiveOperationException | RuntimeException e) {
+            LOGGER.debug("Cannot reset the Atmosphere Injectable ServiceLoader", e);
+        }
     }
 
     @Override
