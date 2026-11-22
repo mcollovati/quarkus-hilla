@@ -25,41 +25,6 @@ The integration is intended for application inspection, Flow view editing, Hilla
 - Spring Data/JPA helper panels are not implemented.
 - H2 datasource helper information is not implemented.
 
-## Kotlin Projects
-
-> [!WARNING]
-> Since Vaadin 25.3, Kotlin hot reload in development mode fails while Copilot is on the class path. Exclude Copilot until a Vaadin release ships the Copilot fix ([vaadin/copilot#160](https://github.com/vaadin/copilot/issues/160)).
-
-Since Vaadin 25.3, Copilot bundles a Kotlin compiler for its Kotlin source rewriter, without relocating the compiler's own `org.jetbrains.kotlin` packages. In development mode, `quarkus-kotlin` recompiles changed `.kt` files with `org.jetbrains.kotlin:kotlin-compiler`, and Copilot's copy of the same classes shadows it. Every Kotlin edit then ends with `Error restarting Quarkus` and a `NoSuchFieldError` or `NoSuchMethodError` from the Kotlin compiler ([#2434](https://github.com/mcollovati/quarkus-hilla/issues/2434)).
-
-Quarkus does not log the failed restart. The error only appears in the error page of the request that triggered the reload; later requests are served by the previous application, so it looks as if the change was ignored.
-
-Java projects are not affected.
-
-### Workaround
-
-Exclude Copilot on the `quarkus-hilla` dependency in the Kotlin project's `pom.xml`:
-
-```xml
-<dependency>
-    <groupId>com.github.mcollovati</groupId>
-    <artifactId>quarkus-hilla</artifactId>
-    <exclusions>
-        <exclusion>
-            <groupId>com.vaadin</groupId>
-            <artifactId>copilot</artifactId>
-        </exclusion>
-    </exclusions>
-</dependency>
-```
-
-For React projects, put the exclusion on `quarkus-hilla-react` instead. Copilot reaches the application through `vaadin-dev`, a conditional development dependency of the Vaadin Quarkus extension. Quarkus applies the exclusion declared on the direct dependency to it, but ignores exclusions in `dependencyManagement`.
-
-Copilot is then unavailable in development mode. Remove the exclusion after upgrading to a Vaadin release with the fixed Copilot.
-
-> [!NOTE]
-> Do not use `quarkus.class-loading.removed-artifacts=com.vaadin:copilot` instead. Quarkus hides every resource name found in a removed artifact from all artifacts, so the compiler's own classes disappear too and development mode fails with `ClassNotFoundException: org.jetbrains.kotlin.cli.common.arguments.CommonCompilerArguments`. `quarkus.class-loading.removed-resources` has the same effect.
-
 ## Browser Callables
 
 Copilot browser-callable metadata is read from the Hilla `EndpointRegistry`.
