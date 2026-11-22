@@ -136,19 +136,6 @@
                         <configuration>
                             <deployment>${project.groupId}:${project.artifactId}-deployment:${project.version}
                             </deployment>
-                            <!--
-                              Copilot (since Vaadin 25.3) bundles a Kotlin compiler without relocating the
-                              org.jetbrains.kotlin packages. With lesser priority, a real kotlin-compiler on the
-                              class path (quarkus-kotlin dev mode recompilation) wins over Copilot's copy.
-                              Classes and resources found only in Copilot are still loaded from it.
-                              See https://github.com/mcollovati/quarkus-hilla/issues/2434
-                            -->
-                            <lesserPriorityArtifacts>
-                                <lesserPriorityArtifact>com.vaadin:copilot</lesserPriorityArtifact>
-                            </lesserPriorityArtifacts>
-                            <parentFirstArtifacts>
-                                <parentFirstArtifact>org.jetbrains.kotlin:kotlin-compiler</parentFirstArtifact>
-                            </parentFirstArtifacts>
                         </configuration>
                     </execution>
                 </executions>

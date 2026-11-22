@@ -36,6 +36,15 @@
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
+        <!--
+            Puts the Copilot jar of the sample projects on the test class path, so the test can check whether it
+            still bundles an unrelocated Kotlin compiler.
+        -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-maven</artifactId>
@@ -74,4 +83,24 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <!-- Same override as in the sample projects, see LiveReloadWithCopilotTest -->
+            <id>custom-copilot</id>
+            <activation>
+                <property>
+                    <name>copilot.version</name>
+                </property>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.vaadin</groupId>
+                        <artifactId>copilot</artifactId>
+                        <version>${copilot.version}</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+    </profiles>
 </project>

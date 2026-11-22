@@ -130,23 +130,5 @@
                 </dependencies>
             </dependencyManagement>
         </profile>
-        <profile>
-            <id>without-copilot</id>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.vaadin</groupId>
-                        <artifactId>vaadin-dev</artifactId>
-                        <version>${vaadin.version}</version>
-                        <exclusions>
-                            <exclusion>
-                                <groupId>com.vaadin</groupId>
-                                <artifactId>copilot</artifactId>
-                            </exclusion>
-                        </exclusions>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </profile>
     </profiles>
 </project>
