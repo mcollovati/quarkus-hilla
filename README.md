@@ -136,6 +136,12 @@ Each row applies from its Quarkus-Hilla version up to the next row above it.
 | --- | --- | --- |
 | `3.37.0`, `3.37.1` | Avoid | These versions can drop `ObjectNode` request body fields in Quarkus REST Jackson when reflection-free serializers are enabled. Upgrade to Quarkus `3.37.2` or newer. If upgrading is not possible, set `quarkus.rest.jackson.optimization.enable-reflection-free-serializers=false`. See [quarkusio/quarkus#55254](https://github.com/quarkusio/quarkus/issues/55254). |
 
+### Known incompatible Vaadin versions
+
+| Vaadin version | Status | Details |
+| --- | --- | --- |
+| `25.3.0` and newer, until the Copilot fix ships | Workaround needed for Kotlin projects | Copilot bundles an unrelocated Kotlin compiler, so Kotlin hot reload in development mode fails with `Error restarting Quarkus`. Exclude `com.vaadin:copilot` on the `quarkus-hilla` (or `quarkus-hilla-react`) dependency, see [Copilot: Kotlin Projects](docs/copilot-integration.md#kotlin-projects) and [vaadin/copilot#160](https://github.com/vaadin/copilot/issues/160). |
+
 ---
 
 ## ⚙️ Configuration
