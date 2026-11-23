@@ -24,7 +24,7 @@
     "mobx": "^6.3.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "react-router": "7.18.4"
+    "react-router": "7.18.5"
   },
   "devDependencies": {
     "@babel/core": "7.29.7",
@@ -176,7 +176,7 @@
       "lit": "3.3.3",
       "react": "19.3.1",
       "react-dom": "19.3.1",
-      "react-router": "7.18.4"
+      "react-router": "7.18.5"
     },
     "devDependencies": {
       "@babel/core": "7.29.7",
@@ -212,7 +212,7 @@
       "vite": "8.3.5",
       "vite-plugin-checker": "0.14.5"
     },
-    "hash": "4b3529b2f841edbfbd1e438d85b36951a2b2d0337cb0d85bb218be249ba23f15"
+    "hash": "c17c83b0a620dcfea897b5748fd05f14e4f5b68854e6ad13cf4e97a33b7811fc"
   },
   "type": "module"
 }
