@@ -27,7 +27,26 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       validation-required: ${{ steps.filter.outputs.validate }}
+      quarkus-versions: ${{ steps.quarkus.outputs.versions }}
     steps:
+      # pull_request_target always runs this file from the default branch, also for pull requests
+      # against release branches. Quarkus 4 is supported from 25.4 on, so release branches up to
+      # 25.3 only build against Quarkus 3. Pushes and manual runs use the ref's own workflow file.
+      - name: Select Quarkus versions
+        id: quarkus
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          versions='["quarkus-3","quarkus-4"]'
+          if [[ "$BASE_REF" =~ ^([0-9]+)\.([0-9]+)$ ]]; then
+            major=${BASH_REMATCH[1]}
+            minor=${BASH_REMATCH[2]}
+            if (( major < 25 || (major == 25 && minor < 4) )); then
+              versions='["quarkus-3"]'
+            fi
+          fi
+          echo "Base ref '${BASE_REF}': ${versions}"
+          echo "versions=${versions}" >> "$GITHUB_OUTPUT"
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -84,7 +103,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        quarkus: [quarkus-3, quarkus-4]
+        quarkus: ${{ fromJSON(needs.changes.outputs.quarkus-versions) }}
     steps:
       # Quarkus 3 uses the version in pom.xml; Quarkus 4 overrides quarkus.version
       - name: Select Quarkus version
@@ -244,7 +263,7 @@ jobs:
     # Development mode is where the Vaadin Quarkus extension has most of its own logic.
     name: Quarkus 3 build on Quarkus 4 (${{ matrix.label }})
     needs: [changes]
-    if: ${{ needs.changes.outputs.validation-required == 'true' }}
+    if: ${{ needs.changes.outputs.validation-required == 'true' && contains(needs.changes.outputs.quarkus-versions, 'quarkus-4') }}
     timeout-minutes: 30
     runs-on: ubuntu-latest
     strategy:
@@ -319,7 +338,7 @@ jobs:
         with:
           junit_files: "**/target/*-reports/TEST*.xml"
       - name: Set Failure Status
-        if: ${{ always() && needs.changes.outputs.validation-required == 'true' && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success' || needs.quarkus-4-binary-compat.result != 'success') }}
+        if: ${{ always() && needs.changes.outputs.validation-required == 'true' && (needs.build-and-test.result != 'success' || needs.e2e-dev-tests.result != 'success' || needs.e2e-prod-tests.result != 'success' || (needs.quarkus-4-binary-compat.result != 'success' && needs.quarkus-4-binary-compat.result != 'skipped')) }}
         run: |
           echo "🚫 THERE ARE TEST MODULES WITH FAILURES or BEEN CANCELLED" | tee -a $GITHUB_STEP_SUMMARY
           exit 1
