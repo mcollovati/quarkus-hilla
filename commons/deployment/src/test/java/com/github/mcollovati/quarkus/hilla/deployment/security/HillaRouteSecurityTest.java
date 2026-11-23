@@ -69,10 +69,21 @@ class HillaRouteSecurityTest {
                             new StringAsset("<!DOCTYPE html><html><head></head><body>Hilla app shell</body></html>"),
                             "META-INF/VAADIN/webapp/index.html")
                     .addAsResource(new StringAsset("""
-                            [{"route":"protected", "loginRequired":true},
+                            [{"route":":id?", "loginRequired":true},
+                             {"route":""},
+                             {"route":"protected", "loginRequired":true},
                              {"route":"public"},
+                             {"route":"public/*"},
                              {"route":"admin", "rolesAllowed":["ADMIN"]},
-                             {"route":"protected-wildcard/*", "loginRequired":true}]
+                             {"route":"products/:id", "loginRequired":true},
+                             {"route":"optional/:id?", "loginRequired":true},
+                             {"route":"café", "loginRequired":true},
+                             {"route":"public-products/:id"},
+                             {"route":"protected-wildcard/*", "loginRequired":true},
+                             {"route":":lang?", "children":[
+                               {"route":":id/foo", "loginRequired":true}, {"route":"foo"}]},
+                             {"route":"skip-layouts/:id"},
+                             {"route":"skip-layouts/:name", "loginRequired":true, "skipLayouts":true}]
                             """), "META-INF/VAADIN/file-routes.json"));
 
     @BeforeAll
@@ -92,6 +103,17 @@ class HillaRouteSecurityTest {
     }
 
     @Test
+    void anonymousGet_emptyPathLeafAndSecuredOptionalSibling_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
     void anonymousHead_loginRequired_challenged() {
         given().redirects()
                 .follow(false)
@@ -100,6 +122,118 @@ class HillaRouteSecurityTest {
                 .then()
                 .statusCode(302)
                 .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_parameterizedSecuredRoute_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/products/123")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_optionalParentExpansionTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/en/foo")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousHead_optionalParentExpansionTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .head("/en/foo")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_skipLayoutsTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/skip-layouts/42")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousHead_skipLayoutsTie_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .head("/skip-layouts/42")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_optionalSecuredRoute_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/optional")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_mixedCaseSecuredRoute_challenged() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/PROTECTED")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_encodedSecuredRoute_challenged() {
+        given().urlEncodingEnabled(false)
+                .redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/caf%C3%A9")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_encodedDotSegmentsToSecuredRoute_challenged() {
+        // Encoded dot segments preserve the traversal path through the HTTP client's URI handling.
+        given().urlEncodingEnabled(false)
+                .redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/public/%2e%2e/protected")
+                .then()
+                .statusCode(302)
+                .header("Location", endsWith("/login"));
+    }
+
+    @Test
+    void anonymousGet_publicParameterizedRoute_permitted() {
+        given().redirects()
+                .follow(false)
+                .accept("text/html")
+                .get("/public-products/123")
+                .then()
+                .statusCode(200);
     }
 
     @Test
@@ -128,7 +262,7 @@ class HillaRouteSecurityTest {
         given().redirects()
                 .follow(false)
                 .accept("text/html")
-                .get("/unknown")
+                .get("/unknown/path")
                 .then()
                 .statusCode(200);
     }
