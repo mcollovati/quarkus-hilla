@@ -15,7 +15,6 @@
  */
 package com.github.mcollovati.quarkus.hilla.security;
 
-import java.util.Optional;
 import java.util.Set;
 
 import io.quarkus.arc.ClientProxy;
@@ -26,12 +25,16 @@ import io.quarkus.vertx.http.runtime.security.ChallengeData;
 import io.quarkus.vertx.http.runtime.security.FormAuthenticationMechanism;
 import io.quarkus.vertx.http.runtime.security.HttpAuthenticationMechanism;
 import io.smallrye.mutiny.Uni;
-import io.vertx.core.http.Cookie;
 import io.vertx.core.http.CookieSameSite;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
+/**
+ * Wraps the form authentication mechanism Quarkus uses, whether it is set up with the
+ * {@code quarkus.http.auth.form.*} properties or with {@code HttpSecurity}, to answer login
+ * requests of the Hilla TypeScript client. Logout is handled by {@link FormLogoutHandler}.
+ */
 public class HillaFormAuthenticationMechanism implements HttpAuthenticationMechanism {
     private static final String AUTHENTICATION_MECHANISM_KEY = HttpAuthenticationMechanism.class.getName();
 
@@ -46,10 +49,6 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
 
     @Override
     public Uni<SecurityIdentity> authenticate(RoutingContext context, IdentityProviderManager identityProviderManager) {
-        if (context.normalizedPath().equals(config.logoutPath())) {
-            logout(context);
-            return Uni.createFrom().optional(Optional.empty());
-        }
         HttpServerRequest request = context.request();
         if ("typescript".equals(request.getHeader("source"))) {
             HttpServerResponse response = context.response();
@@ -93,23 +92,18 @@ public class HillaFormAuthenticationMechanism implements HttpAuthenticationMecha
         return delegate.getCredentialTypes();
     }
 
-    private void logout(RoutingContext ctx) {
-        // Request cookies do not include path or domain and may be absent when logout is outside the cookie path.
-        // Expire the configured scope explicitly so clients clear the authentication cookie in either case.
-        Cookie cookie = Cookie.cookie(config.cookieName(), "")
-                .setMaxAge(0)
-                .setPath(config.cookiePath())
-                .setDomain(config.cookieDomain())
-                .setSecure(ctx.request().isSSL())
-                .setHttpOnly(config.httpOnlyCookie())
-                .setSameSite(config.cookieSameSite());
-        ctx.response().addCookie(cookie);
-        if (config.invalidateSessions() && ctx.session() != null) {
-            ctx.session().destroy();
-        }
-        if (config.postLogoutRedirect() != null) {
-            ctx.redirect(config.postLogoutRedirect());
-        }
+    /**
+     * Reports the priority of the wrapped mechanism, so that a priority set on a form mechanism
+     * configured with {@code HttpSecurity} or {@code quarkus.http.auth.form.priority} is kept.
+     * <p>
+     * A form mechanism set up with {@code HttpSecurity} is also in the Quarkus mechanism chain on
+     * its own. With equal priorities, Quarkus orders CDI mechanisms such as this wrapper first.
+     *
+     * @return the priority of the wrapped mechanism
+     */
+    @Override
+    public int getPriority() {
+        return delegate.getPriority();
     }
 
     public record Config(
