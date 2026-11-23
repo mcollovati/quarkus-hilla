@@ -72,8 +72,10 @@ checked in addition to the annotation of the view.
 #### Login view
 
 Anonymous users who open a view that requires authentication are redirected to the login view.
-The extension uses `quarkus.http.auth.form.login-page` as the login view, so navigation within
-the application and the Quarkus form login redirect lead to the same page.
+The extension uses the login page of the Quarkus form mechanism as the login view, so navigation
+within the application and the Quarkus form login redirect lead to the same page. The login page is
+set with `quarkus.http.auth.form.login-page` or in code, see
+[Form login set up in code](#form-login-set-up-in-code).
 
 Since 25.3.0, the access control is customized with a
 [configurer](#customizing-the-access-control). An application can still replace it with its own
@@ -81,8 +83,8 @@ Since 25.3.0, the access control is customized with a
 `QuarkusNavigationAccessControl` has to be `@Singleton`. The extension applies the login page to
 that bean as well, unless the bean defines its own login view:
 
-- A bean extending `QuarkusNavigationAccessControl` with a login URL that differs from
-  `quarkus.http.auth.form.login-page` fails the application startup, also when the access check is
+- A bean extending `QuarkusNavigationAccessControl` with a login URL that differs from the form
+  login page fails the application startup, also when the access check is
   disabled. The error names both values.
 - A login view class set by a bean extending `QuarkusNavigationAccessControl` is kept.
 - A bean that does not extend `QuarkusNavigationAccessControl` keeps its login view if it rejects
@@ -194,11 +196,10 @@ as well.
 `withDecisionResolver(...)` takes precedence over the `AccessCheckDecisionResolver` bean. Without
 it, the application's resolver bean is used, or the extension's default.
 
-`withLoginView(...)` is optional. Without it, the extension uses
-`quarkus.http.auth.form.login-page`. A login URL set on the configurer must match that property;
-a different URL fails the startup, also with the access check disabled, and the error names both
-values. A login view class is kept, and the startup log names both values, as its route cannot be
-compared with the property.
+`withLoginView(...)` is optional. Without it, the extension uses the form login page. A login URL
+set on the configurer must match it; a different URL fails the startup, also with the access check
+disabled, and the error names both values. A login view class is kept, and the startup log names
+both values, as its route cannot be compared with the login page.
 Setting two different login views on one configurer fails immediately.
 
 `disabled()` disables the access control. Setting the build-time property
@@ -223,9 +224,16 @@ are constructed. The startup order is tracked in
 
 ### Form logout cookie scope
 
-Form logout expires the authentication cookie using Quarkus's configured path,
-domain, HttpOnly and SameSite settings. On HTTPS it also sets Secure, including
-for `__Host-` and `__Secure-` cookie names.
+Logout is handled at `vaadin.security.logout-path` before authentication, so it depends neither on
+the priority of the form mechanism nor on restoring the identity from the cookie, which fails for
+example for a deleted account. The logout request itself is anonymous.
+
+Logout expires the authentication cookie with its name, path, domain, HttpOnly and SameSite
+settings, also when the request carries no cookie because the logout path is outside the cookie
+path. It expires the cookie of the `quarkus.http.auth.form.*` properties and, if it differs, the
+cookie of a form mechanism set up with `HttpSecurity`, see
+[Form login set up in code](#form-login-set-up-in-code). It sets Secure on HTTPS, for `__Host-`
+and `__Secure-` cookie names and for `SameSite=None`.
 
 For reliable logout, configure an explicit `quarkus.http.auth.form.cookie-path`;
 the default is `/`. An empty value lets browsers derive cookie paths from login
@@ -258,11 +266,46 @@ rest is regular Quarkus configuration.
 The navigation access control is on by default with form authentication. In Spring it is only
 turned on through `VaadinSecurityConfigurer`.
 
-Quarkus also offers a programmatic `HttpSecurity` API, comparable to Spring's `HttpSecurity`.
-Configure form login through the `quarkus.http.auth.form.*` properties for now: the extension
-does not pick up a form mechanism set up in code yet
-([#2338](https://github.com/mcollovati/quarkus-hilla/issues/2338),
-[#2339](https://github.com/mcollovati/quarkus-hilla/issues/2339)).
+Quarkus also offers a programmatic `HttpSecurity` API, comparable to Spring's `HttpSecurity`. Form
+login set up with it is supported, see [Form login set up in code](#form-login-set-up-in-code).
+
+<a id="form-login-set-up-in-code"></a>
+
+### Form login set up in code
+
+Quarkus can set up form login with `HttpSecurity` instead of the `quarkus.http.auth.form.*`
+properties:
+
+```java
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+
+import io.quarkus.vertx.http.security.Form;
+import io.quarkus.vertx.http.security.HttpSecurity;
+
+@ApplicationScoped
+class Security {
+
+    void configure(@Observes HttpSecurity http) {
+        http.mechanism(Form.builder().loginPage("/login").landingPage("/home").build());
+    }
+}
+```
+
+Also set `quarkus.http.auth.form.enabled=true`. The property is fixed at build time and activates
+the extension's form security; Quarkus then provides the mechanism set up in code as a CDI bean,
+which the extension wraps for the Hilla login. Without the property, Quarkus form login works, but
+the access check for Flow views, the extension's security policy and the logout handling are not
+active. Quarkus rejects a mechanism set up in code together with other `quarkus.http.auth.form.*`
+properties, but not together with `enabled`.
+
+The extension uses the settings of that mechanism: the login page as the Flow login view, the
+login page, error page and post location as public paths, the landing page for the Hilla login,
+its priority, and its cookie name, path and domain for logout. Quarkus has no public API for the
+pages and the cookie settings, so the extension reads them from the mechanism. If that fails, it
+logs a warning and uses the `quarkus.http.auth.form.*` properties; logout then expires a cookie
+name or path set up in code only when the logout request carries the cookie, the identity is
+restored from it and no post-logout redirect is configured.
 
 <a id="copilot"></a>
 
